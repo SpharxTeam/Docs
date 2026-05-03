@@ -43,9 +43,9 @@ docker run -d \
 ```bash
 docker run -it --rm \
   -v $(pwd):/workspace/AgentOS \
-  -w /workspace/AgentOS/build \
+  -w /workspace/AgentOS \
   agentos:v0.0.4 \
-  bash -c "cmake .. && make -j$(nproc) && ctest --output-on-failure"
+  bash -c "cmake -B ../AgentOS-build && cmake --build ../AgentOS-build -j$(nproc) && cd ../AgentOS-build && ctest --output-on-failure"
 ```
 
 ---
