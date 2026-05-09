@@ -3,13 +3,13 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS 快速入门指南
 
-**版本**: Doc V1.8
+**版本**: Doc V2.0
 **最后更新**: 2026-04-10
 **难度**: ⭐ 初学者友好
 **预计时间**: 15 分钟
 **作者**: Team
-  - Zhixian Zhou | Spharx Ltd. zhouzhixian@spharx.cn
-  - Liren Wang | Spharx Ltd. wangliren@spharx.cn
+  - Zhixian Zhou | Spharx Ltd. team@spharx.cn
+  - Liren Wang | Spharx Ltd. team@spharx.cn
   - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
   - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
   - Daxiang Zhu | IndieBros. zdxever@sina.com

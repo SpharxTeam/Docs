@@ -6,7 +6,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 > **版本**: v1.0.0  
 > **创建日期**: 2026-04-03  
 > **状态**: 活跃 (Active)  
-> **维护者**: @zhouzhixian, @wangliren
+> **维护者**: @SpharxTeam
 
 ---
 
@@ -46,7 +46,7 @@ This directory contains integration standards and best practices between AgentOS
 
 ## 📐 架构原则对齐 / Architecture Principles Alignment
 
-基于 **ARCHITECTURAL_PRINCIPLES.md V1.8** 五维正交系统。
+基于 **ARCHITECTURAL_PRINCIPLES.md V2.0** 五维正交系统。
 
 ### 应用的核心原则 / Key Principles Applied
 

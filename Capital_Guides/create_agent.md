@@ -3,13 +3,13 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS Agent 创建指南
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **难度**: ⭐⭐ 中级  
 **预计时间**: 30 分钟  
 **作者**: Team
-  - Zhixian Zhou | Spharx Ltd. zhouzhixian@spharx.cn
-  - Liren Wang | Spharx Ltd. wangliren@spharx.cn
+  - Zhixian Zhou | Spharx Ltd. team@spharx.cn
+  - Liren Wang | Spharx Ltd. team@spharx.cn
   - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
   - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
   - Daxiang Zhu | IndieBros. zdxever@sina.com
@@ -710,7 +710,7 @@ if (ret != 0) {
 - [架构设计原则](../architecture/ARCHITECTURAL_PRINCIPLES.md)
 - [Skill 创建指南](create_skill.md)
 - [编码规范](../Capital_Specifications/coding_standard/C_coding_style_standard.md)
-- [系统调用 API](../architecture/folder/syscall.md)
+- [系统调用 API](../Capital_Architecture/syscall.md)
 
 ---
 

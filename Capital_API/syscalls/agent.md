@@ -3,7 +3,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS Agent 管理 API
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **状态**: 🟢 生产就绪
 
@@ -993,8 +993,8 @@ CREATED ──init()──► INITING ──init_done()──► READY
 - [任务管理 API](task.md) - 任务生命周期管理 API
 - [记忆管理 API](memory.md) - 记忆读写和查询 API
 - [会话管理 API](session.md) - 会话生命周期管理 API
-- [架构设计：三层运行时](../../architecture/folder/coreloopthree.md) - CoreLoopThree 架构详解
-- [开发指南：创建 Agent](../../guides/folder/create_agent.md) - Agent 开发教程
+- [架构设计：三层运行时](../../Capital_Architecture/coreloopthree.md) - CoreLoopThree 架构详解
+- [开发指南：创建 Agent](../../Capital_Guides/create_agent.md) - Agent 开发教程
 
 ---
 

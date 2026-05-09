@@ -3,12 +3,12 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # manuals 模块功能说明
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **状态**: 🟢 生产就绪  
 **作者**: Team
-  - Zhixian Zhou | Spharx Ltd. zhouzhixian@spharx.cn
-  - Liren Wang | Spharx Ltd. wangliren@spharx.cn
+  - Zhixian Zhou | Spharx Ltd. team@spharx.cn
+  - Liren Wang | Spharx Ltd. team@spharx.cn
   - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
   - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
   - Daxiang Zhu | IndieBros. zdxever@sina.com
@@ -475,7 +475,7 @@ security:
 ## 📚 相关文档
 
 - [API 参考文档](../../api/README.md)
-- [架构设计文档](../../architecture/folder/partdocs_architecture.md)
+- [架构设计文档](../ARCHITECTURAL_PRINCIPLES.md)
 - [安装指南](./getting_started.md)
 - [配置手册](./deployment.md)
 - [故障排除指南](./troubleshooting.md)

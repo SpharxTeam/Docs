@@ -3,7 +3,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS 可观测性 API
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **状态**: 🟢 生产就绪
 
@@ -917,7 +917,7 @@ void make_request(void)
 - [任务管理 API](task.md) - 任务生命周期管理 API
 - [记忆管理 API](memory.md) - 记忆读写和查询 API
 - [会话管理 API](session.md) - 会话生命周期管理 API
-- [架构设计：日志系统](../../architecture/folder/logging_system.md) - 统一日志架构详解
+- [架构设计：日志系统](../../Capital_Architecture/logging_system.md) - 统一日志架构详解
 
 ---
 

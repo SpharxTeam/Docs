@@ -3,7 +3,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS Go SDK
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **状态**: 🟢 生产就绪  
 **Go 版本**: 1.21+
@@ -437,7 +437,7 @@ func TestAgentSubmitTask(t *testing.T) {
 - [系统调用 API](../../syscalls/) - 底层 C API 参考
 - [Python SDK](../python/README.md) - Python SDK 文档
 - [Rust SDK](../rust/README.md) - Rust SDK 文档
-- [开发指南：创建 Agent](../../../guides/folder/create_agent.md) - Agent 开发教程
+- [开发指南：创建 Agent](../../../../Capital_Guides/create_agent.md) - Agent 开发教程
 
 ---
 

@@ -3,7 +3,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS 日志格式规范
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **状态**: 正式发布  
 **归属**: AgentOS 可观测性核心规范  
 **作者**: LirenWang  
@@ -935,14 +935,14 @@ class BatchHandler:
 | [系统调用 API 规范](./syscall_api_contract.md) | 系统调用的错误处理和审计日志应遵循本规范 |
 | [日志打印规范](../coding_standard/Log_standard.md) | 本规范定义日志格式，Log_standard.md 定义打印方法和最佳实践 |
 | [统一术语表](../TERMINOLOGY.md) | 本规范使用的术语定义和解释 |
-| [架构设计原则](../../../architecture/folder/architectural_design_principles.md) | 本规范的设计原则基于五维正交体系，是可观测性原则的具体实现 |
+| [架构设计原则](../../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md) | 本规范的设计原则基于五维正交体系，是可观测性原则的具体实现 |
 
 ---
 
 ## 参考文献
 
-[1] AgentOS 设计哲学。../../philosophy/Design_Principles.md  
-[2] 架构设计原则。../../../architecture/folder/architectural_design_principles.md  
+[1] AgentOS 设计哲学。../../Basic_Theories/CN_04_设计原则.md  
+[2] 架构设计原则。../../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md  
 [3] 统一术语表。../TERMINOLOGY.md  
 [4] OpenTelemetry Specification. https://opentelemetry.io/docs/specs/otel/  
 [5] Structured Logging Best Practices. https://github.com/open-telemetry/community/blob/main/cross-specification/stable/telemetry-specification.md  
@@ -954,12 +954,12 @@ class BatchHandler:
 
 | 版本 | 日期 | 作者 | 变更说明 |
 |------|------|------|---------|
-| Doc V1.6 | 2026-03-25 | DechengLi | 根据架构设计原则V1.6进行全面优化，更新理论基础，重构五维正交体系映射，补充可测试性原则应用 |
-| Doc V1.5 | 2026-03-24 | DechengLi | 增加与设计哲学的关系章节，优化表述结构 |
-| Doc V1.4 | 2026-03-24 | DechengLi | 按文档格式规范重新编写 |
-| Doc V1.3 | 2026-03-23 | Chenzhang | 基于项目实际架构全面重构 |
-| Doc V1.2 | 2026-03-21 | DechengLi | 基于系统工程理论重构 |
-| Doc V1.1 | 2026-02-01 | DechengLi | 原始日志格式规范 |
+| Doc V2.0 | 2026-03-25 | DechengLi | 根据架构设计原则V1.6进行全面优化，更新理论基础，重构五维正交体系映射，补充可测试性原则应用 |
+| Doc V2.0 | 2026-03-24 | DechengLi | 增加与设计哲学的关系章节，优化表述结构 |
+| Doc V2.0 | 2026-03-24 | DechengLi | 按文档格式规范重新编写 |
+| Doc V2.0 | 2026-03-23 | Chenzhang | 基于项目实际架构全面重构 |
+| Doc V2.0 | 2026-03-21 | DechengLi | 基于系统工程理论重构 |
+| Doc V2.0 | 2026-02-01 | DechengLi | 原始日志格式规范 |
 
 ---
 

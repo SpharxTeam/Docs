@@ -3,7 +3,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS 会话管理 API
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **状态**: 🟢 生产就绪
 
@@ -896,7 +896,7 @@ void session_search_example(void)
 - [记忆管理 API](memory.md) - 记忆读写和查询 API
 - [可观测性 API](telemetry.md) - 指标、日志和追踪 API
 - [Agent 管理 API](agent.md) - Agent 生命周期管理 API
-- [架构设计：三层运行时](../../architecture/folder/coreloopthree.md) - CoreLoopThree 架构详解
+- [架构设计：三层运行时](../../Capital_Architecture/coreloopthree.md) - CoreLoopThree 架构详解
 
 ---
 

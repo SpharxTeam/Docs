@@ -3,11 +3,11 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS 进程间通信（IPC）架构详解
 
-**版本**: Doc V1.8
-**更新日期**: 2026-04-09
+**版本**: Doc V2.0
+**更新日期**: 2026-04-27
 **作者**: Team
-  - Zhixian Zhou | Spharx Ltd. zhouzhixian@spharx.cn
-  - Liren Wang | Spharx Ltd. wangliren@spharx.cn
+  - Zhixian Zhou | Spharx Ltd. team@spharx.cn
+  - Liren Wang | Spharx Ltd. team@spharx.cn
   - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
   - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
   - Daxiang Zhu | IndieBros. zdxever@sina.com
@@ -908,7 +908,7 @@ agentos_ipc_recv(channel, (void**)&response, &len, 5000);
 
 ---
 
-## 7. 实现状态 (Doc V1.8)
+## 7. 实现状态 (Doc V2.0)
 
 ### 7.1 已完成功能
 

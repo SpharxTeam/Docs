@@ -3,7 +3,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # 常见问题 FAQ
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **维护者**: @spharx-team/support  
 
@@ -384,7 +384,7 @@ docker exec agentos-postgres-dev psql -U agentos -d agentos -c "SELECT 1;"
 
 1. **不要公开发布漏洞详情**
 2. **通过安全渠道报告**:
-   - Email: wangliren@spharx.cn
+   - Email: team@spharx.cn
    - PGP公钥: [SECURITY.md](../../.gitcode/SECURITY.md)
 3. **等待确认**:
    - Critical: 24小时内响应

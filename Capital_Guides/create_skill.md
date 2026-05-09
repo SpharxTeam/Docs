@@ -3,13 +3,13 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS Skill 创建指南
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **最后更新**: 2026-04-09  
 **难度**: ⭐⭐ 中级  
 **预计时间**: 25 分钟  
 **作者**: Team
-  - Zhixian Zhou | Spharx Ltd. zhouzhixian@spharx.cn
-  - Liren Wang | Spharx Ltd. wangliren@spharx.cn
+  - Zhixian Zhou | Spharx Ltd. team@spharx.cn
+  - Liren Wang | Spharx Ltd. team@spharx.cn
   - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
   - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
   - Daxiang Zhu | IndieBros. zdxever@sina.com
@@ -664,7 +664,7 @@ agentos-cli skill validate --contract skill_contract.json
 - [Skill 契约规范](../specifications/agentos_contract/skill/skill_contract.md)
 - [Agent 创建指南](create_agent.md)
 - [编码规范](../Capital_Specifications/coding_standard/C_coding_style_standard.md)
-- [安全穹顶](../architecture/folder/microkernel.md)
+- [安全穹顶](../Capital_Architecture/microkernel.md)
 
 ---
 

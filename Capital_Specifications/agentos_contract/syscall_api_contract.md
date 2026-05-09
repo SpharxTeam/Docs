@@ -3,7 +3,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # AgentOS 系统调用 API 规范
 
-**版本**: Doc V1.8  
+**版本**: Doc V2.0  
 **状态**: 正式发布  
 **归属**: AgentOS 内核接口核心规范  
 **作者**: LirenWang  
@@ -67,7 +67,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 | 术语 | 简要定义 | 来源 |
 |------|---------|------|
 | 系统调用 (Syscall) | 用户态进入内核的唯一入口 | 本规范 |
-| 微内核/原子内核 (Microkernel/CoreKern) | 只提供不可再分原子机制的最小化内核：IPC、内存管理、任务调度、时间服务 | [架构设计原则](../../../architecture/folder/architectural_design_principles.md) |
+| 微内核/原子内核 (Microkernel/CoreKern) | 只提供不可再分原子机制的最小化内核：IPC、内存管理、任务调度、时间服务 | [架构设计原则](../../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md) |
 | TraceID | 分布式追踪的唯一标识 | [日志打印规范](../coding_standard/Log_standard.md) |
 
 ---
@@ -994,7 +994,7 @@ ERROR_MAP = {
 | 引用规范 | 关系说明 |
 |---------|---------|
 | [通信协议规范](./protocol_contract.md) | 本规范定义系统调用的 API 接口，protocol_contract.md 定义了传输协议 |
-| [架构设计原则](../../../architecture/folder/architectural_design_principles.md) | 本规范是架构原则在系统调用层面的具体实现 |
+| [架构设计原则](../../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md) | 本规范是架构原则在系统调用层面的具体实现 |
 | [日志格式规范](./logging_format.md) | 系统调用的日志记录应遵循统一的日志格式 |
 | [日志打印规范](../coding_standard/Log_standard.md) | 错误处理和审计日志的记录规范 |
 | [统一术语表](../TERMINOLOGY.md) | 本规范使用的术语定义和解释 |
@@ -1003,8 +1003,8 @@ ERROR_MAP = {
 
 ## 参考文献
 
-[1] AgentOS 设计哲学。../../philosophy/Design_Principles.md  
-[2] 架构设计原则。../../../architecture/folder/architectural_design_principles.md  
+[1] AgentOS 设计哲学。../../Basic_Theories/CN_04_设计原则.md  
+[2] 架构设计原则。../../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md  
 [3] 统一术语表。../TERMINOLOGY.md  
 [4] Microkernel Architecture. https://en.wikipedia.org/wiki/Microkernel  
 [5] POSIX System Call Interface. https://pubs.opengroup.org/onlinepubs/9699919799/  
@@ -1015,12 +1015,12 @@ ERROR_MAP = {
 
 | 版本 | 日期 | 作者 | 变更说明 |
 |------|------|------|---------|
-| Doc V1.6 | 2026-03-25 | DechengLi | 根据架构设计原则V1.6进行全面优化，更新理论基础，重构五维正交体系映射，补充可测试性原则应用 |
-| Doc V1.5 | 2026-03-24 | DechengLi | 增加与设计哲学的关系章节，优化表述结构 |
-| Doc V1.4 | 2026-03-24 | DechengLi | 按文档格式规范重新编写 |
-| Doc V1.3 | 2026-03-23 | Chenzhang | 基于项目实际架构全面重构 |
-| Doc V1.2 | 2026-03-21 | DechengLi | 基于系统工程理论重构 |
-| Doc V1.1 | 2026-02-01 | DechengLi | 原始系统调用规范 |
+| Doc V2.0 | 2026-03-25 | DechengLi | 根据架构设计原则V1.6进行全面优化，更新理论基础，重构五维正交体系映射，补充可测试性原则应用 |
+| Doc V2.0 | 2026-03-24 | DechengLi | 增加与设计哲学的关系章节，优化表述结构 |
+| Doc V2.0 | 2026-03-24 | DechengLi | 按文档格式规范重新编写 |
+| Doc V2.0 | 2026-03-23 | Chenzhang | 基于项目实际架构全面重构 |
+| Doc V2.0 | 2026-03-21 | DechengLi | 基于系统工程理论重构 |
+| Doc V2.0 | 2026-02-01 | DechengLi | 原始系统调用规范 |
 
 ---
 
