@@ -261,7 +261,7 @@ curl http://localhost:8080/health
 {
   "status": "ok",
   "service": "gateway",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "uptime_seconds": 3600,
   "requests_total": 1234
 }
@@ -315,10 +315,10 @@ agentos_request_duration_seconds_count 300.000
 
 ```bash
 # 1. 拉取新版本
-docker pull spharx/agentos:v0.0.5
+docker pull spharx/agentos:v0.1.0
 
 # 2. 更新镜像标签
-sed -i 's/image: spharx\/agentos:.*/image: spharx\/agentos:v0.0.5/' docker-compose.yml
+sed -i 's/image: spharx\/agentos:.*/image: spharx\/agentos:v0.1.0/' docker-compose.yml
 
 # 3. 逐个重启服务
 docker-compose up -d --no-deps gateway     # 先重启gateway
