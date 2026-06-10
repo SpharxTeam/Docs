@@ -215,7 +215,7 @@ AgentOS 将双系统理论编码进架构的每一个层次：
 
 AgentOS 遵循严格的微核心架构哲学：
 
-- **`corekern/`** 仅包含四个不可再分的原子机制：IPC（进程间通信）、Mem（内存管理）、Task（任务调度）、Time（时间服务）。总计 7 个头文件、13 个源文件——这是整个系统的最小内核。
+- **`corekern/`** 仅包含**六大子系统**：IPC（进程间通信）、Mem（内存管理含池化与守卫）、Task（任务调度含 POSIX/Windows 双平台）、Time（时间服务含时钟事件与定时器），以及 OOM 处理、可观测性、错误处理。总计 7 个头文件、13 个源文件——这是整个系统的最小内核。
 - **`coreloopthree/`** 和 **`memoryrovol/`** 作为内核子系统，提供认知循环和记忆演化能力。
 - 所有用户态服务（LLM、市场、监控、调度、工具）运行在 `agentos/daemon/` 中，通过 `syscall/` 的标准化接口与内核交互。
 - 安全机制集中在 `agentos/cupolas/` 中，与内核逻辑解耦。
@@ -322,10 +322,10 @@ AgentOS 将《论系统工程》的整体观、层次观、优化观应用于智
 |------|------|---------|
 | **体系并行论** | 认为智能从多个独立体系的并行运作中涌现的理论框架，在 AgentOS 中实例化为五维正交系统 | Multibody Cybernetic Intelligent System |
 | **五维正交** | 体系并行论在 AgentOS 中的具体实例，包含系统观、内核观、认知观、工程观、设计美学五个独立且正交的维度 | Five-Dimensional Orthogonal System |
-| **原子内核** | 不可再分的微核心基础：IPC、内存、任务、时间 | corekern |
+| **原子内核** | 不可再分的微核心基础：IPC、内存管理(含池化/守卫/OOM)、任务调度、时间服务，以及可观测性、错误处理共六大子系统 | corekern |
 | **认知循环运行时** | 三层认知循环——认知层→执行层→记忆层的认知-行动运行时 | CoreLoopThree |
 | **记忆卷载** | 四层递进式记忆系统：原始卷→特征层→结构层→模式层 | MemoryRovol |
-| **安全穹顶** | 虚拟工位、权限裁决、输入净化、审计追踪的安全层 | cupolas |
+| **安全穹顶** | 七大子系统的纵深防御：Guards 守卫、Permission 权限裁决、Sanitizer 输入净化、Audit 审计追踪、Workbench 虚拟工作台、Security Vault 安全金库、Network Security 网络安全 | cupolas |
 | **系统调用** | 用户态服务与内核之间的标准化接口契约 | syscall |
 | **用户态服务层** | 运行在用户态的后台服务，以 `_d` 后缀命名 | Daemon |
 | **执行单元** | 可插拔的原子执行器，通过注册表动态加载 | Execution Unit |
@@ -764,14 +764,17 @@ R(t) = e^(-t/tau)
 
 **依据**：基于工程两论中的安全工程思想，安全内生原则强调安全应作为系统的基础属性而非附加功能，通过多层次、全方位的防护机制构建纵深防御体系。遵循最小特权、职责分离和不可否认性原则，确保系统从架构层面抵御各类安全威胁。
 
-**在 AgentOS 中的体现**：`agentos/cupolas/` 安全穹顶提供四重防护：
+**在 AgentOS 中的体现**：`agentos/cupolas/` 安全穹顶提供**七大子系统**的纵深防御：
 
-| 防护层 | 组件 | 机制 |
-|--------|------|------|
-| 虚拟工位 | `workbench/` | 进程/容器/WASM 沙箱隔离，资源限额，网络可选 |
-| 权限裁决 | `permission/` | YAML 规则引擎，基于角色的访问控制 (RBAC) |
-| 输入净化 | `sanitizer/` | 正则过滤、长度限制、类型检查 |
-| 审计追踪 | `audit/` | 全链路追踪，不可篡改的审计日志 |
+| 子系统 | 组件目录 | 机制 |
+|--------|---------|------|
+| Guards 守卫 | `src/guards/` | 安全执行内核、守卫集成 |
+| Permission 权限裁决 | `src/permission/` | RBAC + YAML 规则引擎、权限缓存 |
+| Sanitizer 输入净化 | `src/sanitizer/` | 四阶段输入净化管道 |
+| Audit 审计追踪 | `src/audit/` | SHA-256 哈希链不可篡改日志 |
+| Workbench 虚拟工作台 | `src/workbench/` | 进程/容器/WASM 沙箱隔离，资源限额 |
+| Security Vault 安全金库 | `src/security/` | AES-256-GCM 加密、Seccomp+CFI 运行时保护 |
+| Network Security 网络安全 | `src/security/network/` | 出站连接过滤、TLS/HTTP/DNS 安全 |
 
 **安全设计强化**：
 
@@ -905,8 +908,8 @@ R(t) = e^(-t/tau)
 | `corekern` | 核心内核——不可再分的基础 |
 | `coreloopthree` | 认知循环运行时——三层认知循环：认知层→执行层→记忆层 |
 | `memoryrovol` | 记忆卷载——四层递进式记忆系统 |
-| `cupolas` | 安全穹顶——四重防护的安全层 |
-| `daemon` | 用户态服务层——LLM/工具/网关/监控/调度/市场/通道七服务 |
+| `cupolas` | 安全穹顶——七大子系统的纵深防御安全层 |
+| `daemon` | 用户态服务层——LLM/工具/网关/监控/调度/市场/通道/观测/通知/信息十服务 |
 | `taskflow` | 任务流引擎——Pregel BSP图计算引擎+工作流模式 |
 
 **实施规则**：
