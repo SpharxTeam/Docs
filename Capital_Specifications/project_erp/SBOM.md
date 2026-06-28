@@ -1,23 +1,26 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS 软件物料清单 (SBOM)
+# Airymax 软件物料清单 (SBOM)
+
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Specifications/project_erp/SBOM.md
 
 ## 1. 概述
 
-本文档提供了 AgentOS 的软件物料清单（Software Bill of Materials，SBOM），详细列出了 AgentOS 的所有组件、依赖项及其相关元数据。SBOM 对于供应链管理、安全漏洞跟踪和合规性验证至关重要。本清单基于 AgentOS 架构设计原则 V2.0，特别是 **D-1 至 D-4 安全工程原则** 和 **E-8 可测试性原则**，确保软件供应链的安全可控。
+本文档提供了 Airymax 的软件物料清单（Software Bill of Materials，SBOM），详细列出了 Airymax 的所有组件、依赖项及其相关元数据。SBOM 对于供应链管理、安全漏洞跟踪和合规性验证至关重要。本清单基于 Airymax 架构设计原则 V2.0，特别是 **D-1 至 D-4 安全工程原则** 和 **E-8 可测试性原则**，确保软件供应链的安全可控。
 
 ## 2. 文档信息
 
 | 字段 | 值 |
 |------|-----|
-| 文档名称 | AgentOS 软件物料清单 |
+| 文档名称 | Airymax 软件物料清单 |
 | 版本 | Doc V2.0 |
-| 作者 | LirenWang |
 | 理论基础 | 五维正交系统(安全观D-1至D-4、 工程观E-8)、系统工程(供应链管理) |
 | 生成日期 | 2026-04-10 |
-| 生成工具 | 手动生成 |
-| 适用 AgentOS 版本 | v1.2.0+ |
+| 生成工具 | 必须通过 CI 自动生成（syft/cyclonedx-cli） |
+| 适用 Airymax 版本 | v1.2.0+ |
 
 ## 3. 核心组件
 
@@ -28,9 +31,8 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 | 组件名称 | 版本 | 许可证 | 来源 | 用途 |
 |---------|------|--------|------|------|
 | agentos_core | 1.0.0 | MIT | 内部 | 提供基础内核功能，包括错误处理、IPC、内存管理、任务调度和时间管理 |
-<!-- From data intelligence emerges. by spharx -->
 
-#### 3.1.2 核心循环 (coreloopthree)
+#### 3.1.2 认知循环运行时 (CoreLoopThree)
 
 | 组件名称 | 版本 | 许可证 | 来源 | 用途 |
 |---------|------|--------|------|------|
@@ -57,11 +59,41 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 |---------|------|--------|------|------|
 | agentos_cupolas | 1.0.0 | MIT | 内部 | 安全穹顶，提供虚拟工位、权限裁决、审计和输入净化功能 |
 
-### 3.3 动态模块 (gateway)
+### 3.3 任务流引擎 (taskflow)
 
 | 组件名称 | 版本 | 许可证 | 来源 | 用途 |
 |---------|------|--------|------|------|
-| agentos_dynamic | 1.0.0 | MIT | 内部 | 运行时管理，提供 HTTP、WebSocket 和 stdio 网关 |
+| agentos_taskflow | 1.0.0 | MIT | 内部 | 任务流引擎，提供 Pregel BSP 图计算、工作流模式、上下文处理器和并行调度 |
+
+### 3.4 动态模块 (gateway)
+
+| 组件名称 | 版本 | 许可证 | 来源 | 用途 |
+|---------|------|--------|------|------|
+| gateway_d | 1.0.0 | MIT | 内部 | 运行时管理，提供 HTTP、WebSocket 和 stdio 网关 |
+
+### 3.5 Rust SDK (toolkit/rust)
+
+| 组件名称 | 版本 | 许可证 | 来源 | 用途 |
+|---------|------|--------|------|------|
+| agentos-toolkit-rust | 1.0.0 | MIT | 内部 | Rust SDK，提供 Airymax 客户端库 |
+
+**Rust SDK 依赖**:
+
+| 依赖名称 | 版本 | 许可证 | 用途 |
+|---------|------|--------|------|
+| reqwest | 0.12+ | MIT/Apache 2.0 | HTTP 客户端（配合 rustls-tls） |
+| rustls-tls | 0.23+ | Apache 2.0/MIT | TLS 实现（替代 openssl） |
+| tokio | 1.x | MIT | 异步运行时 |
+| serde | 1.x | MIT/Apache 2.0 | 序列化/反序列化框架 |
+| thiserror | 1.x | MIT/Apache 2.0 | 错误类型派生宏 |
+
+### 3.6 Go SDK (toolkit/go)
+
+| 组件名称 | 版本 | 许可证 | 来源 | 用途 |
+|---------|------|--------|------|------|
+| agentos-toolkit-go | 1.0.0 | MIT | 内部 | Go SDK，提供 Airymax 客户端库（零外部依赖） |
+
+**Go SDK 依赖**: 无外部依赖（仅使用 Go 标准库）
 
 ## 4. 外部依赖
 
@@ -86,7 +118,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 ### 5.1 agentos_core
 
-**描述**：AgentOS 核心内核模块，提供基础系统功能。
+**描述**：Airymax 核心内核模块，提供基础系统功能。
 
 **主要功能**：
 - 错误处理（error.c）
@@ -160,7 +192,21 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 - `src/` - 源代码
 - `tests/` - 测试代码
 
-### 5.6 agentos_dynamic
+### 5.6 agentos_taskflow
+
+**描述**：任务流引擎模块，提供复杂任务编排能力。
+
+**主要功能**：
+- Pregel BSP 图计算引擎
+- 工作流模式管理
+- 上下文处理器
+- 并行调度器
+
+**文件结构**：
+- `include/` - 公共头文件
+- `src/` - 源代码
+
+### 5.7 gateway_d
 
 **描述**：动态模块，提供运行时管理和外部接口。
 
@@ -190,8 +236,8 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 | 组件 | 版本 | 漏洞 ID | 严重程度 | 修复版本 | 描述 |
 |------|------|---------|----------|----------|------|
-| libmicrohttpd | 0.9.75 | CVE-2023-XXXXX | 中 | 0.9.76 | 潜在的内存泄漏 |
-| libwebsockets | 4.3.2 | CVE-2023-XXXXX | 低 | 4.3.3 | 轻微的安全漏洞 |
+| libmicrohttpd | 0.9.75 | 待实际安全审计后填写 | 中 | 0.9.76 | 潜在的内存泄漏 |
+| libwebsockets | 4.3.2 | 待实际安全审计后填写 | 低 | 4.3.3 | 轻微的安全漏洞 |
 
 ### 7.2 安全建议
 
@@ -230,7 +276,11 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 - **签名验证**：`gpg --verify`
 - **依赖扫描**：`dependency-check`
 
-## 10. 变更历史
+## 10. 版本管理说明
+
+> **内部组件版本应与 git tag 同步，当前统一为 1.0.0，待 v0.1.0 发布时更新。**
+
+## 11. 变更历史
 
 | 版本 | 日期 | 变更描述 |
 |------|------|----------|
@@ -239,8 +289,8 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 | 1.0.2 | 2026-03-23 | 更新了安全信息和已知漏洞列表 |
 | 1.0.3 | 2026-03-24 | 添加了验证方法和构建信息 |
 
-## 11. 结论
+## 12. 结论
 
-本 SBOM 文档提供了 AgentOS 的详细物料清单，包括核心组件、外部依赖、许可证信息和安全信息。通过这份文档，用户可以了解 AgentOS 的组成结构，管理供应链风险，以及确保合规性。
+本 SBOM 文档提供了 Airymax 的详细物料清单，包括核心组件、外部依赖、许可证信息和安全信息。通过这份文档，用户可以了解 Airymax 的组成结构，管理供应链风险，以及确保合规性。
 
 建议定期更新本文档，以反映组件和依赖项的变化，确保 SBOM 的准确性和时效性。

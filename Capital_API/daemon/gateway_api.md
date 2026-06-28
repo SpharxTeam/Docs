@@ -1,17 +1,17 @@
-# 守护进程 API 文档
+# 用户态服务 API 文档
 
-> **模块路径**: `agentos/daemon/`  
-> **版本**: v0.0.4
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_API/daemon/gateway_api.md
 ---
 
 ## 📋 概述
 
-AgentOS 提供7个守护进程（Daemon）服务，构成完整的Agent运行时基础设施：
+Airymax 提供7个用户态服务（Daemon），构成完整的Agent运行时基础设施：
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   AgentOS Daemon 层                │
+│                   Airymax Daemon 层                │
 ├──────────┬──────────┬──────────┬───────────────────┤
 │ gateway_d│  llm_d  │channel_d │    sched_d        │
 │  网关服务 │ LLM服务  │ 通道服务 │    调度器         │
@@ -626,9 +626,9 @@ typedef struct {
 
 ---
 
-## 🔗 守护进程通用接口
+## 🔗 用户态服务通用接口
 
-所有守护进程都遵循统一的接口规范：
+所有用户态服务都遵循统一的接口规范：
 
 ### 通用生命周期
 
@@ -655,7 +655,7 @@ typedef struct {
 ### 统一初始化/清理
 
 ```c
-// 所有守护进程都需要调用此函数进行全局初始化
+// 所有用户态服务都需要调用此函数进行全局初始化
 agentos_error_t svc_common_init(void);
 void svc_common_cleanup(void);
 
@@ -670,7 +670,7 @@ SVC_LOG_ERROR(format, ...);
 
 ## 🚀 快速启动示例
 
-### 完整的多守护进程启动
+### 完整的多用户态服务启动
 
 ```c
 #include <stdio.h>
@@ -756,7 +756,7 @@ int main() {
 |------|------|------|
 | v0.0.4 | 2026-04-28 | Foundation Release - 完整API文档 |
 | v0.0.3 | 2026-04-25 | 新增monit_d, market_d |
-| v0.0.2 | 2026-04-20 | 核心守护进程实现 |
+| v0.0.2 | 2026-04-20 | 核心用户态服务实现 |
 | v0.0.1 | 2026-04-15 | 初始版本 |
 
 ---
@@ -765,5 +765,5 @@ int main() {
 
 - [CoreLoopThree API](../core/coreloop_api.md)
 - [Protocol Stack API](../protocols/unified_protocol_api.md)
-- [Docker部署指南](../docker/README.md)
+- [Docker部署指南](../Docker/README.md)
 - [完整示例](../examples/full_agent_example.c)

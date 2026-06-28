@@ -1,18 +1,11 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# Manuals 核心算法与实现逻辑
+# Manuals 核心算法与实现逻辑  
 
-**版本**: Doc V2.0  
-**最后更新**: 2026-04-09  
-**状态**: 🟢 生产就绪  
-**作者**: Team
-  - Zhixian Zhou | Spharx Ltd. team@spharx.cn
-  - Liren Wang | Spharx Ltd. team@spharx.cn
-  - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
-  - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
-  - Daxiang Zhu | IndieBros. zdxever@sina.com
-
+**最新**: 2026-06-09  
+**状态**: 维护中  
+**路径**: OpenAirymax/Docs/Capital_API/algorithms/README.md  
 ---
 
 ## 🎯 概述
@@ -21,13 +14,13 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 ### 🧩 五维正交原则体现
 
-算法设计深度体现了 AgentOS 的五维正交设计原则，每个维度都在算法实现中得到具体体现：
+算法设计深度体现了 Airymax 的五维正交设计原则，每个维度都在算法实现中得到具体体现：
 
 | 维度 | 算法设计体现 | 具体实现案例 |
 |------|-------------|------------|
 | **系统观** | 算法的反馈闭环和层次分解 | 文档处理流水线设计，多阶段处理（解析→转换→验证→发布） |
 | **内核观** | 算法的极简和模块化设计 | 每个算法独立封装，清晰的输入输出契约，可插拔的算法组件 |
-| **认知观** | 支持双系统认知的算法策略 | System 1 快速算法（简单匹配），System 2 深度算法（语义分析） |
+| **认知观** | 支持双思考系统 (Thinkdual) 的算法策略 | t1-f 快思考算法（简单匹配），t2 慢思考算法（语义分析） |
 | **工程观** | 算法的安全、性能和可观测性 | 输入验证，性能优化，详细的指标收集和错误追踪 |
 | **设计美学** | 算法的优雅实现和清晰文档 | 简洁的代码结构，完整的注释，详细的性能基准测试 |
 
@@ -183,10 +176,10 @@ class DocumentTokenizer:
 tokenizer = DocumentTokenizer(language="zh")
 
 # 分词示例
-text = "AgentOS 是一个先进的智能体操作系统，支持多语言文档处理。"
+text = "Airymax 是一个先进的智能体操作系统，支持多语言文档处理。"
 tokens = tokenizer.tokenize(text)
 print(tokens)
-# 输出: ['AgentOS', '是', '一个', '先进', '智能体', '操作系统', '支持', '多语言', '文档', '处理']
+# 输出: ['Airymax', '是', '一个', '先进', '智能体', '操作系统', '支持', '多语言', '文档', '处理']
 
 # 构建倒排索引
 index = InvertedIndex()
@@ -1741,12 +1734,12 @@ algorithms:
 - [API 参考文档](../README.md)
 - [架构设计文档](../../architecture/ARCHITECTURAL_PRINCIPLES.md)
 - [功能需求文档](../../specifications/manuals_module_requirements.md)
-- [TypeScript SDK 文档](../agentos/toolkit/typescript/README.md)
+- [TypeScript SDK 文档](../toolkit/typescript/README.md)
 
 ---
 
 **最后更新**: 2026-04-09  
-**维护者**: AgentOS 算法团队
+**维护者**: Airymax 算法团队
 
 ---
 

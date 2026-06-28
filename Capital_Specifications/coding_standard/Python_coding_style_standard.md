@@ -1,35 +1,30 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS Python 编码规范
+# Airymax Python 编码规范
 
-**版本**: Doc V2.0  
-**最后更新**: 2026-04-27  
-**作者**: LirenWang  
-**适用范围**: AgentOS 所有 Python 代码  
-**理论基础**: 工程两论（反馈闭环）、系统工程（模块化）、五维正交系统（系统观、内核观、认知观、工程观、设计美学）、双系统认知理论  
-**关联规范**: [C编码规范](./C_coding_style_standard.md)的 BAN-01~13 禁止模式；[TERMINOLOGY.md](../../Capital_Specifications/TERMINOLOGY.md) 标准术语  
-**原则映射**: S-1至S-4（系统设计）、C-1至C-4（认知设计）、E-1至E-8（工程设计）、A-1至A-4（设计美学）
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Specifications/coding_standard/Python_coding_style_standard.md
 ---
 
 ## 一、概述
 
 ### 1.1 编制目的
 
-本规范为 AgentOS 项目中的 Python 代码提供统一的编码标准。基于项目架构设计原则的五维正交系统，本规范聚焦于工程观维度（E-1至E-4），为开发者提供可操作的代码实现指南。
+本规范为 Airymax 项目中的 Python 代码提供统一的编码标准。基于项目架构设计原则的五维正交系统，本规范聚焦于工程观维度（E-1至E-4），为开发者提供可操作的代码实现指南。
 
 ### 1.2 理论基础
 
-本规范基于 AgentOS 架构设计原则的五维正交系统：
+本规范基于 Airymax 架构设计原则的五维正交系统：
 
 - **《工程控制论》**（原则 S-1, E-2）：通过错误处理、日志、健康检查构建反馈闭环
 - **《论系统工程》**（原则 S-2）：模块化、接口驱动、边界清晰
-- **双系统认知理论**（原则 C-1）：Python 简洁语法（System 1）与类型提示（System 2）
+- **Thinkdual 双思考系统**（原则 C-1）：Python 简洁语法（t1 快思考）与类型提示（t2 慢思考）
 
-**双系统在 Python 中的体现**:
+**双思考系统在 Python 中的体现**:
 
-| 场景 | System 1（快速） | System 2（严谨） |
+| 场景 | t1 快思考（快速） | t2 慢思考（严谨） |
 |------|-----------------|-----------------|
 | 类型系统 | 动态类型 | 类型提示 (typing) |
 | 错误处理 | 运行时异常 | 静态类型检查 (mypy) |
@@ -44,9 +39,9 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 | SDK Python | Python 3.10+ | pyright |
 | 工具脚本 | Python 3.9+ | - |
 
-### 1.4 与 AgentOS 架构的关系
+### 1.4 与 Airymax 架构的关系
 
-Python 代码在 AgentOS 中主要应用于以下场景：
+Python 代码在 Airymax 中主要应用于以下场景：
 
 | 场景 | 位置 | 关联原则 | Python 特性 |
 |------|------|---------|------------|
@@ -91,12 +86,12 @@ src/
 
 ```python
 """
-AgentOS 任务调度模块。
+Airymax 任务调度模块。
 
 提供任务调度核心功能，包括任务提交、状态管理、
-优先级队列和依赖解析。调度器采用双系统架构：
-- System 1：快速路径，处理简单任务
-- System 2：深度路径，处理复杂任务
+优先级队列和依赖解析。调度器采用双思考系统架构：
+- t1 快思考：快速路径，处理简单任务
+- t2 慢思考：深度路径，处理复杂任务
 
 Example:
     >>> from agentos.scheduler import TaskScheduler
@@ -105,7 +100,7 @@ Example:
     >>> result = scheduler.wait(task_id)
 
 Author:
-    AgentOS Team
+    Airymax Team
 
 Version:
     1.5.0
@@ -500,8 +495,8 @@ class SchedulerBase(ABC):
 class TaskScheduler(SchedulerBase):
     """任务调度器。
     
-    负责管理任务的生命周期和执行。调度器采用双系统架构，
-    System 1 处理简单任务，System 2 处理复杂任务。
+    负责管理任务的生命周期和执行。调度器采用双思考系统架构，
+    t1 快思考 处理简单任务，t2 慢思考 处理复杂任务。
     
     Example:
         >>> scheduler = TaskScheduler(name="main", max_workers=4)
@@ -597,7 +592,7 @@ class ResourceManager:
 
 ```python
 class AgentOSError(Exception):
-    """AgentOS 错误基类。"""
+    """Airymax 错误基类。"""
     
     def __init__(self, message: str, code: str = "AGENTOS_ERROR") -> None:
         self.message = message
@@ -791,7 +786,7 @@ from agentos.manager import manager  # type: ignore[attr-defined]
 
 ```python
 # __init__.py
-"""AgentOS 调度模块。
+"""Airymax 调度模块。
 
 Example:
     >>> from agentos.scheduler import TaskScheduler
@@ -825,7 +820,7 @@ from agentos.scheduler.errors import (
 
 ```python
 """
-AgentOS 任务调度器测试。
+Airymax 任务调度器测试。
 """
 
 import pytest
@@ -885,15 +880,164 @@ def test_scheduler_with_strategy(strategy: str, scheduler: TaskScheduler) -> Non
 
 ---
 
-## 十一、AgentOS 模块 Python 编码示例
+## 十-A、C FFI 绑定规范
+
+### 10-A.1 FFI 框架选择
+
+| 场景 | 推荐框架 | 理由 |
+|------|---------|------|
+| 简单绑定（少量函数、基本类型） | `ctypes` | 标准库内置，零依赖，适合简单 C 函数调用 |
+| 复杂绑定（结构体嵌套、回调、指针运算） | `cffi` | 性能更优，支持 ABI 和 API 两种模式，复杂类型声明更清晰 |
+
+### 10-A.2 绑定代码命名与组织
+
+- **文件命名**：`agentos_<module>_ffi.py`，例如 `agentos_scheduler_ffi.py`、`agentos_memory_ffi.py`
+- **目录位置**：与 C 头文件对应，放置在 `sdks/python/agentos/` 下
+- **导出规范**：FFI 模块仅暴露 Pythonic 接口，不暴露原始 C 指针
+
+```python
+# agentos_scheduler_ffi.py
+"""Airymax 调度器 FFI 绑定。"""
+
+from ctypes import CDLL, c_int, c_char_p, POINTER, byref
+from agentos.errors import AgentOSError, SchedulerError
+
+# 加载共享库
+_lib = CDLL("libagentos_scheduler.so")
+
+# 函数签名声明
+_lib.cognition_schedule.argtypes = [c_char_p, c_char_p, POINTER(c_char_p)]
+_lib.cognition_schedule.restype = c_int
+
+
+def schedule(plan_json: str) -> str:
+    """提交调度计划（Pythonic 封装）。
+
+    Args:
+        plan_json: 计划 JSON 字符串
+
+    Returns:
+        任务 ID
+
+    Raises:
+        SchedulerError: 调度失败
+    """
+    out_id = c_char_p()
+    rc = _lib.cognition_schedule(
+        plan_json.encode("utf-8"),
+        None,  # 默认配置
+        byref(out_id)
+    )
+    if rc != 0:
+        raise _convert_error(rc, "cognition_schedule")
+    result = out_id.value.decode("utf-8")
+    _lib.agentos_free(out_id)  # C 侧分配的内存由 C 侧释放
+    return result
+```
+
+### 10-A.3 错误码转换
+
+所有 `AGENTOS_E*` C 错误码必须转换为 Python 异常：
+
+```python
+# agentos/errors/ffi_errors.py
+"""FFI 错误码到 Python 异常的映射。"""
+
+from agentos.errors import AgentOSError, ValidationError, ResourceError
+
+# 错误码 → 异常类映射表
+_ERROR_CODE_MAP: dict[int, type[AgentOSError]] = {
+    0: None,                          # AGENTOS_OK
+    -2: ValidationError,              # AGENTOS_ERR_INVALID_PARAM
+    -4: ResourceError,                # AGENTOS_ERR_OUT_OF_MEMORY
+    -8: ResourceError,                # AGENTOS_ERR_TIMEOUT
+    -17: ResourceError,               # AGENTOS_ERR_BUSY
+}
+
+
+def _convert_error(rc: int, context: str) -> AgentOSError:
+    """将 C 错误码转换为 Python 异常。
+
+    Args:
+        rc: C 函数返回的错误码
+        context: 调用上下文描述
+
+    Returns:
+        对应的 Python 异常实例
+    """
+    exc_class = _ERROR_CODE_MAP.get(rc, AgentOSError)
+    return exc_class(f"[{context}] C error code: {rc}")
+```
+
+### 10-A.4 FFI 内存所有权规则
+
+| 所有权 | 规则 | 示例 |
+|--------|------|------|
+| C → Python（C 分配） | Python 使用后必须调用 C 侧释放函数 | `_lib.agentos_free(out_id)` |
+| Python → C（Python 分配） | Python 保持引用，C 侧不得释放 | `byref(c_buffer)` |
+| 共享缓冲区 | 明确文档化生命周期，使用 `memoryview` 避免拷贝 | `memoryview(c_array)` |
+
+> **关键原则**：谁分配谁释放。跨 FFI 边界传递指针时，必须在文档中明确所有权归属。
+
+---
+
+## 十-B、Python 禁止模式清单（BAN-180~186）
+
+所有 Python PR 必须通过以下禁止模式检查：
+
+| 编号 | 禁止模式 | 检测方式 | 替代方案 |
+|------|---------|----------|---------|
+| BAN-180 | 禁止 `bare except:` | `ruff rule E722` / `flake8 E722` | 使用 `except Exception:` 并记录日志 |
+| BAN-185 | 禁止 `bare except:` | `ruff rule E722` | 必须指定异常类型：`except ValueError:` 或 `except Exception:` |
+| BAN-186 | 禁止 `except` 块中 `pass` 且无日志 | 代码审查 / 自定义 ruff 规则 | 至少记录 `logger.warning()` 或 `logger.exception()` |
+| BAN-187 | 禁止生产代码中使用 `print()` | `ruff rule T201` | 使用 `logging` 模块：`logger.info()` / `logger.debug()` |
+
+**示例**：
+
+```python
+# ❌ BAN-185: 裸 except
+try:
+    result = do_something()
+except:  # 禁止！
+    pass
+
+# ✅ 正确：指定异常类型并记录
+try:
+    result = do_something()
+except ValueError as e:
+    logger.warning("Invalid value: %s", e)
+
+# ❌ BAN-186: except 块中 pass 且无日志
+try:
+    result = do_something()
+except Exception:
+    pass  # 禁止！吞掉异常且无记录
+
+# ✅ 正确：记录异常
+try:
+    result = do_something()
+except Exception as e:
+    logger.exception("Failed to do something: %s", e)
+    raise
+
+# ❌ BAN-187: 生产代码中使用 print()
+print(f"Task {task_id} completed")  # 禁止！
+
+# ✅ 正确：使用 logging
+logger.info("Task %s completed", task_id)
+```
+
+---
+
+## 十一、Airymax 模块 Python 编码示例
 
 ### 11.1 daemon（守护层）Python 实现
-Backs模块作为系统服务守护进程，需要高可靠性和可观测性：
+Backs模块作为系统用户态服务，需要高可靠性和可观测性：
 
-#### 11.1.1 IPC通信守护进程（映射原则：E-3 通信基础设施）
+#### 11.1.1 IPC通信用户态服务（映射原则：E-3 通信基础设施）
 ```python
 """
-IPC通信守护进程 - 体现系统观（S-3）和工程观（E-4）原则
+IPC通信用户态服务 - 体现系统观（S-3）和工程观（E-4）原则
 
 实现与Atoms模块的高性能进程间通信。
 集成OpenTelemetry可观测性和消息加密。
@@ -935,7 +1079,7 @@ class SecureIpcMessage:
         return True
 
 class IpcDaemon:
-    """IPC守护进程 - 体现工程观（E-2）和设计美学（A-1）原则"""
+    """IPC用户态服务 - 体现工程观（E-2）和设计美学（A-1）原则"""
     
     def __init__(self, manager: dict):
         self.manager = manager
@@ -1129,11 +1273,11 @@ class VectorDBClient:
 
 ## 十二、参考文献
 
-1. **AgentOS 架构设计原则**: [ARCHITECTURAL_PRINCIPLES.md](../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md)
+1. **Airymax 架构设计原则**: [ARCHITECTURAL_PRINCIPLES.md](../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md)
 2. **Google Python Style Guide**: https://google.github.io/styleguide/pyguide.html
 3. **Python PEP 8**: https://www.python.org/dev/peps/pep-0008/
 4. **Python PEP 484**: https://www.python.org/dev/peps/pep-0484/
-5. **AgentOS 核心架构文档**:
+5. **Airymax 核心架构文档**:
    - [coreloopthree.md](../../Capital_Architecture/coreloopthree.md)
    - [memoryrovol.md](../../Capital_Architecture/memoryrovol.md)
    - [microkernel.md](../../Capital_Architecture/microkernel.md)
@@ -1144,7 +1288,7 @@ class VectorDBClient:
 
 ## 附录：跨文档规范引用
 
-本规范与以下 AgentOS 工程规范一致，所有 Python 代码须同时遵循：
+本规范与以下 Airymax 工程规范一致，所有 Python 代码须同时遵循：
 
 | 规范集 | 说明 | 来源文档 |
 |--------|------|---------|

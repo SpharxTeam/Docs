@@ -1,28 +1,26 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS Python SDK
+# Airymax Python SDK
 
-**版本**: Doc V2.0  
-**最后更新**: 2026-04-09  
-**状态**: 🟢 生产就绪  
-**Python 版本**: 3.9+
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_API/toolkit/python/README.md
 ---
 
 ## 🎯 概述
 
-AgentOS Python SDK 提供对 AgentOS 系统调用 API 的高级 Python 封装。SDK 遵循 Pythonic 风格，支持异步操作、类型提示和上下文管理器，同时保持与底层 C API 的完整功能对应。
+Airymax Python SDK 提供对 Airymax 系统调用 API 的高级 Python 封装。SDK 遵循 Pythonic 风格，支持异步操作、类型提示和上下文管理器，同时保持与底层 C API 的完整功能对应。
 
 ### 🧩 五维正交原则体现
 
-Python SDK 将 AgentOS 的五维正交设计原则深度融入 Python 语言特性中：
+Python SDK 将 Airymax 的五维正交设计原则深度融入 Python 语言特性中：
 
 | 维度 | Python 语言特性体现 | SDK 具体实现 |
 |------|-------------------|-------------|
 | **系统观** | Python 的动态性和灵活性支持复杂系统 | 异步/同步混合编程，灵活的任务调度和状态管理 |
-| **内核观** | 简洁清晰的 API 设计体现微内核思想 | 极简的接口设计，明确的契约（async/await，类型注解） |
-| **认知观** | 支持双系统认知的混合编程模型 | System 1 快速路径（同步调用），System 2 深度路径（异步任务） |
+| **内核观** | 简洁清晰的 API 设计体现微核心思想 | 极简的接口设计，明确的契约（async/await，类型注解） |
+| **认知观** | 支持双思考系统 (Thinkdual) 的混合编程模型 | t1-f 快思考路径（同步调用），t2 慢思考路径（异步任务） |
 | **工程观** | Python 的生态系统和可维护性 | 完整的类型提示，丰富的测试框架，自动化文档生成 |
 | **设计美学** | Pythonic 的优雅语法和哲学 | "优美胜于丑陋"，清晰的 API 设计，人性化的错误信息 |
 
@@ -54,7 +52,7 @@ async def main():
     # 创建 Agent 配置
     manager = AgentConfig(
         name="my_agent",
-        description="My first AgentOS agent",
+        description="My first Airymax agent",
         agent_type="chat",
         max_concurrent_tasks=8,
         task_queue_depth=64
@@ -133,8 +131,8 @@ class AgentConfig:
     max_concurrent_tasks: int = 8      # 最大并发任务数
     task_queue_depth: int = 64         # 任务队列深度
     default_task_timeout_ms: int = 30000  # 默认任务超时
-    system1_max_desc_len: int = 128    # System 1 描述长度阈值
-    system1_max_priority: int = 50     # System 1 优先级阈值
+    system1_max_desc_len: int = 128    # t1-f 描述长度阈值
+    system1_max_priority: int = 50     # t1-f 优先级阈值
     cognition_config: dict | None = None  # 认知引擎配置
     memory_config: dict | None = None     # 记忆配置
     security_config: dict | None = None   # 安全策略配置

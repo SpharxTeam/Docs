@@ -4,52 +4,59 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 ---
 copyright: "Copyright (c) 2026 SPHARX Ltd. All Rights Reserved."
 slogan: "From data intelligence emerges."
-title: "AgentOS 技术规范"
-version: "Doc V2.0"
-last_updated: "2026-04-10"
-author: "LirenWang"
+title: "Airymax 技术规范"
+version: "Doc V2.1"
+last_updated: "2026-06-08"
 status: "production_ready"
 review_due: "2026-06-30"
-theoretical_basis: "工程两论、五维正交系统、双系统认知理论"
+theoretical_basis: "工程两论、五维正交系统、Thinkdual 双思考系统"
 target_audience: "开发者/架构师/安全专家"
 prerequisites: "了解软件开发流程，熟悉技术规范概念"
 estimated_reading_time: "1小时"
-core_concepts: "契约规范, 编码标准, 项目管理, 术语统一, 安全合规"
+core_concepts: "契约规范, 编码标准, 项目管理, 集成标准, 术语统一, 安全合规"
 ---
 
-# AgentOS 技术规范
+# Airymax 技术规范
+
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Specifications/README.md
 
 ## 📋 文档信息卡
 - **目标读者**: 开发者/架构师/安全专家
 - **前置知识**: 了解软件开发流程，熟悉技术规范概念
 - **预计阅读时间**: 1小时
-- **核心概念**: 契约规范, 编码标准, 项目管理, 术语统一, 安全合规
+- **核心概念**: 契约规范, 编码标准, 项目管理, 集成标准, 术语统一, 安全合规
 - **文档状态**: 🟢 生产就绪
 - **复杂度标识**: ⭐⭐ 中级
 
 ## 🎯 概述
 
-AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标准。本规范体系基于工程控制论、系统工程和双系统认知理论，确保系统的稳定性、安全性和可演进性。
+Airymax 技术规范体系是项目开发、测试、部署和维护的权威标准。本规范体系基于工程控制论、系统工程和 Thinkdual 双思考系统，确保系统的稳定性、安全性和可演进性。
 
 ### 规范体系结构
 
 ```
 ┌─────────────────────────────────────────┐
-│         AgentOS 技术规范体系              │
+│         Airymax 技术规范体系              │
 ├─────────────────────────────────────────┤
 │  📋 契约规范 (Contract Specifications)   │
 │  • Agent 契约 • Skill 契约 • 协议契约      │
 │  • 系统调用契约 • 日志格式契约              │
 ├─────────────────────────────────────────┤
 │  💻 编码规范 (Coding Standards)          │
-│  • C/C++ 编码规范 • Python 编码规范        │
-│  • JavaScript 编码规范 • 安全编码指南      │
+│  • C/C++/Go/Rust/Python/JS 编码规范      │
+│  • 安全编码指南 • 日志/审计标准            │
 ├─────────────────────────────────────────┤
 │  📊 项目管理 (Project ERP)               │
 │  • 错误码参考 • 资源管理表 • SBOM          │
+│  • 模块需求手册                           │
+├─────────────────────────────────────────┤
+│  🔗 集成标准 (Integration Standards)     │
+│  • 集成规范 • 生态伙伴计划 • 标准贡献       │
 ├─────────────────────────────────────────┤
 │  📚 术语与索引 (Terminology & Index)     │
-│  • 统一术语表 • 术语索引                   │
+│  • 统一术语表 • 契约术语索引                │
 └─────────────────────────────────────────┘
 ```
 
@@ -57,14 +64,14 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 ## 📋 契约规范 (Contract Specifications)
 
-契约规范定义了 AgentOS 各组件间的交互协议，确保系统的可组合性和可替换性。
+契约规范定义了 Airymax 各组件间的交互协议，确保系统的可组合性和可替换性。
 
 ### 1. Agent 契约
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [agent_contract.md](agentos_contract/agent/agent_contract.md) | v1.2.0 | ✅ 生产就绪 | Agent 接口定义、生命周期、能力描述 |
-| [agent_contract_schema.json](agentos_contract/agent/agent_contract_schema.json) | v1.2.0 | ✅ 生产就绪 | Agent 契约 JSON Schema 验证文件 |
+| [agent_contract.md](agentos_contract/agent_contract.md) | v1.3.0 | ✅ 生产就绪 | Agent 接口定义、生命周期、能力描述 |
+| [agent_contract_schema.json](agentos_contract/agent_contract_schema.json) | v1.3.0 | ✅ 生产就绪 | Agent 契约 JSON Schema 验证文件 |
 
 **核心要求**:
 - 所有 Agent 必须实现契约定义的接口
@@ -75,8 +82,8 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [skill_contract.md](agentos_contract/skill/skill_contract.md) | v1.2.0 | ✅ 生产就绪 | Skill 接口定义、输入输出、错误处理 |
-| [skill_contract_schema.json](agentos_contract/skill/skill_contract_schema.json) | v1.2.0 | ✅ 生产就绪 | Skill 契约 JSON Schema 验证文件 |
+| [skill_contract.md](agentos_contract/skill_contract.md) | v1.3.0 | ✅ 生产就绪 | Skill 接口定义、输入输出、错误处理 |
+| [skill_contract_schema.json](agentos_contract/skill_contract_schema.json) | v1.3.0 | ✅ 生产就绪 | Skill 契约 JSON Schema 验证文件 |
 
 **核心要求**:
 - Skill 必须声明输入输出格式
@@ -87,7 +94,7 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [protocol_contract.md](agentos_contract/protocol/protocol_contract.md) | v1.2.0 | ✅ 生产就绪 | 组件间通信协议、消息格式、序列化 |
+| [protocol_contract.md](agentos_contract/protocol_contract.md) | v1.3.0 | ✅ 生产就绪 | 组件间通信协议、消息格式、序列化 |
 
 **核心要求**:
 - 支持 JSON-RPC 2.0 协议
@@ -98,7 +105,7 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [syscall_api_contract.md](agentos_contract/syscall/syscall_api_contract.md) | v1.2.0 | ✅ 生产就绪 | 系统调用接口定义、参数、返回值 |
+| [syscall_api_contract.md](agentos_contract/syscall_api_contract.md) | v1.3.0 | ✅ 生产就绪 | 系统调用接口定义、参数、返回值 |
 
 **核心要求**:
 - 所有系统调用必须文档化
@@ -109,7 +116,7 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [logging_format.md](agentos_contract/log/logging_format.md) | v1.2.0 | ✅ 生产就绪 | 结构化日志格式、字段定义、级别控制 |
+| [logging_format.md](agentos_contract/logging_format.md) | v1.3.0 | ✅ 生产就绪 | 结构化日志格式、字段定义、级别控制 |
 
 **核心要求**:
 - 日志必须结构化 (JSON)
@@ -122,50 +129,39 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 编码规范确保代码质量、可维护性和安全性。
 
-### 1. C/C++ 编码规范
+### 1. 语言编码风格
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [C_coding_style_standard.md](coding_standard/C_coding_style_standard.md) | v1.2.0 | ✅ 生产就绪 | C 语言编码风格、命名约定、代码组织 |
-| [C_Cpp_secure_coding_standard.md](coding_standard/C_Cpp_secure_coding_standard.md) | v1.2.0 | ✅ 生产就绪 | C/C++ 安全编码规范、漏洞防护 |
+| [C_coding_style_standard.md](coding_standard/C_coding_style_standard.md) | v1.3.0 | ✅ 生产就绪 | C 语言编码风格、命名约定、代码组织 |
+| [Cpp_coding_style_standard.md](coding_standard/Cpp_coding_style_standard.md) | v1.3.0 | ✅ 生产就绪 | C++ 编码风格、命名约定、代码组织 |
+| [Go_coding_style_standard.md](coding_standard/Go_coding_style_standard.md) | v1.3.0 | ✅ 生产就绪 | Go 编码风格、命名约定、代码组织 |
+| [Python_coding_style_standard.md](coding_standard/Python_coding_style_standard.md) | v1.3.0 | ✅ 生产就绪 | Python 编码风格、类型注解、异步编程 |
+| [JavaScript_coding_style_standard.md](coding_standard/JavaScript_coding_style_standard.md) | v1.3.0 | ✅ 生产就绪 | JavaScript/TypeScript 编码规范 |
+| [Rust_coding_style_standard.md](coding_standard/Rust_coding_style_standard.md) | v1.3.0 | ✅ 生产就绪 | Rust 编码风格、所有权、生命周期 |
+| [Code_comment_template.md](coding_standard/Code_comment_template.md) | v1.3.0 | ✅ 生产就绪 | 代码注释模板、Doxygen 规范 |
 
-**核心原则**:
-- 遵循工程控制论的反馈闭环设计
-- 实现系统工程的层次分解
-- 应用双系统理论的快慢路径
-
-### 2. Python 编码规范
-
-| 文档 | 版本 | 状态 | 描述 |
-|------|------|------|------|
-| [Python_coding_style_standard.md](coding_standard/Python_coding_style_standard.md) | v1.2.0 | ✅ 生产就绪 | Python 编码风格、类型注解、异步编程 |
-
-**核心原则**:
-- 类型注解必须完整
-- 异步代码必须正确处理
-- 错误处理必须明确
-
-### 3. JavaScript 编码规范
+### 2. 安全编码规范
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [JavaScript_coding_style_standard.md](coding_standard/JavaScript_coding_style_standard.md) | v1.2.0 | ✅ 生产就绪 | JavaScript/TypeScript 编码规范 |
+| [C_Cpp_secure_coding_standard.md](coding_standard/C_Cpp_secure_coding_standard.md) | v1.3.0 | ✅ 生产就绪 | C/C++ 安全编码规范、漏洞防护 |
+| [Go_secure_coding_standard.md](coding_standard/Go_secure_coding_standard.md) | v1.3.0 | ✅ 生产就绪 | Go 安全编码规范、并发安全 |
+| [Java_secure_coding_standard.md](coding_standard/Java_secure_coding_standard.md) | v1.3.0 | ✅ 生产就绪 | Java 安全编码规范、输入验证 |
+| [Rust_secure_coding_standard.md](coding_standard/Rust_secure_coding_standard.md) | v1.3.0 | ✅ 生产就绪 | Rust 安全编码规范、内存安全 |
+| [Security_design_standard.md](coding_standard/Security_design_standard.md) | v1.3.0 | ✅ 生产就绪 | 安全设计原则、威胁建模 |
 
-**核心原则**:
-- TypeScript 必须启用严格模式
-- 异步操作必须处理错误
-- 模块导入必须明确
-
-### 4. 日志指南
+### 3. 日志与审计标准
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [Log_standard.md](coding_standard/Log_standard.md) | v1.2.0 | ✅ 生产就绪 | 日志记录最佳实践、性能优化 |
+| [Log_standard.md](coding_standard/Log_standard.md) | v1.3.0 | ✅ 生产就绪 | 日志记录最佳实践、性能优化 |
+| [Config_Audit_Log_standard.md](coding_standard/Config_Audit_Log_standard.md) | v1.3.0 | ✅ 生产就绪 | 配置变更审计日志格式规范 |
 
 **核心原则**:
 - 日志级别必须合理使用
 - 敏感信息必须脱敏
-- 性能影响必须最小化
+- 配置变更必须可审计
 
 ---
 
@@ -177,18 +173,25 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [ErrorCodeReference.md](project_erp/ErrorCodeReference.md) | v1.2.0 | ✅ 生产就绪 | 统一错误码体系、分类、含义 |
+| [error_code_reference.md](project_erp/error_code_reference.md) | v1.3.0 | ✅ 生产就绪 | 统一错误码体系、分类、含义 |
 
 **核心要求**:
 - 错误码必须唯一
 - 错误描述必须清晰
 - 错误传播必须可追溯
 
+**双错误码体系**:
+Airymax 采用双错误码体系：
+- **C 负整数体系（首要）**: 定义于 `agentos/commons/utils/error/include/error.h`，C 内核和 daemon 层必须使用（如 `AGENTOS_EINVAL=-2`）
+- **SDK 十六进制体系（次要）**: 定义于 `error_code_reference.md`，SDK 和外部接口使用（如 `0x0000-0x7FFF` 分段）
+
+> 详见 [TERMINOLOGY.md](TERMINOLOGY.md) 中"错误码体系"条目
+
 ### 2. 资源管理表
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [ResourceManagementTable.md](project_erp/ResourceManagementTable.md) | v1.2.0 | ✅ 生产就绪 | 项目资源清单、依赖关系、许可证 |
+| [resource_management_table.md](project_erp/resource_management_table.md) | v1.3.0 | ✅ 生产就绪 | 项目资源清单、依赖关系、许可证 |
 
 **核心要求**:
 - 所有依赖必须记录
@@ -199,12 +202,43 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [SBOM.md](project_erp/SBOM.md) | v1.2.0 | ✅ 生产就绪 | 软件组成分析、安全漏洞扫描 |
+| [SBOM.md](project_erp/SBOM.md) | v1.3.0 | ✅ 生产就绪 | 软件组成分析、安全漏洞扫描 |
 
 **核心要求**:
 - SBOM 必须自动生成
 - 漏洞必须定期扫描
 - 许可证必须合规
+
+### 4. 模块需求手册
+
+| 文档 | 版本 | 状态 | 描述 |
+|------|------|------|------|
+| [manuals_module_requirements.md](project_erp/manuals_module_requirements.md) | v1.3.0 | ✅ 生产就绪 | 各模块需求规范、功能边界、接口约定 |
+
+---
+
+## 🔗 集成标准 (Integration Standards)
+
+集成标准定义了 Airymax 与外部系统的交互规范、生态合作和技术贡献路径。
+
+### 1. 集成规范
+
+| 文档 | 版本 | 状态 | 描述 |
+|------|------|------|------|
+| [INTEGRATION_STANDARD.md](integration_standards/INTEGRATION_STANDARD.md) | v1.3.0 | ✅ 生产就绪 | 第三方系统集成规范、适配器标准 |
+| [README.md](integration_standards/README.md) | v1.3.0 | ✅ 生产就绪 | 集成标准目录、快速导航 |
+
+### 2. 生态合作
+
+| 文档 | 版本 | 状态 | 描述 |
+|------|------|------|------|
+| [ecosystem_partnership.md](integration_standards/ecosystem_partnership.md) | v1.3.0 | ✅ 生产就绪 | 生态伙伴计划、合作模式、权益说明 |
+
+### 3. 标准贡献
+
+| 文档 | 版本 | 状态 | 描述 |
+|------|------|------|------|
+| [standards_contribution.md](integration_standards/standards_contribution.md) | v1.3.0 | ✅ 生产就绪 | MCP/A2A 等标准参与路径、技术方案贡献 |
 
 ---
 
@@ -214,7 +248,7 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [TERMINOLOGY.md](TERMINOLOGY.md) | v1.2.0 | ✅ 生产就绪 | AgentOS 统一术语定义、交叉引用 |
+| [TERMINOLOGY.md](TERMINOLOGY.md) | v1.3.0 | ✅ 生产就绪 | Airymax 统一术语定义、交叉引用 |
 
 **核心要求**:
 - 术语定义必须准确
@@ -225,7 +259,7 @@ AgentOS 技术规范体系是项目开发、测试、部署和维护的权威标
 
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
-| [glossary_index.md](agentos_contract/glossary_index.md) | v1.2.0 | ✅ 生产就绪 | 契约术语索引、快速查找 |
+| [glossary_index.md](agentos_contract/glossary_index.md) | v1.3.0 | ✅ 生产就绪 | 契约术语索引、快速查找 |
 
 **核心要求**:
 - 索引必须按字母顺序
@@ -285,7 +319,7 @@ python scripts/validate_docs.py --check-links
 
 ### 1. 版本管理
 
-规范版本与 AgentOS 主版本同步：
+规范版本与 Airymax 主版本同步：
 
 - **MAJOR 版本**: 不兼容的规范变更
 - **MINOR 版本**: 向后兼容的功能新增
@@ -391,7 +425,7 @@ python scripts/license_compliance.py --report
 
 ### 1. 问题报告
 
-- **GitHub Issues**: [规范问题报告](https://github.com/SpharxTeam/AgentOS/issues)
+- **GitHub Issues**: [规范问题报告](https://github.com/SpharxTeam/AgentRT/issues)
 - **邮件列表**: specifications@agentos.io
 - **Discord**: #specifications 频道
 
@@ -404,8 +438,8 @@ python scripts/license_compliance.py --report
 ### 3. 培训资源
 
 - **规范培训**: 每月一次的规范培训会议
-- **在线课程**: AgentOS 规范体系在线课程
-- **认证考试**: AgentOS 规范认证考试
+- **在线课程**: Airymax 规范体系在线课程
+- **认证考试**: Airymax 规范认证考试
 
 ---
 
@@ -414,6 +448,7 @@ python scripts/license_compliance.py --report
 - [架构设计原则](../ARCHITECTURAL_PRINCIPLES.md)
 - [编码规范总览](./coding_standard/README.md)
 - [术语表](TERMINOLOGY.md)
+- [集成标准导航](./integration_standards/README.md)
 - [API 参考](../Capital_API/README.md)
 
 ---
@@ -422,15 +457,17 @@ python scripts/license_compliance.py --report
 
 | 版本 | 日期 | 作者 | 变更说明 |
 |------|------|------|----------|
-| Doc V2.0 | 2026-03-31 | LirenWang | 更新规范版本，完善内容结构 |
-| Doc V2.0 | 2026-03-23 | AgentOS 规范委员会 | 初始版本，建立技术规范体系 |
+| Doc V2.2 | 2026-06-08 | Airymax 规范委员会 | 统一版本号至 v1.3.0，新增双错误码体系说明，新增 Rust/Go 编码风格与安全编码标准 |
+| Doc V2.1 | 2026-06-07 | Airymax 规范委员会 | 修正所有失效链接，新增集成标准章节，整理散落文件 |
+| Doc V2.0 | 2026-03-31 | Airymax Team | 更新规范版本，完善内容结构 |
+| Doc V2.0 | 2026-03-23 | Airymax 规范委员会 | 初始版本，建立技术规范体系 |
 
 ---
 
-**最后更新**: 2026-04-09  
-**维护者**: AgentOS 规范委员会
+**最后更新**: 2026-06-08
+**维护者**: Airymax 规范委员会
 
 ---
 
-© 2026 SPHARX Ltd. All Rights Reserved.  
+© 2026 SPHARX Ltd. All Rights Reserved.
 *"From data intelligence emerges."*

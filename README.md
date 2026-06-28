@@ -1,22 +1,16 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS 文档中心
+# Airymax 文档中心
 
-**版本**: Doc V2.0
-**最后更新**: 2026-04-27
-**维护者**: Team
-  - Zhixian Zhou | Spharx Ltd. zhouzhixian@spharx.cn
-  - Liren Wang | Spharx Ltd. wangliren@spharx.cn
-  - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
-  - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
-  - Daxiang Zhu | IndieBros. zdxever@sina.com
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/README.md
 ---
 
 ## 📚 文档导航
 
-欢迎使用AgentOS智能体操作系统文档中心。本文档采用分层组织结构，从入门到精通，满足不同层次的需求。
+欢迎使用Airymax智能体操作系统文档中心。本文档采用分层组织结构，从入门到精通，满足不同层次的需求。
 
 ### 🎯 快速入口
 
@@ -25,7 +19,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 | **初学者** | 快速开始 → 安装指南 → 配置指南 | 30分钟 |
 | **开发者** | API参考 → 编码规范 → 创建Agent/Skill | 2小时 |
 | **运维工程师** | 部署指南 → 监控运维 → 故障排查 | 1.5小时 |
-| **架构师** | 设计原则 → 微内核架构 → 核心循环三层 | 3小时 |
+| **架构师** | 设计原则 → 微核心架构 → 核心循环三层 | 3小时 |
 
 ---
 
@@ -33,12 +27,13 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1️⃣ 基础理论 (Basic Theories)
 
-AgentOS的理论基石，理解设计哲学的必读材料：
+Airymax的理论基石，理解设计哲学的必读材料：
 
-- [**体系并行论 (MCIS)**](Basic_Theories/CN_01_体系并行论.md) — 多体控制智能系统理论（[English](Basic_Theories/EN_01_MCIS.md)）
-- [**认知层理论**](Basic_Theories/CN_02_认知层理论.md) — 双系统认知与三层架构（[English](Basic_Theories/EN_02_Cognition_Theory.md)）
-- [**记忆层理论**](Basic_Theories/CN_03_记忆层理论.md) — 四层记忆卷载模型（[English](Basic_Theories/EN_03_Memory_Theory.md)）
-- [**设计原则**](Basic_Theories/CN_04_设计原则.md) — 五维正交设计原则导论（[English](Basic_Theories/EN_04_Design_Principles.md)）
+- [**体系并行论 (MCIS)**](Basic_Theories/CN_01_体系并行.md) — 多体控制智能系统理论（[English](Basic_Theories/EN_01_MCIS.md)）
+- [**认知层理论**](Basic_Theories/CN_02_认知层设计.md) — 双思考系统与三层架构（[English](Basic_Theories/EN_02_Cognition_Theory.md)）
+- [**记忆层理论**](Basic_Theories/CN_03_记忆层设计.md) — 四层记忆卷载模型（[English](Basic_Theories/EN_03_Memory_Theory.md)）
+- [**设计原则**](Basic_Theories/CN_04_系统设计原则.md) — 五维正交设计原则导论（[English](Basic_Theories/EN_04_Design_Principles.md)）
+- [**设计哲学**](Capital_Architecture/philosophy/design_philosophy.md) — 体系并行论与五维正交设计体系详述
 - [**架构设计原则完整版**](ARCHITECTURAL_PRINCIPLES.md) — S/K/C/E/A五维24条原则详述
 
 ---
@@ -47,26 +42,33 @@ AgentOS的理论基石，理解设计哲学的必读材料：
 
 面向新用户的引导式教程，帮助快速上手：
 
-- [**快速开始**](Capital_Guides/getting_started.md) — 5分钟体验AgentOS核心功能
-- [**安装指南**](Capital_Guides/installation.md) — 详细的环境搭建步骤
-- [**配置指南**](Capital_Guides/configuration.md) — 完整的配置选项说明
-- [**部署指南**](Capital_Guides/deployment.md) — 生产环境部署最佳实践
+- [**快速开始**](Capital_Guides/getting_started.md) — 5分钟从零到Hello World
+- [**配置指南**](Capital_Guides/configuration_guide.md) — 完整的配置选项说明
+- [**部署指南**](Capital_Guides/deployment_guide.md) — 生产环境部署最佳实践（Docker/K8s/监控/安全）
 - [**创建Agent**](Capital_Guides/create_agent.md) — Agent开发完整流程
 - [**创建Skill**](Capital_Guides/create_skill.md) — Skill开发完整流程
+- [**Plugin SDK教程**](Capital_Guides/plugin_sdk_tutorial.md) — Plugin SDK完整开发指南
+- [**Prompt工程指南**](Capital_Guides/prompt_engineering.md) — Prompt模板/注入/调优全生命周期
 - [**迁移指南**](Capital_Guides/migration_guide.md) — 版本升级与数据迁移
+- [**构建指南**](Capital_Guides/build_guide.md) — 构建系统与编译选项
+- [**测试规范**](Capital_Guides/testing_standards.md) — 测试分层与覆盖率标准
+- [**性能调优**](Capital_Guides/performance_tuning.md) — 内核参数与性能优化
+- [**协议集成**](Capital_Guides/protocol_integration.md) — 多协议适配与路由
 
 ---
 
 ### 3️⃣ 架构设计 (Architecture)
 
-深入理解AgentOS的设计哲学和技术实现：
+深入理解Airymax的设计哲学和技术实现：
 
-- [**微内核架构**](Capital_Architecture/microkernel.md) — K-1~K-4 原则的实现
+- [**微核心架构**](Capital_Architecture/microkernel.md) — K-1~K-4 原则的实现
 - [**核心循环三层**](Capital_Architecture/coreloopthree.md) — Cognition→Execution→Memory
 - [**记忆卷载系统**](Capital_Architecture/memoryrovol.md) — L1→L2→L3→L4 四层记忆
-- [**IPC通信机制**](Capital_Architecture/ipc.md) — Binder/Channel/Buffer 进程间通信
+- [**IPC通信机制**](Capital_Architecture/kernel/ipc.md) — Binder/Channel/Buffer 进程间通信
 - [**系统调用架构**](Capital_Architecture/syscall.md) — 用户态与内核态的统一接口
-- [**日志系统架构**](Capital_Architecture/logging_system.md) — 跨语言可观测性与动态反馈调节
+- [**日志系统架构**](Capital_Architecture/services/logging.md) — 跨语言可观测性与动态反馈调节
+- [**架构概述**](Capital_Architecture/architecture.md) — 系统总览与分层架构图
+- [**C语言边界定义**](Capital_Architecture/kernel/c_language_boundary.md) — C核心职责范围与FFI边界
 
 ---
 
@@ -77,6 +79,8 @@ AgentOS的理论基石，理解设计哲学的必读材料：
 **系统调用 API**：
 
 - [**API总览**](Capital_API/README.md) — API层次结构与设计哲学
+- [**Gateway API参考**](Capital_API/api-reference.md) — HTTP/WebSocket端点API参考
+- [**CLI命令参考**](Capital_API/cli-reference.md) — 统一命令行工具完整命令
 - [**任务管理 API**](Capital_API/syscalls/task.md) — submit/query/wait/cancel 任务全生命周期
 - [**记忆管理 API**](Capital_API/syscalls/memory.md) — write/query/evolve/forget 四层记忆操作
 - [**会话管理 API**](Capital_API/syscalls/session.md) — create/get/close/list 会话管理
@@ -98,12 +102,12 @@ AgentOS的理论基石，理解设计哲学的必读材料：
 
 ### 5️⃣ 开发者指南 (Development)
 
-参与AgentOS开发的必备知识：
+参与Airymax开发的必备知识：
 
 **贡献与测试**：
 
-- [**贡献指南**](../CONTRIBUTING.md) — 提交PR的完整流程
-- [**测试指南**](Capital_Guides/testing.md) — 单元测试、集成测试、E2E测试
+- [**贡献指南**](../AgentRT/CONTRIBUTING.md) — 提交PR的完整流程
+- [**测试指南**](Capital_Guides/testing_guide.md) — 单元测试、集成测试、E2E测试
 
 **编码规范**：
 
@@ -111,6 +115,7 @@ AgentOS的理论基石，理解设计哲学的必读材料：
 - [**C++编码风格规范**](Capital_Specifications/coding_standard/Cpp_coding_style_standard.md) — C++语言编码规范
 - [**Python编码风格规范**](Capital_Specifications/coding_standard/Python_coding_style_standard.md) — Python类型设计/异步/错误处理规范
 - [**JavaScript编码风格规范**](Capital_Specifications/coding_standard/JavaScript_coding_style_standard.md) — JavaScript/TypeScript编码规范
+- [**命名规范**](Capital_Specifications/coding_standard/NAMING_CONVENTIONS.md) — 组件/文件/函数/类型/常量命名约定
 - [**代码注释模板**](Capital_Specifications/coding_standard/Code_comment_template.md) — Doxygen/docstring注释规范
 - [**日志打印规范**](Capital_Specifications/coding_standard/Log_standard.md) — 日志级别/内容/格式/质量规范
 
@@ -126,12 +131,10 @@ AgentOS的理论基石，理解设计哲学的必读材料：
 
 生产环境的运维保障：
 
-- [**Docker部署**](../docker/README.md) — 容器化部署完整方案
-- [**Kubernetes部署**](Capital_Guides/kubernetes-deployment.md) — K8s集群编排
-- [**监控运维**](Capital_Guides/monitoring.md) — Prometheus+Grafana监控栈
-- [**备份恢复**](Capital_Guides/backup-recovery.md) — 数据备份与灾难恢复
-- [**内核调优**](Capital_Guides/kernel_tuning.md) — 内核参数调优与性能优化
-- [**模块功能说明**](Capital_Guides/module_features.md) — manuals模块功能与配置
+- [**Docker部署**](../Docker/README.md) — 容器化部署完整方案
+- [**监控运维**](Capital_Guides/monitoring_guide.md) — Prometheus+Grafana监控栈
+- [**备份恢复**](Capital_Guides/backup_recovery.md) — 数据备份与灾难恢复
+- [**内核调优**](Capital_Guides/performance_tuning.md) — 内核参数调优与性能优化
 
 ---
 
@@ -139,15 +142,15 @@ AgentOS的理论基石，理解设计哲学的必读材料：
 
 常见问题及解决方案：
 
-- [**常见问题FAQ**](Capital_Guides/common-issues.md) — Top 20高频问题
-- [**错误诊断**](Capital_Guides/diagnosis.md) — 日志分析与问题定位
-- [**已知问题**](Capital_Guides/known-issues.md) — 已知Bug及临时解决方案
+- [**常见问题FAQ**](Capital_Guides/troubleshooting_faq.md) — 故障排查与高频问题
+- [**错误诊断**](Capital_Guides/diagnosis_guide.md) — 日志分析与问题定位
+- [**已知问题**](Capital_Guides/known_issues.md) — 已知Bug及临时解决方案
 
 ---
 
 ### 8️⃣ 规范与契约 (Specifications)
 
-AgentOS项目的标准化规范体系：
+Airymax项目的标准化规范体系：
 
 **契约规范**：
 
@@ -172,13 +175,13 @@ AgentOS项目的标准化规范体系：
 
 **术语**：
 
-- [**统一术语表**](Capital_Specifications/TERMINOLOGY.md) — AgentOS统一术语定义
+- [**统一术语表**](Capital_Specifications/TERMINOLOGY.md) — Airymax统一术语定义
 
 ---
 
 ### 9️⃣ 白皮书与模板 (White Paper & Templates)
 
-- [**技术白皮书**](White_Paper/README.md) — AgentOS官方技术白皮书（中/英）
+- [**技术白皮书**](White_Paper/README.md) — Airymax官方技术白皮书（中/英）
 - [**文档模板**](Quote_Templates/_template.md) — 通用文档模板
 - [**API文档模板**](Quote_Templates/_template_api.md) — API文档编写模板
 - [**指南文档模板**](Quote_Templates/_template_guide.md) — 指南文档编写模板
@@ -191,7 +194,7 @@ AgentOS项目的标准化规范体系：
 
 - [**统一术语表**](Capital_Specifications/TERMINOLOGY.md) — 统一术语定义
 - [**变更日志**](../CHANGELOG.md) — 版本更新历史
-- [**许可证**](../LICENSE) — Apache-2.0 许可证全文
+- [**许可证**](../AgentRT/LICENSE) — Apache-2.0 许可证全文
 
 ---
 
@@ -252,61 +255,73 @@ git checkout v1.0.0 -- docs/
 docs/
 ├── ARCHITECTURAL_PRINCIPLES.md    # 五维正交设计原则完整版
 ├── README.md                      # 本文档
+├── TERMINOLOGY.md                 # 统一术语表
 ├── Basic_Theories/                # 基础理论（中/英双语）
-│   ├── CN_01_体系并行论.md
-│   ├── CN_02_认知层理论.md
-│   ├── CN_03_记忆层理论.md
-│   ├── CN_04_设计原则.md
+│   ├── CN_01_体系并行.md
+│   ├── CN_02_认知层设计.md
+│   ├── CN_03_记忆层设计.md
+│   ├── CN_04_系统设计原则.md
 │   ├── EN_01_MCIS.md
 │   ├── EN_02_Cognition_Theory.md
 │   ├── EN_03_Memory_Theory.md
-│   └── EN_04_Design_Principles.md
+│   ├── EN_04_Design_Principles.md
+│   └── DESIGN_PHILOSOPHY.md       # 设计哲学详述
 ├── Capital_Architecture/          # 架构设计
+│   ├── architecture.md            # 系统总览与分层架构图
+│   ├── C_LANGUAGE_BOUNDARY.md     # C语言边界定义
 │   ├── microkernel.md
 │   ├── coreloopthree.md
 │   ├── memoryrovol.md
 │   ├── ipc.md
 │   ├── syscall.md
 │   ├── logging_system.md
-│   └── diagrams/                 # 架构图（drawio）
+│   └── diagrams/                  # 架构图（drawio）
 ├── Capital_API/                   # API参考
 │   ├── README.md
-│   ├── syscalls/                 # 系统调用API
+│   ├── api-reference.md           # Gateway API参考手册
+│   ├── cli-reference.md           # CLI命令参考手册
+│   ├── syscalls/                  # 系统调用API
 │   │   ├── task.md
 │   │   ├── memory.md
 │   │   ├── session.md
 │   │   ├── telemetry.md
 │   │   └── agent.md
-│   ├── toolkit/                  # 多语言SDK
+│   ├── toolkit/                   # 多语言SDK
 │   │   ├── python/README.md
 │   │   ├── go/README.md
 │   │   ├── rust/README.md
 │   │   └── typescript/README.md
-│   └── algorithms/               # 核心算法
+│   └── algorithms/                # 核心算法
 │       └── README.md
 ├── Capital_Guides/                # 入门与运维指南
-│   ├── getting_started.md         # 快速开始
-│   ├── installation.md            # 安装指南
-│   ├── configuration.md           # 配置指南
-│   ├── deployment.md              # 部署指南
-│   ├── create_agent.md           # 创建Agent
-│   ├── create_skill.md           # 创建Skill
-│   ├── migration_guide.md        # 迁移指南
-│   ├── testing.md               # 测试指南
-│   ├── monitoring.md            # 监控运维
-│   ├── kubernetes-deployment.md # K8s部署
-│   ├── backup-recovery.md       # 备份恢复
-│   ├── kernel_tuning.md         # 内核调优
-│   ├── performance-tuning.md    # 性能调优
-│   ├── security-hardening.md    # 安全加固
-│   ├── module_features.md       # 模块功能
-│   ├── common-issues.md         # 常见问题
-│   ├── diagnosis.md             # 故障诊断
-│   └── known-issues.md          # 已知问题
-├── Capital_Specifications/        # 规范与契约
-│   ├── TERMINOLOGY.md
+│   ├── backup_recovery.md
+│   ├── best_practices.md
+│   ├── build_guide.md
+│   ├── ci_cd_pipelines.md
+│   ├── config_change_process.md
+│   ├── config_drift_detector.md
+│   ├── configuration_guide.md
+│   ├── create_agent.md
+│   ├── create_skill.md
+│   ├── deployment_guide.md
+│   ├── diagnosis_guide.md
+│   ├── getting_started.md
+│   ├── known_issues.md
+│   ├── manager_development.md
+│   ├── migration_guide.md
+│   ├── monitoring_guide.md
+│   ├── performance_tuning.md
+│   ├── plugin_sdk_tutorial.md
+│   ├── prompt_engineering.md
+│   ├── protocol_integration.md
+│   ├── security_gateway.md
+│   ├── security_hardening.md
+│   ├── testing_guide.md
+│   ├── testing_standards.md
+│   └── troubleshooting_faq.md
+├── Capital_Specifications/         # 规范与契约
 │   ├── README.md
-│   ├── agentos_contract/         # 契约规范
+│   ├── agentos_contract/          # 契约规范
 │   │   ├── agent_contract.md
 │   │   ├── agent_contract_schema.json
 │   │   ├── skill_contract.md
@@ -315,7 +330,8 @@ docs/
 │   │   ├── syscall_api_contract.md
 │   │   ├── logging_format.md
 │   │   └── glossary_index.md
-│   ├── coding_standard/          # 编码规范
+│   ├── coding_standard/           # 编码规范
+│   │   ├── NAMING_CONVENTIONS.md  # 命名规范
 │   │   ├── C_coding_style_standard.md
 │   │   ├── Cpp_coding_style_standard.md
 │   │   ├── Python_coding_style_standard.md
@@ -325,20 +341,20 @@ docs/
 │   │   ├── Security_design_standard.md
 │   │   ├── Log_standard.md
 │   │   └── Code_comment_template.md
-│   ├── integration_standards/    # 集成标准
+│   ├── integration_standards/     # 集成标准
 │   │   ├── README.md
 │   │   └── INTEGRATION_STANDARD.md
-│   └── project_erp/             # 项目管理
+│   └── project_erp/              # 项目管理
 │       ├── SBOM.md
 │       ├── error_code_reference.md
 │       ├── manuals_module_requirements.md
 │       └── resource_management_table.md
-├── Source_Other/                 # 其他资源
-│   └── AgentOS-desktop-preview.gif
-├── White_Paper/                  # 白皮书
+├── Source_Other/                  # 其他资源
+│   └── Airymax-desktop-preview.gif
+├── White_Paper/                   # 白皮书
 │   ├── README.md
 │   └── history/
-└── Quote_Templates/              # 文档模板
+└── Quote_Templates/               # 文档模板
     ├── _template.md
     ├── _template_api.md
     └── _template_guide.md
@@ -348,7 +364,7 @@ docs/
 
 ## 🎯 文档质量标准
 
-AgentOS文档遵循**完美主义原则 (A-4)**：
+Airymax文档遵循**完美主义原则 (A-4)**：
 
 ✅ **完整性**：每个公共API都有文档  
 ✅ **准确性**：示例代码可运行，配置参数经过验证  
@@ -360,7 +376,6 @@ AgentOS文档遵循**完美主义原则 (A-4)**：
 
 ## 📞 联系方式
 
-- **问题**: wangliren@spharx.cn
 
 ---
 

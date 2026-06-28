@@ -1,28 +1,22 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS 日志格式规范
+# Airymax 日志格式规范
 
-**版本**: Doc V2.0  
-**状态**: 正式发布  
-**归属**: AgentOS 可观测性核心规范  
-**作者**: LirenWang  
-**最后更新**: 2026-04-09  
-**许可证**: GPL-3.0  
-**理论基础**: 工程两论（控制论与系统工程）、双系统认知理论、微内核哲学、设计美学  
-**关联规范**: [通信协议规范](./protocol_contract.md)、[系统调用 API 规范](./syscall_api_contract.md)、[日志打印规范](../coding_standard/Log_standard.md)
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Specifications/agentos_contract/logging_format.md
 ---
 
 ## 编制说明
 
 ### 本文档定位
 
-日志格式规范是 AgentOS 规范体系的核心组成部分，属于**操作层规范**。本规范定义了 AgentOS 各组件的日志输出格式、字段含义、级别定义及存储策略，是实现系统可观测性的基础。
+日志格式规范是 Airymax 规范体系的核心组成部分，属于**操作层规范**。本规范定义了 Airymax 各组件的日志输出格式、字段含义、级别定义及存储策略，是实现系统可观测性的基础。
 
 ### 与设计哲学的关系
 
-本规范是 AgentOS 五维正交设计体系在日志格式层面的具体实现，每个维度都有对应的设计体现：
+本规范是 Airymax 五维正交设计体系在日志格式层面的具体实现，每个维度都有对应的设计体现：
 
 #### 五维正交体系映射
 
@@ -32,7 +26,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 | | S-2 层次分解原则 | 日志记录器名称采用层次结构（agentos.<module>.<submodule>），反映系统模块层次关系 |
 | **内核观（K维度）** | K-2 接口契约化原则 | 日志格式定义了明确的字段契约，包括必需字段、可选字段及其数据类型 |
 | | K-3 服务隔离原则 | 不同服务的日志独立存储，便于隔离分析和故障定位 |
-| **认知观（C维度）** | C-1 双系统协同原则 | 支持不同级别的日志记录，快速路径（System 1）记录概要信息，慢速路径（System 2）记录详细诊断信息 |
+| **认知观（C维度）** | C-1 双思考系统协同原则 | 支持不同级别的日志记录，快速路径（t1 快思考）记录概要信息，慢速路径（t2 慢思考）记录详细诊断信息 |
 | **工程观（E维度）** | E-1 安全内生原则 | 内置敏感信息脱敏机制和审计日志支持，安全设计融入日志格式 |
 | | E-2 可观测性原则 | 日志是可观测性的三大支柱之一，提供完整的系统行为可见性 |
 | | E-3 资源确定性原则 | 日志记录资源使用情况（内存、CPU、I/O），支持资源生命周期管理 |
@@ -47,7 +41,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 日志格式规范是多重理论融合的产物：
 - **工程两论**：通过统一格式（系统工程）和实时反馈（控制论）构建可观测性体系
 - **双系统认知**：支持不同粒度的日志记录，平衡诊断深度与性能开销
-- **微内核哲学**：日志格式最小化核心字段，扩展通过可选字段实现
+- **微核心哲学**：日志格式最小化核心字段，扩展通过可选字段实现
 - **设计美学**：追求日志格式的简洁性、一致性和机器可读性
 
 ### 适用范围
@@ -55,7 +49,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 本规范适用于以下场景：
 
 1. **内核开发者**: agentos/atoms/模块的日志记录
-2. **服务开发者**: agentos/daemon/守护进程的日志记录
+2. **服务开发者**: agentos/daemon/用户态服务的日志记录
 3. **应用开发者**: openlab/app/应用的日志记录
 4. **运维人员**: 日志收集、聚合和分析
 5. **安全审计人员**: 审计日志审查和合规检查
@@ -76,7 +70,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 背景与意义
 
-AgentOS 作为一个分布式多智能体操作系统，其运行涉及内核、服务层、安全层、应用层等多个组件，跨进程、跨主机协作。为了有效诊断问题、追踪请求链路、分析系统行为，必须建立统一的日志格式规范。
+Airymax 作为一个分布式多智能体操作系统，其运行涉及内核、服务层、安全层、应用层等多个组件，跨进程、跨主机协作。为了有效诊断问题、追踪请求链路、分析系统行为，必须建立统一的日志格式规范。
 
 **挑战:**
 - **异构组件**: 内核 (C)、服务 (Python/Go/Node.js)、应用 (多语言) 使用不同的技术栈
@@ -170,8 +164,8 @@ AgentOS 作为一个分布式多智能体操作系统，其运行涉及内核、
 | `timestamp` | number | Unix 时间戳 (秒，支持小数毫秒) | `1701234567.890` | 精度至少到毫秒 |
 | `level` | string | 日志级别 (见 3.1 节) | `"info"` | 小写 |
 | `logger` | string | 日志记录器名称 | `"agentos.cognition"` | 反向域名格式 |
-| `trace_id` | string | 分布式追踪 ID(若存在) | `"abc123"` | 可选，但强烈推荐 |
-| `session_id` | string | 会话 ID(若存在) | `"sess_456"` | 可选 |
+| `trace_id` | string | 分布式追踪 ID(若存在) | `"abc123"` | 强烈推荐（生产环境必需，测试环境可选） |
+| `session_id` | string | 会话 ID(若存在) | `"sess_456"` | 强烈推荐（生产环境必需，测试环境可选） |
 | `message` | string | 人类可读的日志消息 | `"User input received"` | 简洁明了 |
 | `file` | string | 源文件名 | `"router.c"` | 相对路径 |
 | `line` | integer | 源文件行号 | `128` | 整数 |
@@ -205,7 +199,7 @@ timestamp = time.time()
 #### level (日志级别)
 
 - **类型**: string
-- **取值**: debug, info, warn, error, critical (小写)
+- **取值**: debug, info, warn, error, critical, audit (小写)
 - **说明**: 详见 3.1 节
 
 #### logger (记录器名称)
@@ -221,7 +215,7 @@ agentos.cognition.planner      # 认知层 - 规划器
 agentos.execution              # 执行层
 agentos.memory                 # 记忆层
 agentos.kernel.syscall         # 内核 - 系统调用
-agentos.services.llm_d         # 服务 - LLM 守护进程
+agentos.services.llm_d         # 服务 - LLM 用户态服务层（daemon）
 agentos.apps.ecommerce         # 应用 - 电商应用
 ```
 
@@ -302,7 +296,10 @@ openlab/app/ecommerce/api.py
 | `span_id` | string | 当前跨度 ID | 分布式追踪 | `"span_789"` |
 | `parent_span_id` | string | 父跨度 ID | 分布式追踪 | `"span_456"` |
 | `error` | string | 错误信息 | 错误日志 | `"Connection timeout"` |
-| `error_code` | integer | 错误码 | 错误日志 | `-1` (AGENTOS_EINVAL) |
+| `error_code` | integer \| string | 错误码 | 错误日志 | `-2` (C 内核 AGENTOS_ERR_INVALID_PARAM) 或 `"0x0003"` (SDK AGENTOS_ERROR_INVALID_PARAMETER) |
+
+> **双错误码体系说明**: `error_code` 字段接受两种格式：C 内核层使用负整数（如 `-2`，定义于 `agentos/commons/utils/error/include/error.h`），SDK/外部层使用十六进制字符串（如 `"0x0003"`，定义于 error_code_reference.md）。同一语义错误在两种体系中的值不同（如"参数无效"在 C 内核为 `-2`，在 SDK 为 `"0x0003"`）。日志消费者应根据值的类型（整数 vs 字符串）判断其所属体系。
+
 | `duration_ms` | number | 操作耗时 (毫秒) | 性能日志 | `125.5` |
 | `agent_id` | string | Agent ID | Agent 相关日志 | `"com.agentos.pm.v1"` |
 | `task_id` | string | 任务 ID | 任务执行日志 | `"task_abc123"` |
@@ -371,7 +368,7 @@ memory_result_count
 
 ### 3.1 级别定义
 
-AgentOS 使用标准日志级别，按严重性递增：
+Airymax 使用标准日志级别，按严重性递增：
 
 | 级别 | 数值 | 名称 | 说明 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
@@ -380,6 +377,7 @@ AgentOS 使用标准日志级别，按严重性递增：
 | 2 | `WARN` | 警告 | 警告信息，潜在问题 | 重试、配置缺失、降级 |
 | 3 | `ERROR` | 错误 | 错误信息，操作失败 | API 调用失败、内存不足 |
 | 4 | `CRITICAL` | 严重错误 | 严重错误，可能导致系统崩溃 | 致命异常、关键组件不可用 |
+| 5 | `AUDIT` | 审计 | 安全审计日志，记录关键操作的合规追踪 | 认证事件、权限变更、敏感数据访问、Cupolas 安全穹顶审计 |
 
 ### 3.2 使用指南
 
@@ -463,6 +461,24 @@ AgentOS 使用标准日志级别，按严重性递增：
 ```json
 {"timestamp":1701234567.890,"level":"critical","logger":"agentos.kernel.core","message":"Out of memory, cannot allocate task context","error_code":-2,"available_memory_mb":0}
 ```
+
+#### AUDIT (审计级别)
+
+**用途**: 记录安全审计事件，用于合规追踪和事后审计。审计日志不可关闭，始终记录。
+
+**适用场景:**
+- 认证事件（登录成功/失败、Token 刷新）
+- 授权事件（权限变更、角色分配）
+- 敏感数据访问（读取、修改、删除）
+- Cupolas 安全穹顶操作（策略检查、隔离变更）
+- 配置变更
+
+**示例:**
+```json
+{"timestamp":1701234567.890,"level":"audit","logger":"agentos.cupolas","message":"Cupola policy violation detected","trace_id":"abc123","session_id":"sess_456","event_type":"POLICY_VIOLATION","actor_id":"user_alice","target_resource":"cupola_isolation","action":"modify","result":"denied"}
+```
+
+**⚠️ 注意**: AUDIT 级别日志不受日志级别配置过滤，始终输出到审计日志文件。生产环境必须保留审计日志，保留期限应符合合规要求。
 
 ### 3.3 级别配置
 
@@ -921,7 +937,7 @@ class BatchHandler:
 | 追踪 | `trace_id` | string | `"abc123def456"` |
 | 会话 | `session_id` | string | `"sess_456"` |
 | 性能 | `duration_ms` | number | `125.5` |
-| 错误 | `error_code` | integer | `-1` |
+| 错误 | `error_code` | integer \| string | `-2` 或 `"0x0003"` |
 | Agent | `agent_id` | string | `"com.agentos.pm.v1"` |
 | 任务 | `task_id` | string | `"task_abc123"` |
 
@@ -941,7 +957,7 @@ class BatchHandler:
 
 ## 参考文献
 
-[1] AgentOS 设计哲学。../../Basic_Theories/CN_04_设计原则.md  
+[1] Airymax 设计哲学。../../Basic_Theories/CN_04_系统设计原则.md  
 [2] 架构设计原则。../../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md  
 [3] 统一术语表。../TERMINOLOGY.md  
 [4] OpenTelemetry Specification. https://opentelemetry.io/docs/specs/otel/  
@@ -954,14 +970,14 @@ class BatchHandler:
 
 | 版本 | 日期 | 作者 | 变更说明 |
 |------|------|------|---------|
-| Doc V2.0 | 2026-03-25 | DechengLi | 根据架构设计原则V1.6进行全面优化，更新理论基础，重构五维正交体系映射，补充可测试性原则应用 |
-| Doc V2.0 | 2026-03-24 | DechengLi | 增加与设计哲学的关系章节，优化表述结构 |
-| Doc V2.0 | 2026-03-24 | DechengLi | 按文档格式规范重新编写 |
-| Doc V2.0 | 2026-03-23 | Chenzhang | 基于项目实际架构全面重构 |
-| Doc V2.0 | 2026-03-21 | DechengLi | 基于系统工程理论重构 |
-| Doc V2.0 | 2026-02-01 | DechengLi | 原始日志格式规范 |
+| Doc V2.0 | 2026-03-25 | Airymax Team | 根据架构设计原则V1.6进行全面优化，更新理论基础，重构五维正交体系映射，补充可测试性原则应用 |
+| Doc V2.0 | 2026-03-24 | Airymax Team | 增加与设计哲学的关系章节，优化表述结构 |
+| Doc V2.0 | 2026-03-24 | Airymax Team | 按文档格式规范重新编写 |
+| Doc V2.0 | 2026-03-23 | Airymax Team | 基于项目实际架构全面重构 |
+| Doc V2.0 | 2026-03-21 | Airymax Team | 基于系统工程理论重构 |
+| Doc V2.0 | 2026-02-01 | Airymax Team | 原始日志格式规范 |
 
 ---
 
 **最后更新**: 2026-04-09  
-**维护者**: AgentOS 架构委员会
+**维护者**: Airymax 架构委员会

@@ -1,16 +1,14 @@
-# AgentOS Capital API - 完整API参考文档
+# Airymax Capital API - 完整API参考文档
 
-> **版本**: v0.0.4 (Foundation Release)  
-> **更新日期**: 2026-04-28  
-> **状态**: Developer Preview (Beta)  
-> **适用范围**: 面向开发者社区的完整API参考
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_API/README.md
 ---
 
 ## 📚 文档导航
 
 ### 核心模块 API
-- [三层循环核心 (CoreLoopThree)](core/coreloop_api.md)
+- [三层认知循环 (CoreLoopThree)](core/coreloop_api.md)
   - 认知引擎 API
   - 执行引擎 API
   - 记忆引擎 API
@@ -40,8 +38,8 @@
   - 调用入口
   - 权限控制
 
-### 守护进程 API
-- [网关守护进程 (gateway_d)](daemon/gateway_api.md)
+### 用户态服务 API
+- [网关用户态服务 (gateway_d)](daemon/gateway_api.md)
   - HTTP/WebSocket/Stdio网关
   - 服务管理
   - 配置接口
@@ -281,15 +279,15 @@ if (mcp->encode) {
 |------|------|----------|
 | v0.0.4 | 2026-04-28 | Foundation Release - 完整API文档 |
 | v0.0.3 | 2026-04-25 | 协议栈v2.1.0集成 |
-| v0.0.2 | 2026-04-20 | 三层循环架构实现 |
+| v0.0.2 | 2026-04-20 | 三层认知循环架构实现 |
 | v0.0.1 | 2026-04-15 | 初始版本 |
 
 ---
 
 ## 📞 支持与反馈
 
-- **问题报告**: [GitHub Issues](https://github.com/spharx/AgentOS/issues)
-- **讨论社区**: [Discussions](https://github.com/spharx/AgentOS/discussions)
+- **问题报告**: [GitHub Issues](https://github.com/spharx/AgentRT/issues)
+- **讨论社区**: [Discussions](https://github.com/spharx/AgentRT/discussions)
 - **API变更日志**: 见各模块文档末尾的"版本历史"章节
 
 ---
@@ -297,7 +295,7 @@ if (mcp->encode) {
 ## 📜 许可证
 
 ```
-SPHARX AgentOS v0.0.4
+SPHARX Airymax v0.0.4
 Copyright (c) 2026 SPHARX Ltd.
 SPDX-License-Identifier: GPL-3.0-or-later OR Apache-2.0
 ```

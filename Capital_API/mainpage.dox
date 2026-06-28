@@ -4,11 +4,11 @@
  * @section overview 系统概述
  *
  * AgentOS 是基于**多体控制论智能系统 (MCIS)** 理论构建的智能体操作系统，
- * 采用微内核架构，支持五大框架、多协议网关和分层安全防护。
+ * 采用微核心架构，支持五大框架、多协议网关和分层安全防护。
  *
  * @section architecture 系统架构
  *
- * AgentOS 采用分层微内核架构，自底向上分为以下层次：
+ * AgentOS 采用分层微核心架构，自底向上分为以下层次：
  *
  * @subsection layer_atoms 原子层 (Atoms)
  * 系统最底层的核心构件，提供基础能力：
@@ -48,17 +48,17 @@
  * | **Sanitizer** | 输入净化：数据清洗与验证 |
  * | **Audit** | 审计追踪：全链路操作记录 |
  *
- * @subsection layer_daemon 守护进程层 (Daemons)
- * 系统服务守护进程：
+ * @subsection layer_daemon 用户态服务层 (Daemons)
+ * 系统服务用户态服务：
  *
- * | 守护进程 | 说明 | 关键头文件 |
+ * | 用户态服务 | 说明 | 关键头文件 |
  * |----------|------|-----------|
- * | **gateway_d** | 网关守护进程 | - |
- * | **llm_d** | LLM服务守护进程 | `llm_service.h`, `llm_svc_adapter.h` |
- * | **tool_d** | 工具服务守护进程 | `tool_service.h` |
- * | **sched_d** | 调度守护进程 | - |
- * | **monit_d** | 监控守护进程 | - |
- * | **market_d** | 市场守护进程 | - |
+ * | **gateway_d** | 网关用户态服务 | - |
+ * | **llm_d** | LLM服务用户态服务 | `llm_service.h`, `llm_svc_adapter.h` |
+ * | **tool_d** | 工具服务用户态服务 | `tool_service.h` |
+ * | **sched_d** | 调度用户态服务 | - |
+ * | **monit_d** | 监控用户态服务 | - |
+ * | **market_d** | 市场用户态服务 | - |
  * | **common** | 公共服务层 | `ipc_service_bus.h`, `service_discovery.h`, `circuit_breaker.h`, `unified_metrics.h`, `alert_manager.h`, `config_manager.h` |
  *
  * @subsection layer_gateway 网关层 (Gateway)

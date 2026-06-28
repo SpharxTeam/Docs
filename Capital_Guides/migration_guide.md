@@ -1,25 +1,18 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS 迁移指南
+# Airymax 迁移指南
 
-**版本**: Doc V2.0
-**最后更新**: 2026-04-09
-**适用对象**: 从旧版本迁移的开发者和运维工程师
-**作者**: Team
-  - Zhixian Zhou | Spharx Ltd. team@spharx.cn
-  - Liren Wang | Spharx Ltd. team@spharx.cn
-  - Chen Zhang | SJTU CSC Lab. yoyoke@sjtu.edu.cn
-  - Yunwen Xu | SJTU CSC Lab. willing419@sjtu.edu.cn
-  - Daxiang Zhu | IndieBros. zdxever@sina.com
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Guides/migration_guide.md
 ---
 
 ## 1. 概述
 
-本文档提供了从 AgentOS 旧版本迁移到新版本的系统性指南。迁移的本质是一个**控制论反馈过程**：旧系统输出的偏差信号驱动新系统的参数校准，直至达到稳态。
+本文档提供了从 Airymax 旧版本迁移到新版本的系统性指南。迁移的本质是一个**控制论反馈过程**：旧系统输出的偏差信号驱动新系统的参数校准，直至达到稳态。
 
-AgentOS 采用语义化版本号（MAJOR.MINOR.PATCH），其中：
+Airymax 采用语义化版本号（MAJOR.MINOR.PATCH），其中：
 
 - **MAJOR**：表示不兼容的 API 更改——对应系统工程的"接口重新定义"
 - **MINOR**：表示向后兼容的功能添加——对应"子系统增量升级"
@@ -27,10 +20,10 @@ AgentOS 采用语义化版本号（MAJOR.MINOR.PATCH），其中：
 
 ### 1.1 迁移哲学
 
-AgentOS 的迁移设计遵循三条原则：
+Airymax 的迁移设计遵循三条原则：
 
-1. **分层迁移**：从底层微内核到上层服务，逐层验证，确保每层迁移后的系统稳定性
-2. **双路径并行**：System 1（快速迁移脚本）处理标准化变更；System 2（人工审查）处理架构级变更
+1. **分层迁移**：从底层微核心到上层服务，逐层验证，确保每层迁移后的系统稳定性
+2. **双路径并行**：t1 快思考（快速迁移脚本）处理标准化变更；t2 慢思考（人工审查）处理架构级变更
 3. **回滚保障**：每一步迁移操作都有对应的回滚方案，保证系统可恢复
 
 ### 1.2 版本兼容性保证
@@ -43,7 +36,7 @@ AgentOS 的迁移设计遵循三条原则：
 
 ## 2. 从 v0.x 迁移到 v1.0
 
-v1.0 是 AgentOS 的首个生产就绪版本，引入了完整的微内核架构（corekern）、三层运行时（coreloopthree）、四层记忆系统（memoryrovol）和安全穹顶（cupolas）。
+v1.0 是 Airymax 的首个生产就绪版本，引入了完整的微核心架构（corekern）、三层运行时（coreloopthree）、四层记忆系统（memoryrovol）和安全穹顶（cupolas）。
 
 ### 2.1 架构级变更
 
@@ -60,7 +53,7 @@ core/
 
 /* v1.0 目录结构（分层） */
 agentos/atoms/
-├── corekern/       /* 微内核：仅4个原子机制 */
+├── corekern/       /* 微核心：仅4个原子机制 */
 │   ├── include/    /* 7个头文件 */
 │   └── src/        /* 13个源文件 */
 ├── coreloopthree/  /* 三层认知运行时 */
@@ -130,10 +123,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../core/include")
 
 # v1.0 - 按层引入
 include_directories(
-    "${CMAKE_CURRENT_SOURCE_DIR}/../agentos/atoms/corekern/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../agentos/atoms/coreloopthree/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../agentos/atoms/memoryrovol/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../agentos/atoms/syscall/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../AgentRT/agentos/atoms/corekern/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../AgentRT/agentos/atoms/coreloopthree/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../AgentRT/agentos/atoms/memoryrovol/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../AgentRT/agentos/atoms/syscall/include"
 )
 ```
 
@@ -191,7 +184,7 @@ v1.0 的 MemoryRovol 采用四层渐进抽象架构：
  * @return AGENTOS_SUCCESS 成功，其他值表示失败
  */
 agentos_memory_record_t record = {
-    .content     = "Hello, AgentOS!",
+    .content     = "Hello, Airymax!",
     .content_len = 14,
     .metadata    = "{\"type\": \"greeting\"}",
     .importance  = 0.8,
@@ -392,7 +385,7 @@ agentos-cli metrics memory --format=json | jq '.layer_l2.latency_p99'
 
 ## 6. 自动化迁移工具
 
-AgentOS 提供自动化迁移辅助工具：
+Airymax 提供自动化迁移辅助工具：
 
 ```bash
 # 分析迁移影响
@@ -411,7 +404,7 @@ agentos-migrate --report --output=migration_report.md
 
 | 版本 | 日期 | 主要变更 |
 |------|------|----------|
-| v1.0.0 | 2026-03-21 | 首个生产就绪版本：微内核 + 三层运行时 + 四层记忆 |
+| v1.0.0 | 2026-03-21 | 首个生产就绪版本：微核心 + 三层认知循环 + 四层记忆 |
 | v1.0.1 | 2026-04-01 | 修复内存泄漏，改进错误处理 |
 | v1.1.0 | 2026-05-01 | 新增记忆进化功能，FAISS 检索优化 30% |
 | v1.2.0 | 2026-06-01 | 新增人工介入补偿队列，LRU 缓存优化 |
@@ -420,10 +413,10 @@ agentos-migrate --report --output=migration_report.md
 
 ## 相关文档
 
-- [架构设计原则](../architecture/ARCHITECTURAL_PRINCIPLES.md) - 理解版本演进的设计动机
-- [系统调用 API](../api/README.md) - v1.0 新的系统调用接口
+- [架构设计原则](../ARCHITECTURAL_PRINCIPLES.md) - 理解版本演进的设计动机
+- [系统调用 API](../Capital_API/README.md) - v1.0 新的系统调用接口
 - [编码规范](../Capital_Specifications/coding_standard/C_coding_style_standard.md) - v1.0 编码标准
-- [故障排查](troubleshooting.md) - 迁移过程中的问题诊断
+- [故障排查](common-issues.md) - 迁移过程中的问题诊断
 
 ---
 

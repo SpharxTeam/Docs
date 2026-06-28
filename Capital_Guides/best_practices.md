@@ -1,25 +1,27 @@
-# AgentOS 最佳实践指南
+# Airymax 最佳实践指南
 
-**版本**: Doc V2.0 | **最后更新**: 2026-04-13 | **作者**: AgentOS Team
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Guides/best_practices.md
 
 ## 概述
 
-本指南汇总 AgentOS 开发与运维中的最佳实践，涵盖架构设计、协议集成、性能优化、安全防护和运维管理五个维度。
+本指南汇总 Airymax 开发与运维中的最佳实践，涵盖架构设计、协议集成、性能优化、安全防护和运维管理五个维度。
 
 ---
 
 ## 一、架构设计最佳实践
 
-### 1.1 微内核原则
+### 1.1 微核心原则
 
-AgentOS 遵循微内核架构，核心原则：
+Airymax 遵循微核心架构，核心原则：
 
 | 原则 | 实践 | 反模式 |
 |------|------|--------|
 | 最小内核 | 内核仅包含IPC、调度、内存管理 | 在内核中实现业务逻辑 |
-| 插件式扩展 | 通过守护进程(daemon)扩展功能 | 修改内核代码添加功能 |
+| 插件式扩展 | 通过用户态服务(daemon)扩展功能 | 修改内核代码添加功能 |
 | 消息通信 | 服务间通过IPC Service Bus通信 | 服务间直接函数调用 |
-| 独立部署 | 每个守护进程可独立启停 | 所有服务耦合在同一进程 |
+| 独立部署 | 每个用户态服务可独立启停 | 所有服务耦合在同一进程 |
 
 ### 1.2 五大框架使用规范
 
@@ -49,7 +51,7 @@ coreloopthree_loop_t* loop = clt_loop_create();  // 绕过抽象层
 ```
 应用层 → 系统调用接口 (syscalls.h)
            ↓
-守护进程层 → IPC Service Bus (ipc_service_bus.h)
+用户态服务层 → IPC Service Bus (ipc_service_bus.h)
            ↓
 公共层 → 统一工具库 (commons/utils/)
            ↓
@@ -265,8 +267,9 @@ services:
 /**
  * @brief 创建协议路由器实例
  *
- * 创建并初始化一个新的协议路由器，支持JSON-RPC/MCP/A2A/OpenAI
- * 四种协议的自动检测与路由。
+ * 创建并初始化一个新的协议路由器，支持 JSON-RPC 2.0、MCP v1、A2A v0.3、
+ * OpenAI、Claude、OpenJiuwen、OpenClaw、ChinaEco、AGNTCY ACP 共 9 种协议的
+ * 自动检测与路由。
  *
  * @param config 路由器配置，NULL则使用默认配置
  * @return 协议路由器实例，失败返回NULL

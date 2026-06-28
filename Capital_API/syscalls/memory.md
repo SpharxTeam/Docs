@@ -1,21 +1,20 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS 记忆管理 API
+# Airymax 记忆管理 API
 
-**版本**: Doc V2.0  
-**最后更新**: 2026-04-09  
-**状态**: 🟢 生产就绪
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_API/syscalls/memory.md
 ---
 
 ## 🎯 概述
 
-记忆管理 API 提供 AgentOS 四层记忆系统（MemoryRovol）的完整访问接口。记忆系统采用渐进抽象架构：L1 原始卷 → L2 特征层 → L3 结构层 → L4 模式层，支持语义检索、模式挖掘和长期进化。
+记忆管理 API 提供 Airymax 四层记忆系统（MemoryRovol）的完整访问接口。记忆系统采用渐进抽象架构：L1 原始卷 → L2 特征层 → L3 结构层 → L4 模式层，支持语义检索、模式挖掘和长期进化。
 
 ### 🧩 五维正交原则体现
 
-记忆管理 API 深度体现了 AgentOS 的五维正交设计原则：
+记忆管理 API 深度体现了 Airymax 的五维正交设计原则：
 
 | 维度 | 原则体现 | 具体实现 |
 |------|----------|---------|

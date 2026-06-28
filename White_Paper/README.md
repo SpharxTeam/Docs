@@ -4,7 +4,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 ---
 copyright: "Copyright (c) 2026 SPHARX Ltd. All Rights Reserved."
 slogan: "From data intelligence emerges 始于数据，终于智能。"
-title: "AgentOS 官方技术白皮书"
+title: "Airymax 官方技术白皮书"
 version: "Doc V2.0"
 last_updated: "2026-04-10"
 author: "LirenWang"
@@ -17,15 +17,13 @@ estimated_reading_time: "30分钟"
 core_concepts: "白皮书体系, 技术架构, 性能指标, 开源生态"
 ---
 
-# AgentOS 官方技术白皮书
+# Airymax 官方技术白皮书
 
-<div align="center">
-
-**智能体超级操作系统 · 技术权威阐述**
-
-*"From data intelligence emerges 始于数据，终于智能。"*
-
-</div>
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/White_Paper/README.md
+**作者**:
+    - Liren Wang
 
 ## 📋 文档信息卡
 - **目标读者**: 技术决策者/架构师/开发者/研究人员
@@ -39,14 +37,14 @@ core_concepts: "白皮书体系, 技术架构, 性能指标, 开源生态"
 
 ## 📋 概述
 
-本目录是 AgentOS 项目**官方技术白皮书的唯一权威发布与归档渠道**，所有白皮书文档均与项目代码版本强绑定，确保技术理念、架构设计与工程实现完全一致，全程可追溯、可核验。
+本目录是 Airymax 项目**官方技术白皮书的唯一权威发布与归档渠道**，所有白皮书文档均与项目代码版本强绑定，确保技术理念、架构设计与工程实现完全一致，全程可追溯、可核验。
 
 ### 白皮书定位
 
-AgentOS 技术白皮书系统化阐述了：
+Airymax 技术白皮书系统化阐述了：
 - **核心定位**：面向多智能体协作的操作系统内核，而非又一个 Agent 框架
-- **架构创新**：微内核 + 三层认知循环 + 四层记忆卷载 + 安全穹顶
-- **理论基础**：工程两论、双系统认知理论、微内核哲学、设计美学
+- **架构创新**：微核心 + 三层认知循环 + 四层记忆卷载 + 安全穹顶
+- **理论基础**：工程两论、双系统认知理论、微核心哲学、设计美学
 - **工程实践**：生产级性能指标、开发者工具链、生态合作模式
 
 ### 版本说明
@@ -63,12 +61,12 @@ AgentOS 技术白皮书系统化阐述了：
 ### 核心技术白皮书（全场景通用）
 
 #### 中文正式版（官方首发）
-- **PDF 版**：[AgentOS 技术白皮书 V1.0.pdf](./zh/AgentOS_技术白皮书_V1.0.pdf)（44.6KB，正式发布归档格式）
-- **Markdown 源文件**：[AgentOS 技术白皮书 V1.0.md](./zh/AgentOS_技术白皮书_V1.0.md)（139.3KB，支持社区协同修订）
+- **PDF 版**：[Airymax 技术白皮书 V1.0.pdf](./zh/AgentOS_技术白皮书_V1.0.pdf)（44.6KB，正式发布归档格式）
+- **Markdown 源文件**：[Airymax 技术白皮书 V1.0.md](./zh/AgentOS_技术白皮书_V1.0.md)（139.3KB，支持社区协同修订）
 
 #### 英文正式版（翻译完成）
-- **PDF 版**：[AgentOS Technical White Paper V1.0.pdf](./en/AgentOS_Technical_White_Paper_V1.0.pdf)
-- **Markdown 源文件**：[AgentOS Technical White Paper V1.0.md](./en/AgentOS_Technical_White_Paper_V1.0.md)（39.4KB）
+- **PDF 版**：[Airymax Technical White Paper V1.0.pdf](./en/AgentOS_Technical_White_Paper_V1.0.pdf)
+- **Markdown 源文件**：[Airymax Technical White Paper V1.0.md](./en/AgentOS_Technical_White_Paper_V1.0.md)（39.4KB）
 
 > **注意**：PDF 为不可篡改的标准归档格式，建议使用 PDF 版本进行阅读和引用；Markdown 源文件支持 Git 追溯与社区协同修订。
 
@@ -76,7 +74,7 @@ AgentOS 技术白皮书系统化阐述了：
 
 ## 🏗️ 核心内容速览
 
-### 微内核架构（~9,000 行代码）
+### 微核心架构（~9,000 行代码）
 
 四大原子机制，极简内核设计：
 - **IPC Binder**：高性能进程间通信，1024 并发连接
@@ -84,7 +82,7 @@ AgentOS 技术白皮书系统化阐述了：
 - **任务调度**：加权轮询策略，延迟 < 1ms
 - **高精度时间**：纳秒级定时器，误差 < 0.1%
 
-详见：[agentos/atoms/corekern](../../agentos/atoms/corekern/README.md) ✅
+详见：[agentos/atoms/corekern](../../AgentRT/agentos/atoms/corekern/README.md) ✅
 
 ### 三层认知循环（CoreLoopThree）⭐
 
@@ -104,7 +102,7 @@ AgentOS 技术白皮书系统化阐述了：
 - Agent 调度延迟：< 5ms
 - 实时反馈响应：< 1ms
 
-详见：[agentos/atoms/coreloopthree](../../agentos/atoms/coreloopthree/README.md) ✅
+详见：[agentos/atoms/coreloopthree](../../AgentRT/agentos/atoms/coreloopthree/README.md) ✅
 
 ### 四层记忆卷载（MemoryRovol）⭐
 
@@ -126,7 +124,7 @@ L1 原始卷（文件系统存储·分片压缩）
 - L2→L3 抽象速度：**100 条/秒**
 - L4 模式挖掘速度：**10 万条/分钟**
 
-详见：[agentos/atoms/memoryrovol](../../agentos/atoms/memoryrovol/README.md) ✅
+详见：[agentos/atoms/memoryrovol](../../AgentRT/agentos/atoms/memoryrovol/README.md) ✅
 
 ### 安全穹顶（cupolas）⭐
 
@@ -136,7 +134,7 @@ L1 原始卷（文件系统存储·分片压缩）
 - **输入净化**：正则过滤，风险等级标注（0-3 级）
 - **审计追踪**：异步写入，日志轮转，全链路记录
 
-详见：[cupolas](../../agentos/cupolas/README.md) ✅
+详见：[cupolas](../../AgentRT/agentos/cupolas/README.md) ✅
 
 ### Token 效率优势
 
@@ -145,7 +143,7 @@ L1 原始卷（文件系统存储·分片压缩）
 - **Token 利用率**：领先 **2-3 倍**
 - **原因**：分层上下文管理 + 记忆精准检索 + 预算控制机制
 
-详见：[utils/cost](../../agentos/commons/utils/cost/README.md) ✅
+详见：[utils/cost](../../AgentRT/agentos/commons/utils/cost/README.md) ✅
 
 ---
 
@@ -227,14 +225,14 @@ white_paper/
 
 - 📝 **保留声明**：保留原项目的版权声明和许可证文本
 - 📝 **修改记录**：若修改核心白皮书内容，需在文件中保留修改记录
-- 📝 **不暗示背书**：不得使用 "AgentOS 官方" 或类似误导性表述
+- 📝 **不暗示背书**：不得使用 "Airymax 官方" 或类似误导性表述
 
 ### 知识产权
 
 - 本项目自研核心技术、架构设计与创新方案，均已在白皮书中明确披露
-- 知识产权归属 **AgentOS 项目组及所有贡献者** 所有
+- 知识产权归属 **Airymax 项目组及所有贡献者** 所有
 - 禁止任何未经授权的篡改、二次分发与商用篡改行为
-- 官方唯一发布渠道：[Gitee](https://gitee.com/spharx/agentos) | [GitHub](https://github.com/SpharxTeam/AgentOS)
+- 官方唯一发布渠道：[Gitee](https://gitee.com/spharx/agentos) | [GitHub](https://github.com/SpharxTeam/Airymax)
 
 ---
 

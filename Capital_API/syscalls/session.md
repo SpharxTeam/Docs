@@ -1,27 +1,26 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS 会话管理 API
+# Airymax 会话管理 API
 
-**版本**: Doc V2.0  
-**最后更新**: 2026-04-09  
-**状态**: 🟢 生产就绪
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_API/syscalls/session.md
 ---
 
 ## 🎯 概述
 
-会话管理 API 提供 AgentOS 会话生命周期的完整控制。会话是 Agent 与用户或系统交互的上下文容器，包含对话历史、记忆关联、状态信息和执行上下文。每个会话遵循**双系统路径**：System 1 快速响应，System 2 深度处理。
+会话管理 API 提供 Airymax 会话生命周期的完整控制。会话是 Agent 与用户或系统交互的上下文容器，包含对话历史、记忆关联、状态信息和执行上下文。每个会话遵循**双思考系统 (Thinkdual) 路径**：t1-f 快思考响应，t2 慢思考处理。
 
 ### 🧩 五维正交原则体现
 
-会话管理 API 深度体现了 AgentOS 的五维正交设计原则：
+会话管理 API 深度体现了 Airymax 的五维正交设计原则：
 
 | 维度 | 原则体现 | 具体实现 |
 |------|----------|---------|
 | **系统观** | 会话状态机的完整反馈闭环 | 创建→更新→关闭的完整生命周期管理 |
 | **内核观** | 会话资源的契约化管理 | 统一的会话标识符、明确的资源所有权 |
-| **认知观** | 双系统交互上下文管理 | System 1/System 2 切换支持，上下文保持机制 |
+| **认知观** | 双思考系统 (Thinkdual) 交互上下文管理 | t1-f/t2 切换支持，上下文保持机制 |
 | **工程观** | 会话数据的安全与可观测性 | 访问控制、审计日志、性能监控 |
 | **设计美学** | 优雅的会话组织 | 自然的多轮对话支持，灵活的上下文管理 |
 
@@ -155,8 +154,8 @@ typedef struct agentos_session_message {
     
     /** 处理路径 */
     enum {
-        PROCESSING_PATH_SYSTEM1 = 0,  /* System 1 快速路径 */
-        PROCESSING_PATH_SYSTEM2 = 1   /* System 2 深度路径 */
+        PROCESSING_PATH_SYSTEM1 = 0,  /* t1-f 快思考路径 */
+        PROCESSING_PATH_SYSTEM2 = 1   /* t2 慢思考路径 */
     } processing_path;
     
     /** 处理耗时（毫秒） */
@@ -236,10 +235,10 @@ typedef struct agentos_session_statistics {
     /** 总消息数 */
     uint64_t total_messages;
     
-    /** System 1 路径消息占比（%） */
+    /** t1-f 路径消息占比（%） */
     float system1_message_ratio_percent;
     
-    /** System 2 路径消息占比（%） */
+    /** t2 路径消息占比（%） */
     float system2_message_ratio_percent;
     
     /** 平均响应时间（毫秒） */
@@ -568,7 +567,7 @@ agentos_session_context_set(const char* session_id,
 **上下文 JSON 示例**：
 ```json
 {
-    "conversation_summary": "用户正在讨论微内核架构设计",
+    "conversation_summary": "用户正在讨论微核心架构设计",
     "current_topic": "IPC 机制优化",
     "user_intent": "寻求技术方案",
     "related_memory_ids": ["mem_001", "mem_042"],
@@ -748,8 +747,8 @@ int main(void)
         printf("  总会话数: %llu\n", stats.total_sessions);
         printf("  活跃会话: %llu\n", stats.active_sessions);
         printf("  平均消息数: %.1f\n", stats.avg_messages_per_session);
-        printf("  System 1 消息: %.1f%%\n", stats.system1_message_ratio_percent);
-        printf("  System 2 消息: %.1f%%\n", stats.system2_message_ratio_percent);
+        printf("  t1-f 消息: %.1f%%\n", stats.system1_message_ratio_percent);
+        printf("  t2 消息: %.1f%%\n", stats.system2_message_ratio_percent);
     }
     
     // 清理资源

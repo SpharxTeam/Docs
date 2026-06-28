@@ -1,9 +1,13 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS 白皮书历史版本归档
+# Airymax 白皮书历史版本归档
 
-本目录用于归档 AgentOS 技术白皮书的所有历史正式版本，确保项目演进全程可追溯。
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/White_Paper/history/README.md
+**作者**:
+    - Liren Wang
 
 ## 归档规则
 
@@ -29,7 +33,7 @@ history/
 
 #### 主版本号（Major）
 **升级条件**：架构级重大变更
-- 微内核接口不兼容变更
+- 微核心接口不兼容变更
 - 认知循环模型重构
 - 记忆系统层级调整
 - 安全模型根本性变革
@@ -39,7 +43,7 @@ history/
 #### 次版本号（Minor）
 **升级条件**：功能级新增或改进
 - 新增系统调用接口
-- 守护进程功能增强
+- 用户态服务功能增强
 - SDK 语言支持扩展
 - 性能优化（>50% 提升）
 
@@ -143,11 +147,11 @@ AgentOS_技术白皮书_V{version}.pdf
 
 ## 维护责任
 
-- **责任人**：AgentOS 架构委员会
+- **责任人**：Airymax 架构委员会
 - **审核频率**：每次新版本发布时
 - **联系方式**：architecture@agentos.org（计划中）
 
 ---
 
 **最后更新**: 2026-04-09  
-**维护者**: AgentOS 架构委员会
+**维护者**: Airymax 架构委员会

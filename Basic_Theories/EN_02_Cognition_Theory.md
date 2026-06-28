@@ -1,15 +1,15 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.  
 "From data intelligence emerges."
 
-# AgentOS Cognitive Layer Theory
+# Airymax Cognitive Layer Theory  
 
-**Version**: Doc V2.0  
-**Last Updated**: 2026-04-10  
-**Author**: LirenWang
+**最新**: 2026-06-09  
+**状态**: Release       
+**路径**: OpenAirymax/Docs/Basic_Theories/EN_02_Cognition_Theory.md  
 
 ## 1. Introduction
 
-The cognitive layer is the top layer of AgentOS's three-tier architecture, responsible for transforming user intent into executable task plans and coordinating collaborative work among agent teams. Its design is based on the cognitive perspective within the Five-Dimensional Orthogonal System, deeply inspired by cognitive psychology and decision theory, particularly the dual-system cognitive theory, and the feedback concepts from the "Two Engineering Theories" (*Engineering Cybernetics* and *On Systems Engineering*). This document details the theoretical foundations, core components, and operational mechanisms of the cognitive layer.
+The cognitive layer is the top layer of Airymax's three-tier architecture, responsible for transforming user intent into executable task plans and coordinating collaborative work among agent teams. Its design is based on the cognitive perspective within the Five-Dimensional Orthogonal System, deeply inspired by cognitive psychology and decision theory, particularly the dual-system cognitive theory, and the feedback concepts from the "Two Engineering Theories" (*Engineering Cybernetics* and *On Systems Engineering*). This document details the theoretical foundations, core components, and operational mechanisms of the cognitive layer.
 
 ## 2. Theoretical Foundations
 
@@ -20,7 +20,7 @@ Dual-system theory posits that human thinking is accomplished through the collab
 - **System 1 (Fast System)**: Automatic, intuitive, low-energy consumption, excels at pattern matching and rapid response.
 - **System 2 (Slow System)**: Analytical, reasoning-intensive, high-energy consumption, used for complex problems and planning.
 
-AgentOS maps this model to various components of the cognitive layer:
+Airymax maps this model to various components of the cognitive layer:
 
 | Component | System 1 Mapping | System 2 Mapping |
 |-----------|------------------|------------------|
@@ -55,10 +55,10 @@ The routing layer is the entry point of the cognitive layer, responsible for con
 
 ### 3.2 Dual-Model Collaboration
 
-The dual-model collaboration system is the "thinking engine" of the cognitive layer, realizing the cooperation between System 1 and System 2:
+The dual-model collaboration system is the "thinking engine" of the cognitive layer, realizing the cooperation between t1 fast-thinking and t2 slow-thinking:
 
-- **Primary Thinker (System 2)**: Uses the most powerful reasoning model for deep planning, reflection, and adjustment.
-- **Auxiliary Thinker (System 1)**: Uses lightweight models for quick response, cross-validation, and conflict detection.
+- **Primary Thinker (t2 slow-thinking)**: Uses the most powerful reasoning model for deep planning, reflection, and adjustment.
+- **Auxiliary Thinker (t1 fast-thinking)**: Uses lightweight models for quick response, cross-validation, and conflict detection.
 - **Arbitration mechanism**: When primary and auxiliary models produce inconsistent conclusions, internal debate is triggered, with audit committee intervention or manual confirmation.
 
 ### 3.3 Incremental Planner
@@ -128,7 +128,3 @@ Through dual-system theory, feedback control, and comprehensive integration meth
 2. *Engineering Cybernetics*. 1954.
 3. *On Systems Engineering*. 1981.
 4. Russell, S., & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach*.
-
-**Document Authors**
-- DechengLi [https://gitee.com/spharx01]
-- LirenWang [https://gitee.com/spharx02]

@@ -1,11 +1,8 @@
-# AgentOS 协议系统使用指南
+# Airymax 协议系统使用指南
 
-**版本**: 1.0.0
-**最后更新**: 2026-04-14
-**状态**: 稳定
-**许可证**: MIT
-
-AgentOS 协议系统提供统一的 多协议通信能力，支持 **JSON-RPC 2.0**、**MCP v1.0**、**A2A v0.3**、**OpenAI API**、**OpenJiuwen（自定义二进制）**、**OpenClaw（离线AI Agent平台）** 和 **Claude API（Anthropic）** 共 **7种协议**，以及 **LangChain** 和 **AutoGen** 框架适配，具备自动检测、路由和双向转换功能。
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_API/toolkit/PROTOCOL_GUIDE.md
 
 ## 目录
 
@@ -107,7 +104,7 @@ AgentOS 协议系统提供统一的 多协议通信能力，支持 **JSON-RPC 2.
 
 ### 2.1 JSON-RPC 2.0
 
-AgentOS 内部通信的默认和主要协议。
+Airymax 内部通信的默认和主要协议。
 
 **端点**: `/jsonrpc`
 **版本**: 2.0
@@ -363,7 +360,7 @@ async def main():
 
     streaming = await client.stream_request(
         method="llm.chat",
-        params={"prompt": "介绍 AgentOS"},
+        params={"prompt": "介绍 Airymax"},
     )
     async for chunk in streaming:
         print(chunk, end="", flush=True)
@@ -477,7 +474,7 @@ func main() {
 ```go
 stream, err := client.StreamRequest(ctx, &protocol.RequestOptions{
     Method: "llm.chat",
-    Params: map[string]interface{}{"prompt": "Tell me about AgentOS"},
+    Params: map[string]interface{}{"prompt": "Tell me about Airymax"},
 })
 if err != nil {
     log.Fatal(err)
@@ -682,7 +679,7 @@ main();
 ```typescript
 const mcpClient = createMCPClient({ baseURL: 'http://localhost:18789' });
 const tools = await mcpClient.listTools();
-const result = await mcpClient.callTool('search', { query: 'AgentOS' });
+const result = await mcpClient.callTool('search', { query: 'Airymax' });
 
 const openaiClient = createOpenAIClient({
   baseURL: 'http://localhost:18789',
@@ -789,10 +786,10 @@ int result = protocol_auto_transform(
 
 ```json
 // 输入 (JSON-RPC):
-{"jsonrpc":"2.0","method":"tool.execute","params":{"name":"web_search","query":"AgentOS"},"id":1}
+{"jsonrpc":"2.0","method":"tool.execute","params":{"name":"web_search","query":"Airymax"},"id":1}
 
 // 输出 (MCP):
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"web_search","arguments":{"query":"AgentOS"}},"id":1}
+{"jsonrpc":"2.0","method":"tools/call","params":{"name":"web_search","arguments":{"query":"Airymax"}},"id":1}
 ```
 
 #### JSON-RPC → OpenAI (chat/completions 映射)
@@ -817,17 +814,17 @@ int result = protocol_auto_transform(
 
 ## 6. 框架适配器
 
-AgentOS 协议系统提供对主流 AI 开发框架的适配支持，使 AgentOS 能与 LangChain 和 AutoGen 等框架无缝协作。
+Airymax 协议系统提供对主流 AI 开发框架的适配支持，使 Airymax 能与 LangChain 和 AutoGen 等框架无缝协作。
 
 ### 6.1 LangChain 适配器
 
-将 LangChain 的核心概念映射到 AgentOS 协议层。
+将 LangChain 的核心概念映射到 Airymax 协议层。
 
 **位置**: `protocols/frameworks/langchain/`
 
 #### 概念映射
 
-| LangChain 概念 | AgentOS 映射 | 说明 |
+| LangChain 概念 | Airymax 映射 | 说明 |
 |----------------|-------------|------|
 | LCEL Chain | Pipeline (协议会话) | 编译后的执行链 |
 | Agent | Protocol Session + Handler | 带工具调用的智能体 |
@@ -895,13 +892,13 @@ langchain_adapter_destroy(lc);
 
 ### 6.2 AutoGen 适配器
 
-将 Microsoft AutoGen 多代理框架集成到 AgentOS。
+将 Microsoft AutoGen 多代理框架集成到 Airymax。
 
 **位置**: `protocols/frameworks/autogen/`
 
 #### 概念映射
 
-| AutoGen 概念 | AgentOS 映射 | 说明 |
+| AutoGen 概念 | Airymax 映射 | 说明 |
 |-------------|-------------|------|
 | ConversableAgent | Agent + Session | 可对话代理 |
 | GroupChat | A2A 协议协调 | 多代理群组对话 |
@@ -1220,5 +1217,5 @@ agentos protocol test openai
 - [转换器实现](../protocols/core/transformers/include/protocol_transformers.h)
 - [网关桥接 API](../gateway/include/gateway_protocol_bridge.h)
 - [OpenLab 协议绑定](../openlab/openlab/protocols/__init__.py)
-- [AgentOS 架构](../../docs/Capital_Architecture/)
+- [Airymax 架构](../../docs/Capital_Architecture/)
 - [快速入门指南](../../docs/Capital_Guides/getting_started.md)

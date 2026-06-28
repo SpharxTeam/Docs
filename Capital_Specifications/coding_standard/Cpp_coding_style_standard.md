@@ -1,32 +1,27 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS C++ 编码规范
+# Airymax C++ 编码规范
 
-**版本**: Doc V2.0  
-**最后更新**: 2026-04-27  
-**作者**: LirenWang  
-**适用范围**: AgentOS 所有 C++ 代码模块  
-**理论基础**: 工程两论（反馈闭环）、系统工程（层次分解）、五维正交系统（系统观、内核观、认知观、工程观、设计美学）、双系统认知理论、微内核哲学  
-**关联规范**: [C编码规范](./C_coding_style_standard.md)的 BAN-01~13 禁止模式、CROSS-01~06 跨平台规则；[TERMINOLOGY.md](../../Capital_Specifications/TERMINOLOGY.md) 标准术语  
-**原则映射**: S-1至S-4（系统设计）、K-1至K-4（内核设计）、C-1至C-4（认知设计）、E-1至E-8（工程设计）、A-1至A-4（设计美学）
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Specifications/coding_standard/Cpp_coding_style_standard.md
 ---
 
 ## 一、概述
 
 ### 1.1 编制目的
 
-本规范为 AgentOS 项目中的 C++ 代码提供统一的编码标准。基于项目架构设计原则的五维正交系统，本规范聚焦于工程观维度，为开发者提供可操作的代码实现指南。
+本规范为 Airymax 项目中的 C++ 代码提供统一的编码标准。基于项目架构设计原则的五维正交系统，本规范聚焦于工程观维度，为开发者提供可操作的代码实现指南。
 
 ### 1.2 理论基础
 
-本规范基于 AgentOS 架构设计原则的五维正交系统，聚焦于**工程观**维度：
+本规范基于 Airymax 架构设计原则的五维正交系统，聚焦于**工程观**维度：
 
 - **《工程控制论》**（原则 S-1, E-2）：通过错误码、日志、健康检查和指标构建反馈闭环，使系统能自我观测并对异常自动响应
 - **《论系统工程》**（原则 S-2, K-2）：模块化、接口驱动，边界清晰、实现可替换
-- **双系统认知理论**（原则 C-1）：提供 System 1（快速、低延迟）与 System 2（安全、全面）两条路径，并允许运行时策略切换
-- **微内核哲学**（原则 K-1, K-4）：接口精炼、命名优雅、注释说明"为什么"，而非"做什么"
+- **Thinkdual 双思考系统**（原则 C-1）：提供 t1 快思考（快速、低延迟）与 t2 慢思考（安全、全面）两条路径，并允许运行时策略切换
+- **微核心哲学**（原则 K-1, K-4）：接口精炼、命名优雅、注释说明"为什么"，而非"做什么"
 
 **关联原则**:
 - E-1 安全内生原则
@@ -45,13 +40,13 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 | agentos/daemon/ | C++17 | GCC 11+ / Clang 14+ |
 | openlab/ | C++17 | GCC 11+ / Clang 14+ |
 
-### 1.4 与 AgentOS 架构的关系
+### 1.4 与 Airymax 架构的关系
 
-本规范适用于 AgentOS 的以下层次：
+本规范适用于 Airymax 的以下层次：
 
 | 层次 | 组件 | C++ 代码位置 | 关联原则 |
 |------|------|-------------|---------|
-| 原子内核 | corekern/ | agentos/atoms/corekern/ | K-1, K-2 |
+| 原子核心 | corekern/ | agentos/atoms/corekern/ | K-1, K-2 |
 | 认知层 | coreloopthree/ | agentos/atoms/cognition/ | C-1, C-2 |
 | 记忆层 | memoryrovol/ | agentos/atoms/memory/ | C-3, C-4 |
 | 安全层 | agentos/cupolas/ | agentos/atoms/agentos/cupolas/ | E-1, S-2 |
@@ -173,7 +168,7 @@ namespace module_internal {
 ### 3.2 命名前缀规则
 
 - **模块前缀**：公共 API 使用模块前缀
-  - `atoms_`: 原子内核
+  - `atoms_`: 原子核心
   - `cog_`: 认知层
   - `mem_`: 记忆层
   - `exec_`: 执行层
@@ -356,8 +351,8 @@ std::optional<TaskMetrics> get_metrics(const std::string& task_id);
 /**
  * @brief 调度器类
  * 
- * 负责管理任务的生命周期和执行。调度器采用双系统架构，
- * System 1 处理简单任务，System 2 处理复杂任务。
+ * 负责管理任务的生命周期和执行。调度器采用双思考系统架构，
+ * t1 快思考 处理简单任务，t2 慢思考 处理复杂任务。
  * 
  * @note 此类是线程安全的
  */
@@ -586,11 +581,12 @@ private:
 };
 
 // 安全内存操作
+// 注意：volatile 指针方式不可靠（编译器仍可能优化），应使用 AGENTOS_SECURE_ZERO 宏
+// 定义在 memory_compat.h，跨平台替代 explicit_bzero
 inline void secure_memset(void* ptr, uint8_t value, size_t size) {
-    volatile uint8_t* p = static_cast<volatile uint8_t*>(ptr);
-    while (size--) {
-        *p++ = value;
-    }
+    // 生产代码应直接使用 AGENTOS_SECURE_ZERO(ptr, size)
+    // 此处仅展示等价逻辑：
+    AGENTOS_SECURE_ZERO(ptr, size);
 }
 ```
 
@@ -664,8 +660,12 @@ int memory_alloc(size_t size, void** out_ptr) {
 ### 8.3 异常使用规范
 
 ```cpp
-// AgentOS C++ 代码中，公共 API 禁止抛出异常
-// 内部实现可以使用异常，但必须转换为错误码
+// Airymax C++ 代码中，公共 API 禁止抛出异常
+// ⚠️ 澄清：公共 C API 边界（extern "C" 函数）禁止异常逃逸；C++ 内部 API 可使用异常但必须捕获并转换为错误码。
+// 具体规则：
+//   1. extern "C" 函数：异常不得跨越 C 链接边界，必须 try-catch 全包并返回 agentos_error_t
+//   2. C++ 内部 API（命名空间内）：可使用异常，但调用链最终到达 C 边界时必须转换
+//   3. @throws 文档标注仅适用于 C++ 内部 API，不适用于 extern "C" 函数
 
 class InternalParser {
 public:
@@ -702,6 +702,100 @@ private:
     std::function<void()> cleanup_;
 };
 ```
+
+---
+
+## 八-B、C/C++ 互操作规范（extern "C" 包装规则）
+
+### 8-B.1 extern "C" 函数包装模板
+
+所有 C++ 模块对外暴露 C API 时，必须遵循以下包装规则：
+
+```cpp
+// module/include/module_api.h
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief 创建调度器实例
+ * @param config 配置参数
+ * @return 调度器句柄，失败返回 NULL
+ */
+agentos_error_t module_scheduler_create(const SchedulerConfig* config,
+                                         SchedulerHandle* out_handle);
+
+/**
+ * @brief 销毁调度器实例
+ * @param handle 调度器句柄
+ */
+void module_scheduler_destroy(SchedulerHandle handle);
+
+#ifdef __cplusplus
+}
+#endif
+```
+
+### 8-B.2 C++ 实现侧包装模式
+
+```cpp
+// module/src/module_api.cpp
+#include "module_api.h"
+#include "scheduler.hpp"  // C++ 内部实现
+
+extern "C" {
+
+agentos_error_t module_scheduler_create(const SchedulerConfig* config,
+                                         SchedulerHandle* out_handle) {
+    // 规则1：入口参数验证
+    if (!config || !out_handle) {
+        return AGENTOS_ERR_INVALID_PARAM;
+    }
+    
+    try {
+        // 规则2：C 结构体 → C++ 对象转换
+        auto cpp_config = Scheduler::Config::from_c(config);
+        
+        // 规则3：C++ 异常必须在 C 边界捕获
+        auto scheduler = std::make_unique<Scheduler>(cpp_config);
+        
+        // 规则4：C++ 对象 → 不透明 C 句柄
+        *out_handle = scheduler.release();
+        return AGENTOS_OK;
+        
+    } catch (const std::bad_alloc&) {
+        return AGENTOS_ERR_OUT_OF_MEMORY;
+    } catch (const std::invalid_argument& e) {
+        return AGENTOS_ERR_INVALID_PARAM;
+    } catch (const std::exception& e) {
+        AGENTOS_LOG_ERROR("Unexpected exception in module_scheduler_create: %s", e.what());
+        return AGENTOS_ERR_GENERAL;
+    } catch (...) {
+        AGENTOS_LOG_ERROR("Unknown exception in module_scheduler_create");
+        return AGENTOS_ERR_GENERAL;
+    }
+}
+
+void module_scheduler_destroy(SchedulerHandle handle) {
+    // 规则5：所有权转移回 C++ 并释放
+    if (handle) {
+        std::unique_ptr<Scheduler> scheduler(static_cast<Scheduler*>(handle));
+        // unique_ptr 析构自动释放
+    }
+}
+
+} // extern "C"
+```
+
+### 8-B.3 互操作关键规则
+
+| 规则 | 说明 |
+|------|------|
+| 异常不得跨越 C 边界 | 所有 `extern "C"` 函数必须 `try-catch` 全包，将异常转换为 `agentos_error_t` |
+| 内存所有权明确 | C 侧分配的内存由 C 侧释放，C++ 侧分配的内存由 C++ 侧释放；跨边界传递使用不透明句柄 |
+| 禁止跨边界传递 STL | 不得在 `extern "C"` 函数签名中使用 `std::string`、`std::vector` 等 STL 类型 |
+| 禁止跨边界传递异常类 | 不得将 C++ 异常对象传递给 C 调用者 |
+| POD 类型安全传递 | 跨边界仅传递 POD 类型或 `agentos_error_t`、不透明指针 |
 
 ---
 
@@ -766,10 +860,10 @@ private:
 };
 ```
 
-### 9.3 双系统并发模型
+### 9.3 双思考系统并发模型
 
 ```cpp
-// System 1: 快速路径，使用轻量级锁
+// t1 快思考: 快速路径，使用轻量级锁
 class FastPathProcessor {
 public:
     int process_simple_task(const Task& task) {
@@ -779,10 +873,13 @@ public:
     }
     
 private:
+    // ⚠️ 注意：static std::mutex 仅作示例。生产代码应使用 agentos_mutex_t
+    // （定义在 platform.h），以确保跨平台兼容性（参见 CROSS-01）。
+    // 示例：static agentos_mutex_t FAST_LOCK;
     static std::mutex FAST_LOCK;
 };
 
-// System 2: 慢速路径，使用读写锁
+// t2 慢思考: 慢速路径，使用读写锁
 class SlowPathProcessor {
 public:
     int process_complex_task(const Task& task) {
@@ -816,7 +913,7 @@ private:
  * 提供固定大小内存块的分配器。适用于高频分配/释放场景，
  * 如任务调度、事件处理等。
  * 
- * @author AgentOS Team
+ * @author Airymax Team
  * @date 2026-03-25
  * @version 1.6
  * 
@@ -1039,10 +1136,10 @@ TEST_F(MemoryPoolTest, ExhaustPool) {
 ```
 
 ---
-## 十四、AgentOS 模块 C++ 编码示例
+## 十四、Airymax 模块 C++ 编码示例
 
 ### 14.1 Atoms（原子层）C++ 编码
-Atoms模块实现微内核核心功能，要求最高级别的性能和可靠性：
+Atoms模块实现微核心核心功能，要求最高级别的性能和可靠性：
 
 #### 14.1.1 内存管理器（映射原则：M-3 拓扑优化）
 ```cpp
@@ -1109,11 +1206,11 @@ private:
 #### 14.1.2 任务调度器（映射原则：C-2 认知优化）
 ```cpp
 /**
- * @brief 双系统任务调度器 - 体现认知观（C-1, C-2）和工程观（E-2）原则
+ * @brief 双思考系统任务调度器 - 体现认知观（C-1, C-2）和工程观（E-2）原则
  * 
- * 实现System 1（快速路径）和System 2（慢速路径）双系统架构：
- * - System 1：简单任务，直接执行
- * - System 2：复杂任务，深度分析后执行
+ * 实现t1 快思考（快速路径）和t2 慢思考（慢速路径）双思考系统架构：
+ * - t1 快思考：简单任务，直接执行
+ * - t2 慢思考：复杂任务，深度分析后执行
  * 
  * @see coreloopthree.md 中的三循环架构
  * @see microkernel.md 中的任务管理原语
@@ -1123,12 +1220,12 @@ public:
     // 使用现代C++特性：enum class 类型安全
     enum class SystemSelection {
         kAuto,      // 自动选择
-        kSystem1,   // 强制使用System 1
-        kSystem2    // 强制使用System 2
+        kSystem1,   // 强制使用t1 快思考
+        kSystem2    // 强制使用t2 慢思考
     };
     
     /**
-     * @brief 提交任务到双系统调度器
+     * @brief 提交任务到双思考系统调度器
      * 
      * 根据任务复杂度自动选择执行系统，支持运行时策略切换。
      * 
@@ -1146,7 +1243,7 @@ public:
             return std::nullopt;
         }
         
-        // 双系统选择逻辑
+        // 双思考系统选择逻辑
         SystemSelection target = selection;
         if (target == SystemSelection::kAuto) {
             target = select_system_based_on_complexity(task);
@@ -1165,10 +1262,10 @@ public:
 ### 14.2 用户态服务层（daemon）C++ 编码
 用户态服务层模块作为系统服务，强调可靠性和可观测性：
 
-#### 14.2.1 IPC服务守护进程（映射原则：E-3 通信基础设施）
+#### 14.2.1 IPC服务用户态服务（映射原则：E-3 通信基础设施）
 ```cpp
 /**
- * @brief IPC服务守护进程 - 体现系统观（S-3）和工程观（E-2, E-4）原则
+ * @brief IPC服务用户态服务 - 体现系统观（S-3）和工程观（E-2, E-4）原则
  * 
  * 实现高性能进程间通信，集成OpenTelemetry可观测性。
  * 遵循用户态服务层设计模式，支持优雅启停。
@@ -1344,7 +1441,7 @@ private:
 ---
 ## 附录：跨文档规范引用
 
-本规范与以下 AgentOS 工程规范一致，所有 C++ 代码须同时遵循：
+本规范与以下 Airymax 工程规范一致，所有 C++ 代码须同时遵循：
 
 | 规范集 | 说明 | 来源文档 |
 |--------|------|---------|
@@ -1363,17 +1460,17 @@ private:
 
 ## 十五、参考文献
 
-1. **AgentOS 架构设计原则**: [ARCHITECTURAL_PRINCIPLES.md](../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md)
+1. **Airymax 架构设计原则**: [ARCHITECTURAL_PRINCIPLES.md](../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md)
 2. **C++ Core Guidelines**: https://isocpp.github.io/CppCoreGuidelines/
 3. **Google C++ Style Guide**: https://google.github.io/styleguide/cppguide.html
 4. **ISO C++ Standard**: https://eel.is/c++draft/
-5. **AgentOS 核心架构文档**:
+5. **Airymax 核心架构文档**:
    - [coreloopthree.md](../../Capital_Architecture/coreloopthree.md)
    - [memoryrovol.md](../../Capital_Architecture/memoryrovol.md)  
    - [microkernel.md](../../Capital_Architecture/microkernel.md)
-   - [ipc.md](../../Capital_Architecture/ipc.md)
+   - [ipc.md](../../Capital_Architecture/kernel/ipc.md)
    - [syscall.md](../../Capital_Architecture/syscall.md)
-   - [logging_system.md](../../Capital_Architecture/logging_system.md)
+   - [logging_system.md](../../Capital_Architecture/services/logging.md)
 
 ---
 

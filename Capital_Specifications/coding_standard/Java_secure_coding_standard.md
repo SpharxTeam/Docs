@@ -1,27 +1,22 @@
 Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# AgentOS Java 安全编码指南
+# Airymax Java 安全编码指南
 
-**版本**: Doc V2.0  
-**最后更新**: 2026-04-27  
-**作者**: LirenWang  
-**适用范围**: AgentOS Java SDK、所有 Java 语言实现  
-**理论基础**: 工程两论（反馈闭环）、系统工程（层次分解）、五维正交系统（系统观、内核观、认知观、工程观、设计美学）、双系统认知理论、安全穹顶（cupolas）防御深度  
-**原则映射**: D-1至D-4（安全工程）、S-2（模块化设计）、C-3（认知偏差防护）、E-1（安全内生）、E-8（可测试性）  
-**关联规范**: [C编码规范](./C_coding_style_standard.md)的 BAN-01~13 禁止模式、CROSS-01~06 跨平台规则；[TERMINOLOGY.md](../../Capital_Specifications/TERMINOLOGY.md) 标准术语
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Specifications/coding_standard/Java_secure_coding_standard.md
 ---
 
 ## 一、概述
 
 ### 1.1 编制目的
 
-本指南为 AgentOS 项目中的 Java 代码提供安全编码标准。基于项目架构设计原则的五维正交系统，本指南聚焦于安全观维度（D-1至D-4安全工程原则），为开发者提供防止安全漏洞的编码实践。
+本指南为 Airymax 项目中的 Java 代码提供安全编码标准。基于项目架构设计原则的五维正交系统，本指南聚焦于安全观维度（D-1至D-4安全工程原则），为开发者提供防止安全漏洞的编码实践。
 
-### 1.2 与 AgentOS 架构的关系
+### 1.2 与 Airymax 架构的关系
 
-基于架构设计原则**E-1（安全内生原则）**，AgentOS 的安全穹顶（cupolas）采用四层防护体系：
+基于架构设计原则**E-1（安全内生原则）**，Airymax 的安全穹顶（cupolas）采用四层防护体系：
 
 | 层次 | 名称 | 组件路径 | 功能 | Java SDK 实现 |
 |------|------|---------|------|--------------|
@@ -35,23 +30,23 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 - **默认拒绝**: 未经明确允许的访问一律拒绝（映射原则：D-1）
 - **失效安全**: 安全机制故障时默认进入安全状态（映射原则：D-4）
 
-Java SDK 作为 AgentOS 的重要组成部分，必须遵循这些安全原则，并在代码层面实现相应的安全机制。
+Java SDK 作为 Airymax 的重要组成部分，必须遵循这些安全原则，并在代码层面实现相应的安全机制。
 
 ### 1.3 五维正交系统的安全视角
 
-AgentOS的五维正交系统为Java安全编码提供了多层次的理论框架：
+Airymax的五维正交系统为Java安全编码提供了多层次的理论框架：
 
 #### 1.3.1 系统观（System View）安全
 - **垂直分层安全**：Java SDK需遵循S-1（垂直分层）原则，在应用层、服务层、内核层间建立清晰的信任边界
 - **模块化安全设计**：基于S-2原则，安全功能模块化，支持独立部署和升级
 
 #### 1.3.2 内核观（Kernel View）安全
-- **微内核安全模型**：Java代码需与microkernel.md中定义的微内核安全原语保持一致
+- **微核心安全模型**：Java代码需与microkernel.md中定义的微核心安全原语保持一致
 - **系统调用保护**：Java Native Interface（JNI）调用必须严格验证，防止非法跨越用户态-内核态边界
 
 #### 1.3.3 认知观（Cognitive View）安全
-- **双系统认知偏差防护**：基于C-3原则，Java API设计需考虑开发者认知模式，防止安全配置错误
-- **安全代码审查**：利用System 2（慢速路径）深度分析能力进行安全代码审查
+- **Thinkdual 认知偏差防护**：基于C-3原则，Java API设计需考虑开发者认知模式，防止安全配置错误
+- **安全代码审查**：利用t2 慢思考（慢速路径）深度分析能力进行安全代码审查
 
 #### 1.3.4 工程观（Engineering View）安全
 - **安全工程化**：将D-1至D-4安全工程原则转化为具体的Java编码模式
@@ -61,17 +56,17 @@ AgentOS的五维正交系统为Java安全编码提供了多层次的理论框架
 - **安全即美感**：安全的Java代码应是简洁、优雅、易于理解的（映射原则：A-1）
 - **细节中的安全**：安全漏洞常隐藏在细节中，必须贯彻A-2（细节关注）原则
 
-### 1.4 双系统认知理论与安全编程
+### 1.4 Thinkdual 双思考系统与安全编程
 
-AgentOS的双系统认知理论为Java安全编码提供了心理学基础：
+Airymax 的 Thinkdual 双思考系统为 Java 安全编码提供了心理学基础：
 
-#### 1.4.1 System 1（快速路径）安全
+#### 1.4.1 t1 快思考（快速路径）安全
 - **直觉安全设计**：常见安全操作应直观易懂，支持快速正确使用
 - **默认安全行为**：API默认配置应是安全的，防止疏忽导致的安全漏洞
 - **示例**：安全敏感的API应使安全用法成为最自然的选择
 
-#### 1.4.2 System 2（慢速路径）安全
-- **深度安全分析**：复杂安全决策需要System 2的深度分析能力
+#### 1.4.2 t2 慢思考（慢速路径）安全
+- **深度安全分析**：复杂安全决策需要t2 慢思考的深度分析能力
 - **安全配置验证**：复杂安全配置需要明确的验证机制和文档
 - **示例**：密钥管理系统需要详细的配置向导和安全检查
 
@@ -79,7 +74,7 @@ AgentOS的双系统认知理论为Java安全编码提供了心理学基础：
 
 基于架构设计原则 E-1（安全内生原则），本指南遵循以下安全原则：
 
-| 原则 | 说明 | 在 AgentOS 中的体现 | 关联原则 |
+| 原则 | 说明 | 在 Airymax 中的体现 | 关联原则 |
 |------|------|---------------------|---------|
 | 最小权限 | 只授予完成任务所需的最小权限 | D2 权限裁决 | K-1 |
 | 纵深防御 | 多层安全检查 | cupolas 四层防护 | S-2 |
@@ -850,10 +845,10 @@ public class SecurityConfig {
 ```
 
 ---
-## 十、AgentOS 模块 Java 安全编码示例
+## 十、Airymax 模块 Java 安全编码示例
 
 ### 10.1 cupolas（安全穹顶）Java 安全实现
-cupolas模块实现AgentOS的安全穹顶，Java SDK需要严格遵循其安全模型：
+cupolas模块实现Airymax的安全穹顶，Java SDK需要严格遵循其安全模型：
 
 #### 10.1.1 虚拟工位（Virtual Workbench）沙箱
 ```java
@@ -1123,7 +1118,7 @@ Atoms模块通过JNI提供原生接口，需要特殊的安全考虑：
 /**
  * 安全JNI绑定 - 体现K-1（最小特权）和D-2（安全隔离）原则
  * 
- * 封装与Atoms微内核的本地调用，实现严格参数验证和边界检查。
+ * 封装与Atoms微核心的本地调用，实现严格参数验证和边界检查。
  * 防止缓冲区溢出和类型混淆攻击。
  */
 public class SecureKernelBinding {
@@ -1181,17 +1176,17 @@ public class SecureKernelBinding {
 ---
 ## 十一、参考文献
 
-1. **AgentOS 架构设计原则**: [ARCHITECTURAL_PRINCIPLES.md](../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md)
+1. **Airymax 架构设计原则**: [ARCHITECTURAL_PRINCIPLES.md](../../Capital_Architecture/ARCHITECTURAL_PRINCIPLES.md)
 2. **OWASP Top 10**: https://owasp.org/www-project-top-ten/
 3. **Java Secure Coding Guidelines**: https://wiki.sei.cmu.edu/confluence/display/java
 4. **Spring Security Documentation**: https://docs.spring.io/spring-security/site/docs/current/reference/html5/
-5. **AgentOS 核心架构文档**:
+5. **Airymax 核心架构文档**:
    - [coreloopthree.md](../../Capital_Architecture/coreloopthree.md)
    - [memoryrovol.md](../../Capital_Architecture/memoryrovol.md)
    - [microkernel.md](../../Capital_Architecture/microkernel.md)
-   - [ipc.md](../../Capital_Architecture/ipc.md)
+   - [ipc.md](../../Capital_Architecture/kernel/ipc.md)
    - [syscall.md](../../Capital_Architecture/syscall.md)
-   - [logging_system.md](../../Capital_Architecture/logging_system.md)
+   - [logging_system.md](../../Capital_Architecture/services/logging.md)
    - [Security_design_standard.md](../Security_design_standard.md)
 
 ---

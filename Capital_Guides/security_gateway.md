@@ -1,9 +1,8 @@
-# AgentOS Gateway 安全最佳实践
+# Airymax Gateway 安全最佳实践
 
-**版本**: v1.0.0  
-**更新日期**: 2026-04-05  
-**适用模块**: AgentOS Gateway (协议转换层)
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Guides/security_gateway.md
 ---
 
 ## 📋 目录
@@ -467,7 +466,7 @@ clang-tidy src/**/*.c -- -Iinclude
 ### 联系支持
 
 - **安全漏洞报告**: security@spharx.io
-- **GitHub Issues**: https://github.com/spharx/agentos/issues
+- **GitCode Issues**: https://gitcode.com/spharx/agentos/issues
 - **社区论坛**: https://community.agentos.io
 
 ---

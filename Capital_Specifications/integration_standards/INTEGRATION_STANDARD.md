@@ -3,12 +3,9 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 # Manager 模块与统一配置库集成标准
 
-**版本**: v1.0.1  
-**最后更新**: 2026-04-09  
-**适用范围**: AgentOS/manager 模块与 agentos/commons/utils/config_unified 的集成  
-**理论基础**: 工程两论（接口契约化）+ 五维正交设计（内核观K-2、工程观E-4/E-8）  
-**当前位置**: `docs/Capital_Specifications/integration_standards/` (从 `agentos/manager/` 迁移)
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_Specifications/integration_standards/INTEGRATION_STANDARD.md
 ---
 
 ## 一、集成概述
@@ -27,7 +24,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                  AgentOS 各业务模块                   │
+│                  Airymax 各业务模块                   │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │
 │  │ cupolas  │ │ daemon   │ │ atoms    │ │ 其他   │ │
 │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └───┬────┘ │
@@ -56,7 +53,7 @@ Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 ```bash
 # 定义 Manager 配置的根目录路径
 export AGENTOS_CONFIG_DIR="/etc/agentos"          # Linux 生产环境
-export AGENTOS_CONFIG_DIR="./AgentOS/manager"     # 开发环境
+export AGENTOS_CONFIG_DIR="./AgentRT/manager"     # 开发环境
 export AGENTOS_CONFIG_DIR="C:\\agentos\\config"   # Windows 环境
 ```
 
@@ -69,7 +66,7 @@ export AGENTOS_CONFIG_DIR="C:\\agentos\\config"   # Windows 环境
 1. Linux: `/etc/agentos`
 2. Windows: `%APPDATA%\agentos`
 3. macOS: `~/Library/Application Support/agentos`
-4. 开发环境: `./AgentOS/manager`
+4. 开发环境: `./AgentRT/manager`
 
 ### 2.2 配置子目录结构
 
@@ -132,9 +129,9 @@ static const char* get_config_dir(void) {
     const char* config_dir = getenv("AGENTOS_CONFIG_DIR");
     if (!config_dir) {
 #ifdef _WIN32
-        config_dir = ".\\AgentOS\\manager";
+        config_dir = ".\\Airymax\\manager";
 #else
-        config_dir = "./AgentOS/manager";
+        config_dir = "./AgentRT/manager";
 #endif
     }
     return config_dir;
@@ -481,8 +478,8 @@ void test_full_system_config_load(void) {
 /* test_schema_validation.c - Schema 验证测试 */
 void test_valid_kernel_config_passes_validation(void) {
     int result = load_and_validate_config(
-        "../agentos/manager/kernel/settings.yaml",
-        "../agentos/manager/schema/kernel-settings.schema.json"
+        "../AgentRT/agentos/manager/kernel/settings.yaml",
+        "../AgentRT/agentos/manager/schema/kernel-settings.schema.json"
     );
     ASSERT_EQ(result, 0);
 }
@@ -492,7 +489,7 @@ void test_invalid_config_fails_validation(void) {
     
     int result = load_and_validate_config(
         "temp_invalid_config.yaml",
-        "../agentos/manager/schema/kernel-settings.schema.json"
+        "../AgentRT/agentos/manager/schema/kernel-settings.schema.json"
     );
     ASSERT_NEQ(result, 0);
     
@@ -593,10 +590,28 @@ export AGENTOS_DEBUG=1
 ## 十、参考文档
 
 - [ARCHITECTURAL_PRINCIPLES.md](../../ARCHITECTURAL_PRINCIPLES.md)
-- [config_unified README.md](../../../agentos/commons/utils/config_unified/README.md) ✅
-- [CONFIG_CHANGE_PROCESS.md](../../../agentos/manager/CONFIG_CHANGE_PROCESS.md) ✅
+- [config_unified README.md](../../../AgentRT/agentos/commons/utils/config_unified/README.md) ✅
+- [CONFIG_CHANGE_PROCESS.md](../../../AgentRT/agentos/manager/CONFIG_CHANGE_PROCESS.md) ✅
 - [error_code_reference.md](../project_erp/error_code_reference.md) ✅
+- [error.h (C 内核错误码定义)](../../../AgentRT/agentos/commons/utils/error/include/error.h) ✅
 - [Integration Standards README](./README.md) ✅
+
+---
+
+### 环境变量一致性检查
+
+在集成过程中，必须确保 `AGENTOS_CONFIG_DIR` 环境变量在所有模块中的一致性：
+
+1. **启动时校验**: 各模块在初始化时应通过 `getenv("AGENTOS_CONFIG_DIR")` 获取配置目录，并与核心循环注册的值进行比对
+2. **跨模块传播**: 环境变量应在进程启动前统一设置，禁止运行时动态修改
+3. **默认值对齐**: 所有模块的回退策略必须一致（参见 2.1 节默认值定义）
+4. **校验工具**: 使用 `agentos-config-check` 工具验证所有活跃模块的 `AGENTOS_CONFIG_DIR` 值是否一致
+
+```bash
+# 一致性检查示例
+agentos-config-check --verify-env AGENTOS_CONFIG_DIR
+# 输出: [OK] All modules report AGENTOS_CONFIG_DIR=/etc/agentos
+```
 
 ---
 

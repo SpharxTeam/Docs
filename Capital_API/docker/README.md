@@ -1,9 +1,8 @@
-# AgentOS Docker 部署完整指南
+# Airymax Docker 部署完整指南
 
-> **版本**: v0.0.4  
-> **镜像**: `spharx/agentos:v0.0.4` (或本地构建)  
-> **支持平台**: linux/amd64, linux/arm64
-
+**最新**: 2026-06-09
+**状态**: 维护中
+**路径**: OpenAirymax/Docs/Capital_API/docker/README.md
 ---
 
 ## 🎯 三种部署方式
@@ -85,8 +84,8 @@ docker exec agentos-gateway gateway_d --help
 ```bash
 # 挂载源码目录
 docker run -it --rm \
-  -v /path/to/AgentOS:/workspace/AgentOS \
-  -w /workspace/AgentOS/build \
+  -v /path/to/Airymax:/workspace/Airymax \
+  -w /workspace/AgentRT/build \
   agentos:latest bash
 
 # 在容器内执行构建命令
@@ -106,8 +105,8 @@ services:
       context: ../../
       dockerfile: Docs/Capital_API/docker/Dockerfile.dev
     volumes:
-      - ../..:/workspace/AgentOS
-    working_dir: /workspace/AgentOS/build
+      - ../..:/workspace/Airymax
+    working_dir: /workspace/AgentRT/build
     command: bash -c "cmake .. && make -j$(nproc) && ctest"
 ```
 
@@ -129,7 +128,7 @@ services:
 ```
 /usr/local/
 ├── bin/
-│   ├── gateway_d          # 网关守护进程
+│   ├── gateway_d          # 网关用户态服务
 │   ├── agentos-llm-d      # LLM服务
 │   ├── channel_d          # 通道服务
 │   ├── agentos-sched-d    # 调度器
@@ -261,7 +260,7 @@ curl http://localhost:8080/health
 {
   "status": "ok",
   "service": "gateway",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "uptime_seconds": 3600,
   "requests_total": 1234
 }
@@ -297,7 +296,7 @@ agentos_request_duration_seconds_count 300.000
 ```json
 {
   "dashboard": {
-    "title": "AgentOS Monitoring",
+    "title": "Airymax Monitoring",
     "panels": [...]
   },
   "datasource": {
@@ -315,10 +314,10 @@ agentos_request_duration_seconds_count 300.000
 
 ```bash
 # 1. 拉取新版本
-docker pull spharx/agentos:v0.0.5
+docker pull spharx/agentos:v0.1.0
 
 # 2. 更新镜像标签
-sed -i 's/image: spharx\/agentos:.*/image: spharx\/agentos:v0.0.5/' docker-compose.yml
+sed -i 's/image: spharx\/agentos:.*/image: spharx\/agentos:v0.1.0/' docker-compose.yml
 
 # 3. 逐个重启服务
 docker-compose up -d --no-deps gateway     # 先重启gateway
@@ -495,7 +494,7 @@ docker-compose logs --tail=50
 ## 📞 技术支持
 
 - **Docker Hub**: https://hub.docker.com/r/spharx/agentos
-- **GitHub Issues**: https://github.com/spharx/AgentOS/issues?q=is%3Aissue+is%3Aopen+label%3Adocker
+- **GitHub Issues**: https://github.com/spharx/AgentRT/issues?q=is%3Aissue+is%3Aopen+label%3Adocker
 - **文档**: https://docs.agentos.dev/docker
 
 ---
