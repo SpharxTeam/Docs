@@ -505,4 +505,4 @@ client = AirymaxClient(
 
 ---
 
-© 2025-2026 SPHARX Ltd. All Rights Reserved.
+© 2026 SPHARX Ltd. All Rights Reserved.
