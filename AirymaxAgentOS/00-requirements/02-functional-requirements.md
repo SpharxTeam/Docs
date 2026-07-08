@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # 功能需求分析
 
 > **文档定位**: agentrt-liunx（AirymaxOS） 功能需求（Functional Requirements）的详细分析，回答"agentrt-liunx 提供哪些具体能力（输入 → 处理 → 输出）"。

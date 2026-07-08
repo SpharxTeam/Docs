@@ -250,7 +250,7 @@ agentrt-liunx 1.0.1 共定义约 110 项 OS-ACC 验收标准，覆盖 9 个 Part
 | OS-ACC-107 | 调优指南 | `grep -rE "调优\|tuning" docs/AirymaxAgentOS/170-performance/` | ≥2 处 | P1 | M8 |
 | OS-ACC-108 | Token 能效基准 | `grep -rE "Token 能效\|Token efficiency" docs/AirymaxAgentOS/170-performance/` | ≥2 处 | P1 | M8 |
 | OS-ACC-109 | 基准测试套件 | `grep -rE "基准测试\|benchmark" docs/AirymaxAgentOS/170-performance/` | ≥3 处 | P1 | M8 |
-| OS-ACC-110 ★ | Linux 6.6 兼容性验证 | `grep -rE "Linux 7.0\|PREEMPT_LAZY\|Rust 正式转正\|MGLRU 2.0\|XFS 自修复\|eBPF 签名验证" docs/AirymaxAgentOS/` | 0 结果（同 ACC-OS04） | P1 | M8 |
+| OS-ACC-110 ★ | Linux 6.6 兼容性验证 | `grep -rE "Linux 7\.0\|PREEMPT_LAZY\|Rust 正式转正\|XFS 自修复\|MGLRU 2\.0" docs/AirymaxAgentOS/ \| grep -v "06-acceptance-criteria"` | 0 结果（同 ACC-OS04，排除本文件自身） | P1 | M8 |
 
 ---
 

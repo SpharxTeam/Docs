@@ -563,14 +563,14 @@ python scripts/kernel_security_audit.py --lsm --capability
 ### 1. 问题报告
 
 - **GitHub Issues**: [agentrt-liunx 规范问题报告](https://github.com/SpharxTeam/AgentRT/issues)
-- **邮件列表**: specifications@agentos.io
+- **邮件列表**: specifications@airymaxos.dev
 - **Discord**: #agentrt-liunx-specifications 频道
 
 ### 2. 技术支持
 
-- **规范解释**: standards@agentos.io
-- **合规咨询**: compliance@agentos.io
-- **安全报告**: security@agentos.io
+- **规范解释**: standards@airymaxos.dev
+- **合规咨询**: compliance@airymaxos.dev
+- **安全报告**: security@airymaxos.dev
 
 ### 3. 培训资源
 

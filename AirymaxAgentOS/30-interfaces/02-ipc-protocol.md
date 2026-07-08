@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # IPC 协议
 
 > **文档定位**: agentrt-liunx（AirymaxOS） 进程间通信协议的 128B 消息头、5 种 payload、io_uring 零拷贝与同源映射

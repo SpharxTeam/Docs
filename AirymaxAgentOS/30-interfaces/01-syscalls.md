@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # 系统调用接口
 
 > **文档定位**: agentrt-liunx（AirymaxOS） 内核系统调用的分类、编号、C 接口、清单、性能约束与错误码

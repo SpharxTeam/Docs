@@ -104,7 +104,7 @@ CoreLoopThree kthread 是认知循环的内核态驱动器（FR-041），同源 
 
 ### 4.2 kthread 间数据传递
 
-三个 kthread 通过 io_uring 零拷贝 IPC 传递数据，避免共享内存竞争：
+三个 kthread 通过 kfifo 无锁环形队列 + wait_event_interruptible 传递数据（kthread 间天然共享内核地址空间，无需 io_uring——io_uring 是 userspace↔kernel syscall ABI，不适用于 kthread 间通信）：
 
 ```mermaid
 sequenceDiagram
@@ -115,11 +115,11 @@ sequenceDiagram
     
     U->>C: 1. agentrt_sys_task_submit
     C->>C: 2. System 1/2 评估
-    C->>E: 3. io_uring: 任务 DAG
+    C->>E: 3. kfifo: 任务 DAG
     E->>E: 4. 调度执行单元
-    E->>M: 5. io_uring: 执行结果
+    E->>M: 5. kfifo: 执行结果
     M->>M: 6. L1→L4 卷载
-    M->>C: 7. io_uring: 反馈信号
+    M->>C: 7. kfifo: 反馈信号
     C->>U: 8. 返回结果
     
     Note over C,M: trace_id 贯穿三个 kthread
@@ -127,7 +127,7 @@ sequenceDiagram
 
 ### 4.3 kthread 唤醒机制
 
-CoreLoopThree kthread 通过 `wait_event_interruptible` + io_uring CQE 事件唤醒，避免忙等消耗 CPU：
+CoreLoopThree kthread 通过 `wait_event_interruptible` + `wake_up_interruptible` 唤醒机制（kfifo 数据就绪时由生产者 kthread 调用 wake_up），避免忙等消耗 CPU：
 
 - cognition kthread 等待 `task_submit` 系统调用事件
 - execution kthread 等待 cognition kthread 的 DAG 事件

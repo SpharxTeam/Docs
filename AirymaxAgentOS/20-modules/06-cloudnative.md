@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # agentrt-liunx（AirymaxOS）云原生设计文档（airymaxos-cloudnative，极境云原生）
 
 > **子仓编号**：06

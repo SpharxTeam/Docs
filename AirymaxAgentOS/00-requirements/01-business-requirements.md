@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # 业务需求分析
 
 > **文档定位**: agentrt-liunx（AirymaxOS） 业务需求（Business Requirements）的详细分析，回答"agentrt-liunx 为谁解决什么问题、带来什么价值"。

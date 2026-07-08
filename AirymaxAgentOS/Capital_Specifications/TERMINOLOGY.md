@@ -41,7 +41,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **系统内代码**: `agentrt_ipc_*`
 
-**参见**: MicroCoreRT（微内核运行时）、AgentsIPC（Agent 进程间通信）、io_uring 异步 I/O
+**参见**: MicroCoreRT（微核心运行时）、AgentsIPC（Agent 进程间通信）、io_uring 异步 I/O
 
 ---
 
@@ -73,9 +73,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 操作系统的最小核心，只提供最基本的服务（调度、IPC、地址空间管理、基本内存管理）。文件系统、网络栈、设备驱动等服务运行在用户态。代表实现：seL4、Zircon、Minix3、QNX、L4。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）不是从零开发微内核，而是基于 Linux 6.6 内核进行**微内核化改造**——利用 sched_ext + eBPF + io_uring 实现微内核化，将 VFS、网络栈、部分驱动移到用户态，同时保留 Linux 内核的稳定性和硬件兼容性。遵循 Liedtke minimality principle。
+**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）基于 Linux 6.6 内核进行**微内核化改造**（非从零开发），演进目标为真正的微内核——利用 sched_ext + eBPF + io_uring 实现微内核化，将 VFS、网络栈、部分驱动移到用户态，同时保留 Linux 内核的稳定性和硬件兼容性。遵循 Liedtke minimality principle。
 
-**参见**: Liedtke Minimality Principle、seL4、MicroCoreRT（微内核运行时）
+**参见**: Liedtke Minimality Principle、seL4、MicroCoreRT（微核心运行时）
 
 ---
 
@@ -85,7 +85,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）的内核极简原则（五维正交24原则 K-1）直接遵循 Liedtke minimality——内核只保留不可再分的原子机制（调度、IPC、内存管理、时间服务），一切可以在用户态实现的功能都必须在用户态实现。
 
-**参见**: K-1 内核极简原则、MicroCoreRT（微内核运行时）、五维正交24原则
+**参见**: K-1 内核极简原则、MicroCoreRT（微核心运行时）、五维正交24原则
 
 ---
 
@@ -119,7 +119,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **系统内代码**: `agentrt_sched_agent_*`，eBPF 程序
 
-**参见**: SCHED_AGENT（Agent 调度类）、eBPF、MicroCoreRT（微内核运行时）
+**参见**: SCHED_AGENT（Agent 调度类）、eBPF、MicroCoreRT（微核心运行时）
 
 ---
 
@@ -243,7 +243,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### agentrt-liunx（AirymaxOS / 极境智能体操作系统）
 
-**定义**: agentrt-liunx 是基于 Linux 6.6 内核基线的智能体操作系统发行版，采用微内核化改造策略（而非从零开发微内核）。代码仓库名 `AirymaxOS`，项目定位为 agentrt（AirymaxAgentRT）的 OS 层最佳载体。与 agentrt 遵循 IRON-9 v2"同源且部分代码共享"原则：[SC] 共享契约层完全共享代码，[SS] 语义同源层 API 签名相同但实现独立，[IND] 完全独立层各自独立。
+**定义**: agentrt-liunx 是基于 Linux 6.6 内核基线的智能体操作系统发行版，采用微内核化改造策略（而非从零开发微内核）。代码仓库名 `agentrt-linux`，项目定位为 agentrt（AirymaxAgentRT）的 OS 层最佳载体。与 agentrt 遵循 IRON-9 v2"同源且部分代码共享"原则：[SC] 共享契约层完全共享代码，[SS] 语义同源层 API 签名相同但实现独立，[IND] 完全独立层各自独立。
 
 **标准名称**: agentrt-liunx（AirymaxOS）——正式文档中必须使用此完整形式，不得单独出现 "AirymaxOS" 而无 "agentrt-liunx" 前缀。
 
@@ -255,15 +255,15 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **代码目录**: `airymaxos-kernel/` / `airymaxos-services/` / `airymaxos-cognition/` / `airymaxos-memory/` / `airymaxos-security/` / `airymaxos-cloudnative/` / `airymaxos-system/` / `airymaxos-tests/`（8 子仓）
 
-**参见**: agentrt（AirymaxAgentRT）、IRON-9 v2、MicroCoreRT（微内核运行时）、五维正交24原则
+**参见**: agentrt（AirymaxAgentRT）、IRON-9 v2、MicroCoreRT（微核心运行时）、五维正交24原则
 
 ---
 
-### MicroCoreRT / 微内核运行时
+### MicroCoreRT / 微核心运行时
 
 **定义**: agentrt-liunx（AirymaxOS）内核的极简运行时抽象层，提供最基本的 IPC、内存管理、任务调度、时间管理、可观测性功能。与 agentrt 的 MicroCoreRT 共享设计理念（同源），但在 agentrt-liunx 中作为 OS 级实现（内核态 + 用户态服务），而在 agentrt 中作为用户态运行时实现。
 
-**标准名称**: 微内核运行时 (MicroCoreRT)
+**标准名称**: 微核心运行时 (MicroCoreRT)
 
 **与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——API 签名相同（调度语义、IPC 语义、内存管理语义），实现独立（agentrt-liunx 基于 sched_ext + io_uring + MGLRU，agentrt 基于用户态消息队列 + 用户态调度器）。
 
@@ -390,7 +390,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **系统内代码**: `agentrt_sched_agent_*`，eBPF 程序
 
-**参见**: sched_ext、eBPF、MicroCoreRT（微内核运行时）、CoreLoopThree（认知三阶段循环）
+**参见**: sched_ext、eBPF、MicroCoreRT（微核心运行时）、CoreLoopThree（认知三阶段循环）
 
 ---
 
@@ -655,7 +655,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 标准中文 | 标准英文 | 代码前缀 | IRON-9 v2 层次 | 禁止使用的旧称 |
 |----------|----------|---------|---------------|---------------|
 | agentrt-liunx（极境智能体操作系统） | agentrt-liunx（AirymaxOS） | `agentrt_*` | [SC]/[SS]/[IND] | 仅出现 "AirymaxOS" 而无前缀 |
-| 微内核运行时 | MicroCoreRT | `agentrt_core_*` | [SS] | 微内核（不加限定词时） |
+| 微核心运行时 | MicroCoreRT | `agentrt_core_*` | [SS] | 微内核（不加限定词时） |
 | Agent 进程间通信 | AgentsIPC | `agentrt_ipc_*` | [SS] | — |
 | 安全穹顶 | Cupolas | `cupolas_*` | [SS] | Cupolas安全模块 |
 | 记忆卷载 | MemoryRovol | `agentrt_memoryrov_*` | [SS] | 记忆漩涡引擎 |

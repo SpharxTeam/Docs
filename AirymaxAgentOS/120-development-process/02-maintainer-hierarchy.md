@@ -151,7 +151,7 @@ K:	\b(microcorert_init|microcorert_dispatch)\b
 | kernel | 内核子系统维护者 | MicroCoreRT 内核适配、驱动模型、调度 | MicroCoreRT |
 | services | 服务子系统维护者 | 12 daemons（`*_d`）、用户态服务 | - |
 | security | 安全子系统维护者 | Cupolas 安全穹顶、LSM、capability | Cupolas |
-| memory | 内存子系统维护者 | MemoryRovol 四层记忆、MGLRU 2.0、CXL/PMEM | MemoryRovol |
+| memory | 内存子系统维护者 | MemoryRovol 四层记忆、MGLRU 多代 LRU、CXL/PMEM | MemoryRovol |
 | cognition | 认知子系统维护者 | CoreLoopThree 三层认知循环 | CoreLoopThree |
 | clouds | 云子系统维护者 | 云原生 Agent 部署、容器化 | - |
 | system | 系统接口子系统维护者 | 系统调用、ABI、AgentsIPC 128B 协议 | AgentsIPC |

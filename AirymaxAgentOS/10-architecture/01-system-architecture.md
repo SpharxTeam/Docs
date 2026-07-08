@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # agentrt-liunx（AirymaxOS）架构设计
 
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
@@ -208,7 +210,7 @@ agentrt-liunx 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
 | 决策 | 内容 | 日期 |
 |---|---|---|
 | ADR-001 | agentrt-liunx 基于 Linux 内核，不从零开发微内核 | 2026-07-06 |
-| ADR-002 | 采用微内核化改造策略，而非真正的微内核 | 2026-07-06 |
+| ADR-002 | 采用微内核化改造策略（基于 Linux 6.6 演进，非从零开发），最终演进为真正的微内核 | 2026-07-06 |
 | ADR-003 | 全面采用 agentrt-liunx 工程基线 | 2026-07-06 |
 | ADR-004 | agentrt 和 agentrt-liunx 同源且部分代码共享 | 2026-07-06 |
 | ADR-005 | 8 子仓按能力域划分 | 2026-07-06 |

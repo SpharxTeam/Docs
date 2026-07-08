@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # agentrt-liunx（AirymaxOS）五维正交 24 原则与落地映射
 
 > **文档定位**: agentrt-liunx（AirymaxOS）架构设计原则的完整定义与落地映射

@@ -499,7 +499,7 @@ agentrt-liunx 的 8 子仓各有独立的子系统手册，作为本卷的补丁
 | kernel | `60-driver-model/` + kernel 子仓 `MAINTAINERS.md` | 内核子系统、驱动模型、MicroCoreRT 适配 |
 | services | `100-operations/` + services 子仓 | 用户态服务（`*_d`）规范 |
 | security | `110-security/` + security 子仓 | Cupolas 安全穹顶、LSM 集成、capability |
-| memory | `170-performance/` + memory 子仓 | MemoryRovol 四层记忆、MGLRU 2.0、CXL/PMEM |
+| memory | `170-performance/` + memory 子仓 | MemoryRovol 四层记忆、MGLRU 多代 LRU、CXL/PMEM |
 | cognition | `40-dataflows/` + cognition 子仓 | CoreLoopThree 三层认知循环 |
 | clouds | `180-clouds/` + clouds 子仓 | 云原生 Agent 部署、容器化 |
 | system | `10-architecture/` + system 子仓 | 系统调用、ABI、AgentsIPC 128B 协议 |

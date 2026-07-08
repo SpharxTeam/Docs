@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # agentrt-liunx（AirymaxOS）架构决策记录（ADR）
 
 > **文档定位**: agentrt-liunx（AirymaxOS）架构决策记录（Architecture Decision Records）

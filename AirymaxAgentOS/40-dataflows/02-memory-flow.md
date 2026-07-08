@@ -80,6 +80,29 @@ flowchart LR
 
 ## 3. 每层数据结构
 
+### 3.0 定点数类型定义 [SC]
+
+> **内核态禁用 float 约束**：Linux 6.6 内核编译使用 `-mno-80387` 禁用 x87 FPU（见 `arch/x86/Makefile:137`），内核态任何 float/double 算术运算必须包裹在 `kernel_fpu_begin()`/`kernel_fpu_end()` 之间（会禁用抢占，不可在原子/中断/调度器热路径使用）。
+>
+> **[SC] 共享契约层方案**：`include/airymax/memory_types.h` 中所有浮点字段统一使用 Q16.16 定点数 `airymax_q16_t`（int32_t），用户态需 float 展示时用 `AIRYMAX_Q16_TO_F()` 转换。
+
+```c
+/**
+ * @brief Q16.16 定点数类型（内核态禁用 float 的替代方案）
+ * @since 1.0.1
+ * @see arch/x86/Makefile -mno-80387; arch/x86/include/asm/fpu/api.h
+ * @location include/airymax/memory_types.h
+ */
+typedef int32_t airymax_q16_t;        /* Q16.16 定点：1 符号 + 15 整数 + 16 小数 */
+typedef int64_t airymax_q32_t;       /* Q32.32 定点：用于 L2 向量内积累加 */
+
+#define AIRYMAX_Q16_ONE      (1 << 16)                    /* 1.0 的 Q16.16 表示 */
+#define AIRYMAX_Q16_MAX      INT32_MAX                    /* 最大值（替代 INFINITY 表示永生） */
+#define AIRYMAX_Q16_FLOAT(f) ((airymax_q16_t)((f) * AIRYMAX_Q16_ONE))  /* float → Q16.16 */
+#define AIRYMAX_Q16_TO_F(x)  ((float)(x) / AIRYMAX_Q16_ONE)            /* Q16.16 → float（仅用户态） */
+#define AIRYMAX_Q16_MUL(a,b) ((airymax_q16_t)(((int64_t)(a) * (b)) >> 16))  /* Q16.16 乘法（s64 累加） */
+```
+
 ### 3.1 L1 原始卷（仅追加） [SC]
 
 L1 存储原始执行记录与感知数据，**仅追加（append-only），不可变**（FR-031，NFR-S-005 哈希链保护）。L1 数据结构 `agentrt_l1_record_t` 是 [SC] 共享契约层的核心——agentrt 用户态与 agentrt-liunx 内核态通过 `include/airymax/memory_types.h` 共享此定义。
@@ -130,8 +153,8 @@ typedef struct __attribute__((aligned(64))) agentrt_l2_feature {
     uint64_t timestamp_ns;     /* 创建时间戳 */
     uint32_t model_version;    /* embedding 模型版本 */
     uint32_t dim;              /* 向量维度（默认 768） */
-    float    weight;           /* 权重（受遗忘机制影响） */
-    float    vector[768];      /* 语义向量 */
+    airymax_q16_t weight;      /* 权重（Q16.16 定点，受遗忘机制影响；内核态禁用 float，见 arch/x86/Makefile -mno-80387） */
+    airymax_q16_t vector[768]; /* 语义向量（Q16.16 定点；用户态需 float 时用 AIRYMAX_Q16_TO_F() 转换） */
 } agentrt_l2_feature_t;
 ```
 
@@ -161,7 +184,7 @@ typedef struct agentrt_l3_node {
 typedef struct agentrt_l3_edge {
     uint64_t target_node_id;   /* 目标节点 ID */
     uint32_t edge_type;         /* 边类型（IS_A/RELATES_TO/CAUSES） */
-    float    weight;            /* 边权重 */
+    airymax_q16_t weight;       /* 边权重（Q16.16 定点；内核态禁用 float） */
 } agentrt_l3_edge_t;
 ```
 
@@ -180,9 +203,9 @@ typedef struct agentrt_l4_barcode {
     uint64_t pattern_id;        /* 模式 ID */
     uint64_t source_graph_id;   /* 源 L3 图 ID */
     int32_t  dimension;         /* 同调维度（0/1/2） */
-    float    birth;             /* birth 阈值 */
-    float    death;             /* death 阈值（INFINITY 表示永生） */
-    float    persistence;        /* 持久性 = death - birth */
+    airymax_q16_t birth;        /* birth 阈值（Q16.16 定点） */
+    airymax_q16_t death;        /* death 阈值（INT32_MAX 表示永生，替代 INFINITY） */
+    airymax_q16_t persistence;  /* 持久性 = death - birth（Q16.16 定点算术） */
     uint32_t confidence;         /* 置信度（0-100） */
 } agentrt_l4_barcode_t;
 ```

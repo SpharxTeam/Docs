@@ -22,7 +22,7 @@ agentrt-liunx 性能工程体系是系统在高负载场景下稳定运行的工
 | 层级 | 类型 | 机制 | 范围 |
 |------|------|------|------|
 | L1 | CPU 性能 | perf + sched_ext + EEVDF | CPU 调度 |
-| L2 | 内存性能 | MGLRU 2.0 + CXL + PMEM | 内存管理 |
+| L2 | 内存性能 | MGLRU 多代 LRU + CXL + PMEM | 内存管理 |
 | L3 | I/O 性能 | io_uring + zero-copy | I/O 子系统 |
 | L4 | 网络性能 | AF_XDP + DPDK | 网络栈 |
 | L5 | 锁与并发 | lockdep + KCSAN | 并发正确性 |
@@ -65,7 +65,7 @@ int BPF_PROG(agent_enqueue, struct task_struct *p, u64 enq_flags) {
 }
 ```
 
-### 2.3 MGLRU 2.0 内存回收
+### 2.3 MGLRU 多代 LRU 内存回收
 
 ```bash
 # 查看 MGLRU 状态

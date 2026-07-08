@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # 接口设计
 
 > **文档定位**: agentrt-liunx（AirymaxOS） 接口设计层的总览与索引

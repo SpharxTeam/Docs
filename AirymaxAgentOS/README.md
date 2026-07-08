@@ -3,14 +3,14 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-liunx 设计文档
 
 > **文档定位**: agentrt-liunx（AirymaxOS）的全部设计思想、架构设计、子仓设计草案
-> **正式全称**: agentrt-liunx（极境智能体操作系统，正式英文名：AirymaxOS）
+> **正式全称**: agentrt-liunx（极境智能体操作系统，正式英文名：AirymaxAgentOS，简称 AirymaxOS）
 > **仓库别名**: agentrt-linux（仓库名）
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
 
 ## 1. agentrt-liunx 是什么
 
-**agentrt-liunx**（正式英文名：AirymaxOS，中文：极境智能体操作系统）是基于 Linux 内核的**操作系统发行版**，与 agentrt（AirymaxAgentRT / 极境智能体运行底座平台工程）**同源**。
+**agentrt-liunx**（正式英文名：AirymaxAgentOS，简称 AirymaxOS，中文：极境智能体操作系统）是基于 Linux 内核的**操作系统发行版**，与 agentrt（AirymaxAgentRT / 极境智能体运行底座平台工程）**同源**。
 
 **同源关系**:
 
@@ -34,7 +34,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 1 | [kernel](10-architecture/01-system-architecture.md) | 极境内核  | Linux 内核 + 微内核化改造（sched\_ext + eBPF + io\_uring + Rust） | atoms/corekern (MicroCoreRT) |
 | 2 | [services](20-modules/02-services.md)               | 极境服务  | 用户态系统服务（VFS + 网络 + 驱动 + 12 daemons 集成）                  | daemons                      |
 | 3 | [security](20-modules/03-security.md)               | 极境安全  | capability 安全 + LSM + 机密计算 + 国密                         | cupolas                      |
-| 4 | [memory](20-modules/04-memory.md)                   | 极境记忆  | 记忆持久化 + CXL + PMEM + MGLRU 2.0                          | heapstore + memoryrovol      |
+| 4 | [memory](20-modules/04-memory.md)                   | 极境记忆  | 记忆持久化 + CXL + PMEM + MGLRU 多代 LRU                       | heapstore + memoryrovol      |
 | 5 | [cognition](20-modules/05-cognition.md)             | 极境认知  | CoreLoopThree kthread + Wasm + LLM 调度 + 超节点沙箱           | coreloopthree + frameworks   |
 | 6 | [cloudnative](20-modules/06-cloudnative.md)         | 极境云原生 | K8s + containerd + OCI + agentctl + 超节点 OS              | gateway + sdk                |
 | 7 | [system](20-modules/07-system.md)                   | 极境系统  | 包管理 + 配置 + shell + 基础库 + DevStation                     | commons                      |
@@ -157,7 +157,7 @@ docs/AirymaxAgentOS/
 | sched\_ext（eBPF 用户态调度器、sub-scheduler）                   | airymaxos-kernel（SCHED\_AGENT）        |
 | io\_uring（零 syscall 高性能 I/O）                            | airymaxos-kernel + airymaxos-services |
 | eBPF 签名验证 + 机密计算                                        | airymaxos-security                    |
-| MGLRU 2.0（多代 LRU）                                       | airymaxos-memory                      |
+| MGLRU 多代 LRU（Linux 6.6 原生）                              | airymaxos-memory                      |
 | Wasm 3.0（安全沙箱运行时）                                       | airymaxos-cognition                   |
 | CXL（内存分层与池化）                                            | airymaxos-memory                      |
 

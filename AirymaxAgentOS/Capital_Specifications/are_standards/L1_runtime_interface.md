@@ -8,7 +8,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 **状态**: 草案  
 **路径**: OpenAirymax/docs/AirymaxAgentOS/Capital_Specifications/are_standards/L1_runtime_interface.md  
 **父文档**: [ARE Standards 总览](./README.md)  
-**理论根基**: 体系并行论、五维正交24原则、MicroCoreRT 微内核极简设计、seL4 形式化验证思想  
+**理论根基**: 体系并行论、五维正交24原则、MicroCoreRT 微核心极简设计、seL4 形式化验证思想  
 
 ---
 
@@ -23,7 +23,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 引言
 
-L1 核心运行时接口是 agentrt-liunx（AirymaxOS）ARE Standards 的最底层规范，定义了 OS 内核态最基础、最核心的运行时原语。L1 的设计哲学根植于 MicroCoreRT 微内核极简设计思想（参考 seL4 的形式化验证方法），严格遵循五维正交24原则中 K-1（内核极简原则）：内核只保留最必要的原子机制，所有策略性决策外移至用户空间或可插拔模块。
+L1 核心运行时接口是 agentrt-liunx（AirymaxOS）ARE Standards 的最底层规范，定义了 OS 内核态最基础、最核心的运行时原语。L1 的设计哲学根植于 MicroCoreRT 微核心极简设计思想（参考 seL4 的形式化验证方法），严格遵循五维正交24原则中 K-1（内核极简原则）：内核只保留最必要的原子机制，所有策略性决策外移至用户空间或可插拔模块。
 
 L1 接口是 agentrt-liunx（AirymaxOS）整个 OS 栈的基石——L2 服务通信协议依赖 L1 的 IPC 原语，L3 安全与治理依赖 L1 的内存管理和进程隔离。L1 的正确性、性能和安全性直接影响整个系统的可靠性。
 
@@ -49,9 +49,9 @@ L1 的设计严格遵循以下五维正交24原则映射：
 
 ---
 
-## 2. MicroCoreRT 微内核运行时接口
+## 2. MicroCoreRT 微核心运行时接口
 
-MicroCoreRT 是 agentrt-liunx（AirymaxOS）的微内核运行时核心，定义了内核态的最小运行时接口集合。它遵循 Liedtke 最小化原则：内核越小的系统越可靠，越容易验证。
+MicroCoreRT 是 agentrt-liunx（AirymaxOS）的微核心运行时核心，定义了内核态的最小运行时接口集合。它遵循 Liedtke 最小化原则：内核越小的系统越可靠，越容易验证。
 
 ### 2.1 五大原子机制
 

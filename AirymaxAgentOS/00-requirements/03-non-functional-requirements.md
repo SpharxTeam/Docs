@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # 非功能需求分析
 
 > **文档定位**: agentrt-liunx（AirymaxOS） 非功能需求（Non-Functional Requirements）的详细分析，回答"agentrt-liunx 的能力要做到多好（质量属性约束）"。

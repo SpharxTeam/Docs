@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # agentrt-liunx（AirymaxOS）测试设计文档（airymaxos-tests，极境测试）
 
 > **子仓编号**：08

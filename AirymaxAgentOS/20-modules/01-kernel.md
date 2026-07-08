@@ -40,7 +40,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 4. **高性能 IPC 基础（io_uring）[SS]**：基于 io_uring（2026 已成为默认高性能 I/O 路径）构建零 syscall、零拷贝的消息传递基础设施。IPC 消息头与操作码语义 [SC] 与 agentrt 共享。
 5. **eBPF 可编程扩展 [SS]**：提供 struct_ops 注册机制 + kfunc 扩展 + ringbuf 上报，可观测/网络/安全/调度均可通过 eBPF 编程。struct_ops 状态机与 common_value 布局 [SC] 与 agentrt 共享。
 6. **Rust 安全驱动 [IND]**：依托 Linux 6.6 中 Rust 实验性支持（持续演进中），构建安全驱动开发框架。
-7. **同源传承 [SS]**：从 agentrt 的 atoms/corekern（MicroCoreRT）继承实时性与微内核化设计思想。
+7. **同源传承 [SS]**：从 agentrt 的 atoms/corekern（MicroCoreRT）继承实时性与微核心设计思想。
 
 ### 1.1 横切关注点声明
 
@@ -69,7 +69,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 维度 | agentrt（atoms/corekern） | agentrt-liunx（airymaxos-kernel） | 同源标注 |
 |------|--------------------------|------------------------------|----------|
-| 设计目标 | RT 微内核 + Agent 调度 | Linux 6.6 + 微内核化 + Agent 调度 | [SS] |
+| 设计目标 | RT 微核心 + Agent 调度 | Linux 6.6 + 微内核化 + Agent 调度 | [SS] |
 | 调度模型 | MicroCoreRT 实时调度 | SCHED_AGENT（sched_ext + eBPF） | [SS] |
 | 任务描述符 | `agentrt_task_desc_t`（用户态） | `agentrt_task_desc_t`（内核态） | [SC] |
 | IPC | 用户态消息队列 | io_uring 零拷贝 IPC | [SS] |
@@ -82,7 +82,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.2 同源传承要点
 
-- 保留 agentrt 的"微内核化"哲学（最小化特权态代码）[SS]。
+- 保留 agentrt 的"微核心"哲学（最小化运行时核心）[SS]。
 - 保留 agentrt 的"实时性"目标（通过 sched_ext 的 sub-scheduler 在 cgroup 上附加实时策略）[SS]。
 - 保留 agentrt 的"消息传递"通信范式（升级为 io_uring 零拷贝实现）[SS]。
 - 任务描述符与优先级语义 [SC] 共享，确保两端调度语义一致。
@@ -267,7 +267,7 @@ VFS/网络栈/驱动逐步用户态化，内核仅保留机制骨架，符合微
 
 | 内容 | 说明 |
 |------|------|
-| `SCHED_AGENT` 宏（值 7） | SCHED_AGENT 调度类编号 |
+| `SCHED_EXT` 复用（值 7，OLK-6.6 已定义） | 复用 sched_ext 调度类编号，AirymaxOS 通过 BPF struct_ops 实现专属策略 |
 | `AGENTRT_TASK_DESC_MAGIC`（0x41475453 'AGTS'） | 任务描述符 magic（独立于 IPC 消息头） |
 | `AIRYMAX_SLICE_DFL`（20ms） | 默认时间片 |
 | `AIRYMAX_WEIGHT_MIN/MAX`（1/10000） | 任务权重范围 |
@@ -497,10 +497,10 @@ graph TD
 
 ### 11.1 命名一致性
 
-| 维度 | agentrt | agentrt-liunx SCHED_AGENT | 一致性 |
+| 维度 | agentrt | agentrt-liunx 调度策略 | 一致性 |
 |------|---------|------------------------|--------|
 | 任务描述符 | `agentrt_task_desc_t` | `agentrt_task_desc_t` | ✅ [SC] 共享契约 |
-| 调度类编号 | （用户态无） | `SCHED_AGENT 7` | ✅ AirymaxOS 专属 |
+| 调度类编号 | （用户态无） | `SCHED_EXT 7`（复用 OLK-6.6 sched_ext） | ✅ AirymaxOS 专属策略（BPF struct_ops） |
 | 任务 magic | `0x41475453 'AGTS'` | `0x41475453 'AGTS'` | ✅ [SC] 共享契约 |
 | IPC magic | `0x41524531 'ARE1'` | `0x41524531 'ARE1'` | ✅ [SC] 共享契约 |
 | 优先级 | 0-139 | 0-139 | ✅ [SC] 共享契约 |

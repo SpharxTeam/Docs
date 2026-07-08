@@ -428,7 +428,7 @@ platform 总线在 agentrt-liunx 用户态（agentrt）中的同源映射：
 
 - **同源**：用户态 `agentrt_bus_type` 的匹配逻辑与内核 `platform_match` 在语义上一致——都先尝试精确匹配（OF/SDK 接口），再回退到名称匹配
 - **独立**：AgentsIPC 是用户态 IPC，不依赖内核 uevent；内核态 platform driver 不依赖 daemon 存在
-- **解耦验证**：删除 `agentos/daemon/` 后内核 platform driver 仍可正常 probe 硬件；删除内核 platform driver 后 daemon 仍可运行（但失去硬件加速）——这是 IRON-9 v2 同源且部分代码共享的可验证标准
+- **解耦验证**：删除 `agentrt/daemon/` 后内核 platform driver 仍可正常 probe 硬件；删除内核 platform driver 后 daemon 仍可运行（但失去硬件加速）——这是 IRON-9 v2 同源且部分代码共享的可验证标准
 
 ### 9.2 跨边界资源托管链
 

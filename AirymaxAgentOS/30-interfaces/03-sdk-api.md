@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # SDK API
 
 > **文档定位**: agentrt-liunx（AirymaxOS） SDK 的 4 语言矩阵、4 嵌套客户端、代码示例与错误处理策略

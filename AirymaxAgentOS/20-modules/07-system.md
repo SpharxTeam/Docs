@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # agentrt-liunx（AirymaxOS）系统设计文档（airymaxos-system，极境系统）
 
 > **子仓编号**：07

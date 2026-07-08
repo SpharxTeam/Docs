@@ -1,3 +1,5 @@
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
+
 # agentrt-liunx（AirymaxOS）微内核设计思想详解
 
 > **文档定位**: agentrt-liunx（AirymaxOS）微内核设计思想的深度解析
