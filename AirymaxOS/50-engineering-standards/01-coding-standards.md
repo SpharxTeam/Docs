@@ -7,6 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **同源映射**: `50-engineering-standards/README.md` §3；`00-architectural-principles.md` 五维正交 24 原则
 > **理论根基**: Linux 6.6 内核基线工程思想 + Airymax 体系并行论（Multibody Cybernetic Intelligent System）
 > **适用范围**: agentrt-linux 内核态（C / 内联汇编）与同源用户态组件（C / Rust / Python / TypeScript）
+> **SSoT 声明（C-2.6 D-05，2026-07-09）**: 本卷为 agentrt-linux **语义层代码规则**（命名/函数/注释/类型/错误处理/内存/锁）的唯一权威来源（SSoT）。语义规则编号的目标体系为 **OS-STD-CODE-NNN**（4 段前缀，闭源总纲已确立，CODE = Coding）。本卷正文中现存的历史编号 **OS-STD-001~027**（3 段）将逐步迁移为 OS-STD-CODE-001~027（4 段），迁移映射见 §0.1。**首条规则 OS-STD-CODE-001 已使用 4 段编号**（与后续 OS-STD-002~027 的 3 段不一致），迁移后统一为 4 段。迁移完成前，历史编号与 OS-STD-CODE 编号**并存且等价**，规则效力以本卷正文为准；本卷与闭源总纲的任何冲突，以闭源总纲附录 A 为准。
 
 ---
 
@@ -17,6 +18,49 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 **权威声明**：本卷是 agentrt-linux **语义层代码规则**（命名/函数/注释/类型/错误处理/内存/锁）的唯一权威来源（SSoT）。`10-coding-style/C_coding_style_standard.md` 中的命名约定（§3）、函数定义（§4）、错误处理（§7）、类型（§6）、内存管理（§8）、锁与并发（§9）均引用本卷，不得重新定义。若发现不一致，以本卷为准。
 
 **规则编号**：每条强制规则赋予唯一编号。`OS-KER-xxx` 为内核工程规则（强制，agentrt 不涉及内核态）；`OS-STD-xxx` 为标准规则；`OS-BAN-xxx` 为禁止规则；`OS-ACC-xxx` 为验收标准。多语言对照追求语义等价而非逐字翻译——同一规则在不同语言中以该语言最自然的方式落地。注册表汇总于 `07-maintainers-and-governance.md`。
+
+### 0.1 OS-STD → OS-STD-CODE 编号迁移映射（C-2.6 D-05）
+
+> **本节由 C-2.6 合并决策 D-05 执行新增（2026-07-09）**。本卷语义规则编号的目标体系为 `OS-STD-CODE-NNN`（4 段前缀），与 60-checkpatch-rule-map.md（已使用 OS-STD-CODE-NNN）对齐。首条规则 `OS-STD-CODE-001` 已使用 4 段编号，后续 `OS-STD-002~027` 为 3 段历史编号，迁移后统一为 4 段。
+
+#### 0.1.1 编码规则迁移映射表
+
+| 当前编号（本卷正文） | 目标编号（OS-STD-CODE） | 规则内容 | 所在章节 | 迁移说明 |
+|---------------------|------------------------|----------|---------|---------|
+| OS-STD-CODE-001 | OS-STD-CODE-001 | 全局符号描述性命名 | §1.1 | ✅ 已对齐（首条已使用 4 段） |
+| OS-STD-002 | OS-STD-CODE-002 | 局部变量短小切题 | §1.2 | 3 段 → 4 段 |
+| OS-STD-003 | OS-STD-CODE-003 | 常量宏全大写；相关常量优先 enum | §1.3 | 3 段 → 4 段 |
+| OS-STD-004 | OS-STD-CODE-004 | 动作式返回错误码，谓词式返回 bool | §1.4 | 3 段 → 4 段 |
+| OS-STD-005 | OS-STD-CODE-005 | `agentrt_*` 与 `airymaxos_*` 前缀隔离 | §1.5 | 3 段 → 4 段 |
+| OS-STD-006 | OS-STD-CODE-006 | 函数 ≤80×24，局部变量 ≤5-10 | §2.1 | 3 段 → 4 段 |
+| OS-STD-007 | OS-STD-CODE-007 | 函数原型元素固定顺序 | §2.2 | 3 段 → 4 段 |
+| OS-STD-008 | OS-STD-CODE-008 | 原型必须含参数名 | §2.3 | 3 段 → 4 段 |
+| OS-STD-009 | OS-STD-CODE-009 | EXPORT_SYMBOL 紧跟右大括号 | §2.4 | 3 段 → 4 段 |
+| OS-STD-010 | OS-STD-CODE-010 | 注释写 WHAT/WHY 不写 HOW | §3.1 | 3 段 → 4 段；与 10-coding-style/C* 引用对齐 |
+| OS-STD-011 | OS-STD-CODE-011 | 通用代码用通用风格 | §3.2 | 3 段 → 4 段；与闭源总纲 §2.5 冲突消解 |
+| OS-STD-012 | OS-STD-CODE-012 | 公共 API 强制 kernel-doc | §3.3 | 3 段 → 4 段 |
+| OS-STD-013 | OS-STD-CODE-013 | 数据声明每行一个 | §3.4 | 3 段 → 4 段 |
+| OS-STD-014 | OS-STD-CODE-014 | 多语言注释规范 | §3.5 | 3 段 → 4 段 |
+| OS-STD-015 | OS-STD-CODE-015 | 显式 include，禁止间接传递 | §4.1 | 3 段 → 4 段 |
+| OS-STD-016 | OS-STD-CODE-016 | include 顺序固定 | §4.2 | 3 段 → 4 段 |
+| OS-STD-017 | OS-STD-CODE-017 | 头文件 guard 保护 | §4.3 | 3 段 → 4 段 |
+| OS-STD-018 | OS-STD-CODE-018 | 多语句宏用 do { } while (0) | §5.1 | 3 段 → 4 段 |
+| OS-STD-019 | OS-STD-CODE-019 | 优先 static inline 替代函数式宏 | §5.2 | 3 段 → 4 段 |
+| OS-STD-020 | OS-STD-CODE-020 | typedef 仅 5 种例外 | §6.1 | 3 段 → 4 段；与闭源总纲 §2.6 冲突消解 |
+| OS-STD-021 | OS-STD-CODE-021 | 多布尔值合并 bitfield / flags | §6.2 | 3 段 → 4 段 |
+| OS-STD-022 | OS-STD-CODE-022 | 多语言错误处理范式 | §7.1 | 3 段 → 4 段 |
+| OS-STD-023 | OS-STD-CODE-023 | Rust Send/Sync 强制 | §7.2 | 3 段 → 4 段 |
+| OS-STD-024 | OS-STD-CODE-024 | .c 中避免 #if，用 stub | §8.1 | 3 段 → 4 段 |
+| OS-STD-025 | OS-STD-CODE-025 | IS_ENABLED 转 C 布尔 | §8.2 | 3 段 → 4 段 |
+| OS-STD-026 | OS-STD-CODE-026 | #endif 同行注释条件 | §8.3 | 3 段 → 4 段 |
+| OS-STD-027 | OS-STD-CODE-027 | Kconfig tab 缩进，DANGEROUS 标注 | §8.4 | 3 段 → 4 段 |
+
+#### 0.1.2 迁移状态
+
+- **当前阶段**：编号并存阶段（3 段 `OS-STD-NNN` 与 4 段 `OS-STD-CODE-NNN` 等价有效）。
+- **迁移触发**：1.0.1 开发阶段，当 checkpatch 规则映射表（60-checkpatch-rule-map.md）与 CI 检查脚本实施时，统一替换为 `OS-STD-CODE-NNN`。
+- **跨文档对齐**：迁移后本卷与 60-checkpatch-rule-map.md（已使用 OS-STD-CODE-NNN）、10-coding-style/C_coding_style_standard.md（已引用 OS-STD-CODE-010/012/014/015）完全对齐。
+- **闭源冲突消解**：闭源总纲 §2.5 的 `OS-STD-011`（bool 仅返回值与栈变量）与本卷 `OS-STD-011`（通用代码用通用风格）语义冲突，迁移后闭源 `OS-STD-011` 改为 `OS-STD-CODE-011`（bool 边界），本卷 `OS-STD-011` 改为 `OS-STD-CODE-011`（通用风格）——**仍冲突**，故最终裁决以本卷为准（本卷 OS-STD-CODE-011 = 通用风格），闭源总纲 bool 边界规则归入 10-coding-style/C* 的内核态专属权威内容。
 
 ---
 

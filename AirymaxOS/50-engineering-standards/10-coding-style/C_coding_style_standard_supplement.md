@@ -7,6 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
 > **SPDX-License-Identifier**: AGPL-3.0-or-later OR Apache-2.0
+> **SSoT 声明（C-2.6 D-03，2026-07-09）**: 本文件的核心独特价值是 **OLK-6.6 源码行号索引**（每条规则附 `文件名:行号` 出处）。规则编号的权威来源为 [01-coding-standards.md](../01-coding-standards.md)（语义层）与 [02-code-format.md](../02-code-format.md)（格式层）；本文件中的 3 段编号（OS-KER-007~015）与 SSoT 存在冲突，请使用 [C_coding_style_standard.md §0 映射表](C_coding_style_standard.md#0-ssot-对齐声明与编号映射)进行交叉引用。4 段编号（OS-STD-CODE-010/012/014/015）已与目标编号体系对齐。
 
 ---
 
@@ -14,7 +15,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 与基线文档的关系
 
-本规范是 `10-coding-style/C_coding_style_standard.md`（基线）的强化补充，**不重复**基线中已涵盖的命名约定、函数长度、注释格式等通用规则，仅就以下 12 条"高违规率 / 高风险"强化规则给出可执行的强制约束：
+本规范是 `10-coding-style/C_coding_style_standard.md`（基线）的强化补充，**不重复**基线中已涵盖的命名约定、函数长度、注释格式等通用规则，仅就以下 12 条"高违规率 / 高风险"强化规则给出可执行的强制约束。基线文档已于 2026-07-09 完成 C-2.6 D-03 SSoT 对齐（见基线 §0 映射表），本文件中引用的规则编号请以基线 §0 映射表为准：
 
 1. Tab-8 缩进强制（OS-KER-011）
 2. `goto` 集中错误处理（OS-KER-009）

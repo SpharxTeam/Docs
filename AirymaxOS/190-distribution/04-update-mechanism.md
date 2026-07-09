@@ -691,7 +691,7 @@ agentrt-linux 的更新机制与 agentrt 完全独立（[IND] 完全独立层）
 
 - `190-distribution/README.md`（发行版管理主索引）
 - `190-distribution/01-rpm-packaging.md`（RPM 打包设计）
-- `190-distribution/02-installer-design.md`（安装器设计）
+- `190-distribution/03-installer-design.md`（安装器设计）
 - `100-operations/README.md`（部署运维）
 - `170-performance/02-memory-performance.md`（MemoryRovol 配置）
 

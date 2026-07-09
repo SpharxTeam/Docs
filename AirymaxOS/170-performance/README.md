@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）性能工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
-> **优先级**: P1（0.1.1 仅创建 README 占位，1.0.1 完成 6 文档）
+> **优先级**: P1（0.1.1 完成 6 文档，1.0.1 实施验证）
 > **同源映射**: agentrt 性能基线 + Linux 6.6 性能子系统（perf / sched_ext / MGLRU / io_uring）
 > **理论根基**: Linux 内核性能工程 + Airymax S-1 反馈闭环 + A-4 完美主义
 
@@ -95,21 +95,21 @@ io_uring_submit(&ring);
 ```
 170-performance/
 ├── README.md                       # 本文件
-├── 01-cpu-performance.md           # CPU 性能（perf + sched_ext）
-├── 02-memory-performance.md        # 内存性能（MGLRU + CXL）
-├── 03-io-performance.md            # I/O 性能（io_uring）
-├── 04-token-efficiency.md         # Token 能效工程
-├── 05-agent-latency-slo.md        # Agent 延迟 SLO
-└── 06-benchmark-suite.md          # 基准测试套件
+├── 01-scheduling-performance.md   # 调度性能（sched_ext + EEVDF）✅
+├── 02-memory-performance.md       # 内存性能（MGLRU 多代 LRU + CXL）✅
+├── 03-ipc-performance.md          # IPC 性能（AgentsIPC + io_uring）✅
+├── 04-token-efficiency.md         # Token 能效工程 ✅
+├── 05-agent-latency-slo.md       # Agent 延迟 SLO ✅
+└── 06-benchmark-suite.md          # 基准测试套件 ✅
 ```
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README 占位（P1 优先级，0.1.1 不开发具体文档）。
+完成 README + 01-scheduling-performance.md（sched_ext 可插拔调度 + EEVDF + vtime 衰减）+ 02-memory-performance.md（MGLRU 多代 LRU + CXL 内存分层 + PMEM DAX）+ 03-ipc-performance.md（AgentsIPC 零拷贝 + io_uring 批量提交）+ 04-token-efficiency.md（Token/Watt + Token/Latency + Token/Dollar 三大能效指标 + RAPL 功耗测量 + LLM 推理阶段能效 + 能效回归检测）+ 05-agent-latency-slo.md（L1/L2/L3 三级延迟 SLO + SLO 保障机制 + 违约处理 + 延迟预算管理）+ 06-benchmark-suite.md（4 层分层体系 L1 微基准/L2 子系统/L3 端到端/L4 压力 + 回归检测 + CI/CD 集成）。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 6 文档，并实施性能工程标准。
+170 模块 6/6 文档全部完成（100%），1.0.1 阶段实施性能工程标准与生产就绪验证。
 
 ---
 
@@ -207,4 +207,4 @@ agentrt 的性能基线与 agentrt-linux 同源：
 
 ---
 
-> **文档结束** | 0.1.1 P1 占位，1.0.1 完成 6 文档
+> **文档结束** | 170 模块 6/6 文档全部完成（100%）

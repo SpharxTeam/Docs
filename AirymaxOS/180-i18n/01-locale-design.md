@@ -653,7 +653,7 @@ void *airymax_mo_mmap(const char *domain, const char *locale)
 
 - `180-i18n/README.md`（国际化主索引）
 - `180-i18n/02-encoding-spec.md`（编码规范）
-- `180-i18n/03-cjk-support.md`（CJK 支持设计）
+- `180-i18n/04-cjk-support.md`（CJK 支持设计）
 - `20-modules/04-memory.md`（MemoryRovol 多区域）
 - `110-security/README.md`（国密算法合规）
 

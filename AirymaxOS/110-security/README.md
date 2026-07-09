@@ -113,7 +113,7 @@ agentrt-linux 采用 seL4 风格的 capability 安全模型：
 ├── README.md                       # 本文件
 ├── 01-lsm-framework.md             # LSM 框架详解
 ├── 02-landlock-sandbox.md          # Landlock 用户态沙箱
-├── 03-capability-model.md          # seL4 风格 capability
+├── 03-capability-model.md          # seL4 风格 capability ✅
 ├── 04-module-signing.md            # 模块签名验证
 ├── 05-lockdown.md                  # 内核 Lockdown 模式
 ├── 06-keyrings.md                  # 4 层密钥环
@@ -124,11 +124,11 @@ agentrt-linux 采用 seL4 风格的 capability 安全模型：
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README + 01 + 02（3 文档）。
+0.1.1 完成 README + 01 + 02 + 03 文档（4 文档奠基）。03-capability-model 补充完整 capability 数据模型、CNode/MDB 派生链、四种派生操作（mint/mintcopy/derive/revoke）、POSIX 38 ID 枚举、令牌 7 状态生命周期、Cupolas blob 四类布局、4 值策略裁决、Vault backend 抽象、系统调用 592-600 集成、LSM_ORDER_FIRST 共存机制。其余 6 文档（04-module-signing 至 09-cryptography-compliance）在 1.0.1 版本完成。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 9 文档，并实施安全工程标准。
+完成剩余 6 文档（04-module-signing 至 09-cryptography-compliance），实施安全工程标准，进行代码级验证。
 
 ---
 
@@ -200,4 +200,4 @@ agentrt 的 `cupolas/` 模块与 agentrt-linux 安全体系同源：
 
 ---
 
-> **文档结束** | 0.1.1 P0 优先完成 README + 01 + 02
+> **文档结束** | 0.1.1 P0 优先完成 README + 01 + 02 + 03

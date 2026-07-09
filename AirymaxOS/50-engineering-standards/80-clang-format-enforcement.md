@@ -7,6 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
 > **SPDX-License-Identifier**: AGPL-3.0-or-later OR Apache-2.0
+> **SSoT 声明（C-2.6 D-02，2026-07-09）**: 本文件为 `.clang-format` 工具配置层与 CI 门禁流程层。**格式规则定义**（OS-KER-004~021 / OS-STD-047 / OS-STD-202~211）的唯一权威来源（SSoT）为 [02-code-format.md](02-code-format.md) §1-§8；**clang-format 关键配置项速查表**的 SSoT 为 02-code-format.md §9。本文件 §1（关键配置项详解）、§2（完整 .clang-format YAML）、§6（速查表）为 02 §9 的**补充详述**（每项配置附 OLK-6.6 源码行号 + 详细理由 + 完整 YAML），不重新定义规则；§3（CI 门禁 make format-check）、§4（常见格式问题与修复）、§5（与 checkpatch 的协作）为本文件**独立权威内容**。本文件与 SSoT 的任何冲突，以 SSoT 为准。
 
 ---
 
@@ -557,6 +558,8 @@ merge allowed
 ---
 
 ## 6. 速查表：关键配置项速查
+
+> **C-2.6 D-02 SSoT 注（2026-07-09）**：本表与 [02-code-format.md §9](02-code-format.md#9-clang-format-关键配置项) 内容重叠，但本表附"OLK-6.6 行号"列为独特价值（02 §9 无此列）。规则编号以 02-code-format.md §1-§8 为 SSoT；本表中若出现编号不一致（如本表 `OS-KER-012` 行宽 vs 02 §2.1 `OS-KER-004` 行宽），以 02 为准，本表编号仅作历史导航。
 
 | 配置项 | 值 | OLK-6.6 行号 | 对应规则 |
 |--------|-----|------------|---------|

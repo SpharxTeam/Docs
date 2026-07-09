@@ -752,7 +752,7 @@ out_free_reg:
 
 - `180-i18n/README.md`（国际化主索引）
 - `180-i18n/01-locale-design.md`（区域设置设计）
-- `180-i18n/03-doc-i18n.md`（文档国际化）
+- `180-i18n/05-doc-i18n.md`（文档国际化）
 - `90-observability/README.md`（错误链路追踪）
 - `50-engineering-standards/01-coding-standards.md`（错误处理规范）
 - `140-application-development/README.md`（SDK 错误码绑定）

@@ -110,11 +110,11 @@ make modules_install  # 安装到 /lib/modules/$(uname -r)
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README + 01 + 02（3 文档）。
+0.1.1 完成 README + 01 + 02 文档（3 文档奠基），确立构建系统设计框架与 Kbuild/Kconfig 核心机制。其余 6 文档（03-makefile-patterns 至 08-build-reproducibility）在 1.0.1 版本完成。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 8 文档，并实施构建系统工程标准。
+完成剩余 6 文档（03-makefile-patterns 至 08-build-reproducibility），实施构建系统工程标准，进行代码级验证。
 
 ---
 

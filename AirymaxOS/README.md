@@ -2,13 +2,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux 设计文档
 
-> **文档定位**: agentrt-linux（AirymaxOS）的全部设计思想、架构设计、子仓设计草案
-> **正式全称**: agentrt-linux（极境智能体操作系统，正式英文名：AirymaxAgentOS，简称 AirymaxOS）
-> **仓库别名**: agentrt-linux（仓库名）
-> **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
-> **最后更新**: 2026-07-07  
+> **文档定位**: agentrt-linux（AirymaxOS）的全部设计思想、架构设计、子仓设计草案  \
+> **正式全称**: agentrt-linux（极境智能体操作系统，正式英文名：AirymaxAgentOS，简称 AirymaxOS） \
+> **仓库别名**: agentrt-linux（仓库名） \
+> **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发） \
+> **最后更新**: 2026-07-07  
 
-## 1. agentrt-linux 是什么  
+## 1. agentrt-linux 是什么
 
 **agentrt-linux**（正式英文名：AirymaxAgentOS，简称 AirymaxOS，中文：极境智能体操作系统）是基于 Linux 内核的**操作系统发行版**，与 agentrt（AirymaxAgentRT / 极境智能体运行底座平台工程）**同源**。
 
@@ -38,7 +38,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 5 | [cognition](20-modules/05-cognition.md)             | 极境认知  | CoreLoopThree kthread + Wasm + LLM 调度 + 超节点沙箱           | coreloopthree + frameworks   |
 | 6 | [cloudnative](20-modules/06-cloudnative.md)         | 极境云原生 | K8s + containerd + OCI + agentctl + 超节点 OS              | gateway + sdk                |
 | 7 | [system](20-modules/07-system.md)                   | 极境系统  | 包管理 + 配置 + shell + 基础库 + DevStation                     | commons                      |
-| 8 | [airymaxos-tests-linux](20-modules/08-tests.md)           | 极境测试  | 单元测试 + 集成测试 + 形式化验证 + Soak + 混沌                         | 全模块测试                        |
+| 8 | [airymaxos-tests-linux](20-modules/08-tests.md)     | 极境测试  | 单元测试 + 集成测试 + 形式化验证 + Soak + 混沌                         | 全模块测试                        |
 
 ## 4. 文档体系结构（19 模块）
 
@@ -62,12 +62,12 @@ docs/AirymaxOS/
 ├── 120-development-process/         # 开发流程（README + 01 + 02）✅
 ├── 130-roadmap/                     # 开发路线图（7 文档）✅ 0.1.1 完成
 │
-├── 140-application-development/     # Agent 应用开发（README 占位）1.0.1
-├── 150-cloudnative/                # 云原生部署（README 占位）1.0.1
-├── 160-compatibility/               # 兼容性（README 占位）1.0.1
-├── 170-performance/                 # 性能工程（README 占位）1.0.1
-├── 180-i18n/                        # 国际化（README 占位）1.0.1
-└── 190-distribution/                # 发行版管理（README 占位）1.0.1
+├── 140-application-development/     # Agent 应用开发（0.1.1 完成 8 文档）1.0.1 实施
+├── 150-cloudnative/                # 云原生部署（0.1.1 完成 6 文档）1.0.1 实施
+├── 160-compatibility/               # 兼容性（0.1.1 完成 6 文档）1.0.1 实施
+├── 170-performance/                 # 性能工程（0.1.1 完成 7 文档）1.0.1 实施
+├── 180-i18n/                        # 国际化（0.1.1 完成 6 文档）1.0.1 实施
+└── 190-distribution/                # 发行版管理（0.1.1 完成 6 文档）1.0.1 实施
 ```
 
 ### 4.1 文档分层说明
@@ -79,11 +79,11 @@ docs/AirymaxOS/
 | **模块层**   | 20-modules               | 9 文档 ✅             | 持续完善     |
 | **接口层**   | 30-interfaces            | 5 文档 ✅             | 持续完善     |
 | **数据流层**  | 40-dataflows             | 5 文档 ✅             | 持续完善     |
-| **工程标准**  | 50-engineering-standards | 8 文档 ✅             | 持续完善     |
+| **工程标准**  | 50-engineering-standards | 38 文档 ✅            | 持续完善     |
 | **P0 模块** | 60-120（7 模块）             | README + 01 + 02 ✅ | 全部文档     |
 | **路线图**   | 130-roadmap              | 7 文档 ✅             | 持续完善     |
-| **P1 模块** | 140-170（4 模块）            | README 占位          | 全部文档     |
-| **P2 模块** | 180-190（2 模块）            | README 占位          | 全部文档     |
+| **P1 模块** | 140-170（4 模块）            | ✅ 文档完成          | 实施验证     |
+| **P2 模块** | 180-190（2 模块）            | ✅ 文档完成          | 实施验证     |
 
 ### 4.2 模块导航
 
@@ -95,19 +95,19 @@ docs/AirymaxOS/
 | [10-architecture](10-architecture/README.md) | 架构设计（系统架构 + 五维原则 + 微内核策略 + ADR + 工程基线）  | 6   |
 | [20-modules](20-modules/README.md)           | 模块设计（8 子仓设计 + 模块概览）                     | 9   |
 | [30-interfaces](30-interfaces/README.md)     | 接口设计（系统调用 + AgentsIPC + SDK API + 编码标准） | 5   |
-| [40-dataflows](40-dataflows/README.md)       | 数据流程（调度流 + IPC 流 + 记忆卷载流 + 认知循环流）       | 4   |
+| [40-dataflows](40-dataflows/README.md)       | 数据流程（调度流 + IPC 流 + 记忆卷载流 + 认知循环流）       | 5   |
 
 #### 工程标准与实施层（50-130）
 
 | 模块                                                             | 描述                                                 | 0.1.1 状态 |
 | -------------------------------------------------------------- | -------------------------------------------------- | -------- |
-| [50-engineering-standards](50-engineering-standards/README.md) | 工程标准规范（编码 + 错误处理 + 内存 + 并发 + 开发流程 + 工具链 + 治理 + 验收） | ✅ 8 文档   |
+| [50-engineering-standards](50-engineering-standards/README.md) | 工程标准规范（编码 + 错误处理 + 内存 + 并发 + 开发流程 + 工具链 + 治理 + 验收） | ✅ 38 文档（含 5 子目录） |
 | [60-driver-model](60-driver-model/README.md)                   | 驱动模型（设备模型 + 平台驱动）                                  | ✅ 01+02  |
 | [70-build-system](70-build-system/README.md)                   | 构建系统（Kbuild + Kconfig）                             | ✅ 01+02  |
 | [80-testing](80-testing/README.md)                             | 测试体系（KUnit + kselftest）                            | ✅ 01+02  |
 | [90-observability](90-observability/README.md)                 | 可观测性（ftrace + eBPF 探针）                             | ✅ 01+02  |
 | [100-operations](100-operations/README.md)                     | 运维体系（部署 + 配置管理）                                    | ✅ 01+02  |
-| [110-security](110-security/README.md)                         | 安全加固（LSM 框架 + Landlock 沙箱）                         | ✅ 01+02  |
+| [110-security](110-security/README.md)                         | 安全加固（LSM 框架 + Landlock 沙箱）                         | ✅ 01+02+03（含 capability 模型） |
 | [120-development-process](120-development-process/README.md)   | 开发流程（补丁生命周期 + 维护者层级）                               | ✅ 01+02  |
 | [130-roadmap](130-roadmap/README.md)                           | 开发路线图（9 Part + M0-M8 里程碑 + 110 项 OS-ACC）           | ✅ 7 文档   |
 
@@ -115,12 +115,12 @@ docs/AirymaxOS/
 
 | 模块                                                                   | 描述                                     | 0.1.1 状态  |
 | -------------------------------------------------------------------- | -------------------------------------- | --------- |
-| [140-application-development](140-application-development/README.md) | Agent 应用开发（4 语言 16 嵌套客户端 + Token 预算契约） | README 占位 |
-| [150-cloudnative](150-cloudnative/README.md)                         | 云原生部署（containerd + K8s CRD + 超节点 OS）   | README 占位 |
-| [160-compatibility](160-compatibility/README.md)                     | 兼容性（4 层接口稳定性 + KABI + 跨发行版）            | README 占位 |
-| [170-performance](170-performance/README.md)                         | 性能工程（Token 能效 + Agent 延迟 SLO）          | README 占位 |
-| [180-i18n](180-i18n/README.md)                                       | 国际化（多语言 + 国密合规）                        | README 占位 |
-| [190-distribution](190-distribution/README.md)                       | 发行版管理（RPM + ISO + Agent 应用商店）          | README 占位 |
+| [140-application-development](140-application-development/README.md) | Agent 应用开发（4 语言 16 嵌套客户端 + Token 预算契约） | ✅ 8 文档 |
+| [150-cloudnative](150-cloudnative/README.md)                         | 云原生部署（containerd + K8s CRD + 超节点 OS）   | ✅ 6 文档 |
+| [160-compatibility](160-compatibility/README.md)                     | 兼容性（4 层接口稳定性 + KABI + 跨发行版）            | ✅ 6 文档 |
+| [170-performance](170-performance/README.md)                         | 性能工程（Token 能效 + Agent 延迟 SLO）          | ✅ 7 文档 |
+| [180-i18n](180-i18n/README.md)                                       | 国际化（多语言 + 国密合规）                        | ✅ 6 文档 |
+| [190-distribution](190-distribution/README.md)                       | 发行版管理（RPM + ISO + Agent 应用商店）          | ✅ 6 文档 |
 
 ## 5. 仓库地址
 
@@ -147,18 +147,18 @@ docs/AirymaxOS/
 
 ## 7. 前沿理论参考（2026-07-07 最新）
 
-| 前沿理论                                                    | 应用到子仓                                 |
-| ------------------------------------------------------- | ------------------------------------- |
-| seL4 微内核（形式化验证、capability、MCS 2026.6.29 验证完成、消息传递 IPC）| airymaxos-kernel + airymaxos-security + airymaxos-services |
-| LionsOS（seL4 Microkit 生态，2026）                          | airymaxos-kernel + airymaxos-system   |
-| sDDF（seL4 设备驱动框架，2026）                                  | airymaxos-kernel + airymaxos-services |
-| Linux 6.6 内核基线（EEVDF + MGLRU + eBPF kfunc + Rust 实验性支持） | airymaxos-kernel                      |
-| sched\_ext（eBPF 用户态调度器、sub-scheduler）                   | airymaxos-kernel（SCHED\_AGENT）        |
-| io\_uring（零 syscall 高性能 I/O）                            | airymaxos-kernel + airymaxos-services |
-| eBPF 签名验证 + 机密计算                                        | airymaxos-security                    |
-| MGLRU 多代 LRU（Linux 6.6 原生）                              | airymaxos-memory                      |
-| Wasm 3.0（安全沙箱运行时）                                       | airymaxos-cognition                   |
-| CXL（内存分层与池化）                                            | airymaxos-memory                      |
+| 前沿理论                                                    | 应用到子仓                                                      |
+| ------------------------------------------------------- | ---------------------------------------------------------- |
+| seL4 微内核（形式化验证、capability、MCS 2026.6.29 验证完成、消息传递 IPC）  | airymaxos-kernel + airymaxos-security + airymaxos-services |
+| LionsOS（seL4 Microkit 生态，2026）                          | airymaxos-kernel + airymaxos-system                        |
+| sDDF（seL4 设备驱动框架，2026）                                  | airymaxos-kernel + airymaxos-services                      |
+| Linux 6.6 内核基线（EEVDF + MGLRU + eBPF kfunc + Rust 实验性支持） | airymaxos-kernel                                           |
+| sched\_ext（eBPF 用户态调度器、sub-scheduler）                   | airymaxos-kernel（SCHED\_AGENT）                             |
+| io\_uring（零 syscall 高性能 I/O）                            | airymaxos-kernel + airymaxos-services                      |
+| eBPF 签名验证 + 机密计算                                        | airymaxos-security                                         |
+| MGLRU 多代 LRU（Linux 6.6 原生）                              | airymaxos-memory                                           |
+| Wasm 3.0（安全沙箱运行时）                                       | airymaxos-cognition                                        |
+| CXL（内存分层与池化）                                            | airymaxos-memory                                           |
 
 ## 8. 与 agentrt 的关系
 

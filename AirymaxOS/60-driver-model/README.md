@@ -92,11 +92,11 @@ misc 框架为简单字符设备提供快速接入路径，无需完整 cdev 样
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README + 01 + 02（3 文档）。其余 5 文档在 1.0.1 版本完成。
+0.1.1 完成 README + 01 + 02 文档（3 文档奠基），确立驱动模型设计框架与 device/driver/bus 三元组核心机制。其余 5 文档（03-devm-resource 至 07-driver-testing）在 1.0.1 版本完成。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 7 文档，并实施 driver model 工程标准。
+完成剩余 5 文档（03-devm-resource 至 07-driver-testing），实施 driver model 工程标准，进行代码级验证。
 
 ---
 

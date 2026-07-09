@@ -688,7 +688,7 @@ out_free_ctx:
 
 - `180-i18n/README.md`（国际化主索引）
 - `180-i18n/01-locale-design.md`（区域设置设计）
-- `180-i18n/02-error-message-i18n.md`（错误消息国际化）
+- `180-i18n/03-error-message-i18n.md`（错误消息国际化）
 - `10-terminology.md`（统一术语表）
 - `50-engineering-standards/07-maintainers-and-governance.md`（多语言社区治理）
 - `50-engineering-standards/README.md`（工程标准含文档规范）

@@ -323,6 +323,63 @@ sequenceDiagram
     MAIN-->>SM: 合并成功
 ```
 
+### 9.4 补丁生命周期状态机
+
+补丁从 RFC 设计草案到 LTS 长期维护的完整状态转换，覆盖 6 阶段推进、修订回退与社区否决全路径：
+
+```mermaid
+stateDiagram-v2
+    [*] --> DESIGN: RFC 补丁草案，含设计文档与五维原则映射
+
+    DESIGN --> EARLY_REVIEW: submit to mailing list（社区早期反馈）
+
+    EARLY_REVIEW --> WIDER_REVIEW: maintainers 初步认可（Reviewed-by / Acked-by）
+    EARLY_REVIEW --> DESIGN: 需要 v2 修订（反馈要求修改）
+
+    WIDER_REVIEW --> MAINLINE: subsystem maintainer 接受（Applied-by）
+    WIDER_REVIEW --> EARLY_REVIEW: 需要重大修订（重新走早期审查）
+
+    MAINLINE --> STABLE: 进入 linux-next 消化期后合入 mainline
+    MAINLINE --> REJECTED: 社区否决（Nacked-by）
+
+    STABLE --> LTS: backport 到 LTS 分支（如 OLK-6.6）
+
+    REJECTED --> [*]: 补丁被社区否决，归档关闭
+    LTS --> [*]: 补丁进入长期维护，生命周期完成
+
+    note right of EARLY_REVIEW
+        阶段准入条件：
+        至少需要 1 个 Reviewed-by 标签
+        （来自非作者维护者，OS-DEV-131）
+        审查者必须实际进行技术审查
+        禁止橡皮图章（OS-DEV-241）
+    end note
+
+    note right of STABLE
+        STABLE → LTS 转换条件：
+        需 stable kernel team 审批
+        稳定版审查委员会 48 小时
+        给出 ACK 或 NAK（OS-DEV-142）
+        补丁不超过 100 行含上下文
+    end note
+```
+
+**状态转换条件**：
+
+| 从状态 | 到状态 | 触发条件 | 系统行为 |
+|--------|--------|---------|---------|
+| — | DESIGN | 创建 RFC 补丁草案，含设计文档与五维原则映射小节（OS-DEV-102） | 在子仓 issue tracker 创建 RFC issue，标注 `rfc` 标签 |
+| DESIGN | EARLY_REVIEW | 提交到 mailing list（GitHub PR），寻求社区早期反馈 | 子系统维护者在 1 周 SLA 内给出审查意见（OS-DEV-111） |
+| EARLY_REVIEW | WIDER_REVIEW | maintainers 初步认可，获得至少 1 个 `Reviewed-by` 或 `Acked-by` 标签 | 补丁进入 `develop` 分支（等价 linux-next），暴露给跨子系统联调（OS-DEV-121） |
+| EARLY_REVIEW | DESIGN | 反馈要求修改，需要 v2 修订 | 贡献者退回 Design 阶段修订 RFC 与补丁，重新提交时标注 `v2`（OS-DEV-184） |
+| WIDER_REVIEW | MAINLINE | subsystem maintainer 接受（`Applied-by`），develop nightly build 通过 + 7 层验证全绿 | 顶级子系统维护者发起 pull request 到 `main` 分支，CI 全绿后合并（OS-DEV-134） |
+| WIDER_REVIEW | EARLY_REVIEW | 需要重大修订，重新走早期审查 | 补丁退回 Early Review 阶段，保留 develop 集成经验，重新提交修订版 |
+| MAINLINE | STABLE | 补丁进入 linux-next 消化期后合入 mainline，通过 `-rc` 验证 | 补丁随正式版本发布，进入 `release/*` 分支，开始 stable 维护（OS-DEV-141） |
+| MAINLINE | REJECTED | 社区否决，收到 `Nacked-by` 标签（须附技术理由，OS-DEV-242） | 补丁被拒绝合并，PR 关闭，记录否决原因供后续参考 |
+| STABLE | LTS | backport 到 LTS 分支（如 OLK-6.6），stable kernel team 审批通过（48 小时 ACK，OS-DEV-142） | 补丁进入 LTS 候选名单，LTS 维护者负责季度维护版本发布（OS-DEV-154） |
+| REJECTED | —（终态） | 补丁被社区否决，归档关闭 | 补丁生命周期终止，PR 标记为 closed，设计文档保留供参考 |
+| LTS | —（终态） | 补丁进入长期维护，12 个月响应期结束（OS-DEV-151） | 补丁生命周期完成，作者持续负责或标记为 Orphaned 寻找新维护者 |
+
 ---
 
 ## 10. agentrt-linux 8 子仓跨仓 PR 流程
@@ -472,6 +529,70 @@ Reviewed-by: Reviewer Name <reviewer@example.com>
 
 MicroCoreRT 与 AgentsIPC 同源 API 的变更必须遵循双向同步：agentrt 端 RFC 必须同步到 agentrt-linux 端，反之亦然；变更必须通过两端兼容性测试；季度评审同源 API 漂移。
 
+### 13.2 IRON-9 v2 三层共享模型
+
+IRON-9 v2 三层共享模型将 agentrt（用户态运行时）与 agentrt-linux（内核发行版）之间的同源关系细分为三个正交层次：[SC] 共享契约层（头文件级代码共享）、[SS] 语义同源层（语义两端一致但实现独立）、[IND] 完全独立层（发行版固有责任）。本节聚焦补丁生命周期的三层映射。
+
+#### 13.2.1 三层模型概览
+
+| 层次 | 共享程度 | 补丁生命周期内容 |
+|------|---------|-------------|
+| **[SC] 共享契约层** | 无——开发流程为工程规范层，不涉及代码共享 | 无 [SC] 层头文件；补丁流程属工程规范层，两端无头文件级代码共享 |
+| **[SS] 语义同源层** | 语义两端一致，实现独立 | 补丁格式（git format-patch）、review 流程（Reviewed-by/Tested-by）、LTS 维护策略（stable backport）、补丁签名（Signed-off-by DCO） |
+| **[IND] 完全独立层** | agentrt-linux 独有 | 8 子仓补丁流转路径、子仓间依赖排序、submodule 更新流程、umbrella repo 发布 |
+
+#### 13.2.2 [SC] 共享契约层
+
+无直接 [SC] 头文件。补丁生命周期属于工程规范层，两端共享的是流程语义（补丁格式、review 标签、DCO 签名）而非代码头文件。同源 API 的代码契约共享（MicroCoreRT/AgentsIPC 头文件）由各自的代码仓库承载，补丁流程本身不引入额外的 [SC] 层头文件依赖。两端共享的代码契约由 `30-interfaces/` 模块的协议文档与头文件定义，补丁流程仅确保这些契约的变更遵循双向同步（§13.1）。
+
+#### 13.2.3 [SS] 语义同源层
+
+[SS] 层的补丁流程语义两端一致，但仓库结构与合入路径独立：agentrt 用户态使用单一 monorepo（或少量仓库），agentrt-linux 使用 8 子仓 + umbrella repo 架构。两端语义映射如下：
+
+| 语义维度 | agentrt（用户态运行时） | agentrt-linux（内核发行版） |
+|------|------------------------|------------------------|
+| 补丁格式 | git format-patch（同源） | git format-patch（同源格式） |
+| review 流程 | GitHub PR + Reviewed-by/Tested-by 标签 | GitHub PR + Reviewed-by/Tested-by 标签（同源） |
+| LTS 维护策略 | stable backport 到 release/* 分支 | stable backport 到 release/* 分支（同源策略） |
+| 补丁签名 | Signed-off-by（DCO 1.1） | Signed-off-by（DCO 1.1，同源） |
+| 补丁序列 | git bisect 友好，序列中点可编译 | git bisect 友好（同源），8 子仓各自独立 bisect |
+| 重发版本 | [RESEND] / v2 / v3 | [RESEND] / v2 / v3（同源） |
+
+两端在补丁流程语义上完全同源——补丁格式、review 标签语义、DCO 签名链、LTS backport 策略的概念模型一致——但 agentrt-linux 将流程语义落地为 8 子仓的分布式补丁流转（每仓独立 PR/review/merge），而 agentrt 用户态运行时保持单一仓库的线性补丁流。这种语义同源使得开发者从 agentrt 贡献迁移到 agentrt-linux 贡献时，补丁格式与 review 礼仪无需重新学习，仅需适应多仓依赖排序。
+
+#### 13.2.4 [IND] 完全独立层
+
+[IND] 层是 agentrt-linux 8 子仓架构的固有责任，agentrt 用户态运行时不涉及：
+
+| 独立实现项 | 说明 | agentrt 是否涉及 |
+|------|------|------|
+| 8 子仓补丁流转路径 | kernel→services→security→memory→cognition→cloudnative→system→tests-linux 依赖链合入顺序 | 否（单一仓库） |
+| 子仓间依赖排序 | patch 须按依赖链合入（如 kernel 先于 services） | 否 |
+| submodule 更新流程 | umbrella repo 通过 git submodule 引用各子仓 commit | 否 |
+| umbrella repo 发布 | 统一版本标签发布（如 v1.0.1 指向 8 子仓的特定 commit） | 否 |
+| 跨仓兼容性测试 | 同源 API 变更需触发 8 子仓联动 CI | 否（单仓内测试） |
+| 子仓独立 release manager | 每仓有独立 release manager 签发 release | 否 |
+
+#### 13.2.5 跨态协作流
+
+```mermaid
+graph LR
+    A["agentrt 补丁流程<br/>单一仓库 PR"] -->|"补丁格式同源"| SS
+    subgraph SS ["[SS] 语义同源层"]
+        T1["git format-patch<br/>补丁格式"]
+        T2["Reviewed-by / Tested-by<br/>review 标签"]
+        T3["Signed-off-by<br/>DCO 1.1 签名"]
+    end
+    SS -->|"语义约束"| D["agentrt-linux<br/>8 子仓补丁流转"]
+    D -->|"各自独立"| E["kernel → services → security<br/>→ memory → cognition<br/>→ cloudnative → system → tests-linux"]
+    style SS fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style A fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    style D fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style E fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+```
+
+补丁协作流：agentrt 用户态使用单一仓库的 GitHub PR 流程提交补丁，补丁格式（git format-patch）、review 标签（Reviewed-by/Tested-by）、DCO 签名（Signed-off-by）由 [SS] 语义同源层两端共享。agentrt-linux 将这些语义落地为 8 子仓的分布式补丁流转（[IND] 完全独立——kernel→services→security→memory→cognition→cloudnative→system→tests-linux 的依赖链合入顺序、submodule 更新、umbrella repo 统一发布），每仓独立 PR/review/merge 但遵循同源补丁格式。两端通过 [SS] 层的补丁格式同源实现开发者经验的平滑迁移，同源 API 变更（MicroCoreRT/AgentsIPC）通过 §13.1 的双向同步机制确保两端一致性。
+
 ---
 
 ## 14. 相关文档与参考材料
@@ -493,6 +614,494 @@ MicroCoreRT 与 AgentsIPC 同源 API 的变更必须遵循双向同步：agentrt
 ### 15.1 维护规则
 
 - 本文档由 120-development-process 模块维护者负责。任何对 6 阶段模型的修改必须先在 `50-engineering-standards/05-development-process.md` 同步。OS-DEV-XXX 规则编号的变更需同步到 `50-engineering-standards/07-maintainers-and-governance.md` 的规则编号注册表。
+
+---
+
+## 附录 A: 接口定义
+
+> **附录定位**: 本附录汇集补丁生命周期 6 阶段所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核开发流程（`Documentation/process/`）、git format-patch 补丁格式规范、DCO 1.1 标准，以及 agentrt-linux GitHub PR 工作流专属契约（`include/airymax/patch_types.h`）。
+
+### A.1 核心数据结构
+
+#### A.1.1 patch_stage — 补丁阶段描述
+
+```c
+/**
+ * struct patch_stage - 补丁生命周期阶段描述
+ *
+ * 描述 6 阶段模型中单个阶段的输入、输出、SLA 与转换条件。
+ * 用于 stage_transition() 阶段转换决策。
+ *
+ * 对齐 Linux 6.6 内核 Documentation/process/development-process.rst
+ * 对齐 agentrt-linux OS-DEV-101 ~ OS-DEV-163
+ */
+struct patch_stage {
+    int          stage_id;        /* @field: PATCH_STAGE_* 枚举（DESIGN ~ LTS） */
+    const char *stage_name;        /* @field: 阶段名称（如 "Design"） */
+    const char *description;      /* @field: 阶段描述 */
+    const char **inputs;          /* @field: 输入条件列表（如 "RFC issue"） */
+    int          input_count;     /* @field: 输入条件数量 */
+    const char **outputs;         /* @field: 输出产物列表（如 "Reviewed-by"） */
+    int          output_count;     /* @field: 输出产物数量 */
+    const char *responsible;      /* @field: 责任人角色（如 "贡献者"/"子系统维护者"） */
+    uint32_t    sla_hours;        /* @field: SLA 响应时长（小时，0=无强约束） */
+    const char **transition_rules;/* @field: 转换到下一阶段的规则编号列表 */
+    int          transition_count;/* @field: 转换规则数量 */
+    const char *failure_fallback; /* @field: 失败回退目标阶段（如 "退回 Design"） */
+};
+```
+
+#### A.1.2 patch_metadata — 补丁元数据
+
+```c
+/**
+ * struct patch_metadata - 补丁元数据
+ *
+ * 对应 git commit 解析后的元信息，包括 author/date/subject/body/signoff 链。
+ * 由 patch_validate() 校验格式合规性。
+ *
+ * 对齐 Linux 6.6 内核 git format-patch + submitting-patches.rst 规范
+ * 对齐 agentrt-linux OS-DEV-111 / OS-DEV-181
+ */
+struct patch_metadata {
+    const char *commit_sha;       /* @field: commit SHA（12 字符，避免碰撞，§8.3） */
+    const char *author_name;      /* @field: 作者姓名 */
+    const char *author_email;     /* @field: 作者邮箱 */
+    const char *author_date;      /* @field: 作者时间戳（ISO 8601） */
+    const char *committer_name;   /* @field: 提交者姓名 */
+    const char *committer_email;  /* @field: 提交者邮箱 */
+    const char *committer_date;   /* @field: 提交时间戳 */
+    const char *subject;          /* @field: commit subject（单行摘要） */
+    const char *body;             /* @field: commit body（详细描述，行宽 75 列） */
+
+    /* DCO 签名链 */
+    struct {
+        const char *signoff_name; /* @field: 签名者姓名 */
+        const char *signoff_email;/* @field: 签名者邮箱 */
+    } *signed_off_by;             /* @field: Signed-off-by 链条（逐层背书） */
+    int          signoff_count;    /* @field: Signed-off-by 数量 */
+
+    /* 审查标签 */
+    const char **reviewed_by;      /* @field: Reviewed-by 标签列表（审查者邮箱） */
+    int          reviewed_count;   /* @field: Reviewed-by 数量 */
+    const char **acked_by;         /* @field: Acked-by 标签列表 */
+    int          acked_count;      /* @field: Acked-by 数量 */
+    const char **tested_by;        /* @field: Tested-by 标签列表 */
+    int          tested_count;      /* @field: Tested-by 数量 */
+    const char **suggested_by;     /* @field: Suggested-by 标签列表 */
+    int          suggested_count;  /* @field: Suggested-by 数量 */
+
+    /* 追溯标签 */
+    const char *fixes_sha;        /* @field: Fixes: 引用的原始 commit SHA（12 字符，OS-DEV-152） */
+    const char *fixes_summary;    /* @field: Fixes: 引用的原始 commit 单行摘要 */
+    const char *closes_issue;     /* @field: Closes: issue 编号 */
+    const char *link_url;         /* @field: Link: PR discussion URL */
+
+    /* PR 关联 */
+    int          pr_number;       /* @field: 关联的 GitHub PR 编号 */
+    const char *pr_branch;        /* @field: PR 目标分支（develop/main/release/*） */
+    int          patch_index;     /* @field: 补丁序列索引（[PATCH NNN/total]） */
+    int          patch_total;     /* @field: 补丁序列总数 */
+    int          resend_version;  /* @field: 重发版本号（0=首次，2=v2，3=v3） */
+
+    /* 子仓归属 */
+    const char *subrepo;         /* @field: 所属子仓（8 子仓之一） */
+    const char *subsystem;       /* @field: 所属子系统（如 "security/cupolas"） */
+};
+```
+
+#### A.1.3 pr_template — Pull Request 模板
+
+```c
+/**
+ * struct pr_template - Pull Request 模板
+ *
+ * 对应 GitHub PR 描述的结构化表示。
+ * 对齐 §6.3 pull request 模板 + §3.3 RFC 模板。
+ *
+ * 对齐 agentrt-linux OS-DEV-101 / OS-DEV-131
+ */
+struct pr_template {
+    const char *title;            /* @field: PR 标题（含 [PATCH NNN/total] 前缀） */
+    const char *subsystem;       /* @field: 子系统标识（如 "security/cupolas"） */
+    const char *target_branch;   /* @field: 目标分支（develop/main/release/*） */
+
+    /* 包含的补丁序列 */
+    struct {
+        const char *commit_sha;   /* @field: commit SHA */
+        const char *subject;      /* @field: commit 单行摘要 */
+    } *patches;                   /* @field: 补丁序列列表 */
+    int          patch_count;    /* @field: 补丁数量 */
+
+    /* 审查状态 */
+    bool        subsystem_reviewed; /* @field: 子系统维护者 Reviewed-by（OS-DEV-131） */
+    bool        develop_nightly_pass;/* @field: develop nightly build 通过（OS-DEV-121） */
+    bool        ci_all_green;    /* @field: GitHub Actions 全绿（OS-DEV-134） */
+    bool        protocol_signed; /* @field: 协议委员会签字（仅 ABI 改动需要，OS-DEV-132） */
+    bool        agentrt_compat_test; /* @field: agentrt 兼容性测试通过（OS-DEV-133） */
+
+    /* 跨仓依赖 */
+    const char **dependent_prs;   /* @field: 依赖的下游仓 PR 列表（OS-DEV-171） */
+    int          dependent_count; /* @field: 依赖 PR 数量 */
+
+    /* 风险评估 */
+    const char *conflict_resolution; /* @field: 冲突解决说明 */
+    int          regression_risk; /* @field: Regression 风险（0=低/1=中/2=高） */
+    const char *risk_reasoning;  /* @field: 风险评估理由 */
+
+    /* RFC 关联（仅 Design 阶段 PR） */
+    const char *rfc_issue_url;   /* @field: 关联的 RFC issue URL */
+    bool        has_principle_mapping; /* @field: 是否包含五维原则映射小节（OS-DEV-102） */
+    bool        has_quantified_impact;  /* @field: 是否量化预期影响（OS-DEV-103） */
+};
+```
+
+#### A.1.4 review_checklist — 审查清单
+
+```c
+/**
+ * struct review_checklist - 补丁审查清单
+ *
+ * 描述审查者在 Early Review / Wider Review 阶段的检查项。
+ * 每项对应一个 OS-DEV 规则。
+ *
+ * 对齐 Linux 6.6 内核 reviewing 规范
+ * 对齐 agentrt-linux OS-DEV-111 ~ OS-DEV-124
+ */
+struct review_checklist {
+    const char *patch_sha;       /* @field: 被审查的补丁 SHA */
+    const char *reviewer_name;   /* @field: 审查者姓名 */
+    const char *reviewer_email;  /* @field: 审查者邮箱 */
+    int          reviewer_level; /* @field: 审查者成熟度等级（LEVEL_0 ~ LEVEL_5） */
+    uint64_t    review_date;     /* @field: 审查日期（Unix 时间戳） */
+
+    struct {
+        const char *item_id;     /* @field: 检查项 ID（如 "OS-DEV-111"） */
+        const char *description; /* @field: 检查项描述 */
+        bool        passed;      /* @field: 是否通过 */
+        const char *comment;     /* @field: 审查意见（NAK 时必须附技术理由，OS-DEV-242） */
+    } *items;                    /* @field: 检查项列表 */
+    int          item_count;     /* @field: 检查项数量 */
+    int          pass_count;     /* @field: 通过项数 */
+    int          fail_count;     /* @field: 失败项数 */
+
+    /* 审查结论 */
+    int          verdict;        /* @field: 审查结论（REVIEW_VERDICT_ACK/NAK/COMMENT） */
+    bool        rubber_stamp;    /* @field: 是否检测到橡皮图章审查（OS-DEV-241） */
+    const char *withdraw_reason;/* @field: 撤销 Reviewed-by 的理由（OS-DEV-243） */
+};
+```
+
+#### A.1.5 stage_transition — 阶段转换规则
+
+```c
+/**
+ * struct stage_transition - 阶段转换规则
+ *
+ * 描述从一个阶段到下一阶段的转换条件与失败回退路径。
+ * 由 stage_transition() 函数消费。
+ *
+ * 对齐 Linux 6.6 内核 development-process.rst 6 阶段模型
+ * 对齐 agentrt-linux §9 转换条件矩阵
+ */
+struct stage_transition {
+    int          from_stage;     /* @field: 源阶段（PATCH_STAGE_*） */
+    int          to_stage;       /* @field: 目标阶段（PATCH_STAGE_*） */
+    const char **conditions;     /* @field: 转换条件列表（如 "Reviewed-by"） */
+    int          condition_count;/* @field: 转换条件数量 */
+    const char **rule_ids;       /* @field: 关联规则编号列表（如 "OS-DEV-101"） */
+    int          rule_count;     /* @field: 规则数量 */
+    const char *failure_fallback;/* @field: 失败回退目标阶段 */
+    uint32_t    max_retries;    /* @field: 最大重试次数（超过则回退到 Design，OS-DEV-162） */
+    bool        requires_protocol_sign; /* @field: 是否需要协议委员会签字（ABI 改动） */
+    bool        requires_agentrt_compat; /* @field: 是否需要 agentrt 兼容性测试 */
+};
+```
+
+### A.2 核心函数签名
+
+#### A.2.1 patch_validate — 补丁格式校验
+
+```c
+/**
+ * patch_validate - 校验补丁格式合规性
+ * @metadata: 补丁元数据结构指针
+ *
+ * 校验项：(1) commit 包含 Signed-off-by DCO 签名（OS-DEV-181）；
+ *         (2) subject 符合 "subsystem: summary" 格式；
+ *         (3) body 行宽 ≤ 75 列，含问题描述与量化权衡（OS-DEV-111）；
+ *         (4) Fixes: 标签使用 12 字符 SHA + 单行摘要（OS-DEV-152）；
+ *         (5) 补丁序列中点可编译（git bisect 友好）；
+ *         (6) 无 force-push 到 main/develop/release/*（OS-DEV-182）。
+ *
+ * @return: 0 校验通过，<0 校验失败（见 PATCH_* 错误码）
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ *
+ * 对齐 Linux 6.6 内核 submitting-patches.rst 规范
+ */
+int patch_validate(const struct patch_metadata *metadata);
+```
+
+#### A.2.2 pr_create — 创建 Pull Request
+
+```c
+/**
+ * pr_create - 创建 GitHub Pull Request
+ * @template: PR 模板结构指针
+ * @metadata: 补丁元数据数组（补丁序列）
+ * @patch_count: 补丁数量
+ *
+ * 创建流程：(1) 校验所有补丁通过 patch_validate()；
+ *           (2) 基于 template 填充 PR 描述；
+ *           (3) 若涉及 L1/L2 接口，校验 RFC 已获 ACK（OS-DEV-101）；
+ *           (4) 若涉及 AgentsIPC/MicroCoreRT，标记需协议委员会签字（OS-DEV-132）；
+ *           (5) 调用 gh pr create 创建 PR。
+ *
+ * @return: PR 编号（>0 成功），<0 失败
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ *
+ * 对齐 agentrt-linux GitHub PR 工作流（§11）
+ */
+int pr_create(const struct pr_template *template,
+              const struct patch_metadata *metadata,
+              int patch_count);
+```
+
+#### A.2.3 stage_transition — 阶段转换（带条件检查）
+
+```c
+/**
+ * stage_transition - 执行补丁阶段转换（带条件检查）
+ * @patch_sha: 补丁 SHA
+ * @transition: 阶段转换规则结构指针
+ * @force: 是否跳过条件检查强制转换（仅总维护者可用）
+ *
+ * 执行流程：(1) 检查所有转换条件是否满足；
+ *           (2) 若 requires_protocol_sign 且未签字，拒绝转换（OS-DEV-132）；
+ *           (3) 若 requires_agentrt_compat 且测试未通过，拒绝转换（OS-DEV-133）；
+ *           (4) 条件满足后更新补丁阶段标签；
+ *           (5) 若失败且超过 max_retries，回退到 Design（OS-DEV-162）。
+ *
+ * @return: 0 转换成功，<0 转换失败（见 PATCH_* 错误码）
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ *
+ * 对齐 agentrt-linux §9 转换条件矩阵
+ */
+int stage_transition(const char *patch_sha,
+                     const struct stage_transition *transition,
+                     bool force);
+```
+
+#### A.2.4 patch_apply — 应用补丁
+
+```c
+/**
+ * patch_apply - 将补丁应用到指定分支
+ * @patch_sha: 补丁 SHA
+ * @target_branch: 目标分支（develop/main/release/*）
+ * @dry_run: 是否仅模拟（true=不实际应用，仅检查冲突）
+ *
+ * 执行 git cherry-pick 或 git am 应用补丁。
+ * 若 dry_run=true，仅检查是否冲突不实际应用。
+ * 应用到 main 需先通过 CI 全绿（OS-DEV-134）。
+ *
+ * @return: 0 成功，<0 失败（见 PATCH_* 错误码）
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ *
+ * 对齐 git cherry-pick / git am 工程实践
+ */
+int patch_apply(const char *patch_sha,
+                const char *target_branch,
+                bool dry_run);
+```
+
+#### A.2.5 review_add — 添加审查标签
+
+```c
+/**
+ * review_add - 为补丁添加审查标签
+ * @patch_sha: 补丁 SHA
+ * @label_type: 标签类型（REVIEW_LABEL_REVIEWED/ACKED/TESTED/SUGGESTED）
+ * @reviewer_name: 审查者姓名
+ * @reviewer_email: 审查者邮箱
+ * @comment: 审查意见（NAK 时必须附技术理由，OS-DEV-242）
+ *
+ * 约束：(1) 标签必须由对应人员本人添加，作者不得代签（OS-DEV-183）；
+ *      (2) Reviewed-by 给予者必须实际进行技术审查（OS-DEV-241）；
+ *      (3) 涉及 AgentsIPC/MicroCoreRT 的补丁，Reviewed-by 必须来自
+ *          顶级子系统维护者（OS-KER-221）。
+ *
+ * @return: 0 成功，<0 失败
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ *
+ * 对齐 Linux 6.6 内核 review 标签语义
+ */
+int review_add(const char *patch_sha,
+               int label_type,
+               const char *reviewer_name,
+               const char *reviewer_email,
+               const char *comment);
+```
+
+#### A.2.6 stable_backport — 稳定版回溯
+
+```c
+/**
+ * stable_backport - 将补丁回溯到稳定版分支
+ * @patch_sha: 主线补丁 SHA
+ * @release_branch: 稳定版分支（如 "release/1.0.x"）
+ * @option: 回溯路径（BACKPORT_OPTION_1/2/3，见 §7.2）
+ * @upstream_sha: 上游 commit SHA（Option 3 时使用，标注 [ Upstream commit ]）
+ *
+ * 回溯规则（§7.1）：补丁必须已存在于 main；必须显然正确且已测试；
+ * 不超过 100 行（含上下文）；必须修复真实 bug 或新增设备 ID。
+ * 稳定版审查委员会有 48 小时给出 ACK 或 NAK（OS-DEV-142）。
+ *
+ * @return: 0 成功，<0 失败（见 PATCH_* 错误码）
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ *
+ * 对齐 Linux 6.6 内核 stable-kernel-rules.rst 规范
+ */
+int stable_backport(const char *patch_sha,
+                    const char *release_branch,
+                    int option,
+                    const char *upstream_sha);
+```
+
+### A.3 错误码与宏定义
+
+#### A.3.1 补丁阶段枚举
+
+```c
+/**
+ * PATCH_STAGE_* - 补丁生命周期 6 阶段枚举
+ *
+ * 对齐 Linux 6.6 内核 development-process.rst 6 阶段模型
+ * 对齐 agentrt-linux §2 6 阶段生命周期
+ */
+#define PATCH_STAGE_DESIGN          1  /* 阶段 1: Design（设计 RFC） */
+#define PATCH_STAGE_EARLY_REVIEW    2  /* 阶段 2: Early Review（早期审查） */
+#define PATCH_STAGE_WIDER_REVIEW    3  /* 阶段 3: Wider Review（广泛审查） */
+#define PATCH_STAGE_MAINLINE        4  /* 阶段 4: Mainline（合并入主线） */
+#define PATCH_STAGE_STABLE          5  /* 阶段 5: Stable Release（稳定发布） */
+#define PATCH_STAGE_LTS             6  /* 阶段 6: Long-term Maintenance（长期维护） */
+```
+
+#### A.3.2 PR 状态枚举
+
+```c
+/**
+ * PR_STATUS_* - Pull Request 状态枚举
+ *
+ * 对齐 GitHub PR 状态 + agentrt-linux 工作流
+ */
+#define PR_STATUS_OPEN         1  /* PR 已创建，等待审查 */
+#define PR_STATUS_REVIEW       2  /* 审查中（有审查意见但未完成） */
+#define PR_STATUS_MERGEABLE    3  /* 审查通过，可合并（CI 全绿 + Reviewed-by） */
+#define PR_STATUS_MERGED       4  /* 已合并到目标分支 */
+#define PR_STATUS_CLOSED       5  /* 已关闭（未合并） */
+#define PR_STATUS_DRAFT        6  /* 草稿（RFC 阶段，未正式提交） */
+#define PR_STATUS_BLOCKED      7  /* 被 DCO bot 或 CI 阻塞 */
+```
+
+#### A.3.3 审查标签与结论枚举
+
+```c
+/**
+ * REVIEW_LABEL_* - 审查标签类型枚举
+ *
+ * 对齐 Linux 6.6 内核 review 标签语义
+ * 对齐 agentrt-linux §5.4 标签语义对照表
+ */
+#define REVIEW_LABEL_REVIEWED   1  /* Reviewed-by:（完整技术审查，§6 四项声明） */
+#define REVIEW_LABEL_ACKED      2  /* Acked-by:（认可但未深入审查） */
+#define REVIEW_LABEL_TESTED     3  /* Tested-by:（已测试验证，含环境说明） */
+#define REVIEW_LABEL_SUGGESTED  4  /* Suggested-by:（提出原始思路） */
+#define REVIEW_LABEL_REPORTED   5  /* Reported-by:（报告 bug） */
+
+/**
+ * REVIEW_VERDICT_* - 审查结论枚举
+ */
+#define REVIEW_VERDICT_ACK      1  /* 通过（给予 Reviewed-by） */
+#define REVIEW_VERDICT_NAK      2  /* 拒绝（必须附技术理由，OS-DEV-242） */
+#define REVIEW_VERDICT_COMMENT  3  /* 仅评论（未做出通过/拒绝决定） */
+
+/**
+ * BACKPORT_OPTION_* - 稳定版回溯路径枚举
+ *
+ * 对齐 §7.2 三种提交叉径
+ */
+#define BACKPORT_OPTION_1       1  /* Option 1: 主线 PR 添加 Cc: release/，自动 cherry-pick */
+#define BACKPORT_OPTION_2       2  /* Option 2: 主线合并后向稳定版维护者请求 */
+#define BACKPORT_OPTION_3       3  /* Option 3: 提交等价补丁，标注 [ Upstream commit ] */
+```
+
+#### A.3.4 DCO 签名验证常量与标签格式
+
+```c
+/**
+ * DCO_* - DCO（Developer Certificate of Origin）签名验证常量
+ *
+ * 对齐 Linux 6.6 内核 DCO 1.1 标准
+ * 对齐 agentrt-linux OS-DEV-181 / OS-DEV-231
+ */
+
+/**
+ * DCO_VERSION - DCO 版本号
+ *
+ * agentrt-linux 继承 Linux 内核 DCO 1.1 标准。
+ * 所有 commit 必须用 git commit -s 添加 Signed-off-by 签名。
+ */
+#define DCO_VERSION             "1.1"
+
+/* DCO 验证结果码 */
+#define DCO_OK                  0     /* DCO 签名验证通过 */
+#define DCO_E_MISSING          (-401)  /* 缺少 Signed-off-by 签名（OS-DEV-181） */
+#define DCO_E_IDENTITY_MISMATCH (-402) /* 签名者与 git author 身份不一致（OS-DEV-234） */
+#define DCO_E_CHAIN_BROKEN     (-403) /* Signed-off-by 链条不连续（OS-DEV-232） */
+#define DCO_E_FORGED           (-404) /* 作者代签他人标签（OS-DEV-183） */
+
+/**
+ * 审查标签格式常量
+ *
+ * 对齐 git commit message trailer 格式
+ * 对齐 §5.4 标签语义对照表
+ */
+#define TAG_SIGNED_OFF_BY   "Signed-off-by:"  /* DCO 背书，证明来源合法 */
+#define TAG_REVIEWED_BY     "Reviewed-by:"    /* 已进行完整技术审查（§6 四项声明） */
+#define TAG_ACKED_BY        "Acked-by:"       /* 认可但未深入审查 */
+#define TAG_TESTED_BY       "Tested-by:"      /* 已测试验证 */
+#define TAG_SUGGESTED_BY    "Suggested-by:"   /* 提出原始思路 */
+#define TAG_REPORTED_BY     "Reported-by:"    /* 报告 bug */
+#define TAG_FIXES           "Fixes:"          /* 溯源引入 bug 的原始 commit（OS-DEV-152） */
+#define TAG_CLOSES          "Closes:"          /* 关联 issue 编号 */
+#define TAG_LINK            "Link:"            /* PR discussion URL */
+#define TAG_CC_STABLE       "Cc: release/"     /* 标记需回溯到稳定版（§7.2 Option 1） */
+#define TAG_UPSTREAM        "[ Upstream commit " /* 等价补丁标注上游 commit（§7.2 Option 3） */
+#define TAG_RESEND          "[RESEND]"         /* 重发未修改补丁（OS-DEV-184） */
+
+/**
+ * 补丁序列与格式约束
+ *
+ * 对齐 git format-patch 输出规范
+ */
+#define PATCH_LINE_WIDTH_MAX     75     /* commit body 最大行宽（列） */
+#define PATCH_SHA_LENGTH_MIN     12     /* Fixes: 标签最小 SHA 长度（§8.3） */
+#define PATCH_STABLE_MAX_LINES   100    /* 稳定版补丁最大行数（含上下文，§7.1） */
+#define PATCH_MAX_RETRIES         2     /* 最大回退次数（超过则回 Design，OS-DEV-162） */
+
+/**
+ * SLA 时长常量（小时）
+ *
+ * 对齐 §2.1 阶段速查表
+ */
+#define SLA_EARLY_REVIEW_HOURS    (7 * 24)   /* 早期审查 1 周反馈 */
+#define SLA_WIDER_REVIEW_HOURS    (14 * 24)  /* 广泛审查 2 周集成 */
+#define SLA_STABLE_ACK_HOURS      48          /* 稳定版委员会 48 小时 ACK（OS-DEV-142） */
+#define SLA_REGRESSION_RESP_HOURS 48          /* regression 48 小时响应（OS-DEV-143） */
+#define SLA_LTS_RESPONSE_MONTHS   12          /* LTS 12 个月响应（OS-DEV-151） */
+#define SLA_MAINTAINER_NOTIFY_MONTHS 6        /* 维护者离职提前 6 个月通知（OS-DEV-261） */
+```
 
 ---
 

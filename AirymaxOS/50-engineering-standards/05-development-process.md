@@ -7,6 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**: 2026-07-06
 > **同源映射**: `docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）+ Linux 6.6 内核基线 `Documentation/process/development-process.rst`
 > **理论根基**: Linux 6.6 内核基线工程思想 + Airymax 体系并行论（Multibody Cybernetic Intelligent System）
+> **SSoT 声明（C-2.6 D-06，2026-07-09）**: 本卷为 agentrt-linux **开发流程规则**的唯一权威来源（SSoT）。本卷规则编号的目标体系为 **OS-STD-PROD-NNN**（4 段前缀，PROD = Process/Development）。本卷正文中现存的历史编号 **OS-STD-101~234**（与 06-toolchain-and-automation.md 共用 OS-STD-101~158 段导致 30+ 项语义冲突）将逐步迁移为 OS-STD-PROD-101~234，迁移映射见 §0.2。迁移完成前，历史编号与 OS-STD-PROD 编号**并存且等价**，规则效力以本卷正文为准。
 
 ---
 
@@ -18,6 +19,28 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - **下游依赖**：06 工具链自动化定义"规范怎么被执行"——7 层验证、checkpatch、覆盖率门槛；本卷定义"规范在哪个阶段被执行"——每个生命周期阶段的强制工具链关卡。
 
 本卷所有强制规则均赋予 **OS-STD** / **OS-KER** 编号，与 07 维护者制度与治理的"规则编号注册表"对齐。
+
+### 0.2 OS-STD → OS-STD-PROD 编号段隔离声明（C-2.6 D-06）
+
+> **本节由 C-2.6 合并决策 D-06 执行新增（2026-07-09）**。本卷与 06-toolchain-and-automation.md 历史上共用 `OS-STD-101~158` 编号段，导致同一编号在两卷中定义完全不同（如 `OS-STD-101` 在本卷 = "L1/L2 接口设计需 RFC"，在 06 = "checkpatch --strict 无 ERROR"）。为消除冲突，本卷规则迁移至 `OS-STD-PROD-NNN` 段（PROD = Process/Development），06 迁移至 `OS-STD-TOOL-NNN` 段（TOOL = Toolchain）。
+
+#### 0.2.1 编号段隔离对照表
+
+| 编号段 | 本卷（05-development-process） | 06-toolchain-and-automation | 隔离方案 |
+|--------|-------------------------------|----------------------------|---------|
+| OS-STD-101 | L1/L2 接口设计需 RFC | checkpatch --strict 无 ERROR | 本卷 → OS-STD-PROD-101；06 → OS-STD-TOOL-101 |
+| OS-STD-102 | 设计文档含五维原则映射 | 剩余 WARNING/CHECK 须 justified | 本卷 → OS-STD-PROD-102；06 → OS-STD-TOOL-102 |
+| OS-STD-103 | 早期审查 PR 含完整补丁描述 | C/C++ 文件通过 clang-format | 本卷 → OS-STD-PROD-103；06 → OS-STD-TOOL-103 |
+| OS-STD-111 | 补丁作者 12 个月内响应 bug | 新增内核工具有 KUnit 测试 | 本卷 → OS-STD-PROD-111；06 → OS-STD-TOOL-111 |
+| OS-STD-121 | 上层 maintainer 拉取执行 CI 门禁 | 内核子系统行覆盖率 ≥80% | 本卷 → OS-STD-PROD-121；06 → OS-STD-TOOL-121 |
+| OS-STD-131 | develop nightly build（示例） | 子仓维护 ci/nightly/release（示例） | 本卷 → OS-STD-PROD-131；06 → OS-STD-TOOL-131 |
+
+#### 0.2.2 迁移状态
+
+- **当前阶段**：编号并存阶段（历史 `OS-STD-NNN` 与目标 `OS-STD-PROD-NNN` 等价有效）。
+- **迁移触发**：1.0.1 开发阶段，当 CI/CD 流水线脚本与维护者治理文档（07）实施时，统一替换为 `OS-STD-PROD-NNN`。
+- **冲突消解**：迁移后，本卷与 06-toolchain-and-automation.md 的 `OS-STD-101~158` 段冲突彻底消除——本卷独占 `OS-STD-PROD-NNN` 段，06 独占 `OS-STD-TOOL-NNN` 段。
+- **保留编号**：`OS-KER-xxx`（内核工程规则）与 `OS-ACC-xxx`（验收标准）不受本次迁移影响。
 
 ### 0.1 关键术语
 

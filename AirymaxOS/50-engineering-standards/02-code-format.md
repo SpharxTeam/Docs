@@ -7,6 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**: 2026-07-06
 > **同源映射**: `docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）+ Linux 6.6 内核基线 `Documentation/process/coding-style.rst` + `.clang-format`（689 行 + 560 ForEachMacros）
 > **理论根基**: Linux 6.6 内核基线工程思想 + Airymax 体系并行论（Multibody Cybernetic Intelligent System）
+> **SSoT 声明（C-2.6 D-04，2026-07-09）**: 本卷为 agentrt-linux **格式规则的唯一权威来源（SSoT）**。格式规则编号的目标体系为 **OS-FMT-NNN**（4 段前缀，闭源总纲已确立，FMT = Format）。本卷正文中现存的历史编号 **OS-KER-004~021 / OS-STD-047 / OS-STD-202~211** 将逐步迁移为 OS-FMT-NNN，迁移映射见 §0.2。迁移完成前，历史编号与 OS-FMT 编号**并存且等价**，规则效力以本卷正文为准；本卷与闭源总纲的任何冲突，以闭源总纲附录 A 为准。
 
 ---
 
@@ -31,6 +32,51 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 行尾空白 | 行末 Tab 或空格序列；agentrt-linux 全部禁用 |
 | 后继行 | 被断行的长行的续行；必须显著短于父行并右移 |
 | 配置即代码 | 格式规则与格式化工具配置项一一对应，无人工裁量空间 |
+
+### 0.2 OS-KER → OS-FMT 编号迁移映射（C-2.6 D-04）
+
+> **本节由 C-2.6 合并决策 D-04 执行新增（2026-07-09）**。本卷历史编号 `OS-KER-004~021` 与 `OS-STD-047 / OS-STD-202~211` 将迁移为统一前缀 `OS-FMT-NNN`。下表给出权威映射，消除以下三类问题：(1) `OS-KER-005` 双义（Tab 8 字符 vs 字符串禁止断行）；(2) K&R 大括号被拆为 `OS-STD-047 + OS-KER-008` 两个编号；(3) 空格规则被拆为 `OS-KER-010~014` 五个编号。
+
+#### 0.2.1 格式规则迁移映射表
+
+| 当前编号（本卷正文） | 目标编号（OS-FMT） | 规则内容 | 所在章节 | 迁移说明 |
+|---------------------|-------------------|----------|---------|---------|
+| OS-KER-005（Tab 8 字符） | OS-FMT-001 | Tab 缩进，8 字符宽 | §1.1 | 消除双义：OS-KER-005 在 §1.1 表 Tab、在 §2.2 表字符串禁止断行 |
+| OS-KER-004 | OS-FMT-002 | C 代码首选 80 列 | §2.1 | — |
+| OS-KER-005（字符串禁止断行） | OS-FMT-008 | 用户可见字符串禁止断行 | §2.2 | 消除双义：拆分为独立 OS-FMT-008 |
+| OS-STD-047 | OS-FMT-003 | 非函数语句块开括号在行末（K&R） | §3.1 | 与 OS-KER-008 合并为 K&R 大括号族 |
+| OS-KER-008 | OS-FMT-009 | 函数例外：开括号在下一行行首 | §3.2 | 与 OS-STD-047 合并为 K&R 大括号族 |
+| OS-KER-009 | OS-FMT-004 | 单语句与多语句的大括号规则 | §3.4 | OLK-6.6 立场：单语句可不加（采纳 02，弃闭源 OS-FMT-004） |
+| OS-KER-010 ~ OS-KER-014 | OS-FMT-005 | 空格规则（合并 5 条为 1 条） | §4.1-§4.5 | 合并：关键字后空格 / sizeof 无空格 / 指针贴名 / 运算符空格 / 括号内禁空格 |
+| OS-KER-012（指针声明 `*` 贴名字） | OS-FMT-006 | 指针对齐 | §4.3 | 注意：OS-KER-012 在 §4.3 表指针、在 §1.x 不出现，迁移后消除歧义 |
+| OS-KER-015 | OS-FMT-010 | case 标签与 switch 对齐 | §5.1 | — |
+| OS-KER-016 | OS-FMT-011 | fallthrough 必须显式标注 | §5.2 | — |
+| OS-KER-017 | OS-FMT-012 | 函数之间用 1 个空行分隔 | §6.1 | — |
+| OS-KER-018 | OS-FMT-013 | 禁止函数内多余空行 | §6.2 | — |
+| OS-KER-019 | OS-FMT-004（部分） | 单行多语句禁令 | §7.1 | 与 §3.4 单语句大括号规则协同 |
+| OS-KER-020 | OS-FMT-014 | 禁止用逗号逃避大括号 | §7.2 | — |
+| OS-KER-021 | OS-FMT-014（扩展） | 禁止单行多赋值 | §7.3 | 与 OS-KER-020 合并为 OS-FMT-014 |
+| OS-KER-003 | OS-FMT-007 | 行尾禁止空白 | §1.6 | — |
+| OS-KER-006 | OS-FMT-015 | 后继行应大幅短于父行 | §2.4 | 新增 OS-FMT-015 |
+| OS-STD-202 ~ OS-STD-211 | OS-FMT-020 ~ OS-FMT-029 | 多语言格式规则 + 配置即代码 | §1.2-§1.5、§8 | 多语言段保留 OS-STD-202~211 作为子域编号，不强制迁移 |
+
+#### 0.2.2 迁移状态
+
+- **当前阶段**：编号并存阶段（历史编号 OS-KER-XXX 与目标编号 OS-FMT-NNN 等价有效）。
+- **迁移触发**：1.0.1 开发阶段，当代码实现 `.clang-format` / checkpatch 规则映射时，统一替换为 OS-FMT-NNN。
+- **OLK-6.6 立场采纳**：单语句大括号规则采纳 OLK-6.6 §3 立场（单语句可不加大括号），即本卷 OS-KER-009 / 迁移后 OS-FMT-004；闭源总纲 OS-FMT-004（即使单条语句也使用大括号）**不采纳**，理由详见 C-2.6 报告 §7.3。
+
+#### 0.2.3 迁移后保留的内核态专属 OS-KER 编号
+
+迁移后，`OS-KER` 前缀仅保留**内核态专属规则**（非格式规则），这些规则不在本卷定义，分布在 01/03/04 等卷：
+
+| 保留编号 | 规则 | 所在卷 |
+|---------|------|--------|
+| OS-KER-001 | goto 集中出口 | 01-coding-standards / 10-coding-style/C* |
+| OS-KER-002 | 禁止结构体 typedef | 01-coding-standards |
+| OS-KER-007 | 内核态禁 float，强制 airymax_q16_t | 10-coding-style/C_coding_style_standard_supplement |
+| OS-KER-030 | IS_ENABLED 条件编译 | 03-code-style |
+| OS-KER-031+ | bug 修复补丁规范等 | 04-engineering-philosophy |
 
 ---
 

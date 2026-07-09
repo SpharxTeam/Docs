@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）国际化与本地化工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
-> **优先级**: P2（0.1.1 仅创建 README 占位，1.0.1 完成 4 文档）
+> **优先级**: P2（0.1.1 完成 5 文档，1.0.1 实施验证）
 > **同源映射**: agentrt 多语言错误码 + Linux 6.6 locale / gettext / iconv
 > **理论根基**: 软件国际化哲学 + Airymax A-3 人文关怀 + E-7 文档即代码
 
@@ -89,19 +89,20 @@ docs/AirymaxOS/50-engineering-standards/
 ```
 180-i18n/
 ├── README.md                       # 本文件
-├── 01-locale-and-encoding.md      # locale 与字符编码
-├── 02-message-i18n.md             # gettext 消息国际化
-├── 03-agent-prompts.md            # 多语言 Agent 提示词
-└── 04-documentation-sync.md        # 多语言文档同步
+├── 01-locale-design.md             # Locale 区域设置设计 ✅
+├── 02-encoding-spec.md             # 字符编码规范与 UTF-8 处理 ✅
+├── 03-error-message-i18n.md        # 错误消息国际化 ✅
+├── 04-cjk-support.md              # CJK 中文/日文/韩文支持 ✅
+└── 05-doc-i18n.md                 # 文档国际化与双语同步 ✅
 ```
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README 占位（P2 优先级，0.1.1 不开发具体文档）。
+完成 README + 01-locale-design.md（Locale 区域设置 + 环境变量）+ 02-encoding-spec.md（UTF-8 处理 + 编码转换）+ 03-error-message-i18n.md（错误码注册表 SSoT + 多语言消息映射）+ 04-cjk-support.md（CJK 显示与输入支持）+ 05-doc-i18n.md（中英双语文档维护机制 + 术语表治理）。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 4 文档，并实施国际化工程标准。
+实施国际化工程标准，补充 Agent 提示词多语言支持与社区翻译流程。
 
 ---
 
@@ -188,4 +189,4 @@ agentrt 的多语言错误码与 agentrt-linux 同源：
 
 ---
 
-> **文档结束** | 0.1.1 P2 占位，1.0.1 完成 4 文档
+> **文档结束** | 0.1.1 完成 5 文档，1.0.1 实施验证

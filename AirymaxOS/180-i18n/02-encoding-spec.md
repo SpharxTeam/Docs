@@ -720,7 +720,7 @@ int agentrt_validate_input(const char *input, size_t len)
 
 - `180-i18n/README.md`（国际化主索引）
 - `180-i18n/01-locale-design.md`（Locale 设计）
-- `180-i18n/03-cjk-support.md`（CJK 支持设计）
+- `180-i18n/04-cjk-support.md`（CJK 支持设计）
 - `50-engineering-standards/01-coding-standards.md`（编码规范）
 - `170-performance/03-ipc-performance.md`（IPC 消息头）
 

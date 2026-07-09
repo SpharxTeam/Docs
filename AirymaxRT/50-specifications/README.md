@@ -71,7 +71,7 @@ Airymax 技术规范体系是项目开发、测试、部署和维护的权威标
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
 | [agent_contract.md](10-contracts/01-agent-contract.md) | v1.3.0 | ✅ 生产就绪 | Agent 接口定义、生命周期、能力描述 |
-| [01-agent-contract-schema.json](10-contracts/01-agent-contract-schema.json) | v1.3.0 | ✅ 生产就绪 | Agent 契约 JSON Schema 验证文件 |
+| [agent_contract_schema.json](10-contracts/agent_contract_schema.json) | v1.3.0 | ✅ 生产就绪 | Agent 契约 JSON Schema 验证文件 |
 
 **核心要求**:
 - 所有 Agent 必须实现契约定义的接口
@@ -83,7 +83,7 @@ Airymax 技术规范体系是项目开发、测试、部署和维护的权威标
 | 文档 | 版本 | 状态 | 描述 |
 |------|------|------|------|
 | [skill_contract.md](10-contracts/02-skill-contract.md) | v1.3.0 | ✅ 生产就绪 | Skill 接口定义、输入输出、错误处理 |
-| [02-skill-contract-schema.json](10-contracts/02-skill-contract-schema.json) | v1.3.0 | ✅ 生产就绪 | Skill 契约 JSON Schema 验证文件 |
+| [skill_contract_schema.json](10-contracts/skill_contract_schema.json) | v1.3.0 | ✅ 生产就绪 | Skill 契约 JSON Schema 验证文件 |
 
 **核心要求**:
 - Skill 必须声明输入输出格式

@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）兼容性工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
-> **优先级**: P1（0.1.1 仅创建 README 占位，1.0.1 完成 5 文档）
+> **优先级**: P1（0.1.1 完成 5 文档，1.0.1 实施验证）
 > **同源映射**: agentrt ABI 稳定性 + Linux 6.6 KABI / ABI 兼容性体系
 > **理论根基**: Linux 内核兼容性哲学 + Airymax K-2 接口契约化 + C-2 增量演化
 
@@ -45,9 +45,9 @@ agentrt-linux 兼容性体系是系统长期演进的工程保障。它继承 Li
 
 ```c
 // airymaxos-kernel/include/uapi/agentrt/syscall.h
-// 系统调用编号一旦分配，永不复用
-#define AGENTRT_SYS_COGNITION_PROCESS  1001  // 1.0.1 引入，永久支持
-#define AGENTRT_SYS_MEMORY_ROVOL_GET   1002  // 1.0.1 引入，永久支持
+// 系统调用编号一旦分配，永不复用（512-631 段，20-gap 块编号）
+#define AGENTRT_SYS_COGNITION_PROCESS  612  // cognition 段（612-631），1.0.1 引入，永久支持
+#define AGENTRT_SYS_MEMORY_ROVOL_GET   552  // memory 段（552-571），1.0.1 引入，永久支持
 ```
 
 ### 2.2 内核 KABI 管理
@@ -93,20 +93,20 @@ if (header.version > SUPPORTED_VERSION) {
 ```
 160-compatibility/
 ├── README.md                       # 本文件
-├── 01-abi-stability.md             # 用户空间 ABI 稳定性
-├── 02-kabi-management.md           # 内核 KABI 管理
-├── 03-ipc-versioning.md            # AgentsIPC 版本协商
-├── 04-sdk-compatibility.md        # SDK 跨版本兼容性
-└── 05-cross-distro.md             # 跨发行版兼容性
+├── 01-abi-stability.md             # 用户空间 ABI 稳定性 ✅
+├── 02-posix-compat.md              # POSIX 兼容性 ✅
+├── 03-upstream-tracking.md         # 上游跟踪策略 ✅
+├── 04-ipc-versioning.md            # AgentsIPC 版本协商 ✅
+└── 05-cross-distro.md             # 跨发行版兼容性 ✅
 ```
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README 占位（P1 优先级，0.1.1 不开发具体文档）。
+完成 README + 01-abi-stability.md（UAPI 稳定性 + KABI 保留域）+ 02-posix-compat.md（POSIX 兼容性 + SCHED_EXT 约束）+ 03-upstream-tracking.md（Linux 6.6 上游跟踪策略 + backport 规范）+ 04-ipc-versioning.md（协议版本演进 + 运行时协商 + 降级策略 + 操作码版本化）+ 05-cross-distro.md（发行版支持矩阵 + glibc 兼容 + 内核模块兼容 + FHS 适配 + openEuler 标准兼容）。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 5 文档，并实施兼容性工程标准。
+160 模块 5/5 文档全部完成（100%），1.0.1 阶段实施兼容性工程标准与生产就绪验证。
 
 ---
 

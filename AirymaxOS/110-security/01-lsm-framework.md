@@ -248,6 +248,57 @@ int __init security_init(void)
 
 `ordered_lsm_init()` 在所有 LSM 的 blob 大小合并完成后，为 `lbs_file`、`lbs_inode` 创建专用 kmem_cache（`SLAB_PANIC` 保证分配失败即 panic）。启动完成后 `report_lsm_order()` 通过 `pr_info("initializing lsm=...")` 输出最终生效顺序，dmesg 中可读到形如 `LSM: initializing lsm=capability,landlock,yama,cupolas` 的串。
 
+### 5.3 LSM 模块生命周期状态机
+
+LSM 模块从编译期声明到运行时活跃的完整状态转换：
+
+```mermaid
+stateDiagram-v2
+    [*] --> DECLARED: DEFINE_LSM() 宏编译期声明
+
+    DECLARED --> EARLY_INIT: early_security_init()（仅 early LSM）
+    DECLARED --> PENDING: 等待 ordered_lsm_init() 调度
+
+    EARLY_INIT --> ACTIVE: init() 返回 0
+    EARLY_INIT --> FAILED: init() 返回 <0（panic）
+
+    PENDING --> PREPARING: ordered_lsm_init() 选中
+    PREPARING --> INITIALIZING: prepare_lsm() 合并 blob 大小
+    INITIALIZING --> ACTIVE: initialize_lsm() 调用 init() 返回 0
+    INITIALIZING --> SKIPPED: exclusive 冲突或被禁用
+    INITIALIZING --> FAILED: init() 返回 <0（panic）
+
+    ACTIVE --> DEINITIALIZING: 模块卸载（仅模块化 LSM）
+    DEINITIALIZING --> [*]: hlist_del_rcu + kfree
+
+    SKIPPED --> [*]: 不加载
+    FAILED --> [*]: 系统停机
+
+    note right of ACTIVE
+        RCU 读者安全遍历 security_hook_heads
+        __ro_after_init 确保链表只读
+    end note
+
+    note right of SKIPPED
+        LSM_FLAG_EXCLUSIVE 冲突
+        或 lsm= 参数未列出
+    end note
+```
+
+**状态转换条件**：
+
+| 从状态 | 到状态 | 触发条件 | 系统行为 |
+|--------|--------|---------|---------|
+| — | DECLARED | `DEFINE_LSM()` / `DEFINE_EARLY_LSM()` 编译期 | 放入 `__lsm_info` / `__early_lsm_info` 段 |
+| DECLARED | EARLY_INIT | `early_security_init()`（仅 early LSM） | slab 可用前初始化 |
+| DECLARED | PENDING | `ordered_lsm_init()` 遍历 `__lsm_info` 段 | 等待调度 |
+| PENDING | PREPARING | `ordered_lsm_parse()` 选中此 LSM | 排序后非 exclusive 冲突 |
+| PREPARING | INITIALIZING | `prepare_lsm()` 合并 blob_sizes | kmem_cache 创建 |
+| INITIALIZING | ACTIVE | `initialize_lsm()` → `init()` 返回 0 | 钩子注册到 `security_hook_heads` |
+| INITIALIZING | SKIPPED | exclusive 冲突或 `lsm=` 未列出 | `set_enabled(lsm, false)` |
+| INITIALIZING | FAILED | `init()` 返回 <0 | `panic()`（SLAB_PANIC 语义） |
+| ACTIVE | DEINITIALIZING | 模块卸载（`rmmod`，仅模块化 LSM） | `hlist_del_rcu` + synchronize_rcu |
+
 ---
 
 ## 第 6 章 LSM 钩子类型
@@ -439,6 +490,151 @@ agentrt 的 `cupolas/` 模块与 agentrt-linux 内核态 Cupolas 同源，遵循
 
 两端通过 `AgentsIPC` 总线（128B 消息头由 MicroCoreRT 锁定）传递安全策略与审计事件，无任何适配层。这是 IRON-9 v2 同源且部分代码共享原则的工程兑现：同源在语义层，独立在实现层。
 
+### 11.1 IRON-9 v2 三层共享模型
+
+IRON-9 v2 将 agentrt Cupolas 与 agentrt-linux LSM 框架的协作划分为三层：
+
+| 层次 | 共享程度 | LSM 框架内容 |
+|------|---------|-------------|
+| **[SC] 共享契约层** | 完全共享代码 | `include/airymax/security_types.h`：LSM 钩子 254 ID 枚举 + Cupolas blob 布局（cred/inode/file/task）+ 策略裁决 4 值枚举 |
+| **[SS] 语义同源层** | API 签名同源，实现独立 | LSM 钩子注册模式、blob 生命周期管理、钩子链遍历模式、拒绝上报通道 |
+| **[IND] 完全独立层** | 完全独立 | RCU 钩子链表实现、kmem_cache blob 分配器、exclusive LSM 互斥逻辑、`CONFIG_LSM` 编译期排序 |
+
+#### [SC] 共享契约层
+
+`include/airymax/security_types.h` 定义 LSM 钩子 ID 枚举与 Cupolas blob 布局，agentrt 用户态 Cupolas 通过此头解析内核 LSM 钩子编号与 blob 偏移，无需访问内核私有数据结构：
+
+```c
+/* include/airymax/security_types.h —— IRON-9 v2 [SC] 共享契约层（节选） */
+enum airymax_lsm_hook_id {
+    AIRYMAX_LSM_HOOK_FILE_OPEN          = 0,   /* security_file_open */
+    AIRYMAX_LSM_HOOK_FILE_PERMISSION   = 1,   /* security_file_permission */
+    AIRYMAX_LSM_HOOK_INODE_PERMISSION  = 2,   /* security_inode_permission */
+    AIRYMAX_LSM_HOOK_TASK_ALLOC        = 3,   /* security_task_alloc */
+    AIRYMAX_LSM_HOOK_TASK_SETPARAMS    = 4,   /* security_task_setparams */
+    /* ... 共 254 个钩子 ID，与 lsm_hook_defs.h 一一对应 */
+    AIRYMAX_LSM_HOOK_MAX               = 253,
+};
+
+struct airymax_lsm_blob_offsets {
+    uint16_t cred_offset;    /* Cupolas blob 在 cred 中的偏移 */
+    uint16_t inode_offset;   /* Cupolas blob 在 inode 中的偏移 */
+    uint16_t file_offset;    /* Cupolas blob 在 file 中的偏移 */
+    uint16_t task_offset;    /* Cupolas blob 在 task_struct 中的偏移 */
+};
+
+enum airymax_security_verdict {
+    AIRYMAX_VERDICT_ALLOW    = 0,   /* 允许操作 */
+    AIRYMAX_VERDICT_DENY     = 1,   /* 拒绝操作 */
+    AIRYMAX_VERDICT_AUDIT    = 2,   /* 允许但审计 */
+    AIRYMAX_VERDICT_COMPLAIN = 3,   /* 拒绝但记录（学习模式） */
+};
+```
+
+**OS-IRON-003 约束**: agentrt-linux LSM 与 agentrt Cupolas 共享 `include/airymax/security_types.h`，钩子 ID 编号（0-253）与 blob 偏移语义两端必须一致；策略裁决 4 值枚举在两端语义完全相同。
+
+#### [SS] 语义同源层
+
+| 维度 | agentrt 用户态（Cupolas） | agentrt-linux 内核态（LSM） | 同源点 |
+|------|--------------------------|---------------------------|--------|
+| 钩子注册 | `agentrt_cupolas_hook_register()` | `security_add_hooks()` | 注册模式同源 |
+| 钩子链遍历 | 应用层策略链 | `hlist_for_each_entry_rcu()` | 链遍历语义同源 |
+| blob 生命周期 | 用户态 arena 分配 | `kmem_cache` 分配 | 生命周期管理同源 |
+| 拒绝上报 | `AgentsIPC` 上报审计事件 | `AgentsIPC` 上报审计事件 | 上报通道同源 |
+| 策略裁决 | 4 值枚举（ALLOW/DENY/AUDIT/COMPLAIN） | 4 值枚举 | 裁决语义同源（[SC]） |
+| Guard 入口 | `agentrt_cupolas_guard_enter()` | `security_hook_heads` 钩子入口 | 入口防护语义同源 |
+
+agentrt 的 `cupolas/guards` 模块定义了 `agentrt_cupolas_guard_enter(domain, action)`，与内核 LSM 钩子入口同源——两者都遵循"入口拦截 → 策略裁决 → 放行/拒绝"三段式。[SS] 语义同源在此体现为：语义同源（安全决策入口模式），实现独立（用户态策略引擎 vs 内核态钩子链）。
+
+#### [IND] 完全独立层
+
+| 维度 | agentrt 用户态（Cupolas） | agentrt-linux 内核态（LSM） |
+|------|--------------------------|---------------------------|
+| 钩子链表实现 | 应用层回调数组 | RCU 保护的双向链表 `security_hook_heads` |
+| blob 分配器 | 用户态 malloc/arena | `kmem_cache` + `__ro_after_init` 偏移表 |
+| exclusive LSM 互斥 | 不适用 | `LSM_FLAG_EXCLUSIVE` 位掩码 |
+| 钩子排序 | 应用层注册顺序 | `CONFIG_LSM` 编译期固化 |
+| 并发安全 | 用户态锁 | RCU read-side + SRCU |
+| 初始化阶段 | Agent 启动时 | `LSM_ORDER_LAST`（Cupolas 最后初始化） |
+
+#### 跨态协作流
+
+```mermaid
+graph LR
+    A[agentrt Cupolas 策略引擎] -->|读取 [SC] hook_id + blob_offset| B[security_types.h]
+    C[内核态 LSM 钩子触发] --> D[security_hook_heads 链遍历]
+    D --> E[Cupolas LSM 模块回调]
+    E -->|拒绝时| F[AgentsIPC 上报审计事件]
+    A -->|策略下发| F
+    style B fill:#bbf7d0,stroke:#15803d
+    style F fill:#fde68a,stroke:#b45309
+```
+
+agentrt Cupolas 策略引擎通过 [SC] 共享契约层读取 `security_types.h` 中的钩子 ID 与 blob 偏移，解析内核 LSM 事件，无需进入内核私有数据结构。两端通过 AgentsIPC 总线（128B 消息头，magic `0x41524531`）传递安全策略与审计事件，无适配层。MicroCoreRT 极简内核契约要求：内核态 LSM 钩子不解析用户态策略 payload，仅按 [SC] 钩子 ID 透传裁决请求；用户态 Cupolas 守护进程负责跨态策略聚合与审计。
+
+### 11.2 LSM 与 Cupolas 集成深化
+
+LSM 与 Cupolas 集成的目标是将 Cupolas 7 大子系统映射到 LSM 钩子框架，使内核态每个安全决策点都路由到对应的 Cupolas 子系统进行策略裁决，并通过 [SC] 共享契约层保证两端裁决语义同源（OS-IRON-003）。
+
+#### 11.2.1 Cupolas 7 子系统 ↔ LSM 钩子映射表
+
+| Cupolas 子系统 | LSM 钩子名 | 钩子 ID（[SC]） | 裁决行为 |
+|----------------|------------|------------------|----------|
+| **Guards 守卫** | `security_task_create` / `security_task_kill` | `HOOK_TASK_CREATE` / `HOOK_TASK_KILL` | DENY 时返回 `-EACCES` 阻断 Agent 生命周期 |
+| **Permission 权限裁决** | `security_inode_permission` / `security_file_open` | `HOOK_INODE_PERMISSION` / `HOOK_FILE_OPEN` | 4 值枚举（ALLOW/DENY/ASK/LOG）裁决 |
+| **Sanitizer 输入净化** | `security_bpf_check` / `security_socket_sendmsg` | `HOOK_BPF_CHECK` / `HOOK_SOCKET_SENDMSG` | DENY 时丢弃违规 BPF/socket payload |
+| **Audit 审计追踪** | `security_audit_rule_match` | `HOOK_AUDIT_RULE_MATCH` | 仅记录 LOG，不改变控制流 |
+| **Workbench 虚拟工作台** | `security_task_setrlimit` | `HOOK_TASK_SETRLIMIT` | DENY 时拒绝越界资源申请 |
+| **Vault 安全金库** | `security_keyctl` | `HOOK_KEYCTL` | DENY 时阻断 keyring 操作 |
+| **Network 网络安全** | `security_socket_accept` / `security_socket_connect` | `HOOK_SOCKET_ACCEPT` / `HOOK_SOCKET_CONNECT` | DENY 时返回 `-EACCES` 阻断建链 |
+
+钩子 ID 枚举值由 [SC] 共享头文件 `include/airymax/security_types.h` 中的 `airymax_lsm_hook_id` 定义，与 `lsm_hook_defs.h` 一一对应；Cupolas 钩子回调必须通过 `LSM_HOOK_INIT` 宏注册到对应链表头，并遵循 `security_add_hooks()` 批量注册模式（OS-STD-002）。
+
+#### 11.2.2 Cupolas 策略下发流程
+
+```mermaid
+graph LR
+    A["Cupolas daemon<br/>(用户态策略引擎)"] -->|"AgentsIPC 128B 消息"| B["AgentsIPC 总线"]
+    B --> C["内核 LSM 钩子<br/>security_hook_heads"]
+    C --> D["策略裁决<br/>4 值枚举<br/>ALLOW/DENY/ASK/LOG"]
+    D -->|"ASK 询问 daemon"| A
+    D -->|"LOG/AUDIT"| E["审计日志<br/>Audit 子系统"]
+    style A fill:#bbf7d0,stroke:#15803d
+    style D fill:#fde68a,stroke:#b45309
+    style E fill:#bfdbfe,stroke:#1d4ed8
+```
+
+Cupolas daemon 作为用户态策略引擎通过 AgentsIPC 总线（128B 消息头，magic `0x41524531`）下发策略；内核 LSM 钩子在 `security_hook_heads` 链上执行策略裁决。ASK 裁决需要回询 daemon 时，5 秒超时后回退 ALLOW 并记录 LOG（OS-SEC-009）；所有裁决结果通过 Audit 子系统持久化。
+
+#### 11.2.3 审计事件格式定义
+
+```c
+/* include/airymax/security_types.h —— IRON-9 v2 [SC] 共享契约层 */
+struct airymax_cupolas_audit_event {
+    uint32_t event_id;      /* 事件序列号（单调递增） */
+    uint64_t timestamp;    /* 纳秒级时间戳（ktime_get_real_ns） */
+    uint32_t agent_id;     /* 所属 Agent ID（必须存在，OS-SEC-010） */
+    uint16_t hook_id;       /* LSM 钩子 ID（airymax_lsm_hook_id） */
+    uint8_t  ruling;        /* 策略裁决结果（airymax_security_verdict） */
+    uint8_t  reserved;      /* 对齐填充 */
+    uint64_t subject;       /* 主体标识（cred pointer 或 agent handle） */
+    uint64_t object;        /* 客体标识（inode/file/socket 句柄） */
+} __attribute__((packed));  /* 128B 对齐 AgentsIPC 消息头 */
+```
+
+事件结构 128B 对齐 AgentsIPC 消息头，由内核态 Cupolas 钩子填充并通过 `AgentsIPC` 上报用户态 Audit 子系统。`ruling` 字段取值严格遵循 [SC] 4 值枚举（`AIRYMAX_VERDICT_ALLOW/DENY/AUDIT/COMPLAIN`），与 agentrt 用户态 Cupolas 裁决语义完全相同（OS-IRON-003）。
+
+#### 11.2.4 OS-SEC 规则集（agentrt-linux 专属扩展深化）
+
+| 规则编号 | 类型 | 描述 |
+|----------|------|------|
+| OS-SEC-008 | 安全规范 | Cupolas 钩子回调必须返回 [SC] 4 值枚举之一（ALLOW/DENY/ASK/LOG），禁止返回其他值 |
+| OS-SEC-009 | 安全规范 | ASK 裁决必须通过 `AgentsIPC` 询问 daemon，5 秒超时后回退 ALLOW 并记录 LOG |
+| OS-SEC-010 | 安全规范 | 审计事件必须包含 `agent_id` 字段，缺失 `agent_id` 的事件必须丢弃并告警 |
+| OS-SEC-011 | 安全规范 | Cupolas 7 子系统钩子映射必须与 [SC] 钩子 ID 一一对应，新增子系统必须扩展映射表 |
+
+上述规则在 IRON-9 v2 [SC] 共享契约层约束下，保证 agentrt 用户态 Cupolas 与 agentrt-linux 内核态 LSM 钩子的语义同源；任何对钩子映射表的修改必须经 RFC 评审与 ABI 稳定性确认（OS-IRON-001）及五维原则映射检查（OS-STD-007）。
+
 ---
 
 ## 第 12 章 规则编号集
@@ -493,6 +689,441 @@ agentrt 的 `cupolas/` 模块与 agentrt-linux 内核态 Cupolas 同源，遵循
 - v1.0.1（开发中）：补充 Cupolas 钩子全集、形式化不变量、性能基准
 
 **待办**：补充 MicroCoreRT 锁定契约最小子集；补充 Cupolas 钩子审计与 `AgentsIPC` 事件类型映射表；补充 LSM 顺序对 benchmark 的影响数据。
+
+---
+
+## 附录 A: 接口定义
+
+> **附录定位**: 本附录汇集 LSM 框架与 Cupolas 集成所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `security/security.c`、`include/linux/lsm_hooks.h`、`include/linux/lsm_hook_defs.h` 及 `include/airymax/security_types.h`（[SC] 共享契约层）。
+
+### A.1 核心数据结构
+
+#### A.1.1 security_hook_heads — 钩子链表头集合
+
+```c
+/**
+ * struct security_hook_heads - LSM 钩子链表头集合
+ *
+ * 由 LSM_HOOK() 宏在编译期展开生成，每个字段对应一个 hlist_head。
+ * 标记 __ro_after_init 确保初始化完成后只读，RCU 读者无需加锁。
+ *
+ * 对齐 Linux 6.6 security/security.c
+ */
+struct security_hook_heads {
+    struct hlist_head inode_alloc_security;
+    struct hlist_head inode_free_security;
+    struct hlist_head inode_permission;
+    struct hlist_head inode_setattr;
+    struct hlist_head file_open;
+    struct hlist_head file_alloc_security;
+    struct hlist_head file_free_security;
+    struct hlist_head task_alloc;
+    struct hlist_head task_free;
+    struct hlist_head cred_prepare;
+    struct hlist_head cred_transfer;
+    struct hlist_head sb_mount;
+    struct hlist_head sb_umount;
+    /* ... 共 200+ 钩子链表头，由 LSM_HOOK() 宏展开 ... */
+} __ro_after_init;
+```
+
+#### A.1.2 security_hook_list — 单个钩子实例
+
+```c
+/**
+ * struct security_hook_list - 单个 LSM 钩子实例
+ *
+ * @list:   链表节点，挂入 security_hook_heads.X 中
+ * @head:   指向对应钩子链表头的指针
+ * @hook:   钩子回调函数指针
+ * @lsm:    所属 LSM 名称（如 "capability"、"landlock"、"cupolas"）
+ *
+ * 对齐 Linux 6.6 include/linux/lsm_hooks.h
+ */
+struct security_hook_list {
+    struct hlist_node list;
+    struct hlist_head *head;
+    union {
+        void *hook;
+        int (*inode_alloc_security)(struct inode *inode);
+        int (*file_open)(struct file *file);
+        int (*task_alloc)(struct task_struct *task, unsigned long clone_flags);
+        int (*cred_prepare)(struct cred *new, const struct cred *old, gfp_t gfp);
+        /* ... 由 LSM_HOOK() 宏生成的联合体字段 ... */
+    };
+    const char *lsm;
+};
+```
+
+#### A.1.3 lsm_blob_sizes — Blob 尺寸定义
+
+```c
+/**
+ * struct lsm_blob_sizes - 各内核对象上 LSM blob 的尺寸
+ *
+ * @lbs_cred:       cred 上 blob 大小
+ * @lbs_inode:     inode 上 blob 大小（隐含 sizeof(struct rcu_head)）
+ * @lbs_file:       file 上 blob 大小
+ * @lbs_task:       task 上 blob 大小
+ * @lbs_ipc:        ipc_perm 上 blob 大小
+ * @lbs_msg_msg:   msg_msg 上 blob 大小
+ * @lbs_superblock: superblock 上 blob 大小
+ *
+ * 对齐 Linux 6.6 security/security.c
+ */
+struct lsm_blob_sizes {
+    int lbs_cred;
+    int lbs_inode;
+    int lbs_file;
+    int lbs_task;
+    int lbs_ipc;
+    int lbs_msg_msg;
+    int lbs_superblock;
+};
+```
+
+#### A.1.4 lsm_info — LSM 元信息
+
+```c
+/**
+ * struct lsm_info - LSM 元信息（链接器段收集）
+ *
+ * @name:  LSM 名称
+ * @order:  初始化顺序（LSM_ORDER_FIRST/MUTABLE/LAST）
+ * @flags:  标志位（LSM_FLAG_EXCLUSIVE 等）
+ * @init:   初始化回调
+ *
+ * 通过 DEFINE_LSM() / DEFINE_EARLY_LSM() 宏放入
+ * __lsm_info / __early_lsm_info 链接器段。
+ *
+ * 对齐 Linux 6.6 security/security.c
+ */
+struct lsm_info {
+    const char *name;
+    enum lsm_order order;
+    unsigned long flags;
+    int (*init)(void);
+};
+```
+
+#### A.1.5 Cupolas Blob 结构（agentrt-linux 专属）
+
+```c
+/**
+ * struct cupolas_cred_security - cred 上的 Cupolas 安全 blob
+ * @agent_id:       所属 Agent ID
+ * @domain:         指向 Cupolas 安全域的指针
+ * @cap_set[2]:     128 位 capability 位图（对齐 security_types.h [SC]）
+ * @audit_seq:      审计序列号
+ */
+struct cupolas_cred_security {
+    uint32_t agent_id;
+    struct cupolas_domain *domain;
+    uint64_t cap_set[2];
+    uint64_t audit_seq;
+};
+
+/**
+ * struct cupolas_inode_security - inode 上的 Cupolas 安全 blob
+ * @agent_ns:       所属 Agent 命名空间标签
+ * @required_cap:   访问所需 capability 类型（对齐 security_types.h [SC]）
+ * @policy_hash:    策略哈希（快速匹配）
+ */
+struct cupolas_inode_security {
+    uint32_t agent_ns;
+    uint8_t  required_cap;
+    uint32_t policy_hash;
+};
+
+/**
+ * struct cupolas_file_security - file 上的 Cupolas 安全 blob
+ * @granted_cap:    打开时授予的 capability ID
+ * @access_mask:    访问掩码（读/写/执行）
+ */
+struct cupolas_file_security {
+    uint32_t granted_cap;
+    uint8_t  access_mask;
+};
+
+/**
+ * struct cupolas_task_security - task 上的 Cupolas 安全 blob
+ * @agent_id:        Agent ID
+ * @budget_cap:     Token 预算 capability ID
+ * @suspend_flags:  挂起标志位
+ */
+struct cupolas_task_security {
+    uint32_t agent_id;
+    uint32_t budget_cap;
+    uint32_t suspend_flags;
+};
+
+/**
+ * struct cupolas_superblock_security - superblock 上的 Cupolas 安全 blob
+ * @agent_ns_root:  Agent 命名空间根
+ * @flags:          挂载标志
+ */
+struct cupolas_superblock_security {
+    uint32_t agent_ns_root;
+    uint32_t flags;
+};
+```
+
+### A.2 核心函数签名
+
+#### A.2.1 security_add_hooks — 批量注册钩子
+
+```c
+/**
+ * security_add_hooks - 将 LSM 钩子批量追加到链表
+ * @hooks:  钩子数组
+ * @count:  钩子数量
+ * @lsm:    LSM 名称
+ *
+ * 使用 hlist_add_tail_rcu() 保证 RCU 安全。
+ * slab 可用时调用 lsm_append() 追加到 lsm_names。
+ *
+ * 返回: void
+ *
+ * 对齐 Linux 6.6 security/security.c
+ */
+void __init security_add_hooks(struct security_hook_list *hooks,
+                               int count, const char *lsm);
+```
+
+#### A.2.2 security_init — LSM 框架初始化
+
+```c
+/**
+ * security_init - LSM 框架主初始化
+ *
+ * 由 start_kernel() 末尾调用，执行 ordered_lsm_init()。
+ * 依次对每个 LSM 执行 prepare_lsm() + initialize_lsm()。
+ *
+ * 返回: 0 总是成功（失败则 panic）
+ *
+ * 对齐 Linux 6.6 security/security.c
+ */
+int __init security_init(void);
+```
+
+#### A.2.3 cupolas_init — Cupolas LSM 初始化
+
+```c
+/**
+ * cupolas_init - Cupolas 安全穹顶初始化
+ *
+ * 初始化顺序: LSM_ORDER_LAST（Cupolas 最后初始化）
+ * 注册钩子: cred/inode/file/task/ipc 五类
+ *
+ * 返回: 0 成功，<0 失败（panic）
+ *
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ */
+static int __init cupolas_init(void);
+```
+
+#### A.2.4 Cupolas Blob 访问内联函数
+
+```c
+/**
+ * cupolas_cred - 获取 cred 上的 Cupolas blob
+ * @cred: 凭据指针
+ *
+ * 返回: struct cupolas_cred_security 指针
+ *
+ * 扁平 blob + 偏移访问模式（借鉴 Landlock landlock_cred()）
+ */
+static inline struct cupolas_cred_security *
+cupolas_cred(const struct cred *cred)
+{
+    return (struct cupolas_cred_security *)
+        (cred->security + cupolas_blob_sizes.lbs_cred);
+}
+
+/**
+ * cupolas_inode - 获取 inode 上的 Cupolas blob
+ * @inode: inode 指针
+ *
+ * 返回: struct cupolas_inode_security 指针
+ */
+static inline struct cupolas_inode_security *
+cupolas_inode(const struct inode *inode)
+{
+    return (struct cupolas_inode_security *)
+        (inode->i_security + cupolas_blob_sizes.lbs_inode);
+}
+
+/**
+ * cupolas_file - 获取 file 上的 Cupolas blob
+ * @file: file 指针
+ *
+ * 返回: struct cupolas_file_security 指针
+ */
+static inline struct cupolas_file_security *
+cupolas_file(const struct file *file)
+{
+    return (struct cupolas_file_security *)
+        (file->f_security + cupolas_blob_sizes.lbs_file);
+}
+
+/**
+ * cupolas_task - 获取 task 上的 Cupolas blob
+ * @task: task_struct 指针
+ *
+ * 返回: struct cupolas_task_security 指针
+ */
+static inline struct cupolas_task_security *
+cupolas_task(const struct task_struct *task)
+{
+    return (struct cupolas_task_security *)
+        (task->security + cupolas_blob_sizes.lbs_task);
+}
+```
+
+#### A.2.5 lsm_set_blob_size — Blob 尺寸计算
+
+```c
+/**
+ * lsm_set_blob_size - 计算并设置 blob 偏移
+ * @need: 输入所需大小，输出偏移量
+ * @lbs:  当前累计大小指针
+ *
+ * 对齐 sizeof(void*) 并累加。
+ *
+ * 对齐 Linux 6.6 security/security.c
+ */
+static void __init lsm_set_blob_size(int *need, int *lbs);
+```
+
+### A.3 错误码与宏定义
+
+#### A.3.1 LSM_HOOK 钩子定义宏
+
+```c
+/**
+ * LSM_HOOK - 定义一个 LSM 钩子
+ * @ret:    返回值类型（通常为 int）
+ * @def:    默认返回值（通常为 0）
+ * @name:   钩子名称
+ * @args:   参数列表
+ *
+ * 在 include/linux/lsm_hook_defs.h 中使用，
+ * 编译期展开为 security_hook_heads 字段、security_hook_list 联合体字段、
+ * 以及 security_X() 调用入口函数。
+ *
+ * 对齐 Linux 6.6 include/linux/lsm_hook_defs.h
+ */
+#define LSM_HOOK(ret, def, name, args ...)  \
+    /* 展开: 声明 + 默认值 + 链表头 + 联合体字段 + 调用入口 */
+```
+
+#### A.3.2 LSM 初始化顺序枚举
+
+```c
+/**
+ * enum lsm_order - LSM 初始化顺序
+ *
+ * @LSM_ORDER_FIRST:   强制第一位（capability 使用）
+ * @LSM_ORDER_MUTABLE: 可配置顺序（Landlock/Yama/Cupolas 使用）
+ * @LSM_ORDER_LAST:    强制最后位（integrity 使用）
+ */
+enum lsm_order {
+    LSM_ORDER_FIRST  = 0,
+    LSM_ORDER_MUTABLE = 1,
+    LSM_ORDER_LAST   = 2,
+};
+```
+
+#### A.3.3 LSM 标志位
+
+```c
+/**
+ * LSM_FLAG_EXCLUSIVE - 互斥标志
+ *
+ * 标记此 LSM 与其他 exclusive LSM 互斥。
+ * SELinux/AppArmor/Smack 设置此标志。
+ * Cupolas 不设置此标志，可与任何 major LSM 共存。
+ */
+#define LSM_FLAG_EXCLUSIVE  0x0001
+```
+
+#### A.3.4 LSM 注册宏
+
+```c
+/**
+ * DEFINE_LSM - 定义可延迟初始化的 LSM
+ * @name: LSM 名称
+ * @setup: 包含 .name/.order/.flags/.init 的初始化结构
+ *
+ * 放入 __lsm_info 链接器段，由 ordered_lsm_init() 遍历。
+ */
+#define DEFINE_LSM(name, setup) \
+    static struct lsm_info __lsm_info_##name \
+        __used __section(".lsm_info") = { .name = #name, ##setup }
+
+/**
+ * DEFINE_EARLY_LSM - 定义早期初始化的 LSM
+ * @name: LSM 名称
+ * @setup: 包含 .name/.init 的初始化结构
+ *
+ * 放入 __early_lsm_info 段，由 early_security_init() 遍历。
+ * 用于 lockdown、bpf-lsm 早期阶段。
+ */
+#define DEFINE_EARLY_LSM(name, setup) \
+    static struct lsm_info __early_lsm_info_##name \
+        __used __section(".early_lsm_info") = { .name = #name, ##setup }
+```
+
+#### A.3.5 Cupolas Blob 尺寸声明
+
+```c
+/**
+ * Cupolas blob 尺寸定义（agentrt-linux 专属）
+ *
+ * 对齐 security_types.h [SC] 共享头文件
+ * 在 prepare_lsm() 阶段提交给框架合并
+ */
+struct lsm_blob_sizes cupolas_blob_sizes __ro_after_init = {
+    .lbs_cred       = sizeof(struct cupolas_cred_security),
+    .lbs_inode      = sizeof(struct cupolas_inode_security),
+    .lbs_file       = sizeof(struct cupolas_file_security),
+    .lbs_task       = sizeof(struct cupolas_task_security),
+    .lbs_superblock = sizeof(struct cupolas_superblock_security),
+};
+
+/** Cupolas LSM 注册 */
+DEFINE_LSM(cupolas, {
+    .order = LSM_ORDER_MUTABLE,
+    .flags = 0,  /* 不设 EXCLUSIVE，可与其他 LSM 共存 */
+    .init  = cupolas_init,
+});
+```
+
+#### A.3.6 错误码
+
+```c
+/**
+ * LSM 框架标准错误码（对齐 Linux 6.6 errno）
+ *
+ * 钩子回调返回 0 表示允许，返回负值表示拒绝。
+ */
+#define AGENTRT_LSM_OK            0        /* 允许 */
+#define AGENTRT_LSM_EACCES       (-EACCES) /* 权限拒绝 */
+#define AGENTRT_LSM_EPERM       (-EPERM)   /* 操作不允许 */
+#define AGENTRT_LSM_ENOMEM      (-ENOMEM)  /* 内存不足 */
+#define AGENTRT_LSM_EINVAL      (-EINVAL)  /* 无效参数 */
+
+/**
+ * Cupolas 专属裁决结果（对齐 security_types.h [SC] 4 值枚举）
+ *
+ * 与 AGENTRT_CAP_ALLOW/DENY/AUDIT/DENY_AUDIT 一致，
+ * 通过 AgentsIPC 总线上报审计事件。
+ */
+#define CUPOLAS_VERDICT_ALLOW       0  /* 允许，不记录 */
+#define CUPOLAS_VERDICT_DENY       1  /* 拒绝，不记录 */
+#define CUPOLAS_VERDICT_AUDIT      2  /* 允许，记录审计日志 */
+#define CUPOLAS_VERDICT_DENY_AUDIT 3  /* 拒绝，记录审计日志 */
+```
 
 ---
 

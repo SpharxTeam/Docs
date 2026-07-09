@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）云原生工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
-> **优先级**: P1（0.1.1 仅创建 README 占位，1.0.1 完成 5 文档）
+> **优先级**: P1（0.1.1 完成 5 文档，1.0.1 实施验证）
 > **同源映射**: agentrt gateway + Linux 6.6 容器与编排（containerd / K8s / OCI）
 > **理论根基**: 云原生计算哲学 + Airymax S-4 涌现性管理 + K-3 服务隔离
 
@@ -96,20 +96,20 @@ spec:
 ```
 150-cloudnative/
 ├── README.md                       # 本文件
-├── 01-container-runtime.md        # containerd 集成
-├── 02-agent-image-spec.md         # Agent 容器镜像规范
-├── 03-kubernetes-crd.md           # Agent CRD 设计
-├── 04-supernode-os.md             # 超节点 OS
-└── 05-memoryrovol-csi.md          # MemoryRovol CSI 驱动
+├── 01-k8s-crd-design.md           # K8s CRD 设计 ✅
+├── 02-containerd-shim.md          # containerd shim 集成 ✅
+├── 03-cni-network-policy.md       # CNI 网络策略 ✅
+├── 04-supernode-os.md             # 超节点 OS 实现方案 ✅
+└── 05-memoryrovol-csi.md          # MemoryRovol CSI 驱动 ✅
 ```
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README 占位（P1 优先级，0.1.1 不开发具体文档）。
+完成 README + 01-k8s-crd-design.md（Agent CRD 设计 + 控制器）+ 02-containerd-shim.md（containerd shim 集成 + Agent 容器生命周期）+ 03-cni-network-policy.md（CNI 网络策略 + Agent 网络隔离）+ 04-supernode-os.md（超节点 OS 完整实现方案 + NUMA 感知调度 + 跨 die 迁移 + CXL 池化 + 整机快照恢复）+ 05-memoryrovol-csi.md（MemoryRovol CSI 驱动 + 三阶段 gRPC + L1-L4 层级挂载语义 + 跨节点迁移）。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 5 文档，并实施云原生工程标准。
+150 模块 5/5 文档全部完成（100%），1.0.1 阶段实施云原生工程标准与生产就绪验证。
 
 ---
 

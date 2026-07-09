@@ -605,7 +605,7 @@ MicroCoreRT 极简内核契约要求：内核态 BPF 程序不解析用户态事
 
 ### 14.1 相关文档与参考材料
 
-**同模块文档**：`90-observability/README.md`（体系主索引）、`01-ftrace-framework.md`（ftrace L1 层）、`03-perf-analysis.md`（perf L3 层）、`06-user-events.md`（用户态桥接）、`07-token-efficiency.md`（Token 能效监控）、`08-agent-tracing.md`（Agent 行为追踪）。
+**同模块文档**：`90-observability/README.md`（体系主索引）、`01-ftrace-framework.md`（ftrace L1 层）、`03-perf-analysis.md`（perf L3 层，1.0.1 规划）、`06-user-events.md`（用户态桥接，1.0.1 规划）、`07-token-efficiency.md`（Token 能效监控，1.0.1 规划）、`08-agent-tracing.md`（Agent 行为追踪，1.0.1 规划）。
 **跨模块文档**：`20-modules/01-kernel.md`（airymaxos-kernel 子仓）、`40-dataflows/03-ipc-flow.md`（IPC 数据流，io_uring 共享环形缓冲区）、`40-dataflows/04-scheduling-flow.md`（调度数据流，SCHED_AGENT 集成）、`50-engineering-standards/04-engineering-philosophy.md`（工程思想，IRON-9 v2 三层共享模型）。
 **内核源码**：Linux 6.6 `kernel/bpf/{syscall.c,verifier.c,bpf_struct_ops.c,helpers.c,ringbuf.c,btf.c,hashtab.c,arraymap.c}`；`include/linux/bpf.h`；`include/uapi/linux/bpf.h`；`kernel/sched/ext.c`（sched_ext struct_ops 注册点）。
 

@@ -105,6 +105,11 @@ agentrt-linux 采用三大设计支柱:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+> **概念图澄清**: 上图为 agentrt-linux 整体栈的概念性展示（4 层），用于呈现 agentrt 与 agentrt-linux 的运行关系。
+> agentrt-linux 内部 8 子仓的依赖关系采用 **7 层架构模型**（L1-L7），权威定义见 [README.md §3](README.md#3-架构层次模型)。
+> 7 层架构模型**不包含** agentrt（agentrt 是外部组件，运行于 agentrt-linux 之上，见 [ADR-011](05-adrs.md#adr-011-7-层架构模型范围界定与-agentrt-用户态关系论证)）。
+> 完整技术论证见 [C-2.3 架构模型论证报告](../../../docs-closed/agentrt-linux/_analysis_0.3.0/03-architecture-model-analysis.md)（VP-4 决策确认）。
+
 ### 2.2 微内核化改造策略
 
 agentrt-linux 不是从零开发微内核，而是基于 Linux 内核进行**微内核化改造**:

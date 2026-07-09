@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）发行版管理工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
-> **优先级**: P2（0.1.1 仅创建 README 占位，1.0.1 完成 5 文档）
+> **优先级**: P2（0.1.1 完成 5 文档，1.0.1 实施验证）
 > **同源映射**: agentrt 版本管理 + Linux 6.6 发行版工程（RPM / dnf / ISO / 镜像）
 > **理论根基**: Linux 发行版管理哲学 + Airymax S-4 涌现性管理 + C-2 增量演化
 
@@ -86,20 +86,20 @@ sha256sum airymaxos-1.0.1-x86_64.iso
 ```
 190-distribution/
 ├── README.md                       # 本文件
-├── 01-versioning.md                # 版本号策略
-├── 02-rpm-packaging.md             # RPM 打包规范
-├── 03-iso-building.md              # ISO 镜像构建
-├── 04-agent-store.md               # Agent 应用商店
-└── 05-reproducible-build.md        # 可重现构建
+├── 01-rpm-packaging.md             # RPM 打包规范 ✅
+├── 02-dnf-repo-design.md           # dnf 仓库设计（分层 + GPG 签名）✅
+├── 03-installer-design.md          # 安装器设计（三模式 + Btrfs + SB + TPM）✅
+├── 04-update-mechanism.md          # 更新机制（热更新 + 原子更新 + 回滚）✅
+└── 05-reproducible-build.md        # 可重现构建 ✅
 ```
 
 ### 3.1 0.1.1 版本范围
 
-仅完成 README 占位（P2 优先级，0.1.1 不开发具体文档）。
+完成 README + 01-rpm-packaging.md（RPM 打包规范 + spec 模板 + GPG 签名）+ 02-dnf-repo-design.md（dnf 仓库分层 stable/testing/nightly + metadata 生成）+ 03-installer-design.md（三模式安装 + Btrfs 子卷 + LVM + Secure Boot + TPM + kickstart + ISO/QCOW2 构建 + cloud-init + 安装测试）+ 04-update-mechanism.md（内核热更新 + 原子更新 + Btrfs 快照回滚）+ 05-reproducible-build.md（SOURCE_DATE_EPOCH 规范 + 编译器确定性标志 + RPM/ISO/QCOW2/OCI/SDK 全产物可重现构建 + 跨架构验证 + CI/CD 集成 + 供应链安全）。
 
 ### 3.2 1.0.1 版本范围
 
-完成全部 5 文档，并实施发行版管理工程标准。
+190 模块 5/5 文档全部完成（100%），1.0.1 阶段实施发行版管理工程标准与生产就绪验证。
 
 ---
 
@@ -193,4 +193,4 @@ agentrt 的版本管理与 agentrt-linux 同源：
 
 ---
 
-> **文档结束** | 0.1.1 P2 占位，1.0.1 完成 5 文档
+> **文档结束** | 190 模块 5/5 文档全部完成（100%）

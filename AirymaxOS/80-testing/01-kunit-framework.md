@@ -215,6 +215,50 @@ MODULE_LICENSE("GPL v2");
 
 **OS-TEST-008**：测试中所有堆分配必须经 `kunit_kmalloc`/`kunit_kzalloc` 托管；禁止裸 `kmalloc` 后忘记 `kfree`，导致内存泄漏被 kmemleak 误报为产品缺陷。
 
+### 5.4 KUnit 测试套件生命周期状态机
+
+KUnit 测试套件从 `suite_init` 初始化到 `suite_exit` 清理的完整状态转换，覆盖 PASSED/FAILED/SKIPPED 三种终止态：
+
+```mermaid
+stateDiagram-v2
+    [*] --> INIT: kunit_suite_init() 调用 suite_init()
+
+    INIT --> RUNNING: kunit_run_tests() 遍历 test_cases[]
+    INIT --> SKIPPED: suite_init() 返回 <0<br/>前置条件不满足
+
+    RUNNING --> PASSED: 所有 KUNIT_CASE 通过<br/>（无 ASSERT/EXPECT 失败）
+    RUNNING --> FAILED: 任一 KUNIT_ASSERT_* 触发<br/>__kunit_abort() longjmp
+    RUNNING --> SKIPPED: kunit_skip() 主动标记<br/>（CONFIG 依赖未满足）
+
+    PASSED --> CLEANUP: kunit_suite_exit() 调用 suite_exit()
+    FAILED --> CLEANUP: kunit_suite_exit() 调用 suite_exit()
+    SKIPPED --> CLEANUP: kunit_suite_exit() 调用 suite_exit()
+
+    CLEANUP --> [*]: kunit_cleanup() 释放托管资源<br/>结果写入 KTAP 报告
+
+    note right of RUNNING
+        每个用例经 try-catch 隔离执行
+        EXPECT 失败不中断后续用例
+        ASSERT 失败仅终止当前用例（longjmp 跳回）
+        除非 KUNIT_ASSERT_FAILURE 才中断套件
+    end note
+```
+
+**状态转换条件**：
+
+| 从状态 | 到状态 | 触发条件 | 系统行为 |
+|--------|--------|---------|---------|
+| — | INIT | `kunit_suite_init()` 调用 `suite->suite_init()` | 跨用例共享资源初始化（如 AgentsIPC 句柄） |
+| INIT | RUNNING | `kunit_run_tests()` 进入 `test_cases[]` 遍历 | 依次执行 `init → run_case → exit` |
+| INIT | SKIPPED | `suite_init()` 返回 <0（如 `CONFIG_X=n`） | 整套件标记 SKIP，记录 `status_comment` |
+| RUNNING | PASSED | 所有 `KUNIT_CASE` 的 `KUNIT_EXPECT_*` 无失败 | TAP 输出 `ok N - case_name` |
+| RUNNING | FAILED | 任一 `KUNIT_ASSERT_*` 触发 `__kunit_abort()` | longjmp 跳回用例入口，TAP 输出 `not ok` |
+| RUNNING | SKIPPED | `kunit_skip()` 主动跳过 | 当前用例标记 `# SKIP <reason>` |
+| PASSED | CLEANUP | `kunit_suite_exit()` 调用 `suite->suite_exit()` | 释放 `suite_init` 分配的共享资源 |
+| FAILED | CLEANUP | `kunit_suite_exit()` 调用 `suite->suite_exit()` | 释放共享资源（即便有用例失败） |
+| SKIPPED | CLEANUP | `kunit_suite_exit()` 调用 `suite->suite_exit()` | 释放已分配资源，KTAP 写入 SKIP 原因 |
+| CLEANUP | — | `kunit_cleanup()` 遍历 `kunit_resource` 链表释放 | 托管内存回收，KTAP 报告 finalize |
+
 ---
 
 ## 6. KUnit 运行器
@@ -387,6 +431,97 @@ CI 矩阵覆盖 `arch: [um, x86_64, arm64, riscv64] × config: [defconfig, allmo
 
 **OS-TEST-012**：PR 引入新 KUnit 套件时，CI 必须对比 PR 前后的 TAP 用例数；新增套件必须使 agentrt-linux 总用例数单调递增（不可因重构而静默删除套件）。
 
+### 11.2 IRON-9 v2 三层共享模型
+
+本节将上节"同源 agentrt 映射"进一步细化为 **IRON-9 v2 三层共享模型**，明确测试框架层在用户态（agentrt）与内核态（agentrt-linux）之间的代码共享边界。三层分别为：**[SC] 共享契约层**（共享头文件 / 数据结构定义）、**[SS] 语义同源层**（设计模式同源但实现独立）、**[IND] 完全独立层**（双方各自独立实现）。该模型由 6 个 [SC] 头文件契约、跨态语义对照表与独立实现清单共同支撑。
+
+#### 11.2.1 三层模型概览表
+
+| 层次 | 共享程度 | 测试框架层内容 |
+|------|---------|---------------|
+| **[SC] 共享契约层** | 无 | 无 [SC] 层——测试框架为各端独立实现，不与 agentrt 用户态共享代码 |
+| **[SS] 语义同源层** | 设计模式同源 | 测试套件注册模式（`kunit_suite` → `agentrt test_suite`）、断言宏模式（`KUNIT_EXPECT_*` → `agentrt_assert_*`）、测试执行生命周期（`init→run→exit`）、参数化测试——与 agentrt 用户态测试框架在"声明式测试注册 + 断言驱动"语义上同源 |
+| **[IND] 完全独立层** | 完全独立 | KUnit 内核态测试运行器、kthread 执行环境、内核 panic 捕获、KASAN 集成、`KUNIT_CASE_TABLE` 宏 |
+
+#### 11.2.2 [SC] 共享契约层
+
+**无直接 [SC] 共享头文件**。
+
+测试框架层不属于 IRON-9 v2 的 6 个 [SC] 共享头文件清单（`bpf_struct_ops.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。测试框架是验证基础设施，两端运行环境截然不同（用户态进程 vs 内核态 kthread），其断言宏与套件注册宏各自定义，源码层无共享头文件依赖。这一约束确保 agentrt 用户态测试框架演进时不会被动牵连 agentrt-linux KUnit，反之亦然——测试框架层的演进由各自的 **OS-TEST 评审** 独立裁决。两端仅通过 **AgentsIPC** 汇总测试结果，实现跨态协作而非代码共享。
+
+#### 11.2.3 [SS] 语义同源层
+
+| 语义维度 | agentrt 用户态测试框架 | agentrt-linux 内核态（KUnit） | 同源语义 |
+|---------|----------------------|-------------------------------|----------|
+| 套件注册 | `agentrt test_suite` 结构体 | `kunit_suite` 结构体 | 声明式测试套件注册 |
+| 用例注册 | `AGENTRT_TEST(test_name)` 宏 | `KUNIT_CASE(test_name)` 宏 | 声明式用例注册 |
+| 断言宏 | `agentrt_assert_*` / `agentrt_expect_*` | `KUNIT_EXPECT_*` / `KUNIT_ASSERT_*` | 断言驱动验证 |
+| 生命周期 | `init → run → exit` | `init → run → exit` | 测试执行生命周期 |
+| 参数化测试 | `agentrt_param_test` 表驱动 | `KUNIT_PARAM_TEST` 表驱动 | 参数化测试模式 |
+| 结果输出 | TAP 13 格式 | TAP 13 格式 | 测试结果报告格式 |
+| 套件过滤 | `--filter` 选项 | `--filter_glob` 选项 | 套件选择过滤 |
+
+**语义说明**：agentrt 用户态测试框架与 agentrt-linux 内核态的 KUnit 在"声明式测试注册 + 断言驱动"这一核心语义上同源——二者均通过**声明式宏**（`AGENTRT_TEST` / `KUNIT_CASE`）注册测试用例，通过**断言宏**（`agentrt_assert_*` / `KUNIT_EXPECT_*`）驱动验证逻辑，遵循统一的 `init → run → exit` 生命周期。这种同源使测试用例的编写心智模型在两端可复用：理解了 KUnit 的 `KUNIT_CASE` 套件注册，即理解了 agentrt 的 `AGENTRT_TEST` 用例注册。两端还共享 **TAP 13 输出格式**，使 CI 可用统一的解析器处理两端的测试结果。但**机制完全独立**——KUnit 运行于内核态 kthread，agentrt 测试运行于用户态进程，二者无代码共享。
+
+#### 11.2.4 [IND] 完全独立层
+
+| 独立实现项 | agentrt-linux 内核态（KUnit） | agentrt 用户态 | 独立原因 |
+|-----------|------------------------------|---------------|---------|
+| 测试运行器 | `tools/testing/kunit/kunit.py` | `ctest` / 自研运行器 | 运行环境不同 |
+| 执行环境 | kthread 内核线程 | 用户态进程 | 内核态 vs 用户态 |
+| panic 捕获 | 内核 panic 捕获 + UML | 进程崩溃捕获（signal） | 内核 panic 语义特有 |
+| KASAN 集成 | 内核 KASAN 内存检测 | AddressSanitizer（用户态） | 内存检测机制不同 |
+| `KUNIT_CASE_TABLE` 宏 | ELF section `.kunit_test_suites` | 链接器段或注册表 | 注册机制不同 |
+| UML 支持 | User Mode Linux（ARCH=um） | 无对应 | 内核态特有虚拟化 |
+
+#### 11.2.5 跨态协作流
+
+```mermaid
+graph LR
+    subgraph "agentrt 用户态（应用层）"
+        A1["AGENTRT_TEST 宏<br/>声明式用例注册"]
+        A2["agentrt_assert_*<br/>断言驱动"]
+        A3["ctest 运行器<br/>用户态进程"]
+        A4["TAP 13 结果"]
+    end
+    subgraph "agentrt-linux 内核态（OS 层）"
+        K1["KUNIT_CASE 宏<br/>声明式用例注册"]
+        K2["KUNIT_EXPECT_*<br/>断言驱动"]
+        K3["kunit.py 运行器<br/>kthread"]
+        K4["TAP 13 结果"]
+    end
+    SS["[SS] 语义同源层<br/>声明式测试注册 + 断言驱动<br/>生命周期 / TAP 格式"]
+    IND["[IND] 完全独立层<br/>运行器 / 执行环境<br/>panic 捕获 / KASAN"]
+    IPC["AgentsIPC<br/>结果汇总通道"]
+
+    A1 -->|同源语义| SS
+    K1 -->|同源语义| SS
+    SS --> A2
+    SS --> K2
+    A2 --> A3
+    K2 --> K3
+    A3 --> A4
+    K3 --> K4
+    A1 -.->|独立实现| IND
+    K1 -.->|独立实现| IND
+    A4 -->|TAP 上报| IPC
+    K4 -->|TAP 上报| IPC
+
+    style SS fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    style IND fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style IPC fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style A1 fill:#e3f2fd,stroke:#1565c0,color:#000
+    style A2 fill:#e3f2fd,stroke:#1565c0,color:#000
+    style A3 fill:#e3f2fd,stroke:#1565c0,color:#000
+    style A4 fill:#e3f2fd,stroke:#1565c0,color:#000
+    style K1 fill:#fce4ec,stroke:#c62828,color:#000
+    style K2 fill:#fce4ec,stroke:#c62828,color:#000
+    style K3 fill:#fce4ec,stroke:#c62828,color:#000
+    style K4 fill:#fce4ec,stroke:#c62828,color:#000
+```
+
+**协作说明**：agentrt 用户态测试通过 `AGENTRT_TEST` + `agentrt_assert_*` 编写并运行于用户态进程，agentrt-linux 内核态测试通过 `KUNIT_CASE` + `KUNIT_EXPECT_*` 编写并运行于内核态 kthread。两端在 **[SS] 语义同源层** 共享"声明式测试注册 + 断言驱动"的设计模式（套件注册 / 断言宏 / 生命周期 / TAP 13 格式），使测试用例的编写心智模型在两端可复用；但在 **[IND] 完全独立层** 各自维护运行器、执行环境、panic 捕获、KASAN 集成。两端测试结果均输出 **TAP 13 格式**，通过 **AgentsIPC** 通道汇总至 CI 第 7 层统一解析。这正是 **IRON-9 v2 同源且部分代码共享** 在测试框架层的落地——同源模式，独立实现，无共享契约，靠 IPC 协作。
+
 ---
 
 ## 12. 相关文档
@@ -427,6 +562,391 @@ CI 矩阵覆盖 `arch: [um, x86_64, arm64, riscv64] × config: [defconfig, allmo
 - [ ] 补充 KUnit 静态桩（`kunit_activate_static_stub`）与 agentrt-linux Agent 调用桩的集成示例
 - [ ] 补充 KUnit 与 KCOV 覆盖度联用（与 06-coverage-metrics 联动）
 - [ ] 补充 KUnit 套件速度属性（`KUNIT_SPEED_SLOW`/`KUNIT_SPEED_VERY_SLOW`）的 CI 调度策略
+
+---
+
+## 附录 A: 接口定义
+
+> **附录定位**: 本附录汇集 KUnit 单元测试框架所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `include/kunit/test.h`、`lib/kunit/test.c`、`lib/kunit/assert.c`、`lib/kunit/try-catch.c`、`lib/kunit/executor.c` 及 `include/airymax/test_types.h`（[SC] 共享契约层）。KUnit 框架与 Linux 6.6 上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立套件形式注入，禁止改写上游核心代码。
+
+### A.1 核心数据结构
+
+#### A.1.1 kunit_suite — 测试套件
+
+```c
+/**
+ * struct kunit_suite - KUnit 测试套件
+ *
+ * @name:           套件名（编译单元内必须唯一，OS-TEST-007）
+ * @suite_init:     跨用例共享资源初始化（每套件一次）
+ * @suite_exit:     跨用例共享资源释放（每套件一次）
+ * @init:           每用例资源初始化（每用例一次）
+ * @exit:           每用例资源释放（每用例一次）
+ * @test_cases:     以 {} 终止的 kunit_case 数组
+ * @attr:           套件属性（speed 等，用于过滤）
+ * @log:            套件级日志缓冲（私有，禁止直接访问 OS-KER-001）
+ * @status_comment: 状态备注（SKIP 原因等）
+ *
+ * 执行顺序：suite_init →（每用例：init → test_case[i] → exit）→ suite_exit
+ *
+ * 对齐 Linux 6.6 include/kunit/test.h
+ */
+struct kunit_suite {
+    const char               *name;
+    int                    (*suite_init)(struct kunit_suite *suite,
+                                         struct kunit *test);
+    void                   (*suite_exit)(struct kunit_suite *suite);
+    int                    (*init)(struct kunit *test);
+    void                   (*exit)(struct kunit *test);
+    struct kunit_case        *test_cases;
+    struct kunit_attributes   attr;
+    struct kunit_log         *log;
+    char                     *status_comment;
+};
+```
+
+#### A.1.2 kunit_case — 单个测试用例
+
+```c
+/**
+ * struct kunit_case - 单个 KUnit 测试用例
+ *
+ * @run_case:        测试函数指针，签名固定为 void (*)(struct kunit *)
+ * @name:            用例名（由 KUNIT_CASE() 宏字符串化 #test_name 生成）
+ * @generate_params: 参数化测试生成器；非参数化测试为 NULL
+ * @attr:            用例属性（speed: KUNIT_SPEED_NORMAL/SLOW/VERY_SLOW）
+ *
+ * @since 参数化测试 generate_params 字段对齐 Linux 6.6 include/kunit/test.h
+ */
+enum kunit_speed {
+    KUNIT_SPEED_NORMAL    = 0,
+    KUNIT_SPEED_SLOW      = 1,
+    KUNIT_SPEED_VERY_SLOW = 2,
+};
+
+struct kunit_case {
+    void    (*run_case)(struct kunit *test);
+    const char *name;
+    const void *(*generate_params)(const void *prev, char *desc);
+    struct kunit_attributes attr;
+} __attribute__((aligned(8)));
+```
+
+#### A.1.3 kunit_resource — 测试资源（自动清理）
+
+```c
+/**
+ * struct kunit_resource - KUnit 托管资源（自动释放）
+ *
+ * @data:        资源数据指针（由分配者解释）
+ * @name:        资源名（用于诊断）
+ * @free:        释放回调（用例/suite 退出时自动调用）
+ * @node:        挂入 kunit.resources 链表的节点
+ *
+ * 通过 kunit_kmalloc() / kunit_alloc_resource() 注册的资源自动入链表，
+ * 无需手写 exit（OS-TEST-003）；用例退出时框架遍历调用 free。
+ *
+ * 对齐 Linux 6.6 include/kunit/resource.h
+ */
+struct kunit_resource {
+    void            *data;
+    const char       *name;
+    void           (*free)(struct kunit_resource *res);
+    struct list_head node;
+};
+```
+
+#### A.1.4 kunit_stream — 测试输出流
+
+```c
+/**
+ * struct kunit_stream - KUnit 测试消息流（断言格式化输出）
+ *
+ * @internal:   内部缓冲（私有，由 assert.c 填充）
+ * @level:      日志级别（KERN_INFO / KERN_WARNING / KERN_ERR）
+ *
+ * 断言失败时由 KUNIT_EXPECT_*/KUNIT_ASSERT_* 写入消息流，
+ * 经 try-catch 捕获后格式化为 TAP 输出（ok / not ok）。
+ *
+ * 对齐 Linux 6.6 lib/kunit/kunit-stream.h（6.6 后部分并入 string-stream）
+ */
+struct kunit_stream {
+    struct string_stream *internal;
+    const char           *level;
+};
+```
+
+#### A.1.5 kunit_assert — 断言基类
+
+```c
+/**
+ * struct kunit_assert - KUnit 断言基类
+ *
+ * @format:  格式化回调（输出期望值与实际值对比）
+ * @type:    断言类型（EXPECT / ASSERT）
+ *
+ * @since 对齐 Linux 6.6 include/kunit/assert.h
+ */
+enum kunit_assert_type {
+    KUNIT_ASSERTION   = 0,  /* ASSERT_*：失败即终止用例 */
+    KUNIT_EXPECTATION = 1,  /* EXPECT_*：失败记录后继续 */
+};
+
+struct kunit_assert {
+    void (*format)(const struct kunit_assert *assert,
+                   const struct va_format *message,
+                   struct kunit_stream *stream);
+    enum kunit_assert_type type;
+};
+```
+
+### A.2 核心函数签名
+
+#### A.2.1 kunit_test_suite — 测试套件注册宏
+
+```c
+/**
+ * kunit_test_suite - 注册单个测试套件（放入 .kunit_test_suites ELF section）
+ * @suite:  struct kunit_suite 变量名
+ *
+ * 宏展开为 __section(".kunit_test_suites") 的指针，
+ * 由 vmlinux 链接脚本收集到 __kunit_suites_start/end，
+ * executor.c 的 kunit_run_all_tests() 启动时遍历。
+ *
+ * 多套件变体：kunit_test_suites(&suite1, &suite2, ...)
+ *
+ * 对齐 Linux 6.6 include/kunit/test.h
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ */
+#define kunit_test_suite(suite) \
+    static struct kunit_suite *const ___kunit_suite_##suite[] \
+        __used __section(".kunit_test_suites") = { &suite }
+```
+
+#### A.2.2 kunit_run_suite — 执行测试套件
+
+```c
+/**
+ * kunit_run_tests - 执行一个测试套件的所有用例
+ * @suite:  测试套件
+ *
+ * 依次执行：suite_init →（init → test_case[i] → exit）→ suite_exit；
+ * 每个用例经 try-catch 隔离（KUNIT_ASSERT_* 失败经 longjmp 跳回）；
+ * 输出 TAP 格式（ok N - case_name / not ok N - case_name）。
+ *
+ * 返回: 0 成功（含用例失败但未 panic）；非零框架错误
+ *
+ * 对齐 Linux 6.6 lib/kunit/test.c
+ */
+int kunit_run_tests(struct kunit_suite *suite);
+
+/**
+ * kunit_run_all_tests - 执行所有已注册套件（executor 入口）
+ * @filter:     过滤表达式（filter_glob / filter / filter_action）
+ *
+ * 从 __kunit_suites_start/end 取得套件集合，应用过滤后逐套件调用
+ * kunit_run_tests()。由 `make ARCH=um kunit.run` 触发。
+ *
+ * 返回: 0 全部成功；非零存在失败用例
+ *
+ * 对齐 Linux 6.6 lib/kunit/executor.c
+ * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ */
+int kunit_run_all_tests(const char *filter);
+```
+
+#### A.2.3 kunit_test_suite_init — 套件初始化
+
+```c
+/**
+ * kunit_suite_init - 执行套件级初始化回调
+ * @suite:  测试套件
+ * @test:   当前 kunit 上下文
+ *
+ * 调用 suite->suite_init()（若定义）；失败则整个套件标记 SKIP。
+ * 用于跨用例共享资源的初始化（如 AgentsIPC 通道句柄）。
+ *
+ * 返回: 0 成功；<0 失败（套件标记 SKIP 并记录原因）
+ *
+ * 对齐 Linux 6.6 lib/kunit/test.c
+ */
+int kunit_suite_init(struct kunit_suite *suite, struct kunit *test);
+```
+
+#### A.2.4 kunit_test_suite_exit — 套件清理
+
+```c
+/**
+ * kunit_suite_exit - 执行套件级清理回调
+ * @suite:  测试套件
+ *
+ * 调用 suite->suite_exit()（若定义）；释放 suite_init 分配的共享资源。
+ * 由框架在所有用例执行后自动调用，无需手写。
+ *
+ * 返回: void
+ *
+ * 对齐 Linux 6.6 lib/kunit/test.c
+ */
+void kunit_suite_exit(struct kunit_suite *suite);
+```
+
+### A.3 错误码与宏定义
+
+#### A.3.1 KUNIT_EXPECT_* 宏家族
+
+```c
+/**
+ * KUNIT_EXPECT_* - 非致命断言宏（失败记录后继续执行当前用例）
+ *
+ * 每个宏有 _MSG 变体（接受格式化消息）：
+ *   KUNIT_EXPECT_EQ_MSG(test, left, right, fmt, ...)
+ *
+ * @test:  kunit 上下文
+ * @left / @right:  待比较值
+ *
+ * 对齐 Linux 6.6 include/kunit/test.h
+ */
+
+/* 布尔类 */
+#define KUNIT_EXPECT_TRUE(test, condition)
+#define KUNIT_EXPECT_FALSE(test, condition)
+
+/* 整数比较类 */
+#define KUNIT_EXPECT_EQ(test, left, right)   /* left == right */
+#define KUNIT_EXPECT_NE(test, left, right)   /* left != right */
+#define KUNIT_EXPECT_LT(test, left, right)   /* left <  right */
+#define KUNIT_EXPECT_LE(test, left, right)   /* left <= right */
+#define KUNIT_EXPECT_GT(test, left, right)   /* left >  right */
+#define KUNIT_EXPECT_GE(test, left, right)   /* left >= right */
+
+/* 指针类 */
+#define KUNIT_EXPECT_NULL(test, ptr)
+#define KUNIT_EXPECT_NOT_NULL(test, ptr)
+#define KUNIT_EXPECT_PTR_EQ(test, left, right)
+#define KUNIT_EXPECT_PTR_NE(test, left, right)
+#define KUNIT_EXPECT_NOT_ERR_OR_NULL(test, ptr)  /* !IS_ERR(ptr) && ptr != NULL */
+
+/* 字符串类 */
+#define KUNIT_EXPECT_STREQ(test, left, right)    /* strcmp(left, right) == 0 */
+#define KUNIT_EXPECT_STRNEQ(test, left, right)   /* strcmp(left, right) != 0 */
+
+/* 内存块类 */
+#define KUNIT_EXPECT_MEMEQ(test, left, right, size)
+#define KUNIT_EXPECT_MEMNEQ(test, left, right, size)
+
+/* @since 0.1.1（文档体系）/ 1.0.1（代码实施） */
+```
+
+#### A.3.2 KUNIT_ASSERT_* 宏家族
+
+```c
+/**
+ * KUNIT_ASSERT_* - 致命断言宏（失败立即终止当前用例）
+ *
+ * 与 KUNIT_EXPECT_* 一一对应，差异仅失败行为：
+ *   EXPECT 失败 → 记录失败，继续执行
+ *   ASSERT 失败 → 记录失败，longjmp 跳回用例入口（try-catch 隔离）
+ *
+ * 用于前置资源断言（分配失败、NULL 解引用风险时）。
+ * 禁止在 ASSERT 之后写副作用代码（OS-TEST-009）。
+ *
+ * 对齐 Linux 6.6 include/kunit/test.h
+ */
+#define KUNIT_ASSERT_TRUE(test, condition)
+#define KUNIT_ASSERT_FALSE(test, condition)
+#define KUNIT_ASSERT_EQ(test, left, right)
+#define KUNIT_ASSERT_NE(test, left, right)
+#define KUNIT_ASSERT_LT(test, left, right)
+#define KUNIT_ASSERT_LE(test, left, right)
+#define KUNIT_ASSERT_GT(test, left, right)
+#define KUNIT_ASSERT_GE(test, left, right)
+#define KUNIT_ASSERT_NULL(test, ptr)
+#define KUNIT_ASSERT_NOT_NULL(test, ptr)
+#define KUNIT_ASSERT_PTR_EQ(test, left, right)
+#define KUNIT_ASSERT_PTR_NE(test, left, right)
+#define KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr)
+#define KUNIT_ASSERT_STREQ(test, left, right)
+#define KUNIT_ASSERT_STRNEQ(test, left, right)
+#define KUNIT_ASSERT_MEMEQ(test, left, right, size)
+#define KUNIT_ASSERT_MEMNEQ(test, left, right, size)
+
+/* @since 0.1.1（文档体系）/ 1.0.1（代码实施） */
+```
+
+#### A.3.3 KUNIT_SUCCEED / KUNIT_FAIL 与辅助宏
+
+```c
+/**
+ * KUNIT_SUCCEED - 主动标记当前用例成功
+ * @test: kunit 上下文
+ */
+#define KUNIT_SUCCEED(test)
+
+/**
+ * KUNIT_FAIL - 主动标记当前用例失败并附带消息
+ * @test: kunit 上下文
+ * @fmt:  格式化消息（与 printk 同构）
+ *
+ * 失败后不得再有副作用代码（OS-TEST-009）。
+ */
+#define KUNIT_FAIL(test, fmt, ...)
+
+/**
+ * KUNIT_CASE - 构造 kunit_case 条目（字符串化函数名）
+ * @test_name: 测试函数名（无引号，宏自动 # 字符串化）
+ */
+#define KUNIT_CASE(test_name) \
+    { .run_case = test_name, .name = #test_name }
+
+/**
+ * KUNIT_ARRAY_PARAM - 从静态数组生成参数化测试生成器
+ * @name:     生成器名（生成 name_gen_params 函数）
+ * @array:    参数数组
+ * @get_desc: 参数描述回调（可为 NULL）
+ */
+#define KUNIT_ARRAY_PARAM(name, array, get_desc) ...
+
+/**
+ * KUNIT_PARAM_DESC_SIZE - 参数描述缓冲最大长度
+ * 对齐 Linux 6.6 include/kunit/test.h
+ */
+#define KUNIT_PARAM_DESC_SIZE  128
+
+/* @since 0.1.1（文档体系）/ 1.0.1（代码实施） */
+```
+
+#### A.3.4 KUnit 状态码与 CONFIG
+
+```c
+/**
+ * KUnit 用例状态码（agentrt-linux 专属，对齐 TAP 输出语义）
+ */
+#define KUNIT_SUCCESS   0   /* 用例通过（TAP: ok） */
+#define KUNIT_FAILURE   1   /* 用例失败（TAP: not ok） */
+#define KUNIT_SKIPPED   2   /* 用例跳过（kunit_skip 触发） */
+
+/**
+ * CONFIG_KUNIT - KUnit 框架 Kconfig 开关（tristate: y/m/n）
+ *
+ * y: 内建进 vmlinux（生产内核通常不开）
+ * m: 编译为模块（kunit.ko，按需加载）
+ * n: 不构建
+ *
+ * 对齐 Linux 6.6 lib/Kconfig.debug
+ */
+/* #define CONFIG_KUNIT  y/m/n */
+
+/**
+ * CONFIG_KUNIT_EXAMPLE_TEST - KUnit 示例测试（默认 n）
+ * CONFIG_KUNIT_ALL_TESTS - 编译所有 in-tree KUnit 测试（CI 用）
+ *
+ * 对齐 Linux 6.6 lib/Kconfig.debug
+ */
+
+/* agentrt-linux 扩展套件 Kconfig（独立 *_airymax_test.c 文件） */
+/* CONFIG_AIRYMAX_KUNIT_IPC_TEST  - AgentsIPC 头部/分发参数化测试 */
+/* CONFIG_AIRYMAX_KUNIT_MICROCORE_TEST - MicroCoreRT 调度策略测试 */
+```
 
 ---
 

@@ -1,608 +1,466 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# Agent 生命周期管理设计
+# Agent 应用生命周期管理
 
-> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）Agent 应用开发体系核心子文档，定义 Agent 从创建到销毁的完整生命周期管理模型
+> **文档定位**: agentrt-linux Agent 应用的完整生命周期管理
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
-> **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
-> **SPDX-License-Identifier**: AGPL-3.0-or-later OR Apache-2.0
-> **同源映射**: agentrt 用户态运行时 Agent 生命周期模型（IRON-9 v2 [SS] 语义同源层）
-> **IRON-9 v2 层次**: [SS] 语义同源层（API 签名同源，实现独立——agentrt-linux 基于 sched_ext + capability 内核态，agentrt 基于用户态进程模型）
+> **父文档**: [Agent 应用开发 README](README.md)
+> **同源映射**: agentrt Agent 生命周期 + Linux 6.6 进程模型 + seL4 TCB 生命周期
+> **设计参考**: seL4 `src/object/tcb.c` (线程生命周期) + Linux `kernel/exit.c` (进程退出)
 
 ---
 
-## 1. 设计目标与原则
+## 1. Agent 生命周期模型
 
-### 1.1 设计目标
+### 1.1 生命周期状态机
 
-agentrt-linux（AirymaxOS）作为智能体操作系统发行版，将 Agent 视为运行时租户而非传统应用程序。Agent 生命周期管理需达成以下工程目标：
-
-1. **契约化创建**：Agent 创建即签订资源契约，Token 预算、CPU 配额、内存上限在创建时声明并由内核强制
-2. **租户级隔离**：每个 Agent 受 cgroup v2 + Landlock + capability 三重隔离，禁止越权访问其他 Agent 资源
-3. **认知阶段感知调度**：Agent 生命周期阶段（认知/执行/记忆）实时反馈给 SCHED_AGENT，获得差异化调度优先级
-4. **优雅销毁**：销毁过程保证记忆卷载持久化完成、IPC 通道优雅关闭、租户资源全部回收
-5. **可观测全链路**：TraceID 贯穿生命周期全程，每个状态转移可审计可追溯
-
-### 1.2 五维原则映射
-
-| 原则 | 在生命周期管理中的体现 |
-|------|------------------------|
-| K-2 接口契约化 | Token 预算契约 + 资源配额契约在创建时签订 |
-| K-3 服务隔离 | cgroup v2 + Landlock + capability 三重租户隔离 |
-| S-1 反馈闭环 | 认知阶段状态实时反馈调度器 |
-| E-3 资源确定性 | 销毁过程保证资源全部回收（无泄漏） |
-| E-6 错误可追溯 | 每个生命周期事件携带 TraceID |
-| E-8 可测试性 | 状态机可注入测试用例验证 |
-
-### 1.3 与 agentrt 同源关系
-
-agentrt 用户态运行时的 Agent 生命周期模型与本设计遵循 IRON-9 v2 [SS] 语义同源层：
-
-| 维度 | agentrt（微核心） | agentrt-linux（微内核） |
-|------|-------------------|------------------------|
-| 创建 API | `agentrt_agent_create()` | `agentrt_agent_create()`（同源签名） |
-| 隔离机制 | 进程级 + 用户态沙箱 | cgroup v2 + Landlock + capability |
-| 调度 | 用户态调度器 | SCHED_AGENT（sched_ext + eBPF） |
-| 通信 | 用户态消息队列 | AgentsIPC（io_uring 零拷贝） |
-| 持久化 | HeapStore | MemoryRovol（CXL + MGLRU） |
-
-两端 API 签名完全一致，但实现独立——这是 IRON-9 v2 [SS] 层的核心特征。
-
----
-
-## 2. 生命周期状态机
-
-### 2.1 状态定义
-
-Agent 生命周期由 9 个状态构成，状态转移严格受内核状态机控制：
-
-```c
-/* include/uapi/agentrt/lifecycle.h（IRON-9 v2 [SC] 共享契约层） */
-enum agentrt_agent_state {
-	AGENTRT_AGENT_STATE_INVALID    = 0,  /* 未初始化 */
-	AGENTRT_AGENT_STATE_CREATING   = 1,  /* 创建中：分配资源 */
-	AGENTRT_AGENT_STATE_REGISTERED = 2,  /* 已注册：契约已签订 */
-	AGENTRT_AGENT_STATE_READY      = 3,  /* 就绪：可被调度 */
-	AGENTRT_AGENT_STATE_RUNNING    = 4,  /* 运行中：认知循环激活 */
-	AGENTRT_AGENT_STATE_BLOCKED    = 5,  /* 阻塞：等待 IPC/IO */
-	AGENTRT_AGENT_STATE_SUSPENDED  = 6,  /* 挂起：预算耗尽或显式挂起 */
-	AGENTRT_AGENT_STATE_TERMINATING = 7,  /* 终止中：清理资源 */
-	AGENTRT_AGENT_STATE_DEAD       = 8,  /* 已销毁：资源已回收 */
-};
-```
-
-### 2.2 状态转移图
+Agent 应用在 agentrt-linux 上经历 7 个明确的状态转换。这一生命周期模型借鉴了 seL4 TCB 线程状态机（ThreadState_Running/Restart/Blocked/Inactive）和 Linux 进程状态模型（TASK_RUNNING/TASK_INTERRUPTIBLE 等），并扩展了 Token 预算和记忆卷载两个智能体专属维度。
 
 ```mermaid
 stateDiagram-v2
-    [*] --> INVALID: alloc struct
-    INVALID --> CREATING: agentrt_agent_create()
-    CREATING --> REGISTERED: 资源分配 + 契约签订
-    CREATING --> INVALID: 创建失败 goto out_free
-    REGISTERED --> READY: capability 授予
-    READY --> RUNNING: sched_d 调度
-    RUNNING --> BLOCKED: 等待 IPC/记忆卷载
-    BLOCKED --> RUNNING: 唤醒 wait_event
-    RUNNING --> SUSPENDED: Token 预算耗尽
-    SUSPENDED --> READY: 预算补充
-    RUNNING --> TERMINATING: 显式销毁/异常
-    SUSPENDED --> TERMINATING: 强制销毁
-    READY --> TERMINATING: 显式销毁
-    TERMINATING --> DEAD: 资源回收完成
-    DEAD --> [*]
+    [*] --> REGISTERED : agentrt_agent_register()
+    REGISTERED --> CONFIGURED : agentrt_agent_configure()
+    CONFIGURED --> RUNNING : agentrt_agent_start()
+    RUNNING --> SUSPENDED : Token 预算耗尽 / SIGSTOP
+    SUSPENDED --> RUNNING : Token 预算恢复 / SIGCONT
+    RUNNING --> PAUSING : agentrt_agent_pause()
+    PAUSING --> PAUSED : 资源保存完成
+    PAUSED --> RUNNING : agentrt_agent_resume()
+    RUNNING --> TERMINATING : agentrt_agent_stop() / 异常
+    TERMINATING --> TERMINATED : 资源回收完成
+    TERMINATED --> [*]
 ```
 
-### 2.3 状态转移规则
+### 1.2 各状态详述
 
-| 当前状态 | 允许转移至 | 触发条件 | 执行者 |
-|----------|-----------|----------|--------|
-| CREATING | REGISTERED | 资源分配成功 + 契约签订 | 内核 `agentrt_core` |
-| CREATING | INVALID | 资源分配失败 | 内核（goto out_free） |
-| REGISTERED | READY | capability 令牌授予 | Cupolas |
-| READY | RUNNING | sched_d 调度决策 | SCHED_AGENT |
-| RUNNING | BLOCKED | IPC recv / 记忆卷载 I/O | io_uring 完成回调 |
-| BLOCKED | RUNNING | IPC 消息到达 / I/O 完成 | `wake_up_interruptible` |
-| RUNNING | SUSPENDED | Token 预算耗尽 | MicroCoreRT |
-| SUSPENDED | READY | 预算补充（手动/定时） | Cupolas 审计通过 |
-| RUNNING/READY/SUSPENDED | TERMINATING | `agentrt_agent_destroy()` / 致命错误 | 内核 |
-| TERMINATING | DEAD | 资源回收完成 | 内核 |
+| 状态 | 枚举值 | 描述 | 可执行操作 |
+|------|--------|------|-----------|
+| **REGISTERED** | `AGENT_STATE_REGISTERED` | Agent 已注册，获得 Agent ID 和初始 capability 令牌 | configure, unregister |
+| **CONFIGURED** | `AGENT_STATE_CONFIGURED` | 配置已完成（Token 预算、记忆策略、认知参数） | start, reconfigure, unregister |
+| **RUNNING** | `AGENT_STATE_RUNNING` | 正常运行，参与 CoreLoopThree 循环 | pause, suspend, stop |
+| **SUSPENDED** | `AGENT_STATE_SUSPENDED` | Token 预算耗尽或收到外部信号暂停 | resume (预算恢复), stop |
+| **PAUSING** | `AGENT_STATE_PAUSING` | 正在保存当前状态（记忆快照、上下文序列化） | (不可操作，等待完成) |
+| **PAUSED** | `AGENT_STATE_PAUSED` | 已保存完整状态，可恢复或迁移 | resume, migrate, stop |
+| **TERMINATING** | `AGENT_STATE_TERMINATING` | 正在清理资源（释放 capability、回收记忆） | (不可操作，等待完成) |
+| **TERMINATED** | `AGENT_STATE_TERMINATED` | 完全终止，所有资源已释放 | (终态) |
 
 ---
 
-## 3. 创建与注册流程
+## 2. Agent 注册与配置
 
-### 3.1 创建时序
+### 2.1 Agent 注册（REGISTERED）
 
-Agent 创建是一个多阶段原子操作，任一阶段失败均触发回滚：
-
-```
-用户态 SDK -> syscall(AGENTRT_SYS_AGENT_CREATE)
-   -> [1] 内核分配 agentrt_agent_t 结构（kzalloc）
-   -> [2] 分配 agent_id（idr_alloc）
-   -> [3] 创建 cgroup（/sys/fs/cgroup/agent/<agent_id>）
-   -> [4] 应用 Landlock 规则
-   -> [5] 授予 capability 令牌（Cupolas 审计）
-   -> [6] 签订 Token 预算契约
-   -> [7] 初始化 IPC 通道（io_uring 注册）
-   -> [8] 挂载 MemoryRovol 卷（如声明）
-   -> [9] 状态置为 REGISTERED
-   -> 返回 agent_id
-```
-
-任一步骤失败，通过 `goto out_free_xxx` 模式回滚已分配资源。
-
-### 3.2 Token 预算契约
-
-Token 预算契约是 agentrt-linux 独创的资源契约机制，在 Agent 创建时签订：
-
-```c
-/* include/uapi/agentrt/contract.h（IRON-9 v2 [SC] 共享契约层） */
-struct agentrt_token_budget_contract {
-	uint64_t total_budget;        /* 总 Token 预算 */
-	uint64_t per_request_limit;  /* 单次请求上限 */
-	uint64_t refill_rate;         /* 补充速率（tokens/秒） */
-	uint32_t window_seconds;      /* 补充窗口（秒） */
-	uint32_t burst_allowance;    /* 突发额度 */
-	enum agentrt_budget_policy policy;  /* 超额策略 */
-};
-
-enum agentrt_budget_policy {
-	AGENTRT_BUDGET_POLICY_THROTTLE = 0,  /* 降级：调度优先级降低 */
-	AGENTRT_BUDGET_POLICY_SUSPEND = 1,   /* 挂起：状态转 SUSPENDED */
-	AGENTRT_BUDGET_POLICY_HARD_FAIL = 2, /* 硬失败：销毁 Agent */
-};
-```
-
-### 3.3 租户隔离机制
-
-三重隔离在创建阶段配置：
-
-```c
-struct agentrt_tenant_isolation {
-	/* cgroup v2 配置 */
-	char cgroup_path[256];       /* /sys/fs/cgroup/agent/<id> */
-	uint64_t cpu_max;            /* CPU 配额（微秒/秒） */
-	uint64_t memory_max;         /* 内存上限（字节） */
-	uint64_t pids_max;           /* 子进程上限 */
-
-	/* Landlock 规则 */
-	struct landlock_ruleset_attr landlock_attr;
-
-	/* capability 集合 */
-	uint64_t permitted_caps;     /* 允许的能力位图 */
-	uint64_t inheritable_caps;   /* 可继承的能力位图 */
-};
-```
-
----
-
-## 4. 完整生命周期示例（C 代码）
-
-### 4.1 头文件与数据结构
-
-```c
-/* agent_lifecycle_demo.c */
-#include <linux/kernel.h>
-#include <linux/slab.h>
-#include <linux/idr.h>
-#include <linux/atomic.h>
-#include <linux/wait.h>
-#include <linux/kfifo.h>
-#include <linux/cgroup.h>
-#include <linux/landlock.h>
-#include <uapi/agentrt/syscall.h>
-#include <uapi/agentrt/lifecycle.h>
-#include <uapi/agentrt/contract.h>
-#include <uapi/agentrt/ipc.h>
-#include <uapi/agentrt/error.h>
-
-/* Agent 实例结构（内核态） */
-struct agentrt_agent {
-	uint32_t agent_id;
-	enum agentrt_agent_state state;
-	atomic64_t refcnt;
-	struct agentrt_token_budget_contract budget;
-	struct agentrt_tenant_isolation isolation;
-
-	/* IPC 通道（kthread 间通信：kfifo + wait_event_interruptible） */
-	DECLARE_KFIFO(ipc_rx_fifo, struct agentrt_ipc_msg_hdr_t, 64);
-	wait_queue_head_t ipc_wq;
-
-	/* MemoryRovol 卷句柄 */
-	void *memoryrovol_handle;
-
-	/* capability 令牌 */
-	uint64_t capability_token;
-
-	/* TraceID 链路追踪 */
-	uint64_t trace_id;
-	spinlock_t state_lock;
-};
-
-static DEFINE_IDR(agent_idr);
-static DEFINE_SPINLOCK(agent_idr_lock);
-```
-
-### 4.2 创建函数（含 goto 集中错误处理）
+Agent 通过 `agentrt_agent_register()` 系统调用向内核注册。注册过程分配 Agent ID、创建 Capability 空间（CSpace）并初始化 TCB（Thread Control Block）。
 
 ```c
 /**
- * agentrt_agent_create - 创建并注册一个 Agent 租户
- * @config: Agent 配置（预算 + 隔离 + 记忆卷载声明）
- * @trace_id: 链路追踪 ID
+ * agentrt_agent_register - 注册一个新的 Agent
+ * @config: Agent 注册配置（名称、类型、初始 capability 需求）
+ * @agent_id: 输出参数，返回分配的 Agent ID
  *
- * 返回: 成功返回 agent_id（>0），失败返回负错误码
+ * 返回: 0 成功，-EINVAL 参数无效，-ENOMEM 内存不足，-ENOSPC Agent 槽位已满
  *
- * 实现遵循 IRON-9 v2 [SS] 语义同源层——API 签名与 agentrt
- * 用户态运行时一致，但本实现为 OS 级（内核态）。
+ * 注册完成后 Agent 进入 REGISTERED 状态。
+ * Agent ID 在系统生命周期内唯一，不会复用。
  */
-int agentrt_agent_create(const struct agentrt_agent_config *config,
-			 uint64_t trace_id)
-{
-	struct agentrt_agent *agent = NULL;
-	int agent_id;
-	int ret;
+int agentrt_agent_register(const struct agentrt_agent_config *config,
+                           u32 *agent_id);
 
-	if (!config || config->budget.total_budget == 0)
-		return -AGENTRT_EINVAL;
-
-	/* [1] 分配 agent 结构（kzalloc 保证零初始化） */
-	agent = kzalloc(sizeof(*agent), GFP_KERNEL);
-	if (!agent)
-		return -AGENTRT_ENOMEM;
-
-	agent->state = AGENTRT_AGENT_STATE_CREATING;
-	atomic64_set(&agent->refcnt, 1);
-	agent->trace_id = trace_id;
-	spin_lock_init(&agent->state_lock);
-	init_waitqueue_head(&agent->ipc_wq);
-	INIT_KFIFO(agent->ipc_rx_fifo);
-
-	/* [2] 分配 agent_id（idr 分配，保证全局唯一） */
-	idr_preload(GFP_KERNEL);
-	spin_lock(&agent_idr_lock);
-	agent_id = idr_alloc(&agent_idr, agent, 1, INT_MAX, GFP_NOWAIT);
-	spin_unlock(&agent_idr_lock);
-	idr_preload_end();
-	if (agent_id < 0) {
-		ret = agent_id;
-		goto out_free_agent;
-	}
-	agent->agent_id = agent_id;
-
-	/* [3] 创建 cgroup（/sys/fs/cgroup/agent/<id>） */
-	ret = agentrt_cgroup_create(agent, config->isolation.cpu_max,
-				    config->isolation.memory_max,
-				    config->isolation.pids_max);
-	if (ret)
-		goto out_free_idr;
-
-	/* [4] 应用 Landlock 规则（文件系统访问限制） */
-	ret = agentrt_landlock_apply(agent, &config->isolation.landlock_attr);
-	if (ret)
-		goto out_free_cgroup;
-
-	/* [5] Cupolas 审计 + 授予 capability 令牌 */
-	ret = cupolas_capability_grant(agent, config->isolation.permitted_caps,
-				       &agent->capability_token);
-	if (ret)
-		goto out_free_landlock;
-
-	/* [6] 签订 Token 预算契约 */
-	ret = agentrt_budget_contract_sign(agent, &config->budget);
-	if (ret)
-		goto out_free_cap;
-
-	/* [7] 初始化 IPC 通道（io_uring 注册固定 OP 码） */
-	ret = agentrt_ipc_channel_init(agent);
-	if (ret)
-		goto out_free_budget;
-
-	/* [8] 挂载 MemoryRovol 卷（如声明） */
-	if (config->memoryrovol.enabled) {
-		ret = agentrt_memoryrov_mount(agent,
-					      config->memoryrovol.layers);
-		if (ret)
-			goto out_free_ipc;
-	}
-
-	/* [9] 状态转 REGISTERED */
-	spin_lock(&agent->state_lock);
-	agent->state = AGENTRT_AGENT_STATE_REGISTERED;
-	spin_unlock(&agent->state_lock);
-
-	pr_info("agentrt: agent %u created, trace_id=0x%llx\n",
-		agent_id, trace_id);
-	return agent_id;
-
-out_free_ipc:
-	agentrt_ipc_channel_destroy(agent);
-out_free_budget:
-	agentrt_budget_contract_revoke(agent);
-out_free_cap:
-	cupolas_capability_revoke(agent->capability_token);
-out_free_landlock:
-	agentrt_landlock_revoke(agent);
-out_free_cgroup:
-	agentrt_cgroup_destroy(agent);
-out_free_idr:
-	spin_lock(&agent_idr_lock);
-	idr_remove(&agent_idr, agent_id);
-	spin_unlock(&agent_idr_lock);
-out_free_agent:
-	kfree(agent);
-	return ret;
-}
+struct agentrt_agent_config {
+    char name[AGENTRT_MAX_AGENT_NAME];      /* Agent 名称（最多 64 字符） */
+    u32  type;                               /* Agent 类型（AGENT_TYPE_*) */
+    u32  initial_token_budget;               /* 初始 Token 预算 */
+    u32  memory_rovol_layers;                /* 启用的记忆层级（位掩码） */
+    u64  capability_flags;                   /* 初始 capability 需求 */
+};
 ```
 
-### 4.3 调度与运行
+**借鉴 seL4 设计**：Agent ID 类似于 seL4 的 `tcb_t` 指针，不可伪造（用户态只持有 opaque handle）。CSpace 采用类似 seL4 CNode 的树状结构组织 capabilities。
+
+**借鉴 Linux 设计**：Agent 类型（AGENT_TYPE_*）枚举类似于 Linux 的 `task_struct->comm` 和调度类的组合，用于调度器优先级判定。
+
+### 2.2 Agent 配置（CONFIGURED）
 
 ```c
 /**
- * agentrt_agent_run - 调度 Agent 进入运行态
- * @agent_id: Agent 标识
+ * agentrt_agent_configure - 配置 Agent 运行参数
+ * @agent_id: Agent ID
+ * @params: 配置参数（Token 预算、记忆策略、认知参数、安全策略）
  *
- * 状态转移：READY -> RUNNING
- * 触发 SCHED_AGENT 策略接管
+ * 返回: 0 成功，-EINVAL 参数无效，-EPERM 权限不足（capability 不满足）
+ *
+ * 配置完成后进入 CONFIGURED 状态，可以启动。
+ * 配置期间进行 capability 检查——若 Agent 不具备所需权限，配置失败。
  */
-int agentrt_agent_run(int agent_id)
-{
-	struct agentrt_agent *agent;
-	int ret = 0;
+int agentrt_agent_configure(u32 agent_id,
+                            const struct agentrt_agent_params *params);
 
-	rcu_read_lock();
-	agent = idr_find(&agent_idr, agent_id);
-	if (!agent) {
-		rcu_read_unlock();
-		return -AGENTRT_ENOENT;
-	}
-	if (!agentrt_agent_get(agent)) {
-		rcu_read_unlock();
-		return -AGENTRT_EBUSY;
-	}
-	rcu_read_unlock();
+struct agentrt_agent_params {
+    /* Token 预算 */
+    u32  token_budget;               /* 每周期 Token 上限 */
+    u32  token_refill_rate;          /* Token 补充速率（tokens/ms）*/
 
-	spin_lock(&agent->state_lock);
-	if (agent->state != AGENTRT_AGENT_STATE_READY) {
-		ret = -AGENTRT_EINVAL;
-		spin_unlock(&agent->state_lock);
-		goto out_put;
-	}
-	agent->state = AGENTRT_AGENT_STATE_RUNNING;
-	spin_unlock(&agent->state_lock);
+    /* 记忆策略 */
+    u8   memory_l1_ttl_ms;           /* L1 原始记忆 TTL（毫秒） */
+    u8   memory_l2_promotion_threshold; /* L1→L2 晋升阈值（命中次数）*/
+    u8   memory_l3_consolidation_interval; /* L3 巩固间隔（秒）*/
 
-	/* 提交至 SCHED_AGENT 策略 */
-	ret = agentrt_sched_agent_submit(agent);
-	if (ret)
-		goto out_revert_state;
+    /* 认知参数 */
+    u32  cognition_cycle_ms;         /* 认知循环周期（毫秒） */
+    u8   thinkdual_system1_timeout_ms; /* System 1 快思考超时 */
+    u8   thinkdual_system2_timeout_ms; /* System 2 慢思考超时 */
 
-	return 0;
-
-out_revert_state:
-	spin_lock(&agent->state_lock);
-	agent->state = AGENTRT_AGENT_STATE_READY;
-	spin_unlock(&agent->state_lock);
-out_put:
-	agentrt_agent_put(agent);
-	return ret;
-}
+    /* 安全策略 */
+    u64  sandbox_policy_flags;       /* 沙箱策略（Landlock + seccomp）*/
+    u32  max_ipc_channels;           /* 最大 IPC 通道数 */
+};
 ```
 
-### 4.4 销毁流程
+**设计决策**：配置参数与启动参数分离。配置阶段是可逆的（可重新配置），启动阶段只消费已生效的配置。这如同 Linux 进程的 `execve` 和 `prctl` 的区别——exec 前可自由调整，exec 后部分参数锁定。
+
+---
+
+## 3. Agent 启动与运行
+
+### 3.1 启动（RUNNING）
 
 ```c
 /**
- * agentrt_agent_destroy - 销毁 Agent，回收全部资源
- * @agent_id: 待销毁的 Agent 标识
+ * agentrt_agent_start - 启动 Agent 执行
+ * @agent_id: Agent ID
  *
- * 状态转移：* -> TERMINATING -> DEAD
- * 保证 MemoryRovol 持久化完成、IPC 优雅关闭、资源全部回收
+ * 返回: 0 成功，-EINVAL 状态不正确（必须为 CONFIGURED/PAUSED），
+ *       -EPERM 沙箱策略违反，-ENOMEM 资源不足
+ *
+ * 启动过程：
+ * 1. 验证 capability——检查 Agent 是否具备所需权限
+ * 2. 分配 cgroup v2 资源组——CPU/内存/IO 隔离
+ * 3. 设置 Landlock 沙箱——文件访问控制
+ * 4. 设置 seccomp 过滤器——系统调用白名单
+ * 5. 分配 Wasm 运行时——创建 Wasm 3.0 沙箱实例
+ * 6. 注册到 MicroCoreRT 调度器——SCHED_AGENT 策略排队
+ * 7. 状态切换到 RUNNING
  */
-int agentrt_agent_destroy(int agent_id)
-{
-	struct agentrt_agent *agent;
-	enum agentrt_agent_state old;
-
-	rcu_read_lock();
-	agent = idr_find(&agent_idr, agent_id);
-	if (!agent) {
-		rcu_read_unlock();
-		return -AGENTRT_ENOENT;
-	}
-	if (!agentrt_agent_get(agent)) {
-		rcu_read_unlock();
-		return -AGENTRT_EBUSY;
-	}
-	rcu_read_unlock();
-
-	/* 状态转 TERMINATING（防止重入） */
-	spin_lock(&agent->state_lock);
-	if (agent->state == AGENTRT_AGENT_STATE_TERMINATING ||
-	    agent->state == AGENTRT_AGENT_STATE_DEAD) {
-		spin_unlock(&agent->state_lock);
-		agentrt_agent_put(agent);
-		return -AGENTRT_EBUSY;
-	}
-	old = agent->state;
-	agent->state = AGENTRT_AGENT_STATE_TERMINATING;
-	spin_unlock(&agent->state_lock);
-
-	/* 若运行中，先优雅停止 */
-	if (old == AGENTRT_AGENT_STATE_RUNNING)
-		agentrt_sched_agent_stop(agent);
-
-	/* 唤醒所有阻塞的等待者 */
-	wake_up_interruptible_all(&agent->ipc_wq);
-
-	/* 1. 持久化 MemoryRovol（保证记忆不丢失） */
-	if (agent->memoryrovol_handle)
-		agentrt_memoryrov_flush_and_unmount(agent);
-
-	/* 2. 优雅关闭 IPC 通道 */
-	agentrt_ipc_channel_drain(agent);
-	agentrt_ipc_channel_destroy(agent);
-
-	/* 3. 撤销 Token 预算契约 */
-	agentrt_budget_contract_revoke(agent);
-
-	/* 4. 撤销 capability */
-	cupolas_capability_revoke(agent->capability_token);
-
-	/* 5. 撤销 Landlock */
-	agentrt_landlock_revoke(agent);
-
-	/* 6. 销毁 cgroup */
-	agentrt_cgroup_destroy(agent);
-
-	/* 7. 从 idr 移除 */
-	spin_lock(&agent_idr_lock);
-	idr_remove(&agent_idr, agent_id);
-	spin_unlock(&agent_idr_lock);
-
-	/* 状态转 DEAD */
-	spin_lock(&agent->state_lock);
-	agent->state = AGENTRT_AGENT_STATE_DEAD;
-	spin_unlock(&agent->state_lock);
-
-	pr_info("agentrt: agent %u destroyed, trace_id=0x%llx\n",
-		agent_id, agent->trace_id);
-
-	agentrt_agent_put(agent);  /* 创建时获取的引用 */
-	agentrt_agent_put(agent);  /* 本函数获取的引用 */
-	return 0;
-}
+int agentrt_agent_start(u32 agent_id);
 ```
 
----
+**借鉴 seL4 设计**：启动过程的"Point of No Return"模式——从步骤 5（Wasm 运行时分配）开始进入不可返回阶段，步骤 5-7 的任何失败都会导致 Agent 直接进入 TERMINATING 状态而非回滚。这避免了启动过程中的部分资源残留问题。
 
-## 5. Token 预算执行期管理
+**借鉴 Linux 设计**：cgroup v2 + Landlock + seccomp 三重隔离类似于 Linux 容器的安全模型，但粒度更细——每个 Agent 租户拥有独立的 cgroup 层级。
 
-### 5.1 预算检查点
+### 3.2 运行时调度
 
-Token 预算在以下认知阶段检查点被扣减：
-
-| 阶段 | 检查点 | 扣减来源 |
-|------|--------|----------|
-| Cognition.Engine 解析 | 输入 Token 计数完成 | 输入 Token 数 |
-| LLM 推理 | 输出 Token 流式生成 | 输出 Token 数 |
-| Memory 检索 | 向量检索 + BM25 | 检索 Token 等价折算 |
-| 反思调整 | 元认知触发 | 反思 Token 折算 |
-
-### 5.2 预算耗尽处理
+Agent 在 RUNNING 状态下由 MicroCoreRT 调度器管理。调度器采用类似 Linux sched_class 的虚表架构：
 
 ```c
-int agentrt_budget_consume(struct agentrt_agent *agent, uint64_t tokens)
-{
-	struct agentrt_token_budget_contract *c = &agent->budget;
-	int64_t remaining;
+/* MicroCoreRT 调度类 - 借鉴 Linux sched_class 模式 */
+struct agentrt_sched_class {
+    const char *name;
+    void (*enqueue_agent)(struct agentrt_rq *rq, struct agentrt_agent *a, int flags);
+    bool (*dequeue_agent)(struct agentrt_rq *rq, struct agentrt_agent *a, int flags);
+    struct agentrt_agent *(*pick_next_agent)(struct agentrt_rq *rq);
+    void (*put_prev_agent)(struct agentrt_rq *rq, struct agentrt_agent *a);
+    bool (*wakeup_preempt)(struct agentrt_rq *rq, struct agentrt_agent *a);
+    void (*update_curr)(struct agentrt_rq *rq);
+    void (*yield)(struct agentrt_rq *rq);
+    int  (*balance)(struct agentrt_rq *rq, struct agentrt_agent *prev);
+    void (*task_tick)(struct agentrt_rq *rq, struct agentrt_agent *curr);
+};
 
-	/* 原子扣减（内核态禁用 float，用 Q16.16 定点数 airymax_q16_t 折算突发额度） */
-	remaining = atomic64_sub_return(tokens, &agent->budget_used);
-	if (remaining >= 0)
-		return 0;  /* 预算充足 */
-
-	switch (c->policy) {
-	case AGENTRT_BUDGET_POLICY_THROTTLE:
-		/* 降级：SCHED_AGENT 优先级降低 */
-		agentrt_sched_agent_throttle(agent);
-		return -AGENTRT_EBUDGET_THROTTLE;
-	case AGENTRT_BUDGET_POLICY_SUSPEND:
-		/* 挂起：状态转 SUSPENDED */
-		agentrt_agent_suspend(agent);
-		return -AGENTRT_EBUDGET_SUSPEND;
-	case AGENTRT_BUDGET_POLICY_HARD_FAIL:
-		/* 硬失败：触发销毁 */
-		agentrt_agent_destroy(agent->agent_id);
-		return -AGENTRT_EBUDGET_EXHAUSTED;
-	}
-	return -AGENTRT_EINVAL;
-}
+/* 注册方式 - 借鉴 DEFINE_SCHED_CLASS + linker section 模式 */
+#define DEFINE_AGENT_SCHED_CLASS(name_) \
+    const struct agentrt_sched_class name_##_agent_sched_class \
+        __aligned(__alignof__(struct agentrt_sched_class)) \
+        __section("__" #name_ "_agent_sched_class")
 ```
 
----
+**设计决策**：直接借鉴 Linux `sched_class` 的虚表 + linker section 注册模式（见 openEuler OLK-6.6 `kernel/sched/sched.h: L2573-L2693`）。优先级顺序：`token_aware > realtime > fair > batch > idle`，通过 linker script 的内存增长方向实现天然排序。
 
-## 6. 与 agentrt 同源的运行时互操作
-
-### 6.1 跨运行时迁移
-
-agentrt 用户态运行时的 Agent 可平滑迁移至 agentrt-linux：
-
-| 迁移场景 | 机制 | 兼容性 |
-|----------|------|--------|
-| agentrt -> agentrt-linux | SDK 检测到 OS 级能力，自动切换至 syscall 路径 | 完全兼容 |
-| agentrt-linux -> agentrt | SDK 降级至用户态消息队列 | 功能受限（无 SCHED_AGENT） |
-
-### 6.2 双向兼容保证
-
-由于 IRON-9 v2 [SS] 层 API 签名同源，Agent 应用代码无需修改即可在两端运行。SDK 在运行时检测宿主环境：
+### 3.3 Token 预算管理
 
 ```c
-/* SDK 内部实现（伪代码） */
-int agentrt_cognition_process(struct agentrt_cognition_req *req)
-{
-	if (agentrt_host_is_airymaxos()) {
-		/* OS 级路径：syscall */
-		return syscall(AGENTRT_SYS_COGNITION_PROCESS, req);
-	}
-	/* 用户态路径：通过 AgentsIPC 调用 llm_d */
-	return agentrt_ipc_call(LLM_DAEMON_ID, "process", req);
-}
+struct agentrt_token_budget {
+    u32  current_tokens;      /* 当前可用 Token */
+    u32  max_tokens;          /* 预算上限 */
+    u32  refill_rate;         /* 补充速率（tokens/ms） */
+    u64  last_refill_ts;      /* 上次补充时间戳（ns） */
+    u32  warning_threshold;   /* 警告阈值（低于此值触发 SUSPENDED） */
+    u32  critical_threshold;  /* 临界阈值（低于此值触发 TERMINATING） */
+
+    /* 统计数据 */
+    u64  total_consumed;      /* 累计消耗 */
+    u64  peak_rate;           /* 峰值消耗速率 */
+    u32  suspend_count;       /* 因预算不足挂起次数 */
+};
+```
+
+Token 预算采用类似 Linux CFS 的带宽控制模型：
+- `refill_rate` 如同 `cpu.cfs_period_us`，定义补充周期
+- `max_tokens` 如同 `cpu.cfs_quota_us`，定义周期内上限
+- 令牌桶算法防止突发消耗导致其他 Agent 饥饿
+
+---
+
+## 4. Agent 暂停与迁移
+
+### 4.1 暂停流程
+
+```c
+/**
+ * agentrt_agent_pause - 请求 Agent 暂停（保存状态）
+ * @agent_id: Agent ID
+ * @flags: 暂停选项
+ *   AGENTRT_PAUSE_SAVE_MEMORY  - 保存 MemoryRovol 快照
+ *   AGENTRT_PAUSE_SAVE_WASM    - 保存 Wasm 状态快照
+ *   AGENTRT_PAUSE_MIGRATE      - 准备迁移到其他节点
+ *
+ * 返回: 0 成功（进入 PAUSING 状态），-EINVAL 状态不正确，
+ *       -EBUSY Agent 正忙（认知循环中），-ETIME 超时
+ *
+ * 暂停过程（借鉴 seL4 Zombie 增量模式）：
+ * PAUSING 状态为中间态——Agent 在认知循环的完成点进行状态保存。
+ * 借鉴 seL4 preemptionPoint 模式，长时间保存操作分块可抢占：
+ */
+int agentrt_agent_pause(u32 agent_id, u32 flags);
+
+/* 引用 seL4 的抢占点设计模式 */
+struct agentrt_memory_rovol_snapshot {
+    void *l1_raw;          /* L1 原始记忆快照 */
+    void *l2_features;     /* L2 特征记忆快照 */
+    void *l3_structured;   /* L3 结构化记忆快照 */
+    void *l4_pattern;      /* L4 模式记忆快照 */
+    u32   l1_size;         /* L1 快照大小（字节） */
+    u32   l2_size;
+    u32   l3_size;
+    u32   l4_size;
+    u64   timestamp;       /* 快照时间戳 */
+    u64   checkpoint_id;   /* 检查点 ID（用于恢复验证） */
+};
+```
+
+**设计决策**：PAUSING 中间态借鉴 seL4 的 Zombie 对象模式。如同 seL4 能力删除分解为"标记 Zombie → 分块回收 → 最终清理"，Agent 暂停分解为"标记 PAUSING → 分层保存记忆 → 检查点验证 → 标记 PAUSED"。每个分层保存操作后插入 preemption point，允许调度器和中断响应。
+
+### 4.2 跨节点迁移
+
+```c
+/**
+ * agentrt_agent_migrate - 将 Agent 迁移到目标节点
+ * @agent_id: Agent ID
+ * @target_node: 目标节点 ID
+ * @migration_policy: 迁移策略（冷迁移/热迁移/增量迁移）
+ *
+ * 热迁移流程（借鉴 Linux CRIU + seL4 capability 转移）：
+ * 1. Agent 进入 PAUSING 状态
+ * 2. 保存 MemoryRovol 快照 + Wasm 状态
+ * 3. 通过 CXL 内存池化传输快照到目标节点
+ * 4. 在目标节点重建 CSpace（capability 重新派生）
+ * 5. 在源节点启动增量同步（dirty page tracking）
+ * 6. 最终同步 + 切换
+ * 7. 源节点 Agent 进入 TERMINATED
+ * 8. 目标节点 Agent 恢复 RUNNING
+ */
+int agentrt_agent_migrate(u32 agent_id, u32 target_node,
+                          const struct agentrt_migration_policy *policy);
 ```
 
 ---
 
-## 7. 测试与验证
+## 5. Agent 终止与资源回收
 
-### 7.1 生命周期测试矩阵
+### 5.1 终止流程
 
-| 测试用例 | 验证目标 | 预期结果 |
-|----------|----------|----------|
-| 正常创建销毁 | 资源全部回收 | DEAD 后 idr 无残留 |
-| 创建中失败回滚 | goto out_free 模式 | 各阶段资源均释放 |
-| 双重销毁 | 重入保护 | 第二次返回 -EBUSY |
-| 预算耗尽挂起 | SUSPEND 状态转移 | Agent 挂起且记忆保留 |
-| 预算耗尽硬失败 | HARD_FAIL 销毁 | Agent 被强制销毁 |
-| 销毁中 IPC 等待者 | wake_up_all 唤醒 | 所有阻塞者收到 -ESHUTDOWN |
+```c
+/**
+ * agentrt_agent_stop - 请求 Agent 终止
+ * @agent_id: Agent ID
+ * @exit_code: 退出码（用户定义 + 系统定义）
+ *
+ * 借鉴 seL4 SCX 分级退出码设计（ext.c: SCX_EXIT_KIND）：
+ *   高 16 位：退出类别
+ *     0x0000: AGENT_EXIT_NORMAL     - 正常退出
+ *     0x0001: AGENT_EXIT_TOKEN_EXHAUSTED - Token 预算耗尽
+ *     0x0002: AGENT_EXIT_SECURITY_VIOLATION - 安全策略违反
+ *     0x0003: AGENT_EXIT_RUNTIME_ERROR - Wasm 运行时错误
+ *     0x0004: AGENT_EXIT_SANDBOX_ESCAPE - 沙箱逃逸（严重）
+ *     0x0005: AGENT_EXIT_MEMORY_CORRUPTION - 记忆损坏
+ *   低 16 位：子类别（Agent 自定义）
+ */
+int agentrt_agent_stop(u32 agent_id, u32 exit_code);
+```
 
-### 7.2 资源泄漏检测
+### 5.2 Capability 撤销（借鉴 seL4 cteRevoke）
 
-通过 kmemleak + cgroup 内存统计双重验证销毁后无资源泄漏：
+终止时执行能力撤销——类似 seL4 `cteRevoke()` 的递归级联撤销：
 
-```bash
-# 启用 kmemleak
-echo scan | sudo tee /sys/kernel/debug/kmemleak
+```c
+/*
+ * 借鉴 seL4 cnode.c:528-550 的 cteRevoke 算法
+ *
+ * agentrt_cap_revoke - 递归撤销所有派生 capability
+ * @agent_id: Agent ID
+ *
+ * 递归撤销算法（借鉴 MDB 链表遍历 + preemptionPoint）：
+ * while (还有派生 capability) {
+ *     cap = 获取下一个派生 capability;
+ *     if (cap 是 Endpoint 类型) {
+ *         取消 badge 上所有待发消息;
+ *     }
+ *     cap_delete(cap);          // 标记 Zombie 或直接删除
+ *     preemption_point();        // 允许调度器干预
+ *     if (错误 != SUCCESS) {
+ *         return 错误;
+ *     }
+ * }
+ */
+int agentrt_cap_revoke(u32 agent_id);
+```
 
-# 运行 1000 次创建销毁循环
-./test_agent_lifecycle --iterations=1000
+### 5.3 资源清理清单
 
-# 检查泄漏
-cat /sys/kernel/debug/kmemleak
+| 资源类型 | 清理操作 | 借鉴来源 |
+|---------|---------|---------|
+| Capability 令牌 | 递归撤销（类似 seL4 cteRevoke） | seL4 cnode.c |
+| MemoryRovol 记忆 | L1→L4 层分层清理（类似 Untyped retype） | seL4 untyped.c |
+| Wasm 运行时 | 沙箱实例销毁 | Wasm 3.0 spec |
+| cgroup v2 | 资源组删除（递归删除子 cgroup） | Linux cgroup.c |
+| Landlock 规则 | 释放文件访问规则 | Linux landlock |
+| seccomp 过滤器 | 释放 BPF 程序 | Linux seccomp.c |
+| AgentsIPC 通道 | 取消待发消息 + 关闭通道 | seL4 endpoint.c |
+| TCB 槽位 | 释放 Thread Control Block | seL4 tcb.c |
+| Agent ID | 标记为已释放（不复用） | - |
+
+---
+
+## 6. 生命周期 Hook 机制
+
+### 6.1 Hook 定义（借鉴 Linux LSM X-Macro 模式）
+
+```c
+/*
+ * 借鉴 openEuler OLK-6.6 security/lsm_hook_defs.h 的 X-Macro 模式
+ *
+ * AGENT_HOOK 宏定义所有生命周期钩子点。
+ * 每次#include将展开为不同的视图：
+ *   - 函数指针成员 (agent_hook_list)
+ *   - 调用包装器 (call_agent_hook)
+ *   - 钩子注册管理 (agent_hook_heads)
+ */
+#define AGENT_HOOK(RET, NAME, ...) RET (*NAME)(__VA_ARGS__)
+
+/* 钩子定义表 */
+#define ALL_AGENT_HOOKS              \
+    AGENT_HOOK(int, agent_register,  \
+        const struct agentrt_agent_config *config) \
+    AGENT_HOOK(int, agent_configure, \
+        u32 agent_id, const struct agentrt_agent_params *params) \
+    AGENT_HOOK(int, agent_start,     \
+        u32 agent_id)                \
+    AGENT_HOOK(int, agent_pause,     \
+        u32 agent_id, u32 flags)     \
+    AGENT_HOOK(int, agent_resume,    \
+        u32 agent_id)                \
+    AGENT_HOOK(int, agent_stop,      \
+        u32 agent_id, u32 exit_code) \
+    AGENT_HOOK(int, agent_migrate,   \
+        u32 agent_id, u32 target_node)
+```
+
+**设计决策**：借鉴 LSM 的 X-Macro 模式（见 `lsm_hook_defs.h`），一个宏定义文件展开为多种视图。这避免了在多个位置重复维护钩子点列表，同时支持编译时条件编译（`#ifdef CONFIG_AGENTRT_LSM`）。
+
+### 6.2 钩子调用模式（短路评估）
+
+```c
+/* 借鉴 LSM call_int_hook 的短路评估模式 */
+#define call_agent_hook(FUNC, IRC, ...) ({      \
+    int RC = IRC;                                \
+    do {                                         \
+        struct agent_hook_entry *P;              \
+        list_for_each_entry(P, &agent_hook_heads.FUNC, list) { \
+            RC = P->hook.FUNC(__VA_ARGS__);      \
+            if (RC != 0) break;                  \
+        }                                        \
+    } while (0);                                  \
+    RC;                                           \
+})
+```
+
+**关键设计**：与 LSM 一致的短路评估——任意钩子返回非零即中断链。这确保安全模块可以拒绝操作（如 security 模块可以拦截 agent_start）。
+
+---
+
+## 7. 错误处理与恢复
+
+### 7.1 分级错误响应
+
+借鉴 openEuler sched_ext watchdog 的分级退出设计：
+
+| 错误级别 | 处理方式 | 触发条件 |
+|---------|---------|---------|
+| **RECOVERABLE** | 重试（最多 3 次） | 内存临时不足、IPC 超时 |
+| **DEGRADABLE** | 降级（降低 Token 预算） | Token 消耗超限 |
+| **SUSPENDABLE** | 暂停（保存状态） | Wasm 运行时 OOM |
+| **TERMINATABLE** | 终止（回收资源） | 安全策略违反、沙箱逃逸 |
+| **PANIC** | 系统告警（隔离该 Agent） | 连续 3 次沙箱逃逸 |
+
+### 7.2 Agent 诊断信息收集（借鉴 scx_exit_info）
+
+```c
+struct agentrt_exit_info {
+    u32  exit_kind;        /* AGENT_EXIT_* */
+    s64  exit_code;        /* 退出码 */
+    char reason[256];      /* 人类可读原因 */
+    u64  backtrace[64];    /* 调用栈（64 帧） */
+    u32  bt_len;           /* 调用栈深度 */
+    char wasm_stack[4096]; /* Wasm 栈快照 */
+    struct agentrt_token_budget budget_snapshot; /* Token 预算快照 */
+    struct agentrt_memory_rovol_snapshot mem_snapshot; /* 记忆快照 */
+};
 ```
 
 ---
 
-## 8. 相关文档
+## 8. 代码品味要求
 
-- `140-application-development/README.md`（应用开发主索引）
-- `140-application-development/02-sdk-integration.md`（SDK 集成设计）
-- `140-application-development/03-agent-orchestration.md`（Agent 编排设计）
-- `30-interfaces/01-syscalls.md`（系统调用接口）
-- `110-security/README.md`（Cupolas 安全穹顶）
-- `170-performance/README.md`（生命周期性能调优）
+### 8.1 命名规范
+
+| 规范项 | 规则 | 示例 |
+|--------|------|------|
+| 函数前缀 | `agentrt_agent_*` 用于 Agent 生命周期 API | `agentrt_agent_register()` |
+| 枚举前缀 | `AGENT_STATE_*` 用于状态枚举 | `AGENT_STATE_RUNNING` |
+| 宏前缀 | `AGENTRT_EXIT_*` 用于退出码 | `AGENTRT_EXIT_NORMAL` |
+| 结构体命名 | `agentrt_*_t` 或 `struct agentrt_*` | `struct agentrt_token_budget` |
+
+### 8.2 注释要求
+
+- 每个公共 API 函数必须有 Doxygen 注释（参数说明、返回值、错误码、使用示例）
+- 每个状态转换必须有 inline 注释解释转换条件和副作用
+- 借鉴 seL4 GHOSTUPD 注释模式标注关键不变量
+
+### 8.3 静态断言（借鉴 seL4 compile_assert）
+
+```c
+/* 借鉴 seL4 include/object/structures.h */
+compile_assert(agent_state_size, sizeof(struct agentrt_agent_state) == 64);
+compile_assert(token_budget_alignment, IS_ALIGNED(sizeof(struct agentrt_token_budget), 16));
+compile_assert(agent_id_max, AGENTRT_MAX_AGENTS <= 1024);
+```
 
 ---
 
-## 9. 参考材料
+## 9. 相关文档
 
-- Linux 6.6 `kernel/cgroup/cgroup.c`（cgroup v2 实现）
-- Linux 6.6 `security/landlock/`（Landlock 安全模块）
-- seL4 项目（capability 系统设计参考）
-- Linux 6.6 `Documentation/admin-guide/cgroup-v2.rst`
-- Linux 6.6 `include/linux/idr.h`（IDR 分配器）
-- agentrt 用户态运行时 Agent 生命周期规范（IRON-9 v2 [SS] 同源）
+- [Agent SDK 四语言集成](02-sdk-integration.md)
+- [Agent 编排设计](03-agent-orchestration.md)
+- [Token 预算契约](04-token-budget.md)
+- [MemoryRovol API](05-memory-rovol-api.md)
+- [Agent 部署与运行](06-agent-deployment.md)
+- [系统调用编号注册表](07-syscall-registry.md) — 应用层 API 到系统调用编号映射（第 5 章）
+- `30-interfaces/01-syscalls.md`（系统调用接口设计）
+- `30-interfaces/02-ipc-protocol.md`（AgentsIPC 协议）
+- `50-engineering-standards/20-contracts/syscall_api_contract.md`（系统调用 API 契约）
+- `20-modules/03-security.md`（Capability 安全模型）
+- `20-modules/05-cognition.md`（CoreLoopThree 认知循环）
 
 ---
-
-> **文档结束** | agentrt-linux（AirymaxOS）Agent 生命周期管理设计 v0.1.1
-> 遵循 IRON-9 v2 [SS] 语义同源层与 agentrt 用户态运行时同源
+> **文档结束** | 0.1.1 生命周期设计
