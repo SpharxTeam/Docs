@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）IRON-9 v2 三层共享模型落地规范
+# agentrt-linux（AirymaxOS）IRON-9 v2 三层共享模型落地规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）与 agentrt（微核心用户态运行时）之间的 IRON-9 v2 三层代码共享模型落地规范。详细说明 [SC] 共享契约层（6 个头文件）、[SS] 语义同源层、[IND] 完全独立层的实施细节，含双向 CI 校验机制与 magic 设计原理。
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）与 agentrt（微核心用户态运行时）之间的 IRON-9 v2 三层代码共享模型落地规范。详细说明 [SC] 共享契约层（6 个头文件）、[SS] 语义同源层、[IND] 完全独立层的实施细节，含双向 CI 校验机制与 magic 设计原理。
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
@@ -14,18 +14,18 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本文件是 IRON-9 v2 三层共享模型的工程落地规范，定义 agentrt（用户态微核心）与 agentrt-liunx（内核微内核发行版）之间的代码共享边界、契约内容、校验机制。
+本文件是 IRON-9 v2 三层共享模型的工程落地规范，定义 agentrt（用户态微核心）与 agentrt-linux（内核微内核发行版）之间的代码共享边界、契约内容、校验机制。
 
 ### 0.2 术语约束（硬性）
 
 - **agentrt**（用户态）= **微核心**（micro-core）。描述 agentrt 时使用"微核心"，其原语称"微核心原语"。**禁止**用"微内核原语"描述 agentrt。
-- **agentrt-liunx**（OS 发行版）= **微内核**（micro-kernel）。描述 agentrt-liunx 时使用"微内核"。
+- **agentrt-linux**（OS 发行版）= **微内核**（micro-kernel）。描述 agentrt-linux 时使用"微内核"。
 - **禁止**使用特定上游发行版名称，统一用"主流 Linux 发行版"。
-- 产品全称"agentrt-liunx（AirymaxOS，极境智能体操作系统）"，简称"agentrt-liunx"或"AirymaxOS"。
+- 产品全称"agentrt-linux（AirymaxOS，极境智能体操作系统）"，简称"agentrt-linux"或"AirymaxOS"。
 
 ### 0.3 Linux 6.6 基线约束
 
-- **SCHED_EXT=7**（OLK-6.6 内置，`include/uapi/linux/sched.h:121`）。agentrt-liunx 复用 SCHED_EXT=7，**禁止**定义 `SCHED_AGENT` 宏（避免与内核调度类编号冲突）。
+- **SCHED_EXT=7**（OLK-6.6 内置，`include/uapi/linux/sched.h:121`）。agentrt-linux 复用 SCHED_EXT=7，**禁止**定义 `SCHED_AGENT` 宏（避免与内核调度类编号冲突）。
 - 内核态禁 float（`arch/x86/Makefile:137` `-mno-80387`），用 Q16.16 定点数 `airymax_q16_t`（= `int32_t`）。
 - kthread 间通信用 `kfifo` + `wait_event_interruptible`。
 
@@ -45,7 +45,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 |------|------|---------|------|---------|
 | **共享契约层** | [SC] | 完全共享代码 | 6 个头文件，定义数据结构、magic、操作码、枚举 | `include/airymax/` 独立头文件库，两端共同依赖 |
 | **语义同源层** | [SS] | API 签名相同，实现独立 | 调度语义、安全模型、IPC 传输、记忆模型 | 各自独立实现，通过 [SC] 保证互操作 |
-| **完全独立层** | [IND] | 完全独立 | 内核驱动/Kbuild/内核 API（agentrt-liunx）；跨平台用户态/SDK 四语言（agentrt） | 各自独立仓库，无依赖 |
+| **完全独立层** | [IND] | 完全独立 | 内核驱动/Kbuild/内核 API（agentrt-linux）；跨平台用户态/SDK 四语言（agentrt） | 各自独立仓库，无依赖 |
 
 ### 1.2 与旧版 IRON-9 的差异
 
@@ -61,7 +61,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 6 个 [SC] 头文件清单
 
-[SC] 层包含**统一为 6 个**共享头文件，存放于 `include/airymax/` 目录，两端（agentrt 与 agentrt-liunx）共同依赖，**逐字节相同**：
+[SC] 层包含**统一为 6 个**共享头文件，存放于 `include/airymax/` 目录，两端（agentrt 与 agentrt-linux）共同依赖，**逐字节相同**：
 
 | 序号 | 文件 | 共享内容 | magic 值 | 落地路径 |
 |------|------|---------|---------|---------|
@@ -93,7 +93,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
  * @common: Common value shared between BPF and scheduler.
  *
  * Shared between agentrt (user-space BPF loader) and
- * agentrt-liunx (kernel struct_ops framework).
+ * agentrt-linux (kernel struct_ops framework).
  */
 struct airymax_struct_ops_value {
 	__u32	state;
@@ -225,7 +225,7 @@ typedef int32_t airymax_vtime_t;
  * @prio: Priority in [AIRYMAX_PRIO_MIN, AIRYMAX_PRIO_MAX].
  * @vtime: Virtual time for fair scheduling (Q16.16).
  *
- * Shared between agentrt (user-space) and agentrt-liunx (kernel).
+ * Shared between agentrt (user-space) and agentrt-linux (kernel).
  * The magic field validates descriptor integrity across the boundary.
  */
 struct airymax_task_desc {
@@ -271,7 +271,7 @@ enum airymax_ipc_op {
  * @opcode: Operation code; see enum airymax_ipc_op.
  *
  * Fixed 128-byte header, layout never changes. Shared between
- * agentrt and agentrt-liunx via [SC] contract layer.
+ * agentrt and agentrt-linux via [SC] contract layer.
  */
 struct airymax_ipc_msg_hdr {
 	__u32	magic;			/* offset 0, 'ARE1' */
@@ -304,7 +304,7 @@ struct airymax_ipc_msg_hdr {
 
 1. **可识别性**：'ARE1' 是人类可读的 ASCII，便于 hexdump 调试时识别 IPC 消息
 2. **版本化**：末尾 '1' 表示协议版本 1，未来 breaking change 升级为 'ARE2'
-3. **跨端一致**：agentrt 与 agentrt-liunx 两端字节相同，无字节序转换（host byte order 内部传输）
+3. **跨端一致**：agentrt 与 agentrt-linux 两端字节相同，无字节序转换（host byte order 内部传输）
 4. **不可变更**：magic 一经发布即冻结，变更必须升级版本号
 
 ### 3.2 任务描述符 magic 0x41475453 ('AGTS')
@@ -336,11 +336,11 @@ struct airymax_ipc_msg_hdr {
 
 ### 4.1 [SS] 层定义
 
-[SS] 层中，agentrt 与 agentrt-liunx 的 API 签名相同，但实现独立。两端通过 [SC] 契约层保证语义一致，无需适配层。
+[SS] 层中，agentrt 与 agentrt-linux 的 API 签名相同，但实现独立。两端通过 [SC] 契约层保证语义一致，无需适配层。
 
 ### 4.2 四大语义同源映射
 
-| 语义域 | agentrt（用户态微核心）实现 | agentrt-liunx（内核微内核）实现 | [SC] 契约依据 |
+| 语义域 | agentrt（用户态微核心）实现 | agentrt-linux（内核微内核）实现 | [SC] 契约依据 |
 |--------|------------------------|--------------------------|--------------|
 | **调度语义**（MicroCoreRT） | 用户态调度器（协程/线程池） | sched_ext BPF 调度器（SCHED_EXT=7） | `sched.h`：任务描述符 + vtime + 优先级 |
 | **安全模型**（Cupolas） | 用户态策略引擎（seccomp + capability） | LSM 钩子（254 ID） + capability 38 ID | `security_types.h`：capability + verdict |
@@ -375,7 +375,7 @@ static void test_ipc_hdr_serialize(void)
 
 ## 5. [IND] 完全独立层
 
-### 5.1 agentrt-liunx 专属（[IND]）
+### 5.1 agentrt-linux 专属（[IND]）
 
 | 模块 | 内容 | 理由 |
 |------|------|------|
@@ -390,10 +390,10 @@ static void test_ipc_hdr_serialize(void)
 
 | 模块 | 内容 | 理由 |
 |------|------|------|
-| 跨平台用户态运行时 | `runtime/`（C/Rust 实现） | 跨平台（Linux/macOS/Windows），agentrt-liunx 仅 Linux |
-| SDK 四语言 | `sdk/python/`、`sdk/rust/`、`sdk/typescript/`、`sdk/c/` | 多语言绑定，agentrt-liunx 仅 C |
-| CLI/TUI | `cli/`、`tui/` | 用户交互工具，agentrt-liunx 无 |
-| 用户态内存管理 | `runtime/heapstore` | 用户态 malloc/mmap，agentrt-liunx 用内核 kmalloc |
+| 跨平台用户态运行时 | `runtime/`（C/Rust 实现） | 跨平台（Linux/macOS/Windows），agentrt-linux 仅 Linux |
+| SDK 四语言 | `sdk/python/`、`sdk/rust/`、`sdk/typescript/`、`sdk/c/` | 多语言绑定，agentrt-linux 仅 C |
+| CLI/TUI | `cli/`、`tui/` | 用户交互工具，agentrt-linux 无 |
+| 用户态内存管理 | `runtime/heapstore` | 用户态 malloc/mmap，agentrt-linux 用内核 kmalloc |
 
 ---
 
@@ -404,28 +404,28 @@ static void test_ipc_hdr_serialize(void)
 [SC] 层（6 个头文件）的任何变更必须经过**双向 CI 校验**，确保两端均能编译通过：
 
 ```
-开发者提交 [SC] 变更 MR（agentrt-liunx 仓库）
+开发者提交 [SC] 变更 MR（agentrt-linux 仓库）
    ↓
-步骤 1: agentrt-liunx CI 校验
-  - 编译 agentrt-liunx 内核
+步骤 1: agentrt-linux CI 校验
+  - 编译 agentrt-linux 内核
   - 运行 [SC] 行为契约测试
   - checkpatch + clang-format + kernel-doc 校验
    ↓ pass
 步骤 2: 镜像 PR 到 agentrt 仓库
   - 自动创建 agentrt 仓库的镜像 PR
   - agentrt CI 校验：编译 agentrt 用户态
-  - 运行 [SC] 行为契约测试（与 agentrt-liunx 同一套测试套件）
+  - 运行 [SC] 行为契约测试（与 agentrt-linux 同一套测试套件）
    ↓ pass
 步骤 3: L1 子系统维护者审查（airymax-shared-contract）
    ↓ approve
 步骤 4: L3 总维护者（SPHARX Engineering）最终审批
    ↓ approve
-合并至 agentrt-liunx main
+合并至 agentrt-linux main
    ↓
 步骤 5: 自动合并至 agentrt main（镜像同步）
 ```
 
-### 6.2 CI 配置（agentrt-liunx 侧）
+### 6.2 CI 配置（agentrt-linux 侧）
 
 ```yaml
 # 文件: .github/workflows/sc-contract.yml
@@ -450,7 +450,7 @@ sc-contract-bidirectional:
 
 ### 6.3 校验失败处理
 
-- **agentrt-liunx CI 失败**：直接拒绝合并，开发者修复
+- **agentrt-linux CI 失败**：直接拒绝合并，开发者修复
 - **agentrt CI 失败**：拒绝合并，开发者需同时考虑两端兼容性
 - **测试结果不一致**：拒绝合并，需对齐两端实现
 
@@ -469,7 +469,7 @@ sc-contract-bidirectional:
 
 ### 7.1 OLK-6.6 基线约束
 
-agentrt-liunx 内核态 kthread 间通信**必须**使用 `kfifo` + `wait_event_interruptible`，禁止使用浮点（用 `airymax_q16_t`）：
+agentrt-linux 内核态 kthread 间通信**必须**使用 `kfifo` + `wait_event_interruptible`，禁止使用浮点（用 `airymax_q16_t`）：
 
 ```c
 #include <linux/kfifo.h>

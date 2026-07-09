@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx 软件物料清单（SBOM）规范
+# agentrt-linux 软件物料清单（SBOM）规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS）软件物料清单（SBOM）的完整规范，定义 SBOM 标准选择、组件清单、许可证合规矩阵、漏洞扫描策略与自动生成流程
+> **文档定位**: agentrt-linux（AirymaxOS）软件物料清单（SBOM）的完整规范，定义 SBOM 标准选择、组件清单、许可证合规矩阵、漏洞扫描策略与自动生成流程
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
 > **父文档**: [项目管理规范总览](README.md)
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 SBOM 定义与价值
 
-软件物料清单（Software Bill of Materials，SBOM）是 agentrt-liunx（AirymaxOS）供应链安全管理的核心工具。SBOM 以机器可读的格式记录软件产品的所有组件、依赖关系和元数据。
+软件物料清单（Software Bill of Materials，SBOM）是 agentrt-linux（AirymaxOS）供应链安全管理的核心工具。SBOM 以机器可读的格式记录软件产品的所有组件、依赖关系和元数据。
 
 | 价值维度 | 说明 |
 |----------|------|
@@ -49,12 +49,12 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.2 选择理由
 
-agentrt-liunx（AirymaxOS）选择 **SPDX 2.3** 作为 SBOM 标准，理由如下：
+agentrt-linux（AirymaxOS）选择 **SPDX 2.3** 作为 SBOM 标准，理由如下：
 
 1. **行业标准**：SPDX 是 Linux 基金会维护的 ISO/IEC 5962:2021 标准，企业级 Linux 生态广泛采用
-2. **许可证覆盖**：SPDX License List 包含 500+ 许可证标识符，覆盖 agentrt-liunx 全部组件
+2. **许可证覆盖**：SPDX License List 包含 500+ 许可证标识符，覆盖 agentrt-linux 全部组件
 3. **工具链成熟**：支持 SPDX 的生成、验证、比较工具丰富（spdx-sbom-generator、SPDX Tools、NTIA Conformance Checker）
-4. **关系建模**：SPDX 2.3 支持 DESCRIBES、DEPENDS_ON、CONTAINS 等关系类型，适合描述 agentrt-liunx 复杂的组件依赖图
+4. **关系建模**：SPDX 2.3 支持 DESCRIBES、DEPENDS_ON、CONTAINS 等关系类型，适合描述 agentrt-linux 复杂的组件依赖图
 5. **与 agentrt 对齐**：agentrt 同样采用 SPDX 2.3，[SC] 层组件可共享 SBOM 片段
 6. **安全字段**：SPDX 2.3 支持 ExternalRef 字段引用 CVE、GHSA 等安全公告
 
@@ -66,12 +66,12 @@ SPDX Document
 │   ├── SPDX Version: SPDX-2.3
 │   ├── Data License: CC0-1.0
 │   ├── SPDX Identifier: SPDXRef-DOCUMENT
-│   ├── Document Name: agentrt-liunx-1.0.1-sbom
+│   ├── Document Name: agentrt-linux-1.0.1-sbom
 │   ├── Creator: Organization: SPHARX Ltd.
 │   └── Created: 2026-07-07T00:00:00Z
 │
 ├── Package（软件包）
-│   ├── Package Name: agentrt-liunx
+│   ├── Package Name: agentrt-linux
 │   ├── Package Version: 1.0.1
 │   ├── Package Supplier: SPHARX Ltd.
 │   ├── Package Download Location: https://repo.airymaxos.org
@@ -82,9 +82,9 @@ SPDX Document
 │       └── PACKAGE_MANAGER: rpm
 │
 ├── Relationships（关系）
-│   ├── SPDXRef-DOCUMENT DESCRIBES SPDXRef-agentrt-liunx
-│   ├── SPDXRef-agentrt-liunx CONTAINS SPDXRef-linux-kernel
-│   ├── SPDXRef-agentrt-liunx CONTAINS SPDXRef-ebpf-subsystem
+│   ├── SPDXRef-DOCUMENT DESCRIBES SPDXRef-agentrt-linux
+│   ├── SPDXRef-agentrt-linux CONTAINS SPDXRef-linux-kernel
+│   ├── SPDXRef-agentrt-linux CONTAINS SPDXRef-ebpf-subsystem
 │   └── ...
 │
 └── Files（文件，可选）
@@ -99,7 +99,7 @@ SPDX Document
 
 ### 3.1 组件分类总览
 
-agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
+agentrt-linux（AirymaxOS）SBOM 覆盖以下组件类别：
 
 | 类别 | 优先级 | SBOM 深度 | 说明 |
 |------|--------|-----------|------|
@@ -123,7 +123,7 @@ agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
 | MGLRU（多代 LRU） | 6.6 原生 | 主线 | GPL-2.0-only | SPDXRef-mglru |
 | io_uring | 6.6 原生 | 主线 | GPL-2.0-only | SPDXRef-iouring |
 | eBPF kfunc | 6.6 原生 | 主线 | GPL-2.0-only | SPDXRef-ebpf-kfunc |
-| sched_ext（SCHED_AGENT） | agentrt-liunx（AirymaxOS）增强 | 主线 6.12+ 向前移植 | GPL-2.0-only | SPDXRef-sched-ext |
+| sched_ext（SCHED_AGENT） | agentrt-linux（AirymaxOS）增强 | 主线 6.12+ 向前移植 | GPL-2.0-only | SPDXRef-sched-ext |
 | Rust 内核支持 | 6.6 实验性 | 主线 | GPL-2.0-only | SPDXRef-rust-kernel |
 | XFS 在线 fsck | 6.6 原生 | 主线 | GPL-2.0-only | SPDXRef-xfs-fsck |
 
@@ -136,8 +136,8 @@ agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
 | BPF Type Format (BTF) | 6.6 原生 | 主线 | GPL-2.0-only | SPDXRef-btf |
 | libbpf | 1.x | kernel.org | LGPL-2.1-only | SPDXRef-libbpf |
 | bpftool | 6.6 | kernel.org | GPL-2.0-only | SPDXRef-bpftool |
-| SCHED_AGENT eBPF 调度器 | 1.0.1 | agentrt-liunx | GPL-2.0-only | SPDXRef-sched-agent-bpf |
-| eBPF 安全探针 | 1.0.1 | agentrt-liunx | GPL-2.0-only | SPDXRef-ebpf-security |
+| SCHED_AGENT eBPF 调度器 | 1.0.1 | agentrt-linux | GPL-2.0-only | SPDXRef-sched-agent-bpf |
+| eBPF 安全探针 | 1.0.1 | agentrt-linux | GPL-2.0-only | SPDXRef-ebpf-security |
 
 ### 3.4 Rust 工具链组件
 
@@ -181,10 +181,10 @@ agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
 |------|------|------|--------|---------|
 | SELinux | 3.5+ | selinuxproject.org | GPL-2.0-only | SPDXRef-selinux |
 | libseccomp | 2.5+ | github.com/seccomp | LGPL-2.1-only | SPDXRef-libseccomp |
-| capability 库 | 1.0.1 | agentrt-liunx | Apache-2.0 | SPDXRef-capability-lib |
-| SM2/SM3/SM4 国密库 | 1.0.1 | agentrt-liunx | Apache-2.0 | SPDXRef-gm-crypto |
+| capability 库 | 1.0.1 | agentrt-linux | Apache-2.0 | SPDXRef-capability-lib |
+| SM2/SM3/SM4 国密库 | 1.0.1 | agentrt-linux | Apache-2.0 | SPDXRef-gm-crypto |
 | auditd | 3.1+ | linux-audit | GPL-2.0-or-later | SPDXRef-auditd |
-| TEE/SGX 支持库 | 1.0.1 | agentrt-liunx | Apache-2.0 | SPDXRef-tee-lib |
+| TEE/SGX 支持库 | 1.0.1 | agentrt-linux | Apache-2.0 | SPDXRef-tee-lib |
 
 ### 3.8 云原生组件
 
@@ -194,8 +194,8 @@ agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
 | Kubernetes 组件 | 1.28+ | kubernetes.io | Apache-2.0 | SPDXRef-k8s |
 | OCI runtime-spec | 1.1+ | opencontainers.org | Apache-2.0 | SPDXRef-oci-spec |
 | CNI 插件 | 1.3+ | github.com/containernetworking | Apache-2.0 | SPDXRef-cni |
-| agentctl | 1.0.1 | agentrt-liunx | Apache-2.0 | SPDXRef-agentctl |
-| 超节点 UMDK | 1.0.1 | agentrt-liunx | Apache-2.0 | SPDXRef-umdk |
+| agentctl | 1.0.1 | agentrt-linux | Apache-2.0 | SPDXRef-agentctl |
+| 超节点 UMDK | 1.0.1 | agentrt-linux | Apache-2.0 | SPDXRef-umdk |
 | runc | 1.1+ | opencontainers.org | Apache-2.0 | SPDXRef-runc |
 
 ### 3.9 第三方核心库
@@ -217,7 +217,7 @@ agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
 
 ### 4.1 许可证分类
 
-| 许可证类别 | 许可证 | 限制级别 | agentrt-liunx 使用 |
+| 许可证类别 | 许可证 | 限制级别 | agentrt-linux 使用 |
 |------------|--------|----------|---------------------|
 | **强 Copyleft** | GPL-2.0-only, GPL-3.0-or-later | 高 | 内核、GCC、binutils |
 | **弱 Copyleft** | LGPL-2.1-only, LGPL-2.1-or-later, LGPL-2.0-or-later | 中 | glibc、systemd、libseccomp |
@@ -242,8 +242,8 @@ agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
 | 要求 | 说明 | 验证方式 |
 |------|------|----------|
 | **内核模块许可证** | 所有内核模块必须使用 GPL-2.0 兼容许可证 | 内核构建时自动检查 MODULE_LICENSE |
-| **发行版整体许可证** | agentrt-liunx 发行版整体许可证为 GPL-2.0-only（与内核一致） | SPDX 文档声明 |
-| **自研组件许可证** | agentrt-liunx（AirymaxOS）自研组件使用 Apache-2.0 | 代码仓库 LICENSE 文件 |
+| **发行版整体许可证** | agentrt-linux 发行版整体许可证为 GPL-2.0-only（与内核一致） | SPDX 文档声明 |
+| **自研组件许可证** | agentrt-linux（AirymaxOS）自研组件使用 Apache-2.0 | 代码仓库 LICENSE 文件 |
 | **第三方组件审核** | 新增第三方组件必须在引入前完成许可证审核 | 许可证合规审查流程 |
 | **许可证冲突检测** | 自动化工具检测许可证冲突 | CI 流水线集成 |
 | **禁止 GPL-3.0 仅内核代码** | 内核代码不能使用 GPL-3.0-only（与 GPL-2.0 不兼容） | 代码审查 |
@@ -261,7 +261,7 @@ agentrt-liunx（AirymaxOS）SBOM 覆盖以下组件类别：
 | **扫描工具** | Trivy + Grype + OSS-Fuzz（内核） |
 | **严重级别** | CRITICAL / HIGH / MEDIUM / LOW / NONE |
 | **响应时间** | CRITICAL: 24h / HIGH: 7d / MEDIUM: 30d / LOW: 90d |
-| **通知机制** | agentrt-liunx-SA 安全公告 + Issue 自动创建 |
+| **通知机制** | agentrt-linux-SA 安全公告 + Issue 自动创建 |
 
 ### 5.2 漏洞扫描流程
 
@@ -322,7 +322,7 @@ SBOM 的生成完全自动化，集成在 CI/CD 流水线中：
 ```mermaid
 graph TD
     A[代码提交] --> B[CI 构建触发]
-    B --> C[构建 agentrt-liunx 发行版]
+    B --> C[构建 agentrt-linux 发行版]
     C --> D[收集组件信息]
     D --> E[生成 SPDX 2.3 SBOM]
     E --> F[验证 SBOM 格式]
@@ -362,7 +362,7 @@ graph TD
 # .github/workflows/sbom-generation.yml
 sbom:
   standard: SPDX-2.3
-  document_name: "agentrt-liunx-{version}-sbom"
+  document_name: "agentrt-linux-{version}-sbom"
   namespace: "https://repo.airymaxos.org/sbom/"
   creator: "Organization: SPHARX Ltd."
   
@@ -401,22 +401,22 @@ sbom:
 
 ### 7.1 IRON-9 v2 三层 SBOM 关系
 
-根据 IRON-9 v2 工程铁律，agentrt-liunx 与 agentrt 的 SBOM 关系遵循三层架构：
+根据 IRON-9 v2 工程铁律，agentrt-linux 与 agentrt 的 SBOM 关系遵循三层架构：
 
 | 层级 | SBOM 关系 | 说明 |
 |------|-----------|------|
-| **[SC] 共享契约层** | 共享 SBOM 片段 | `include/airymax/` 头文件库的 SBOM 片段由 agentrt 维护，agentrt-liunx 引用 |
+| **[SC] 共享契约层** | 共享 SBOM 片段 | `include/airymax/` 头文件库的 SBOM 片段由 agentrt 维护，agentrt-linux 引用 |
 | **[SS] 语义同源层** | 各自独立 SBOM | 各自的实现使用独立组件，SBOM 各自维护 |
 | **[IND] 完全独立层** | 完全独立 SBOM | 无交叉引用，SBOM 完全独立 |
 
 ### 7.2 [SC] 层共享 SBOM 片段
 
-共享契约层的组件（`include/airymax/` 头文件库）在 agentrt 和 agentrt-liunx 的 SBOM 中共同标注：
+共享契约层的组件（`include/airymax/` 头文件库）在 agentrt 和 agentrt-linux 的 SBOM 中共同标注：
 
 ```yaml
-# agentrt-liunx SBOM 中引用 agentrt 共享 SBOM 片段
+# agentrt-linux SBOM 中引用 agentrt 共享 SBOM 片段
 relationships:
-  - spdxElementId: SPDXRef-agentrt-liunx
+  - spdxElementId: SPDXRef-agentrt-linux
     relationshipType: DEPENDS_ON
     relatedSpdxElement: SPDXRef-airymax-contracts
     comment: "IRON-9 v2 [SC] 层 — 共享契约层代码，SBOM 片段由 agentrt 维护"
@@ -443,7 +443,7 @@ relationships:
 | **SBOM 完整性** | SBOM 必须覆盖所有组件（包括传递依赖），不允许遗漏 | E-6 错误可追溯原则 |
 | **SBOM 签名** | SBOM 必须经过 SM2 数字签名，确保完整性和不可否认性 | E-1 安全内生原则 |
 | **SBOM 可验证** | SBOM 必须通过 SPDX 验证工具验证，格式不合规的 SBOM 不得发布 | E-8 可测试性原则 |
-| **SBOM 版本同步** | SBOM 的版本号必须与 agentrt-liunx 发行版版本号一致 | E-7 文档即代码原则 |
+| **SBOM 版本同步** | SBOM 的版本号必须与 agentrt-linux 发行版版本号一致 | E-7 文档即代码原则 |
 | **许可证合规** | 新增组件必须在引入前通过许可证合规审查 | E-1 安全内生原则 |
 
 ### 8.2 SBOM 合规性检查清单

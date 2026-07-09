@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）性能工程设计
+# agentrt-linux（AirymaxOS）性能工程设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）性能工程体系主索引
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）性能工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **优先级**: P1（0.1.1 仅创建 README 占位，1.0.1 完成 6 文档）
@@ -13,9 +13,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 模块定位
 
-agentrt-liunx 性能工程体系是系统在高负载场景下稳定运行的工程保障。它继承 Linux 内核 30+ 年沉淀的性能工程哲学（perf 剖析 + sched_ext 可插拔调度 + MGLRU 内存回收 + io_uring 零拷贝 I/O），并在其上扩展智能体操作系统专属的 Token 能效工程、Agent 延迟 SLO、记忆卷载性能等。
+agentrt-linux 性能工程体系是系统在高负载场景下稳定运行的工程保障。它继承 Linux 内核 30+ 年沉淀的性能工程哲学（perf 剖析 + sched_ext 可插拔调度 + MGLRU 内存回收 + io_uring 零拷贝 I/O），并在其上扩展智能体操作系统专属的 Token 能效工程、Agent 延迟 SLO、记忆卷载性能等。
 
-性能工程不是「调优」的代名词，而是「可测量、可预测、可保障」的工程体系。agentrt-liunx 性能工程的核心理念是：**一切性能指标必须可测量，一切性能回归必须可追溯，一切性能 SLO 必须可保障**。这要求从设计阶段就将性能纳入考量，而非在开发末期才进行「调优」。
+性能工程不是「调优」的代名词，而是「可测量、可预测、可保障」的工程体系。agentrt-linux 性能工程的核心理念是：**一切性能指标必须可测量，一切性能回归必须可追溯，一切性能 SLO 必须可保障**。这要求从设计阶段就将性能纳入考量，而非在开发末期才进行「调优」。
 
 ### 1.1 性能工程分层
 
@@ -26,10 +26,10 @@ agentrt-liunx 性能工程体系是系统在高负载场景下稳定运行的工
 | L3 | I/O 性能 | io_uring + zero-copy | I/O 子系统 |
 | L4 | 网络性能 | AF_XDP + DPDK | 网络栈 |
 | L5 | 锁与并发 | lockdep + KCSAN | 并发正确性 |
-| **L6** | **Token 能效** | **agentrt-liunx 专属** | **Agent Token 消耗** |
-| **L7** | **Agent 延迟 SLO** | **agentrt-liunx 专属** | **Agent 响应延迟** |
+| **L6** | **Token 能效** | **agentrt-linux 专属** | **Agent Token 消耗** |
+| **L7** | **Agent 延迟 SLO** | **agentrt-linux 专属** | **Agent 响应延迟** |
 
-### 1.2 agentrt-liunx 扩展
+### 1.2 agentrt-linux 扩展
 
 - **Token 能效工程**：Token / Watt / Token / Latency 三大能效指标
 - **Agent 延迟 SLO**：认知延迟 / 规划延迟 / 执行延迟三级 SLO
@@ -113,7 +113,7 @@ io_uring_submit(&ring);
 
 ---
 
-## 4. agentrt-liunx 专属扩展
+## 4. agentrt-linux 专属扩展
 
 ### 4.1 Token 能效工程
 
@@ -161,16 +161,16 @@ L4_pat   0.95      100ms        0.01
 
 ### 4.5 同源 agentrt 性能
 
-agentrt 的性能基线与 agentrt-liunx 同源：
+agentrt 的性能基线与 agentrt-linux 同源：
 - agentrt 用户态：`agentrt_metrics_record()` 性能指标采集
-- agentrt-liunx 内核态：`perf_event` + ftrace 性能剖析
+- agentrt-linux 内核态：`perf_event` + ftrace 性能剖析
 - 两端通过 user_events 桥接性能数据
 
 ### 4.6 IRON-9 v2 同源且部分代码共享
 
 性能工程遵循 IRON-9 原则：
 - agentrt 性能基线（用户态运行时性能）
-- agentrt-liunx 性能工程（OS 级 + Agent 专属性能）
+- agentrt-linux 性能工程（OS 级 + Agent 专属性能）
 - 两端独立演进，但通过同源指标保持互操作
 
 ---

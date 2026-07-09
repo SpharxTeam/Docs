@@ -25,7 +25,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - **安全审计员**：审计 Agent 的能力授予与撤销轨迹。
 - **合规集成方**：将企业安全策略接入 Airymax 生态。
 
-本标准遵循 IRON-9 v2 [SC] 共享契约层——capability 令牌格式、LSM 钩子 ID、裁决枚举在 agentrt 与 agentrt-liunx 之间完全共享。
+本标准遵循 IRON-9 v2 [SC] 共享契约层——capability 令牌格式、LSM 钩子 ID、裁决枚举在 agentrt 与 agentrt-linux 之间完全共享。
 
 ### 1.1 术语
 

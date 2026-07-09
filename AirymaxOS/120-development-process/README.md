@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）开发流程设计
+# agentrt-linux（AirymaxOS）开发流程设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS）开发流程工程体系主索引
+> **文档定位**: agentrt-linux（AirymaxOS）开发流程工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **同源映射**: agentrt 开发流程 + Linux 6.6 内核开发流程（development-process.rst 8 章）
@@ -12,9 +12,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 模块定位
 
-agentrt-liunx 开发流程是代码从设计到主线再到稳定发布的全生命周期规范。它继承 Linux 内核 30+ 年沉淀的开发流程哲学（补丁生命周期 + 维护者层级 + 审查优先 + 稳定版维护 + LTS），并在其上适配现代化的 GitHub PR 工作流（替代邮件 + git send-email）。
+agentrt-linux 开发流程是代码从设计到主线再到稳定发布的全生命周期规范。它继承 Linux 内核 30+ 年沉淀的开发流程哲学（补丁生命周期 + 维护者层级 + 审查优先 + 稳定版维护 + LTS），并在其上适配现代化的 GitHub PR 工作流（替代邮件 + git send-email）。
 
-> **注意**：本模块聚焦 agentrt-liunx 特定的开发流程设计。工程标准层面的开发流程规范（规则与编号）详见 [50-engineering-standards/05-development-process.md](../50-engineering-standards/05-development-process.md)。
+> **注意**：本模块聚焦 agentrt-linux 特定的开发流程设计。工程标准层面的开发流程规范（规则与编号）详见 [50-engineering-standards/05-development-process.md](../50-engineering-standards/05-development-process.md)。
 
 ### 1.1 开发流程分层
 
@@ -27,7 +27,7 @@ agentrt-liunx 开发流程是代码从设计到主线再到稳定发布的全生
 | 5. Stable release | 稳定发布 | main | -stable 分支 | 稳定版团队 |
 | 6. LTS | 长期支持 | -stable | LTS 版本 | LTS 维护者 |
 
-### 1.2 agentrt-liunx 适配
+### 1.2 agentrt-linux 适配
 
 - **SCM 现代化**：GitHub PR（替代邮件 + git send-email）
 - **审查工具**：GitHub PR review + CODEOWNERS + DCO bot
@@ -56,7 +56,7 @@ Design → Early review → Wider review → Mainline → Stable release → Lon
     ↓ pull 请求
 顶级子系统维护者（airymaxos 总维护者）
     ↓ pull 请求
-agentrt-liunx 总维护者（BDFL 角色）
+agentrt-linux 总维护者（BDFL 角色）
 ```
 
 ### 2.3 -next 树等价物
@@ -143,7 +143,7 @@ Actual diff
 
 ---
 
-## 4. agentrt-liunx 专属扩展
+## 4. agentrt-linux 专属扩展
 
 ### 4.1 8 子仓协同开发流程
 
@@ -154,8 +154,8 @@ Actual diff
 
 ### 4.2 同源 agentrt 协同
 
-agentrt 与 agentrt-liunx 的同源 API（MicroCoreRT/AgentsIPC/Cupolas/MemoryRovol/CoreLoopThree）变更流程：
-- **RFC 双向同步**：agentrt 端 RFC 必须同步到 agentrt-liunx 端，反之亦然
+agentrt 与 agentrt-linux 的同源 API（MicroCoreRT/AgentsIPC/Cupolas/MemoryRovol/CoreLoopThree）变更流程：
+- **RFC 双向同步**：agentrt 端 RFC 必须同步到 agentrt-linux 端，反之亦然
 - **兼容性测试**：变更必须通过两端兼容性测试
 - **季度评审**：季度评审同源 API 漂移
 
@@ -163,7 +163,7 @@ agentrt 与 agentrt-liunx 的同源 API（MicroCoreRT/AgentsIPC/Cupolas/MemoryRo
 
 开发流程遵循 IRON-9 原则：
 - agentrt 开发流程（用户态运行时规范）
-- agentrt-liunx 开发流程（内核发行版规范）
+- agentrt-linux 开发流程（内核发行版规范）
 - 两端独立演进，但通过同源 API 保持互操作
 
 ---

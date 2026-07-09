@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）国际化与本地化设计
+# agentrt-linux（AirymaxOS）国际化与本地化设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）国际化与本地化工程体系主索引
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）国际化与本地化工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **优先级**: P2（0.1.1 仅创建 README 占位，1.0.1 完成 4 文档）
@@ -13,9 +13,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 模块定位
 
-agentrt-liunx 国际化与本地化体系是面向全球开发者和用户的工程保障。它继承 Linux 发行版 30+ 年沉淀的国际化哲学（locale + gettext + iconv + Unicode），并在其上扩展智能体操作系统专属的多语言 Agent 提示词、多区域记忆卷载、多语言文档同步等。
+agentrt-linux 国际化与本地化体系是面向全球开发者和用户的工程保障。它继承 Linux 发行版 30+ 年沉淀的国际化哲学（locale + gettext + iconv + Unicode），并在其上扩展智能体操作系统专属的多语言 Agent 提示词、多区域记忆卷载、多语言文档同步等。
 
-国际化不是「翻译」的代名词，而是「文化适配」的工程体系。agentrt-liunx 国际化的核心理念是：**系统界面必须支持多语言，Agent 提示词必须支持多文化，文档必须多语言同步**。这要求从设计阶段就将国际化纳入考量，而非在发布末期才进行翻译。
+国际化不是「翻译」的代名词，而是「文化适配」的工程体系。agentrt-linux 国际化的核心理念是：**系统界面必须支持多语言，Agent 提示词必须支持多文化，文档必须多语言同步**。这要求从设计阶段就将国际化纳入考量，而非在发布末期才进行翻译。
 
 ### 1.1 国际化分层
 
@@ -25,10 +25,10 @@ agentrt-liunx 国际化与本地化体系是面向全球开发者和用户的工
 | L2 | 区域设置 | locale + LC_* | 区域格式 |
 | L3 | 消息国际化 | gettext + .po / .mo | 翻译 |
 | L4 | 输入法 | IBus / Fcitx | 输入 |
-| **L5** | **Agent 提示词** | **agentrt-liunx 专属** | **多语言提示词** |
-| **L6** | **记忆卷载区域** | **agentrt-liunx 专属** | **多区域记忆** |
+| **L5** | **Agent 提示词** | **agentrt-linux 专属** | **多语言提示词** |
+| **L6** | **记忆卷载区域** | **agentrt-linux 专属** | **多区域记忆** |
 
-### 1.2 agentrt-liunx 扩展
+### 1.2 agentrt-linux 扩展
 
 - **多语言 Agent 提示词**：Agent 系统提示词支持中文 / 英文 / 日文等
 - **多区域记忆卷载**：记忆卷载支持区域差异化（如中文知识库 / 英文知识库）
@@ -64,7 +64,7 @@ int main() {
     bindtextdomain("airymaxos", "/usr/share/locale");
     textdomain("airymaxos");
     
-    printf(gettext("agentrt-liunx started\n"));
+    printf(gettext("agentrt-linux started\n"));
     return 0;
 }
 ```
@@ -105,7 +105,7 @@ docs/AirymaxAgentOS/50-engineering-standards/
 
 ---
 
-## 4. agentrt-liunx 专属扩展
+## 4. agentrt-linux 专属扩展
 
 ### 4.1 多语言 Agent 提示词
 
@@ -143,16 +143,16 @@ memoryRovol:
 
 ### 4.4 同源 agentrt 国际化
 
-agentrt 的多语言错误码与 agentrt-liunx 同源：
+agentrt 的多语言错误码与 agentrt-linux 同源：
 - agentrt 用户态：`agentrt_strerror()` 多语言错误码
-- agentrt-liunx 内核态：`printk` + gettext 多语言内核消息
+- agentrt-linux 内核态：`printk` + gettext 多语言内核消息
 - 两端通过同源错误码保持一致
 
 ### 4.5 IRON-9 v2 同源且部分代码共享
 
 国际化体系遵循 IRON-9 原则：
 - agentrt 国际化（用户态运行时多语言）
-- agentrt-liunx 国际化（OS 级 + Agent 提示词）
+- agentrt-linux 国际化（OS 级 + Agent 提示词）
 - 两端独立演进，但通过同源错误码保持互操作
 
 ---

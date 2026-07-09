@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）云原生设计文档（airymaxos-cloudnative，极境云原生）
+# agentrt-linux（AirymaxOS）云原生设计文档（airymaxos-cloudnative，极境云原生）
 
 > **子仓编号**：06
 > **子仓代号**：极境云原生（Airymax Cloud Native）
@@ -20,7 +20,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [4. 核心特性](#4-核心特性)
 - [5. 微内核思想体现](#5-微内核思想体现)
 - [6. IRON-9 v2 三层共享模型落地](#6-iron-9-v2-三层共享模型落地)
-- [7. agentrt-liunx 工程基线](#7-agentrt-liunx-工程基线)
+- [7. agentrt-linux 工程基线](#7-agentrt-linux-工程基线)
 - [8. 前沿理论参考](#8-前沿理论参考)
 - [9. 与其他子仓的协作](#9-与其他子仓的协作)
 - [10. 里程碑（M1-M6）](#10-里程碑m1-m6)
@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-cloudnative` 是 agentrt-liunx（AirymaxOS）的云原生基础设施子仓，承担以下核心职责：
+`airymaxos-cloudnative` 是 agentrt-linux（AirymaxOS）的云原生基础设施子仓，承担以下核心职责：
 
 1. **Kubernetes 集成 [IND]**：将 Agent 作为 Kubernetes CRD（Custom Resource Definition）原生集成，控制器 reconcile 期望状态。
 2. **containerd shim [IND]**：提供 containerd shim v2，实现 Agent 容器化运行（Wasm/runc/进程三模式）。
@@ -41,12 +41,12 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 5. **agentctl [SS]**：对标 kubectl 的 Agent 管理命令行工具，与 agentrt sdk 管理接口语义同源。
 6. **OpenTelemetry 可观测性 [IND]**：集成 OpenTelemetry 提供统一 Tracing/Metrics/Logs 可观测性。
 7. **DPU/IPU 卸载支持 [IND]**：支持 NVIDIA BlueField / Intel IPU 硬件卸载。
-8. **超节点 OS [IND]**：基于 agentrt-liunx 超节点 OS 实现多 die/多 chip 统一管理与跨 die 迁移。
+8. **超节点 OS [IND]**：基于 agentrt-linux 超节点 OS 实现多 die/多 chip 统一管理与跨 die 迁移。
 9. **gateway_d 网关 [SS]**：与 agentrt gateway 网关语义同源，升级为 K8s Ingress + OS 级 gateway_d 守护进程，IPC 消息头 [SC] 共享。
 
 ### 1.1 横切关注点声明
 
-云原生是横切关注点（cross-cutting concern），贯穿 agentrt-liunx 全部 4 大数据流：
+云原生是横切关注点（cross-cutting concern），贯穿 agentrt-linux 全部 4 大数据流：
 
 | 数据流 | 云原生切入点 | 同源标注 |
 |--------|-------------|----------|
@@ -59,7 +59,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 gateway + sdk）与 agentrt-liunx（airymaxos-cloudnative）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 gateway + sdk）与 agentrt-linux（airymaxos-cloudnative）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 云原生子系统内容 | 组织方式 |
 |------|---------|-----------------|---------|
@@ -69,7 +69,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（gateway + sdk） | agentrt-liunx（airymaxos-cloudnative） | 同源标注 |
+| 维度 | agentrt（gateway + sdk） | agentrt-linux（airymaxos-cloudnative） | 同源标注 |
 |------|------------------------|----------------------------------|----------|
 | 网关语义 | gateway（应用层网关） | K8s Ingress + gateway_d（OS 级） | [SS] |
 | IPC 消息头 | `agentrt_ipc_msg_hdr_t`（128B） | `agentrt_ipc_msg_hdr_t`（128B） | [SC] |
@@ -107,7 +107,7 @@ airymaxos-cloudnative/
 ├── agentctl/              # agentctl（对标 kubectl）[SS]
 ├── observability/          # OpenTelemetry 可观测性 [IND]
 ├── dpu-ipu/                # DPU/IPU 卸载支持 [IND]
-├── super-node-os/          # 超节点 OS（agentrt-liunx 自研）[IND]
+├── super-node-os/          # 超节点 OS（agentrt-linux 自研）[IND]
 └── docs/
 ```
 
@@ -136,7 +136,7 @@ airymaxos-cloudnative/
 
 ### 3.4 cni/（CNI 插件）[IND]
 
-- `airymax-cni`：agentrt-liunx CNI 插件 [IND]。
+- `airymax-cni`：agentrt-linux CNI 插件 [IND]。
 - `service-mesh`：服务网格（基于 eBPF 数据平面）[IND]。
 - `network-policy`：网络策略（与 `airymaxos-security` 协作，capability 38 ID [SC]）[IND]。
 - `multus`：Multus 多 CNI 支持 [IND]。
@@ -167,7 +167,7 @@ agentctl 与 agentrt sdk 管理接口语义同源 [SS]：
 
 ### 3.8 super-node-os/（超节点 OS）[IND]
 
-基于 **agentrt-liunx 超节点 OS**：
+基于 **agentrt-linux 超节点 OS**：
 - `topology`：超节点拓扑管理 [IND]。
 - `scheduling`：超节点调度（NUMA 感知）[IND]。
 - `migration`：跨节点迁移（与 MemoryRovol 协作，MemoryRovol L1-L4 数据结构 [SC]）[IND]。
@@ -293,9 +293,9 @@ agentctl snapshot my-agent --output snapshot.tar
 - 安全卸载：IPSec、TLS、防火墙 [IND]。
 - 虚拟化卸载：virtio、SR-IOV [IND]。
 
-### 4.8 超节点 OS（agentrt-liunx 自研）[IND]
+### 4.8 超节点 OS（agentrt-linux 自研）[IND]
 
-基于 **agentrt-liunx 超节点 OS**：
+基于 **agentrt-linux 超节点 OS**：
 - 超节点拓扑：多 die/多 chip 统一管理 [IND]。
 - NUMA 感知调度：优先本地 die 调度 [IND]。
 - 跨 die 迁移：基于 MemoryRovol 跨 die 迁移（MemoryRovol L1-L4 数据结构 [SC]）[IND]。
@@ -312,7 +312,7 @@ gateway_d 是 agentrt gateway 在 OS 级的升级形态 [SS]：
 **gateway_d io_uring IPC 消息头** [SC]（`include/airymax/ipc.h`，与 agentrt 共享）：
 
 ```c
-/* 128B 消息头 [SC]——agentrt 与 agentrt-liunx 共享 */
+/* 128B 消息头 [SC]——agentrt 与 agentrt-linux 共享 */
 typedef struct __attribute__((aligned(64))) agentrt_ipc_msg_hdr {
     uint32_t magic;          /* 0x41524531 'ARE1' */
     uint16_t version;        /* 协议版本 */
@@ -376,7 +376,7 @@ typedef struct __attribute__((aligned(64))) agentrt_ipc_msg_hdr {
 
 API 签名同源，实现独立。云原生模块的同源 API：
 
-| 序号 | 语义 | agentrt 实现 | agentrt-liunx 实现 |
+| 序号 | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|------|-------------|-------------------|
 | 1 | gateway 网关 | 应用层 gateway | K8s Ingress + gateway_d |
 | 2 | SDK 管理接口 | sdk CLI | agentctl（对标 kubectl） |
@@ -393,18 +393,18 @@ API 签名同源，实现独立。云原生模块的同源 API：
 
 | 序号 | 内容 | 不共享原因 |
 |------|------|-----------|
-| 1 | K8s CRD 定义与控制器 | K8s 原生仅 agentrt-liunx |
-| 2 | containerd shim v2 实现 | 容器运行时仅 agentrt-liunx |
-| 3 | OCI 镜像规范实现 | 镜像规范仅 agentrt-liunx |
-| 4 | CNI 插件实现 | 网络插件仅 agentrt-liunx |
-| 5 | OpenTelemetry 集成 | 统一可观测性仅 agentrt-liunx |
-| 6 | DPU/IPU 卸载框架 | 硬件卸载仅 agentrt-liunx |
-| 7 | 超节点 OS | 多 die 管理仅 agentrt-liunx |
-| 8 | K8s 自定义调度器 | K8s 调度器仅 agentrt-liunx |
-| 9 | 准入 webhook | K8s webhook 仅 agentrt-liunx |
-| 10 | Multus 多 CNI | 多网络仅 agentrt-liunx |
-| 11 | eBPF 采集器 | 内核 eBPF 仅 agentrt-liunx |
-| 12 | systemd 集成（gateway_d） | OS 级服务管理仅 agentrt-liunx |
+| 1 | K8s CRD 定义与控制器 | K8s 原生仅 agentrt-linux |
+| 2 | containerd shim v2 实现 | 容器运行时仅 agentrt-linux |
+| 3 | OCI 镜像规范实现 | 镜像规范仅 agentrt-linux |
+| 4 | CNI 插件实现 | 网络插件仅 agentrt-linux |
+| 5 | OpenTelemetry 集成 | 统一可观测性仅 agentrt-linux |
+| 6 | DPU/IPU 卸载框架 | 硬件卸载仅 agentrt-linux |
+| 7 | 超节点 OS | 多 die 管理仅 agentrt-linux |
+| 8 | K8s 自定义调度器 | K8s 调度器仅 agentrt-linux |
+| 9 | 准入 webhook | K8s webhook 仅 agentrt-linux |
+| 10 | Multus 多 CNI | 多网络仅 agentrt-linux |
+| 11 | eBPF 采集器 | 内核 eBPF 仅 agentrt-linux |
+| 12 | systemd 集成（gateway_d） | OS 级服务管理仅 agentrt-linux |
 
 ### 6.4 跨态协作流
 
@@ -469,12 +469,12 @@ graph TD
 
 ---
 
-## 7. agentrt-liunx 工程基线
+## 7. agentrt-linux 工程基线
 
-- **agentrt-liunx 云原生治理组**：云原生最佳实践。
-- **agentrt-liunx 超节点 OS**：超节点 OS 设计基线。
-- **agentrt-liunx K8s 发行版**：K8s 集成基线。
-- **agentrt-liunx 容器运行时**：containerd 集成基线。
+- **agentrt-linux 云原生治理组**：云原生最佳实践。
+- **agentrt-linux 超节点 OS**：超节点 OS 设计基线。
+- **agentrt-linux K8s 发行版**：K8s 集成基线。
+- **agentrt-linux 容器运行时**：containerd 集成基线。
 
 ---
 
@@ -524,7 +524,7 @@ graph TD
 
 | 检查项 | 验证内容 | 结果 |
 |--------|----------|------|
-| 命名一致性 | 核心表述使用 `agentrt-liunx（AirymaxOS）` 全角括号配对 | ✅ PASS |
+| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | ✅ PASS |
 | 语义同源标注 | gateway/sdk/Agent 生命周期/资源声明等标注 [SS] | ✅ PASS |
 | IRON-9 v2 三层合规 | [SC] 3 头文件 + [SS] 10 API + [IND] 12 项独立实现 | ✅ PASS |
 | [SC] 头文件引用 | ipc.h + security_types.h + cognition_types.h 均在 §1.3/§6.1 引用 | ✅ PASS |
@@ -555,6 +555,6 @@ graph TD
 - OpenTelemetry 官方文档
 - NVIDIA BlueField 文档
 - Intel IPU 文档
-- agentrt-liunx 云原生治理组文档
-- agentrt-liunx 超节点 OS 文档
+- agentrt-linux 云原生治理组文档
+- agentrt-linux 超节点 OS 文档
 - agentrt gateway + sdk 设计文档

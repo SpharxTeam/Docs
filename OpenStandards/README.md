@@ -31,12 +31,12 @@ Airymax 项目包含两个核心产品：
 | 产品                | 标准名称                              | 定位                                          |
 | ----------------- | --------------------------------- | ------------------------------------------- |
 | **agentrt**       | AirymaxAgentRT 极境智能体运行底座平台工程      | 用户态 AI Agent 运行时平台工程，定位为**微核心**（micro-core） |
-| **agentrt-liunx** | agentrt-liunx（AirymaxOS）极境智能体操作系统 | 智能体操作系统发行版，定位为**微内核**（micro-kernel）         |
+| **agentrt-linux** | agentrt-linux（AirymaxOS）极境智能体操作系统 | 智能体操作系统发行版，定位为**微内核**（micro-kernel）         |
 
 术语约束：
 
 - **agentrt = 微核心**：agentrt 的 MicroCoreRT 是用户态微核心运行时，**不得**用"微内核"描述 agentrt。
-- **agentrt-liunx = 微内核**：agentrt-liunx 基于 Linux 6.6 内核基线进行微内核化改造（sched\_ext + eBPF + io\_uring），将 VFS、网络栈、部分驱动移到用户态。
+- **agentrt-linux = 微内核**：agentrt-linux 基于 Linux 6.6 内核基线进行微内核化改造（sched\_ext + eBPF + io\_uring），将 VFS、网络栈、部分驱动移到用户态。
 - 本体系标准**不依赖任何特定上游发行版**，文档中**不出现**任何具体上游发行版名称。
 
 ### 2.1 开放标准 vs. 工程标准
@@ -53,7 +53,7 @@ Airymax 项目包含两个核心产品：
 
 ### 2.2 同源与共享层次
 
-本体系标准来自 agentrt 与 agentrt-liunx 的共同抽象，遵循 IRON-9 v2 三层模型：
+本体系标准来自 agentrt 与 agentrt-linux 的共同抽象，遵循 IRON-9 v2 三层模型：
 
 | 层次    | 标注     | 共享程度          | 在开放标准中的体现                     |
 | ----- | ------ | ------------- | ----------------------------- |
@@ -213,7 +213,7 @@ Airymax 项目包含两个核心产品：
 | 术语        | 标准名称                      | 含义                                 |
 | --------- | ------------------------- | ---------------------------------- |
 | 微核心       | MicroCore                 | agentrt 的 MicroCoreRT 是用户态微核心运行时   |
-| 微内核       | Microkernel               | agentrt-liunx 基于 Linux 6.6 的微内核化改造 |
+| 微内核       | Microkernel               | agentrt-linux 基于 Linux 6.6 的微内核化改造 |
 | Agent 运行时 | Airymax Agent Runtime     | 见 01 标准                            |
 | Agent 间通信 | AgentsIPC                 | 见 02 标准                            |
 | 安全穹顶      | Cupolas                   | 见 03 标准                            |
@@ -226,8 +226,8 @@ Airymax 项目包含两个核心产品：
 
 ## 十、参考文献
 
-- agentrt-liunx（AirymaxOS）统一术语表：`docs/AirymaxAgentOS/TERMINOLOGY.md`
-- agentrt-liunx 工程标准规范手册：`docs/AirymaxAgentOS/50-engineering-standards/00-engineering-standards-handbook.md`
+- agentrt-linux（AirymaxOS）统一术语表：`docs/AirymaxAgentOS/TERMINOLOGY.md`
+- agentrt-linux 工程标准规范手册：`docs/AirymaxAgentOS/50-engineering-standards/00-engineering-standards-handbook.md`
 - 五维正交 24 原则：`docs/AirymaxAgentOS/10-architecture/02-five-dimensional-principles.md`
 - IPC 协议契约：`docs/AirymaxAgentOS/50-engineering-standards/20-contracts/ipc_protocol_contract.md`
 - L1 核心运行时接口规范：`docs/AirymaxAgentOS/50-engineering-standards/30-runtime-interfaces/L1_runtime_interface.md`

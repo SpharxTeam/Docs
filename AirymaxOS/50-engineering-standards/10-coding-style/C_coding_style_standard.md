@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）C 语言编码风格规范
+# agentrt-linux（AirymaxOS）C 语言编码风格规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS）内核态 C 语言编码风格规范
+> **文档定位**: agentrt-linux（AirymaxOS）内核态 C 语言编码风格规范
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
 > **父文档**: [编码规范总览](README.md)
@@ -15,9 +15,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 基于 Linux 内核编码风格
 
-agentrt-liunx（AirymaxOS）的 C 语言编码风格以 Linux 6.6 内核 `Documentation/process/coding-style.rst` 为基线。这不是简单的照搬，而是在 Linux 30 余年内核工程思想的基础上，针对 agentrt-liunx（AirymaxOS）的智能体操作系统场景进行的定制化落地。
+agentrt-linux（AirymaxOS）的 C 语言编码风格以 Linux 6.6 内核 `Documentation/process/coding-style.rst` 为基线。这不是简单的照搬，而是在 Linux 30 余年内核工程思想的基础上，针对 agentrt-linux（AirymaxOS）的智能体操作系统场景进行的定制化落地。
 
-与 Linux 内核编码风格的关系：**基线对齐，扩展独立**。agentrt-liunx（AirymaxOS）在基线基础上增加了以下专属规则：
+与 Linux 内核编码风格的关系：**基线对齐，扩展独立**。agentrt-linux（AirymaxOS）在基线基础上增加了以下专属规则：
 - `agentrt_` / `airymaxos_` 前缀隔离（OS-STD-005）
 - IRON-9 v2 三层模型代码归属标注
 - 五维正交 24 原则映射注释
@@ -25,7 +25,7 @@ agentrt-liunx（AirymaxOS）的 C 语言编码风格以 Linux 6.6 内核 `Docume
 
 ### 1.2 文档范围
 
-本规范定义 agentrt-liunx（AirymaxOS）**内核态 C 代码**的编码风格，涵盖：
+本规范定义 agentrt-linux（AirymaxOS）**内核态 C 代码**的编码风格，涵盖：
 - 缩进、空格、行宽（§2）
 - 命名约定（§3）
 - 函数定义规范（§4）
@@ -118,14 +118,14 @@ for (i = 0; i < count; i++)
 
 ### 3.1 agentrt_ 前缀（OS-STD-005）
 
-> **OS-STD-005**（复用）：`agentrt_*` 前缀保留给 agentrt 同源 API（[SS] 语义同源层）；`airymaxos_*` 前缀用于 agentrt-liunx（AirymaxOS）内核/发行版专属 API（[IND] 完全独立层）。两者共享 Airymax 同源语义，但前缀隔离确保无适配层互操作时不冲突。
+> **OS-STD-005**（复用）：`agentrt_*` 前缀保留给 agentrt 同源 API（[SS] 语义同源层）；`airymaxos_*` 前缀用于 agentrt-linux（AirymaxOS）内核/发行版专属 API（[IND] 完全独立层）。两者共享 Airymax 同源语义，但前缀隔离确保无适配层互操作时不冲突。
 
 ```c
 /* [SS] 语义同源层：与 agentrt 同源 API */
 int agentrt_ipc_send(u32 chan, const void *msg, size_t len);
 int agentrt_task_submit(struct agentrt_task *task);
 
-/* [IND] 完全独立层：agentrt-liunx（AirymaxOS）专属 API */
+/* [IND] 完全独立层：agentrt-linux（AirymaxOS）专属 API */
 int airymaxos_lsm_hook_register(const struct security_hook_list *hooks);
 int airymaxos_sched_class_register(struct sched_class *sc);
 ```
@@ -369,7 +369,7 @@ out_free_session:
 
 ### 7.4 错误码规范
 
-agentrt-liunx（AirymaxOS）内核态错误码对齐 agentrt 错误码体系（[SS] 语义同源层），使用 `AGENTRT_E*` 前缀：
+agentrt-linux（AirymaxOS）内核态错误码对齐 agentrt 错误码体系（[SS] 语义同源层），使用 `AGENTRT_E*` 前缀：
 
 ```c
 /* [SS] 语义同源层：错误码体系（agentrt_errno.h 与内核态映射一致） */
@@ -409,7 +409,7 @@ graph TD
     style FREE_S fill:#16213e,stroke:#e94560,color:#eee
 ```
 
-> **要点**：goto 集中出口 + 分级标签按分配逆序释放。每个标签只释放一个资源，标签按分配顺序逆序排列。这是 agentrt-liunx（AirymaxOS）内核态错误处理的核心范式。
+> **要点**：goto 集中出口 + 分级标签按分配逆序释放。每个标签只释放一个资源，标签按分配顺序逆序排列。这是 agentrt-linux（AirymaxOS）内核态错误处理的核心范式。
 
 ---
 
@@ -472,7 +472,7 @@ buf = krealloc(buf, new_size, GFP_KERNEL);
 
 ## 9. 锁与并发规范
 
-### 9.1 共享数据必须用同步原语保护（OS-KER-007 复用）
+### 9.1 共享数据必须用同步原语保护（OS-KER-053 复用）
 
 共享数据必须通过 spinlock / mutex / memory barrier / RCU 保护。锁保持数据一致性，引用计数管理生命周期，两者不可互替。
 
@@ -531,7 +531,7 @@ kfree(old);
 
 ### 10.1 [SC] 层定义
 
-[SC] 共享契约层是 IRON-9 v2 三层模型中**代码完全共享**的层级。agentrt-liunx（AirymaxOS）与 agentrt 共享 `include/airymax/` 下的 6 个头文件：
+[SC] 共享契约层是 IRON-9 v2 三层模型中**代码完全共享**的层级。agentrt-linux（AirymaxOS）与 agentrt 共享 `include/airymax/` 下的 6 个头文件：
 - `bpf_struct_ops.h`：sched_ext BPF 调度器 struct_ops 状态机 + common_value
 - `memory_types.h`：MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口
 - `security_types.h`：Cupolas capability 令牌结构、POSIX capability 38 ID 枚举、LSM 钩子 254 ID 枚举、capability 派生模型、Vault backend 抽象、策略裁决 4 值枚举
@@ -545,7 +545,7 @@ kfree(old);
 > 1. **零内核依赖**：不能 `#include` 任何 Linux 内核头文件（`<linux/*>`、`<asm/*>`）
 > 2. **纯 C99 标准**：仅使用 C99 标准类型和语法，确保跨平台可编译
 > 3. **零副作用**：仅含类型定义、常量、宏、static inline 函数，不含任何有副作用的代码
-> 4. **双向兼容**：变更必须同步通过 agentrt 和 agentrt-liunx 两端的 CI 检查
+> 4. **双向兼容**：变更必须同步通过 agentrt 和 agentrt-linux 两端的 CI 检查
 > 5. **版本锁定**：头文件变更必须伴随语义版本号变更（MAJOR.MINOR.PATCH）
 
 ```c
@@ -583,7 +583,7 @@ struct agentrt_ipc_msg_hdr {
 
 ### 10.3 [SS] 语义同源层代码编写规则（OS-KER-022）
 
-> **OS-KER-022**：[SS] 语义同源层 API 签名必须与 agentrt 同源 API 一致（函数名、参数类型、返回值），但实现独立。agentrt-liunx（AirymaxOS）可使用内核原语（`kmalloc`、`spinlock`、`kthread`）实现，agentrt 使用用户态原语（`malloc`、`pthread_mutex`、`pthread_create`）实现。
+> **OS-KER-022**：[SS] 语义同源层 API 签名必须与 agentrt 同源 API 一致（函数名、参数类型、返回值），但实现独立。agentrt-linux（AirymaxOS）可使用内核原语（`kmalloc`、`spinlock`、`kthread`）实现，agentrt 使用用户态原语（`malloc`、`pthread_mutex`、`pthread_create`）实现。
 
 ```c
 /* [SS] 语义同源层：签名与 agentrt 一致，实现使用内核原语 */
@@ -609,14 +609,14 @@ int agentrt_ipc_send(u32 channel, const void *msg, size_t len)
 
 ## 11. 代码示例：完整的 agentrt 内核模块
 
-以下是一个完整的 agentrt-liunx（AirymaxOS）内核模块示例，展示上述所有规范的集成应用：
+以下是一个完整的 agentrt-linux（AirymaxOS）内核模块示例，展示上述所有规范的集成应用：
 
 ```c
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note
 /*
- * agentrt-liunx（AirymaxOS）简单 IPC 通道模块
+ * agentrt-linux（AirymaxOS）简单 IPC 通道模块
  *
- * 此模块演示 agentrt-liunx C 编码风格规范的综合应用。
+ * 此模块演示 agentrt-linux C 编码风格规范的综合应用。
  * [SS] 语义同源层：API 签名与 agentrt 用户态 agentrt_ipc_channel 一致。
  *
  * Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
@@ -716,7 +716,7 @@ EXPORT_SYMBOL_GPL(agentrt_ipc_channel_put);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("SPHARX Ltd.");
-MODULE_DESCRIPTION("agentrt-liunx（AirymaxOS）IPC Channel Module");
+MODULE_DESCRIPTION("agentrt-linux（AirymaxOS）IPC Channel Module");
 ```
 
 ---
@@ -754,7 +754,7 @@ MODULE_DESCRIPTION("agentrt-liunx（AirymaxOS）IPC Channel Module");
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| 0.1.1 | 2026-07-07 | 初始版本：基于 Linux 6.6 coding-style.rst 基线，融合 agentrt-liunx 专属规范 |
+| 0.1.1 | 2026-07-07 | 初始版本：基于 Linux 6.6 coding-style.rst 基线，融合 agentrt-linux 专属规范 |
 | 1.0.1 | TBD | 首个开发版本：与代码实现同步验证 |
 
 ---

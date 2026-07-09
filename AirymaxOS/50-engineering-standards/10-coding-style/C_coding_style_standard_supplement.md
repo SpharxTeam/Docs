@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）C 语言编码规范强化补充
+# agentrt-linux（AirymaxOS）C 语言编码规范强化补充
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）内核态 C 语言编码规范的强化补充规则，与 `C_coding_style_standard.md` 配套使用。本文件聚焦 12 条强化规则，每条规则附 OLK-6.6 源码路径，并以"正确示例 / 错误示例"成对呈现。
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）内核态 C 语言编码规范的强化补充规则，与 `C_coding_style_standard.md` 配套使用。本文件聚焦 12 条强化规则，每条规则附 OLK-6.6 源码路径，并以"正确示例 / 错误示例"成对呈现。
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
@@ -29,7 +29,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 11. 禁止 `BUG()`/`BUG_ON()`，改用 `WARN()`（OS-KER-015）
 12. `sizeof(*p)` 替代 `sizeof(struct xxx)`（OS-STD-CODE-012）
 
-> **术语约束**：agentrt（用户态）= 微核心（micro-core）；agentrt-liunx（OS 发行版）= 微内核（micro-kernel）。本规范描述 agentrt-liunx 时使用"微内核"上下文，描述 agentrt 共享原语时使用"微核心原语"。
+> **术语约束**：agentrt（用户态）= 微核心（micro-core）；agentrt-linux（OS 发行版）= 微内核（micro-kernel）。本规范描述 agentrt-linux 时使用"微内核"上下文，描述 agentrt 共享原语时使用"微核心原语"。
 
 ### 0.2 OLK-6.6 源码路径标注规范
 
@@ -41,7 +41,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 规则文本
 
-agentrt-liunx 内核态 C 代码**必须**使用 Tab 字符缩进，Tab 宽度固定为 8 个字符。禁止使用空格缩进（Kconfig 例外）。8 字符缩进是"代码复杂度的自然惩罚"：嵌套超过 3 层即提示应重构。
+agentrt-linux 内核态 C 代码**必须**使用 Tab 字符缩进，Tab 宽度固定为 8 个字符。禁止使用空格缩进（Kconfig 例外）。8 字符缩进是"代码复杂度的自然惩罚"：嵌套超过 3 层即提示应重构。
 
 ### 1.2 OLK-6.6 源码路径
 
@@ -195,7 +195,7 @@ static int agentrt_ipc_send(struct agentrt_ipc_chan *chan,
 
 ### 4.1 规则文本
 
-agentrt-liunx 内核态代码**禁止**使用 `float`/`double` 浮点类型。x86 编译强制 `-mno-80387` 禁止 x87 指令生成。所有需要小数运算的场景**必须**使用 `airymax_q16_t`（`int32_t`）Q16.16 定点数：高 16 位为整数部分，低 16 位为小数部分。定点运算辅助宏定义于 `include/airymax/cognition_types.h`。
+agentrt-linux 内核态代码**禁止**使用 `float`/`double` 浮点类型。x86 编译强制 `-mno-80387` 禁止 x87 指令生成。所有需要小数运算的场景**必须**使用 `airymax_q16_t`（`int32_t`）Q16.16 定点数：高 16 位为整数部分，低 16 位为小数部分。定点运算辅助宏定义于 `include/airymax/cognition_types.h`。
 
 ### 4.2 OLK-6.6 源码路径
 
@@ -406,7 +406,7 @@ static int agentrt_task_enqueue(agentrt_task_t *task);	/* WRONG: 用 typedef 名
 
 ### 9.1 规则文本
 
-agentrt-liunx 内核构建**必须**零警告通过。`Makefile` 必须启用 `-Wall -Werror`，`scripts/checkpatch.pl` 必须以 0 ERROR / 0 WARNING 通过。CI 门禁中任何警告即视为构建失败，禁止以注释抑制（`// NOLINT` 等）掩盖警告。`__deprecated` 属性不再产生构建警告，因此废弃接口必须从代码中彻底移除或登记到 `100-deprecated-api-registry.md`。
+agentrt-linux 内核构建**必须**零警告通过。`Makefile` 必须启用 `-Wall -Werror`，`scripts/checkpatch.pl` 必须以 0 ERROR / 0 WARNING 通过。CI 门禁中任何警告即视为构建失败，禁止以注释抑制（`// NOLINT` 等）掩盖警告。`__deprecated` 属性不再产生构建警告，因此废弃接口必须从代码中彻底移除或登记到 `100-deprecated-api-registry.md`。
 
 ### 9.2 OLK-6.6 源码路径
 
@@ -449,7 +449,7 @@ static int agentrt_sched_idle(struct agentrt_sched *sched)
 
 ### 10.1 规则文本
 
-agentrt-liunx 内核态**禁止**新增 `strcpy`、`strncpy`、`strlcpy` 调用。所有以 NUL 结尾的字符串复制**必须**使用 `strscpy`；需要 NUL 填充的使用 `strscpy_pad`；非 NUL 结尾的使用 `strtomem`/`strtomem_pad`。`strscpy` 返回已复制的非 NUL 字节数（截断时返回负 errno），调用方必须据此处理截断。
+agentrt-linux 内核态**禁止**新增 `strcpy`、`strncpy`、`strlcpy` 调用。所有以 NUL 结尾的字符串复制**必须**使用 `strscpy`；需要 NUL 填充的使用 `strscpy_pad`；非 NUL 结尾的使用 `strtomem`/`strtomem_pad`。`strscpy` 返回已复制的非 NUL 字节数（截断时返回负 errno），调用方必须据此处理截断。
 
 ### 10.2 OLK-6.6 源码路径
 
@@ -503,7 +503,7 @@ static int agentrt_chan_set_name2(struct agentrt_ipc_chan *chan,
 
 ### 11.1 规则文本
 
-agentrt-liunx 内核态**禁止**新增 `BUG()`、`BUG_ON()`、`VM_BUG_ON()`。必须改用 `WARN_ON_ONCE()`（首选）或 `WARN()`，并尽可能提供恢复代码。"我懒得做错误处理"不是使用 `BUG()` 的借口。`WARN*()` 仅用于"预期不可达"场景；"可达但 undesirable"场景使用 `pr_warn()`。`BUILD_BUG_ON()` 是编译期断言，无运行时影响，允许且鼓励使用。
+agentrt-linux 内核态**禁止**新增 `BUG()`、`BUG_ON()`、`VM_BUG_ON()`。必须改用 `WARN_ON_ONCE()`（首选）或 `WARN()`，并尽可能提供恢复代码。"我懒得做错误处理"不是使用 `BUG()` 的借口。`WARN*()` 仅用于"预期不可达"场景；"可达但 undesirable"场景使用 `pr_warn()`。`BUILD_BUG_ON()` 是编译期断言，无运行时影响，允许且鼓励使用。
 
 ### 11.2 OLK-6.6 源码路径
 

@@ -1,19 +1,19 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）维护者层级制度
+# agentrt-linux（AirymaxOS）维护者层级制度
 
-> **文档定位**: agentrt-liunx（AirymaxOS）120-development-process 模块第 2 卷——维护者层级制度（Lieutenant System）。本文档详述从普通贡献者到总维护者的信任链、MAINTAINERS 文件格式、8 子仓维护者分配、DCO 签名链条、6 级贡献者成熟度模型与维护者接班机制，是补丁生命周期（01 卷）在治理维度的展开。
+> **文档定位**: agentrt-linux（AirymaxOS）120-development-process 模块第 2 卷——维护者层级制度（Lieutenant System）。本文档详述从普通贡献者到总维护者的信任链、MAINTAINERS 文件格式、8 子仓维护者分配、DCO 签名链条、6 级贡献者成熟度模型与维护者接班机制，是补丁生命周期（01 卷）在治理维度的展开。
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **同源映射**: agentrt 维护者层级 + Linux 6.6 内核 MAINTAINERS 文件与 Lieutenant System
 > **理论根基**: Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + S-3 总体设计部 + A-3 人文关怀
-> **核心约束**: IRON-9 v2 同源且部分代码共享（agentrt 用户态维护者层级与 agentrt-liunx 内核发行版维护者层级并行，通过同源 API 变更评审保持协同）
+> **核心约束**: IRON-9 v2 同源且部分代码共享（agentrt 用户态维护者层级与 agentrt-linux 内核发行版维护者层级并行，通过同源 API 变更评审保持协同）
 
 ---
 
 ## 1. 模块定位与 Lieutenant System 概述
 
-本文档是 120-development-process 模块的第 2 卷，回答"谁有权合并什么、信任如何传递、维护者如何接班"。它继承 Linux 6.6 内核基线的 Lieutenant System（副手系统）——一条从普通贡献者到总维护者的信任链，并将其适配到 agentrt-liunx 的 8 子仓 GitHub 治理结构。
+本文档是 120-development-process 模块的第 2 卷，回答"谁有权合并什么、信任如何传递、维护者如何接班"。它继承 Linux 6.6 内核基线的 Lieutenant System（副手系统）——一条从普通贡献者到总维护者的信任链，并将其适配到 agentrt-linux 的 8 子仓 GitHub 治理结构。
 
 ### 1.1 与工程标准层的关系
 
@@ -21,14 +21,14 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.2 Lieutenant System 核心理念
 
-Linux 内核的 Lieutenant System 核心理念：每层 maintainer 信任下层 maintainer 的选择，但**信任不等于免责**。上层保留对下层补丁的最终否决权（NACK），且必须执行 CI 门禁验证。agentrt-liunx 完全继承此理念。
+Linux 内核的 Lieutenant System 核心理念：每层 maintainer 信任下层 maintainer 的选择，但**信任不等于免责**。上层保留对下层补丁的最终否决权（NACK），且必须执行 CI 门禁验证。agentrt-linux 完全继承此理念。
 
 ### 1.3 关键术语
 
 | 术语 | 定义 |
 |------|------|
 | Lieutenant System | 副手系统，从贡献者到总维护者的多级信任链 |
-| MAINTAINERS.md | agentrt-liunx 维护者清单文件，等价 Linux `MAINTAINERS` |
+| MAINTAINERS.md | agentrt-linux 维护者清单文件，等价 Linux `MAINTAINERS` |
 | DCO | Developer Certificate of Origin，开发者来源证明 v1.1 |
 | Signed-off-by 链 | 补丁签名链，溯源补丁经过的每一层维护者 |
 | emeritus | 荣誉维护者，已卸任但保留咨询身份 |
@@ -39,7 +39,7 @@ Linux 内核的 Lieutenant System 核心理念：每层 maintainer 信任下层 
 
 ## 2. 信任链层级（4 级 Chain of Trust）
 
-agentrt-liunx 信任链分为 4 级，对应 Linux 内核的 Contributor → Subsystem Maintainer → Top-level Maintainer → Chief Maintainer（Linus 角色等价物）。
+agentrt-linux 信任链分为 4 级，对应 Linux 内核的 Contributor → Subsystem Maintainer → Top-level Maintainer → Chief Maintainer（Linus 角色等价物）。
 
 ### 2.1 信任链结构图
 
@@ -67,7 +67,7 @@ flowchart TD
 ### 2.2 信任链长度约束
 
 - **链可任意长，但很少超过 2-3 级**——超过 3 级通常意味着子系统拆分不合理。
-- agentrt-liunx 的 8 子仓各设 1 名顶级子系统维护者（Level 5），其下可有 2-3 层子系统维护者（Level 3-4）。
+- agentrt-linux 的 8 子仓各设 1 名顶级子系统维护者（Level 5），其下可有 2-3 层子系统维护者（Level 3-4）。
 
 ### 2.3 信任传递规则
 
@@ -80,11 +80,11 @@ flowchart TD
 
 ## 3. MAINTAINERS 文件 14 字段格式
 
-agentrt-liunx 继承 Linux 6.6 内核 `MAINTAINERS` 文件的 14 字段格式，适配为 `MAINTAINERS.md`（每个子仓一份）。
+agentrt-linux 继承 Linux 6.6 内核 `MAINTAINERS` 文件的 14 字段格式，适配为 `MAINTAINERS.md`（每个子仓一份）。
 
 ### 3.1 14 字段定义
 
-| 字段 | 含义 | agentrt-liunx 适配 |
+| 字段 | 含义 | agentrt-linux 适配 |
 |------|------|---------------|
 | `M:` | Mail patches to（维护者邮箱） | 子系统维护者 GitHub handle + 邮箱 |
 | `R:` | Designated Reviewer（指定审查者） | 必须在 PR 中 CC 的审查者 |
@@ -107,14 +107,14 @@ agentrt-liunx 继承 Linux 6.6 内核 `MAINTAINERS` 文件的 14 字段格式，
 AGENTSIPC PROTOCOL
 M:	Alice Chen <alice@airymaxos.org>
 R:	Bob Li <bob@airymaxos.org>
-L:	https://github.com/agentrt-liunx/airymaxos-system/issues
+L:	https://github.com/agentrt-linux/airymaxos-system/issues
 S:	Maintained
 W:	docs/AirymaxAgentOS/30-interfaces/
-Q:	https://github.com/orgs/agentrt-liunx/projects/agentsipc
-B:	https://github.com/agentrt-liunx/airymaxos-system/issues/new?template=bug.md
+Q:	https://github.com/orgs/agentrt-linux/projects/agentsipc
+B:	https://github.com/agentrt-linux/airymaxos-system/issues/new?template=bug.md
 C:	matrix:#agentsipc
 P:	120-development-process/01-patch-lifecycle.md
-T:	git https://github.com/agentrt-liunx/airymaxos-system.git develop
+T:	git https://github.com/agentrt-linux/airymaxos-system.git develop
 F:	include/uapi/agentsipc/
 F:	kernel/ipc/agentsipc.c
 X:	kernel/ipc/agentsipc/test/
@@ -124,9 +124,9 @@ K:	\b(agentsipc_send|agentsipc_recv)\b
 MICROCORERT KERNEL ADAPTATION
 M:	Carol Wang <carol@airymaxos.org>
 R:	Dave Zhang <dave@airymaxos.org>
-L:	https://github.com/agentrt-liunx/airymaxos-kernel/issues
+L:	https://github.com/agentrt-linux/airymaxos-kernel/issues
 S:	Supported
-T:	git https://github.com/agentrt-liunx/airymaxos-kernel.git develop
+T:	git https://github.com/agentrt-linux/airymaxos-kernel.git develop
 F:	kernel/microcorert/
 K:	\b(microcorert_init|microcorert_dispatch)\b
 ```
@@ -140,7 +140,7 @@ K:	\b(microcorert_init|microcorert_dispatch)\b
 
 ---
 
-## 4. agentrt-liunx 8 子仓维护者分配
+## 4. agentrt-linux 8 子仓维护者分配
 
 8 子仓各设 1 名顶级子系统维护者（Level 5），负责该子仓的 `develop` 分支与跨仓协同。
 
@@ -200,7 +200,7 @@ flowchart LR
 
 ## 5. DCO 1.1 + Signed-off-by 链条
 
-agentrt-liunx 继承 Linux 内核的 Developer Certificate of Origin v1.1，并将其适配为 GitHub DCO bot 自动验证。
+agentrt-linux 继承 Linux 内核的 Developer Certificate of Origin v1.1，并将其适配为 GitHub DCO bot 自动验证。
 
 ### 5.1 DCO 1.1 文本（摘要）
 
@@ -243,7 +243,7 @@ Signed-off-by: Top-level Maintainer <tsm@airymaxos.org>  # 顶级维护者背书
 
 ## 6. Reviewer's Statement of Oversight（审查者声明）
 
-agentrt-liunx 沿用 Linux 内核的 `Reviewed-by:` 标签语义——给出 `Reviewed-by:` 即声明以下四项承诺：
+agentrt-linux 沿用 Linux 内核的 `Reviewed-by:` 标签语义——给出 `Reviewed-by:` 即声明以下四项承诺：
 
 ### 6.1 四项声明
 
@@ -270,7 +270,7 @@ agentrt-liunx 沿用 Linux 内核的 `Reviewed-by:` 标签语义——给出 `Re
 
 ## 7. 6 级贡献者成熟度模型（Level 0-5）
 
-agentrt-liunx 采用与 agentrt 同源的 6 级贡献者成熟度模型，Level 0 起步至 Level 5 顶级子系统维护者，Level 6 为总维护者（BDFL，特殊场景）。
+agentrt-linux 采用与 agentrt 同源的 6 级贡献者成熟度模型，Level 0 起步至 Level 5 顶级子系统维护者，Level 6 为总维护者（BDFL，特殊场景）。
 
 ### 7.1 6 级成熟度矩阵
 
@@ -367,7 +367,7 @@ emeritus（荣誉维护者）是已卸任但仍保留咨询身份的维护者：
 
 本文档的维护者层级与 agentrt 用户态运行时维护者层级同源且部分代码共享（IRON-9 v2 同源且部分代码共享）：
 
-| 维度 | agentrt（用户态） | agentrt-liunx（内核发行版） |
+| 维度 | agentrt（用户态） | agentrt-linux（内核发行版） |
 |------|------------------|----------------------|
 | 维护者文件 | `MAINTAINERS.md` | `MAINTAINERS.md`（同源格式） |
 | 信任链层级 | 4 级 | 4 级（同源） |
@@ -379,7 +379,7 @@ emeritus（荣誉维护者）是已卸任但仍保留咨询身份的维护者：
 
 ### 10.1 同源 API 维护者协同
 
-MicroCoreRT 与 AgentsIPC 同源 API 的维护者变更必须双向通知：agentrt 端维护者离职需通知 agentrt-liunx 端对应维护者，反之亦然；继任者任命需经两端共同 ACK，确保同源 API 的一致性不因单端维护者变更而漂移。
+MicroCoreRT 与 AgentsIPC 同源 API 的维护者变更必须双向通知：agentrt 端维护者离职需通知 agentrt-linux 端对应维护者，反之亦然；继任者任命需经两端共同 ACK，确保同源 API 的一致性不因单端维护者变更而漂移。
 
 ---
 

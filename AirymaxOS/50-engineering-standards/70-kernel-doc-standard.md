@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）kernel-doc 注释规范
+# agentrt-linux（AirymaxOS）kernel-doc 注释规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）内核态 C 代码的 kernel-doc 注释强制规范。定义 `/** */` 注释格式、`@arg:`/`Return:`/`Context:` 等字段模板，以及 `struct`/`enum`/`function`/`typedef` 等结构的文档模板。
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）内核态 C 代码的 kernel-doc 注释强制规范。定义 `/** */` 注释格式、`@arg:`/`Return:`/`Context:` 等字段模板，以及 `struct`/`enum`/`function`/`typedef` 等结构的文档模板。
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
@@ -14,11 +14,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本规范定义 agentrt-liunx 内核态 C 代码的 kernel-doc 注释强制标准，源自由 OLK-6.6 `scripts/kernel-doc`（68KB Perl 脚本）所解析的内核文档注释语法。所有导出函数、公共结构体、枚举、typedef 必须有 kernel-doc 注释，CI 通过 `scripts/kernel-doc` 提取并校验。
+本规范定义 agentrt-linux 内核态 C 代码的 kernel-doc 注释强制标准，源自由 OLK-6.6 `scripts/kernel-doc`（68KB Perl 脚本）所解析的内核文档注释语法。所有导出函数、公共结构体、枚举、typedef 必须有 kernel-doc 注释，CI 通过 `scripts/kernel-doc` 提取并校验。
 
 ### 0.2 术语约束
 
-- agentrt（用户态）= 微核心（micro-core）；agentrt-liunx（OS 发行版）= 微内核（micro-kernel）
+- agentrt（用户态）= 微核心（micro-core）；agentrt-linux（OS 发行版）= 微内核（micro-kernel）
 - 共享原语称"微核心原语"（不称"微内核原语"）
 - 禁止使用特定上游发行版名称，统一用"主流 Linux 发行版"
 
@@ -215,7 +215,7 @@ int agentrt_ipc_send_batch(struct agentrt_ipc_chan *chan,
  * @magic: Magic 0x41475453 ('AGTS') for descriptor validation.
  *
  * Describes a single agent task managed by the micro-core scheduler.
- * Shared between agentrt (user-space) and agentrt-liunx (kernel)
+ * Shared between agentrt (user-space) and agentrt-linux (kernel)
  * via the [SC] contract layer.
  *
  * Locking: state and token_budget are protected by the owning
@@ -332,7 +332,7 @@ struct agentrt_sched_ops {
 
 ### 6.1 规则 OS-STD-DOC-011：仅允许 typedef 的 kernel-doc
 
-agentrt-liunx 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 typedef（如 `airymax_q16_t`）。这些允许的 typedef **必须**有 kernel-doc 注释，描述其底层类型与语义。
+agentrt-linux 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 typedef（如 `airymax_q16_t`）。这些允许的 typedef **必须**有 kernel-doc 注释，描述其底层类型与语义。
 
 **OLK-6.6 源码路径**: `scripts/kernel-doc:73` (`$type_typedef` 正则)
 
@@ -406,7 +406,7 @@ kernel-doc 注释中引用其他符号时**必须**使用以下标记：
 /**
  * DOC: Agent IPC channel implementation
  *
- * This file implements the agentrt-liunx IPC channel, which is the
+ * This file implements the agentrt-linux IPC channel, which is the
  * kernel-side counterpart of the agentrt user-space IPC. The protocol
  * is defined in include/airymax/ipc.h ([SC] contract layer).
  *
@@ -423,7 +423,7 @@ kernel-doc 注释中引用其他符号时**必须**使用以下标记：
 
 ### 9.1 规则 OS-STD-DOC-014：kernel-doc CI 校验
 
-agentrt-liunx CI 必须在每次合并请求中调用 `scripts/kernel-doc` 校验所有新增/修改的 `.c`/`.h` 文件：
+agentrt-linux CI 必须在每次合并请求中调用 `scripts/kernel-doc` 校验所有新增/修改的 `.c`/`.h` 文件：
 
 ```bash
 # 检查所有导出符号是否有 kernel-doc
@@ -438,7 +438,7 @@ $ ./scripts/kernel-doc -Wall -internal \
 
 ### 9.2 校验级别
 
-| 校验开关 | 含义 | agentrt-liunx 处理 |
+| 校验开关 | 含义 | agentrt-linux 处理 |
 |---------|------|------------------|
 | `-Wall` | 启用所有警告 | 强制 |
 | `-Wreturn` | 检查 `Return:` 缺失 | 强制 |
@@ -470,7 +470,7 @@ $ ./scripts/kernel-doc -Wall -internal \
  * DOC: Airymax IPC shared contract ([SC] layer)
  *
  * This header is shared verbatim between agentrt (user-space micro-core)
- * and agentrt-liunx (kernel micro-kernel). Changes here trigger
+ * and agentrt-linux (kernel micro-kernel). Changes here trigger
  * bidirectional CI validation; see 120-cross-project-code-sharing.md.
  *
  * The IPC magic 0x41524531 ('ARE1') is constant and must never change.
@@ -496,7 +496,7 @@ $ ./scripts/kernel-doc -Wall -internal \
  * @payload_len: Payload length in bytes; 0 if no payload.
  * @reserved: Reserved for future use; must be zero.
  *
- * Fixed 128-byte header shared between agentrt and agentrt-liunx.
+ * Fixed 128-byte header shared between agentrt and agentrt-linux.
  * Layout is part of the [SC] contract layer and must not change
  * without coordinated update on both sides.
  *

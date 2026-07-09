@@ -1,13 +1,13 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）资源估算
+# agentrt-linux（AirymaxOS）资源估算
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）开发详细方案（路线图）模块第 3 文档
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）开发详细方案（路线图）模块第 3 文档
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **同源映射**: agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，§36 SP32-SP37 生产就绪 6 项）
 > **理论根基**: Linux 6.6 内核基线 + Airymax 五维正交 24 原则（体系并行论）
-> **核心约束**: IRON-9 v2 同源且部分代码共享（agentrt 与 agentrt-liunx 架构契合，非代码耦合）
+> **核心约束**: IRON-9 v2 同源且部分代码共享（agentrt 与 agentrt-linux 架构契合，非代码耦合）
 
 ---
 
@@ -15,7 +15,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 估算范围与对象
 
-本文档估算 agentrt-liunx 1.0.1 版本（M0-M8 全部里程碑）所需的人力资源、工时投入与工期分布。0.1.1 版本（文档体系完成）已在 `README.md` 单独说明，不计入本文档估算。估算对象包括：
+本文档估算 agentrt-linux 1.0.1 版本（M0-M8 全部里程碑）所需的人力资源、工时投入与工期分布。0.1.1 版本（文档体系完成）已在 `README.md` 单独说明，不计入本文档估算。估算对象包括：
 
 - **文档工时**——19 个文档模块共约 122 篇文档的撰写、审查与定稿工时
 - **实施工时**——8 个子仓（kernel / services / security / memory / cognition / clouds / system / airymaxos-tests）的编码、调试与集成工时
@@ -33,7 +33,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 1. **E-3 资源确定性**——所有资源（人力、工时、设备）必须有明确归属与生命周期，禁止"模糊分摊"；每条工时必须挂载到具体 Part / 模块 / 文档。
 2. **A-4 完美主义**——P0 不可妥协，工时估算含审查与缓冲，不为赶工期压缩质量门禁（OS-ACC）。
-3. **IRON-9 v2 同源且部分代码共享**——agentrt-liunx 工时独立于 agentrt，同源语义对齐成本（约 80h）计入 P0 缓冲。
+3. **IRON-9 v2 同源且部分代码共享**——agentrt-linux 工时独立于 agentrt，同源语义对齐成本（约 80h）计入 P0 缓冲。
 4. **E-6 错误可追溯**——所有工时变更必须留下 RFC 痕迹，季度回顾时与实际消耗对比，差异 >15% 需复盘。
 
 ### 1.4 估算边界
@@ -72,7 +72,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ```mermaid
 pie showData
-    title agentrt-liunx 1.0.1 P0+P1 工时分布（按 Part）
+    title agentrt-linux 1.0.1 P0+P1 工时分布（按 Part）
     "Part 1 工程标准(240h)" : 240
     "Part 2 架构模块(480h)" : 480
     "Part 3 测试质量(320h)" : 320
@@ -135,7 +135,7 @@ pie showData
 
 ```mermaid
 pie showData
-    title agentrt-liunx 文档工时分布（按模块前 5 名）
+    title agentrt-linux 文档工时分布（按模块前 5 名）
     "50-工程标准(240h)" : 240
     "80-测试(200h)" : 200
     "90-可观测(200h)" : 200
@@ -178,7 +178,7 @@ pie showData
 
 ```mermaid
 gantt
-    title agentrt-liunx 1.0.1 人力投入时序
+    title agentrt-linux 1.0.1 人力投入时序
     dateFormat  YYYY-MM-DD
     axisFormat  %m-%d
     section 核心团队
@@ -205,7 +205,7 @@ gantt
 
 ```mermaid
 pie showData
-    title agentrt-liunx 1.0.1 工时分布（按工作类别）
+    title agentrt-linux 1.0.1 工时分布（按工作类别）
     "文档撰写审查(1890h)" : 1890
     "实施编码(580h)" : 580
     "调试集成(180h)" : 180
@@ -234,7 +234,7 @@ pie showData
 
 ### 6.1 关键路径定义
 
-agentrt-liunx 1.0.1 的关键路径为 M0 → M1 → M2/M3/M4/M5（并行）→ M6 → M7 → M8，其中 M1 是最长前置任务，决定整体工期。
+agentrt-linux 1.0.1 的关键路径为 M0 → M1 → M2/M3/M4/M5（并行）→ M6 → M7 → M8，其中 M1 是最长前置任务，决定整体工期。
 
 ### 6.2 关键路径工时分解
 
@@ -255,7 +255,7 @@ agentrt-liunx 1.0.1 的关键路径为 M0 → M1 → M2/M3/M4/M5（并行）→ 
 
 ```mermaid
 gantt
-    title agentrt-liunx 1.0.1 关键路径（98 天 = 14 周）
+    title agentrt-linux 1.0.1 关键路径（98 天 = 14 周）
     dateFormat  YYYY-MM-DD
     axisFormat  %m-%d
     section M0 奠基
@@ -333,7 +333,7 @@ gantt
 | **S-4 涌现性管理** | 14% 风险缓冲用于抑制延期传染；关键路径并行化 | §6 关键路径 + §2.2 缓冲 |
 | **E-6 错误可追溯** | 工时变更留 RFC 痕迹；季度回顾对比实际消耗 | §1.3 估算原则 |
 | **E-7 文档即代码** | 本估算文档本身是 Markdown 即代码；与代码同源演进 | 全文 |
-| **IRON-9 v2 同源且部分代码共享** | agentrt-liunx 工时独立于 agentrt；同源语义对齐成本计入缓冲 | §1.3 + §4 |
+| **IRON-9 v2 同源且部分代码共享** | agentrt-linux 工时独立于 agentrt；同源语义对齐成本计入缓冲 | §1.3 + §4 |
 
 ---
 
@@ -378,7 +378,7 @@ gantt
 - IRON-9 v2 工程铁律（闭源内部参考） — 17 类规则编号体系（v28.0，含 IRON-9）
 - 内部工程改进方案（闭源） — agentrt 三大支柱方案（v4.2）
 
-### 10.3 agentrt-liunx 工程标准
+### 10.3 agentrt-linux 工程标准
 
 - `50-engineering-standards/README.md` — 工程标准主框架
 - `50-engineering-standards/07-maintainers-and-governance.md` — 维护者制度与治理（含 6 级成熟度模型）
@@ -388,7 +388,7 @@ gantt
 ## 11. 文档版本与维护
 
 - **当前版本**: v1.0（2026-07-06）
-- **维护者**: agentrt-liunx 工程标准委员会（待成立，详见 50-engineering-standards/07-maintainers-and-governance.md）
+- **维护者**: agentrt-linux 工程标准委员会（待成立，详见 50-engineering-standards/07-maintainers-and-governance.md）
 - **变更流程**: 任何资源估算变更必须经过 RFC → 评审 → OS-ACC-086 验收流程
 - **回顾周期**: 里程碑回顾（每 M 完成时）+ 季度资源估算回顾 + 年度大版本校准
 

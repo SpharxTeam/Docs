@@ -1,23 +1,23 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）数据流程设计
+# agentrt-linux（AirymaxOS）数据流程设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS）数据流程设计层的总览与索引
+> **文档定位**: agentrt-linux（AirymaxOS）数据流程设计层的总览与索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
-> **父文档**: [agentrt-liunx 总览](../README.md)
+> **父文档**: [agentrt-linux 总览](../README.md)
 > **核心约束**: IRON-9 v2 同源且部分代码共享——[SC] 共享契约层 6 个头文件（bpf_struct_ops.h/memory_types.h/security_types.h/cognition_types.h/sched.h/ipc.h）落地于 include/airymax/，[SS] 4 大数据流语义同源（认知循环/记忆卷载/IPC/调度），[IND] 各子仓驱动与运行时独立实现；安全为横切关注点，贯穿全部 4 大数据流
 
 ---
 
 ## 1. 数据流设计概览
 
-agentrt-liunx 数据流程设计层聚焦于「数据如何流动」，是「接口设计层（30-interfaces）」的动态补充。本文档体系以 Linux 6.6 为内核基线，围绕 8 子仓之间的数据流动路径，刻画 4 大核心数据流：
+agentrt-linux 数据流程设计层聚焦于「数据如何流动」，是「接口设计层（30-interfaces）」的动态补充。本文档体系以 Linux 6.6 为内核基线，围绕 8 子仓之间的数据流动路径，刻画 4 大核心数据流：
 
 1. **认知循环数据流（Cognition Flow）**：用户意图 → 认知层 → 规划 → 执行 → 记忆 → 反馈，对应 System 1 快思考 + System 2 慢思考双系统协同，落地于 `airymaxos-cognition` 子仓（同源 agentrt coreloopthree）。
 2. **记忆卷载数据流（Memory Flow）**：L1 原始 → L2 特征 → L3 结构 → L4 模式，四层递进 + 遗忘机制 + CXL/PMEM/MGLRU 多代 LRU（Linux 6.6）硬件协同，落地于 `airymaxos-memory` 子仓（同源 agentrt memoryrovol + heapstore）。
 3. **IPC 消息流（IPC Flow）**：进程 A → io_uring 零拷贝 → 进程 B，128B 定长消息头同源 agentrt AgentsIPC，落地于 `airymaxos-kernel`（同源 agentrt atoms/corekern IPC）。
-4. **调度数据流（Scheduling Flow）**：任务提交 → SCHED_AGENT → EEVDF → 执行，基于 sched_ext（agentrt-liunx 内核增强，主线 6.12+）实现可插拔调度策略，落地于 `airymaxos-kernel`。
+4. **调度数据流（Scheduling Flow）**：任务提交 → SCHED_AGENT → EEVDF → 执行，基于 sched_ext（agentrt-linux 内核增强，主线 6.12+）实现可插拔调度策略，落地于 `airymaxos-kernel`。
 
 4 大数据流通过 `trace_id` 贯穿 OpenTelemetry 全链路追踪，满足 NFR-O-002 Tracing 覆盖率与 NFR-O-001 Metrics 完整性。
 
@@ -97,9 +97,9 @@ agentrt-liunx 数据流程设计层聚焦于「数据如何流动」，是「接
 
 ## 5. 与 agentrt 数据流的关系
 
-agentrt-liunx 数据流设计与 agentrt 数据流保持「同源且部分代码共享（IRON-9 v2）」（参考 ADR-010 + IRON-9）：
+agentrt-linux 数据流设计与 agentrt 数据流保持「同源且部分代码共享（IRON-9 v2）」（参考 ADR-010 + IRON-9）：
 
-| agentrt-liunx 数据流 | 同源 agentrt 模块 | 同源语义 | agentrt-liunx 增强 |
+| agentrt-linux 数据流 | 同源 agentrt 模块 | 同源语义 | agentrt-linux 增强 |
 |---|---|---|---|
 | 认知循环 | coreloopthree | 三层认知循环：认知→执行→记忆 | 内核态 kthread + System 1/2 双系统切换 |
 | 记忆卷载 | memoryrovol + heapstore | 四层递进 + 堆存储 | CXL 池化 + MGLRU 多代 LRU（Linux 6.6）+ 持久同调 |
@@ -111,7 +111,7 @@ agentrt-liunx 数据流设计与 agentrt 数据流保持「同源且部分代码
 1. **协议同源**：128B IPC 消息头结构与 agentrt AgentsIPC 完全一致，跨系统互通无适配层。
 2. **模型同源**：记忆卷载四层递进模型与 agentrt memoryrovol 一致，迁移无语义损失。
 3. **循环同源**：CoreLoopThree 三层认知循环结构与 agentrt 一致，行为可对比。
-4. **独立演进**：agentrt-liunx 在内核态实现（kthread + BPF + io_uring），agentrt 在用户态实现，二者独立演进但保持语义对齐。
+4. **独立演进**：agentrt-linux 在内核态实现（kthread + BPF + io_uring），agentrt 在用户态实现，二者独立演进但保持语义对齐。
 
 **与接口设计层的关系**：本文档体系是 [接口设计层](../30-interfaces/README.md) 的动态补充。接口设计层定义「调用契约（What）」，数据流程设计层定义「流动路径（How）」，二者共同构成完整的接口规约。
 
@@ -121,7 +121,7 @@ agentrt-liunx 数据流设计与 agentrt 数据流保持「同源且部分代码
 
 ## 6. 数据流版本与演进
 
-数据流设计随 agentrt-liunx 版本迭代演进，遵循「契约稳定 + 实现可变」原则：
+数据流设计随 agentrt-linux 版本迭代演进，遵循「契约稳定 + 实现可变」原则：
 
 | 版本 | 数据流特征 | 关键能力 |
 |---|---|---|
@@ -139,7 +139,7 @@ agentrt-liunx 数据流设计与 agentrt 数据流保持「同源且部分代码
 
 ## 7. 相关文档
 
-- [agentrt-liunx 总览](../README.md)：5 层文档体系与 8 子仓清单
+- [agentrt-linux 总览](../README.md)：5 层文档体系与 8 子仓清单
 - [接口设计层](../30-interfaces/README.md)：syscall / IPC / SDK / 编码规范
 - [模块设计层](../20-modules/README.md)：8 子仓详细设计
 - [架构设计层](../10-architecture/README.md)：三大支柱与五维原则

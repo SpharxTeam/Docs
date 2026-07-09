@@ -2,7 +2,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # 编码规范遵循
 
-> **文档定位**: agentrt-liunx（AirymaxOS） 编码规范的遵循声明、命名规范、C/Rust 风格、日志标准、Doxygen 与安全编码
+> **文档定位**: agentrt-linux（AirymaxOS） 编码规范的遵循声明、命名规范、C/Rust 风格、日志标准、Doxygen 与安全编码
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **父文档**: [接口设计](README.md)
@@ -11,9 +11,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 编码规范遵循声明
 
-agentrt-liunx 8 子仓的全部源代码严格遵循 `50-engineering-standards/10-coding-style/` 下的编码规范文件。本文件给出 agentrt-liunx 专属的命名空间与补充约定，作为编码规范的前置索引。
+agentrt-linux 8 子仓的全部源代码严格遵循 `50-engineering-standards/10-coding-style/` 下的编码规范文件。本文件给出 agentrt-linux 专属的命名空间与补充约定，作为编码规范的前置索引。
 
-| # | 规范文件 | 适用范围 | agentrt-liunx 遵循要点 |
+| # | 规范文件 | 适用范围 | agentrt-linux 遵循要点 |
 |---|---------|---------|-------------------|
 | 1 | `NAMING_CONVENTIONS.md` | 全部子仓 | `agentrt_` 前缀 + `<service>_d` daemon + `module_action_object()` |
 | 2 | `C_coding_style_standard.md` | kernel / security / memory | 4 空格 + snake_case + 1TBS |
@@ -34,7 +34,7 @@ agentrt-liunx 8 子仓的全部源代码严格遵循 `50-engineering-standards/1
 **遵循原则**:
 
 - **强制优先**: 本文件未覆盖的事项，以 15 个规范文件为准。
-- **agentrt-liunx 专属约定**: 本文件第 2-5 章给出 agentrt-liunx 专属的命名空间与风格补充，与 15 个规范文件叠加生效。
+- **agentrt-linux 专属约定**: 本文件第 2-5 章给出 agentrt-linux 专属的命名空间与风格补充，与 15 个规范文件叠加生效。
 - **评审门槛**: 代码评审必须检查编码规范遵循情况，违反规范必须打回（对齐 ACC-OS03 验收标准）。
 
 ---
@@ -43,7 +43,7 @@ agentrt-liunx 8 子仓的全部源代码严格遵循 `50-engineering-standards/1
 
 ### 2.1 命名空间前缀
 
-agentrt-liunx 全部公共符号使用统一命名空间前缀，与 agentrt 同源保持兼容：
+agentrt-linux 全部公共符号使用统一命名空间前缀，与 agentrt 同源保持兼容：
 
 | 语言 | 命名空间前缀 | 示例 |
 |------|-------------|------|
@@ -115,7 +115,7 @@ agentrt-liunx 全部公共符号使用统一命名空间前缀，与 agentrt 同
 
 ## 3. C 代码风格
 
-C 代码风格遵循 `C_coding_style_standard.md`，agentrt-liunx 补充约定如下。
+C 代码风格遵循 `C_coding_style_standard.md`，agentrt-linux 补充约定如下。
 
 ### 3.1 缩进与括号
 
@@ -154,7 +154,7 @@ if (ret < 0) {
 
 ## 4. Rust 代码风格
 
-Rust 代码风格遵循 `Rust_coding_style_standard.md`，agentrt-liunx 补充约定如下。
+Rust 代码风格遵循 `Rust_coding_style_standard.md`，agentrt-linux 补充约定如下。
 
 ### 4.1 工具链
 
@@ -189,7 +189,7 @@ pub async fn submit_task(&self, desc: TaskDesc) -> Result<i32, Error> {
 
 ## 5. 日志标准
 
-日志标准遵循 `Log_standard.md`，agentrt-liunx 补充约定如下。
+日志标准遵循 `Log_standard.md`，agentrt-linux 补充约定如下。
 
 ### 5.1 ANSI 颜色
 
@@ -288,7 +288,7 @@ typedef struct __attribute__((aligned(64))) agentrt_ipc_msg_hdr {
 ```c
 /**
  * @file agentrt_ipc_msg.h
- * @brief agentrt-liunx IPC 128 字节定长消息头定义
+ * @brief agentrt-linux IPC 128 字节定长消息头定义
  *
  * 同源 agentrt AgentsIPC，基于 io_uring 零拷贝实现。
  *
@@ -301,7 +301,7 @@ typedef struct __attribute__((aligned(64))) agentrt_ipc_msg_hdr {
 
 ## 7. 安全编码规范
 
-安全编码遵循 `Security_design_standard.md` + `C_Cpp_secure_coding_standard.md` + `Rust_secure_coding_standard.md`，agentrt-liunx 补充约定如下。
+安全编码遵循 `Security_design_standard.md` + `C_Cpp_secure_coding_standard.md` + `Rust_secure_coding_standard.md`，agentrt-linux 补充约定如下。
 
 ### 7.1 输入验证
 

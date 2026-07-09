@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）构建系统设计
+# agentrt-linux（AirymaxOS）构建系统设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS）构建系统工程设计主索引
+> **文档定位**: agentrt-linux（AirymaxOS）构建系统工程设计主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **同源映射**: agentrt `cmake/`（伞仓直属 5 模块）+ Linux 6.6 Kbuild 系统
@@ -12,7 +12,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 模块定位
 
-agentrt-liunx 构建系统是连接源代码与可分发产物的核心工程基础设施。它继承 Linux Kbuild 系统 30+ 年沉淀的工程思想（递归构建 + `if_changed` 增量构建 + `obj-$(CONFIG_*)` 配置门控），并在其上扩展智能体操作系统的多语言、多仓、多平台构建需求。
+agentrt-linux 构建系统是连接源代码与可分发产物的核心工程基础设施。它继承 Linux Kbuild 系统 30+ 年沉淀的工程思想（递归构建 + `if_changed` 增量构建 + `obj-$(CONFIG_*)` 配置门控），并在其上扩展智能体操作系统的多语言、多仓、多平台构建需求。
 
 ### 1.1 核心机制
 
@@ -24,7 +24,7 @@ agentrt-liunx 构建系统是连接源代码与可分发产物的核心工程基
 | **Kconfig 配置门控** | `obj-$(CONFIG_*)` 控制 | `Kconfig` + `lib/Kconfig.airymaxos` |
 | **模块构建** | 可加载模块 `.ko` | `scripts/Makefile.modpost` |
 
-### 1.2 agentrt-liunx 扩展
+### 1.2 agentrt-linux 扩展
 
 - **多语言构建**：C（Kbuild）+ Rust（cargo）+ Python（poetry）+ TypeScript（tsc/webpack）
 - **多仓集成**：8 子仓 + agentrt 同源仓库的统一构建入口
@@ -103,7 +103,7 @@ make modules_install  # 安装到 /lib/modules/$(uname -r)
 ├── 03-makefile-patterns.md         # Makefile 模式与惯用法
 ├── 04-module-building.md           # 可加载模块构建
 ├── 05-cross-compilation.md         # 跨平台编译
-├── 06-airymaxos-build.md           # agentrt-liunx 多仓多语言构建
+├── 06-airymaxos-build.md           # agentrt-linux 多仓多语言构建
 ├── 07-ci-integration.md            # CI/CD 集成
 └── 08-build-reproducibility.md     # 可重现构建
 ```
@@ -118,11 +118,11 @@ make modules_install  # 安装到 /lib/modules/$(uname -r)
 
 ---
 
-## 4. agentrt-liunx 专属扩展
+## 4. agentrt-linux 专属扩展
 
 ### 4.1 多仓构建集成
 
-agentrt-liunx 8 子仓 + agentrt 同源仓库的统一构建入口：
+agentrt-linux 8 子仓 + agentrt 同源仓库的统一构建入口：
 - **伞仓**：`airymaxhub` 提供顶层 `Makefile` 入口
 - **管理仓**：`agentrt`/`sdk`/`ecosystem`/`products` 各自独立构建
 - **叶子仓**：21 个叶子仓通过 submodule 集成
@@ -138,11 +138,11 @@ agentrt-liunx 8 子仓 + agentrt 同源仓库的统一构建入口：
 
 ### 4.3 同源 agentrt 构建集成
 
-agentrt 的 `cmake/` 目录（5 模块）在伞仓直属，提供跨模块共享的 CMake 工具链。agentrt-liunx 内核态使用 Kbuild，用户态使用 CMake（与 agentrt 一致）。
+agentrt 的 `cmake/` 目录（5 模块）在伞仓直属，提供跨模块共享的 CMake 工具链。agentrt-linux 内核态使用 Kbuild，用户态使用 CMake（与 agentrt 一致）。
 
 ### 4.4 版本注入机制
 
-agentrt-liunx 采用基于 `Makefile.airymaxos` 的供应商版本注入：
+agentrt-linux 采用基于 `Makefile.airymaxos` 的供应商版本注入：
 ```makefile
 # Makefile.airymaxos
 AIRYMAXOS_MAJOR = 0

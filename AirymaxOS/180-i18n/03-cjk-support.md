@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）CJK 支持详细设计
+# agentrt-linux（AirymaxOS）CJK 支持详细设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）中文/日文/韩文（CJK）显示与输入支持详细设计
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）中文/日文/韩文（CJK）显示与输入支持详细设计
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 设计目标
 
-agentrt-liunx（AirymaxOS）CJK 支持设计旨在为中文、日文、韩文用户提供完整的显示与输入能力。本设计聚焦三大目标：
+agentrt-linux（AirymaxOS）CJK 支持设计旨在为中文、日文、韩文用户提供完整的显示与输入能力。本设计聚焦三大目标：
 
 1. **CJK 字符宽度正确计算**：终端、TUI、日志输出中 CJK 全角字符占 2 列宽度，半角字符占 1 列
 2. **CJK 字体管理统一**：系统中文字体（思源黑体 SC）、日文字体（思源黑体 JP）、韩文字体（思源黑体 KR）统一打包与管理
@@ -30,7 +30,7 @@ agentrt-liunx（AirymaxOS）CJK 支持设计旨在为中文、日文、韩文用
 
 ### 1.3 术语规范
 
-本设计严格遵守 agentrt-liunx 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-liunx（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 openEuler/Euler 字样。CJK 编码契约在 agentrt 与 agentrt-liunx 之间属于 IRON-9 v2 [SC] 共享契约层。
+本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 openEuler/Euler 字样。CJK 编码契约在 agentrt 与 agentrt-linux 之间属于 IRON-9 v2 [SC] 共享契约层。
 
 ### 1.4 CJK 字符范围矩阵
 
@@ -266,7 +266,7 @@ int main(void)
 
 ### 3.1 字体包结构
 
-agentrt-liunx 打包以下 CJK 字体作为发行版默认字体：
+agentrt-linux 打包以下 CJK 字体作为发行版默认字体：
 
 ```bash
 # /etc/airymaxos/fonts.conf —— 字体配置
@@ -402,7 +402,7 @@ ko_KR.UTF-8:
 
 int main(void)
 {
-	const char *zh_msg = "agentrt-liunx（AirymaxOS）启动中...";
+	const char *zh_msg = "agentrt-linux（AirymaxOS）启动中...";
 	const char *ja_msg = "エージェントを起動中...";
 	int row, col;
 
@@ -474,7 +474,7 @@ int airymax_terminal_center_print(WINDOW *win, int row, int max_col,
 
 ### 5.1 IBus 输入法框架
 
-agentrt-liunx 默认使用 IBus 输入法框架，开箱即用：
+agentrt-linux 默认使用 IBus 输入法框架，开箱即用：
 
 ```bash
 # 安装 IBus + CJK 输入法
@@ -622,7 +622,7 @@ out_free_ctx:
 
 ## 8. 错误码体系对接
 
-CJK 子系统错误码纳入 agentrt-liunx 统一错误码体系：
+CJK 子系统错误码纳入 agentrt-linux 统一错误码体系：
 
 | 错误码 | 数值 | 含义 |
 |--------|------|------|
@@ -649,7 +649,7 @@ CJK 子系统错误码纳入 agentrt-liunx 统一错误码体系：
 
 ## 10. IRON-9 v2 同源映射
 
-| 组件 | agentrt-liunx（[SC]） | agentrt（[SC]） | 共享 |
+| 组件 | agentrt-linux（[SC]） | agentrt（[SC]） | 共享 |
 |------|------------------------|------------------|------|
 | CJK 宽度计算 | 内核 + 用户态 | 用户态 | `airymax_cjk.h` 完全共享 |
 | Unicode 范围表 | 编译期常量 | 编译期常量 | 范围定义 |
@@ -679,4 +679,4 @@ CJK 子系统错误码纳入 agentrt-liunx 统一错误码体系：
 
 ---
 
-> **文档结束** | agentrt-liunx（AirymaxOS）CJK 支持详细设计 | 1.0.1 开发版本
+> **文档结束** | agentrt-linux（AirymaxOS）CJK 支持详细设计 | 1.0.1 开发版本

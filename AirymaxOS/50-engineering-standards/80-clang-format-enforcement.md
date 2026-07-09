@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）.clang-format 配置与 CI 门禁规范
+# agentrt-linux（AirymaxOS）.clang-format 配置与 CI 门禁规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）的 `.clang-format` 定制配置与 CI 自动格式化门禁规范。基于 OLK-6.6 `.clang-format`（689 行）提取关键配置项，制定 agentrt-liunx 专属版本，并通过 `make format-check` 在 CI 中强制执行。
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）的 `.clang-format` 定制配置与 CI 自动格式化门禁规范。基于 OLK-6.6 `.clang-format`（689 行）提取关键配置项，制定 agentrt-linux 专属版本，并通过 `make format-check` 在 CI 中强制执行。
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本文件研究 OLK-6.6 `.clang-format`（689 行配置），提取关键格式化选项，制定 agentrt-liunx 定制版 `.clang-format`，并定义 CI 中的 `make format-check` 门禁流程。所有 agentrt-liunx 内核态 C 文件必须通过 `clang-format` 校验。
+本文件研究 OLK-6.6 `.clang-format`（689 行配置），提取关键格式化选项，制定 agentrt-linux 定制版 `.clang-format`，并定义 CI 中的 `make format-check` 门禁流程。所有 agentrt-linux 内核态 C 文件必须通过 `clang-format` 校验。
 
 ### 0.2 OLK-6.6 源码路径
 
@@ -31,7 +31,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.3 术语约束
 
-- agentrt（用户态）= 微核心（micro-core）；agentrt-liunx（OS 发行版）= 微内核（micro-kernel）
+- agentrt（用户态）= 微核心（micro-core）；agentrt-linux（OS 发行版）= 微内核（micro-kernel）
 - 禁止使用特定上游发行版名称，统一用"主流 Linux 发行版"
 
 ---
@@ -168,28 +168,28 @@ AllowShortLoopsOnASingleLine: false		# 不允许单行循环
 
 **OLK-6.6 源码路径**: `.clang-format:71-635`（约 565 个宏）
 
-`ForEachMacros` 列表告知 `clang-format` 哪些宏是 `for_each` 风格的循环宏（如 `list_for_each_entry`），使其在格式化时正确处理。agentrt-liunx 在此基础上需追加自定义宏：
+`ForEachMacros` 列表告知 `clang-format` 哪些宏是 `for_each` 风格的循环宏（如 `list_for_each_entry`），使其在格式化时正确处理。agentrt-linux 在此基础上需追加自定义宏：
 
 ```yaml
 ForEachMacros:
   # ... 保留 OLK-6.6 全部 565 个宏 ...
-  - 'agentrt_for_each_task'		# agentrt-liunx 自定义
+  - 'agentrt_for_each_task'		# agentrt-linux 自定义
   - 'agentrt_for_each_chan'
   - 'airymax_for_each_token'
 ```
 
 ---
 
-## 2. agentrt-liunx 定制版 .clang-format
+## 2. agentrt-linux 定制版 .clang-format
 
 ### 2.1 完整配置文件
 
-以下是 agentrt-liunx 仓库根目录 `.clang-format` 的完整内容（基于 OLK-6.6 定制）：
+以下是 agentrt-linux 仓库根目录 `.clang-format` 的完整内容（基于 OLK-6.6 定制）：
 
 ```yaml
 # SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 #
-# clang-format configuration for agentrt-liunx (AirymaxOS).
+# clang-format configuration for agentrt-linux (AirymaxOS).
 # Based on Linux 6.6 .clang-format (OLK-6.6) with agent-specific macros.
 # Intended for clang-format >= 11.
 #
@@ -258,7 +258,7 @@ ForEachMacros:
   - 'for_each_online_cpu'
   - 'xa_for_each'
   # ... (full list inherited from OLK-6.6 .clang-format:71-635) ...
-  # ----- agentrt-liunx custom -----
+  # ----- agentrt-linux custom -----
   - 'agentrt_for_each_task'
   - 'agentrt_for_each_chan'
   - 'agentrt_for_each_sched'
@@ -318,7 +318,7 @@ UseTab: Always
 
 ### 2.2 与 OLK-6.6 的差异
 
-| 配置项 | OLK-6.6 值 | agentrt-liunx 值 | 差异说明 |
+| 配置项 | OLK-6.6 值 | agentrt-linux 值 | 差异说明 |
 |--------|-----------|-----------------|---------|
 | `ForEachMacros` | 565 个上游宏 | 565 + 5 个 agent 自定义 | 追加 agentrt 自定义宏 |
 | SPDX 标识 | `GPL-2.0` | `AGPL-3.0-or-later OR Apache-2.0` | 许可证变更 |
@@ -330,14 +330,14 @@ UseTab: Always
 
 ### 3.1 规则 OS-STD-FMT-001：format-check 强制门禁
 
-agentrt-liunx CI 在每次合并请求中**必须**运行 `make format-check`，校验所有 C 文件符合 `.clang-format`。任何格式偏差即视为构建失败。
+agentrt-linux CI 在每次合并请求中**必须**运行 `make format-check`，校验所有 C 文件符合 `.clang-format`。任何格式偏差即视为构建失败。
 
 ### 3.2 Makefile 集成
 
-在 agentrt-liunx 仓库根 `Makefile` 中添加以下目标：
+在 agentrt-linux 仓库根 `Makefile` 中添加以下目标：
 
 ```makefile
-# 文件: Makefile（agentrt-liunx 仓库根）
+# 文件: Makefile（agentrt-linux 仓库根）
 
 CLANG_FORMAT ?= clang-format
 FORMAT_SOURCES := $(shell find . -name '*.c' -o -name '*.h' | \
@@ -574,7 +574,7 @@ merge allowed
 
 | 日期 | 版本 | 变更摘要 | 责任人 |
 |------|------|---------|--------|
-| 2026-07-09 | 0.1.1 | 初始创建，定义 agentrt-liunx 定制 .clang-format + CI 门禁 | SPHARX 工程标准组 |
+| 2026-07-09 | 0.1.1 | 初始创建，定义 agentrt-linux 定制 .clang-format + CI 门禁 | SPHARX 工程标准组 |
 
 ---
 

@@ -25,7 +25,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - **工具链开发者**：构建记忆迁移、归档、检索工具。
 - **跨运行时互通方**：在不同实现间交换记忆卷。
 
-本标准遵循 IRON-9 v2 [SC] 共享契约层——L1-L4 数据结构、GFP 掩码、PMEM 接口在 agentrt 与 agentrt-liunx 之间完全共享。
+本标准遵循 IRON-9 v2 [SC] 共享契约层——L1-L4 数据结构、GFP 掩码、PMEM 接口在 agentrt 与 agentrt-linux 之间完全共享。
 
 ### 1.1 术语
 

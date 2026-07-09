@@ -26,13 +26,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - **调度策略开发者**：编写可插拔的 BPF 调度策略。
 - **性能优化方**：基于 vtime 衰减公式调优公平性。
 
-本标准遵循 IRON-9 v2 [SC] 共享契约层——任务描述符字节布局、vtime 公式、优先级范围在 agentrt 与 agentrt-liunx 之间完全共享。
+本标准遵循 IRON-9 v2 [SC] 共享契约层——任务描述符字节布局、vtime 公式、优先级范围在 agentrt 与 agentrt-linux 之间完全共享。
 
 ### 1.1 术语
 
 | 术语 | 含义 |
 |------|------|
-| SCHED_EXT | Linux 可扩展调度器框架（主线 6.12+，agentrt-liunx 向前移植到 6.6） |
+| SCHED_EXT | Linux 可扩展调度器框架（主线 6.12+，agentrt-linux 向前移植到 6.6） |
 | SCHED_AGENT | Airymax 定义的 Agent 调度类，基于 sched_ext |
 | 任务描述符 | Agent 任务的二进制描述结构（magic 'AGTS'） |
 | vtime | 虚拟时间，用于公平调度的相对时间度量 |
@@ -68,7 +68,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | SCHED_BATCH | 3 | 批处理 | 批量任务 |
 | SCHED_IDLE | 5 | 空闲 | 低优先级后台 |
 | SCHED_DEADLINE | 6 | 截止时间 | 实时保证 |
-| SCHED_EXT | 7 | 可扩展 | agentrt-liunx 1.0.1 内置（基于 Linux 6.6 内核基线向前移植） |
+| SCHED_EXT | 7 | 可扩展 | agentrt-linux 1.0.1 内置（基于 Linux 6.6 内核基线向前移植） |
 | SCHED_AGENT | 8 | Agent 调度类 | Airymax 专属（基于 SCHED_EXT） |
 
 `SCHED_EXT=7` **永久稳定**（AOS-STD-SCHED-001，L1 稳定级，对齐 Linux 主线）。

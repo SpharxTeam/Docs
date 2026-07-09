@@ -25,7 +25,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - **协议工具开发者**：构建 Wireshark dissector、抓包分析器、协议测试器。
 - **跨运行时互通方**：在不同实现间交换 IPC 消息。
 
-本标准仅规定**协议格式与语义**，不规定底层传输（io_uring、共享内存、套接字等均可作为承载）。本标准遵循 IRON-9 v2 [SC] 共享契约层——消息头字节布局在 agentrt 与 agentrt-liunx 之间完全共享。
+本标准仅规定**协议格式与语义**，不规定底层传输（io_uring、共享内存、套接字等均可作为承载）。本标准遵循 IRON-9 v2 [SC] 共享契约层——消息头字节布局在 agentrt 与 agentrt-linux 之间完全共享。
 
 ### 1.1 术语
 

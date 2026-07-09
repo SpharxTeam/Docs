@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）发行版管理设计
+# agentrt-linux（AirymaxOS）发行版管理设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）发行版管理工程体系主索引
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）发行版管理工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **优先级**: P2（0.1.1 仅创建 README 占位，1.0.1 完成 5 文档）
@@ -13,9 +13,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 模块定位
 
-agentrt-liunx 发行版管理体系是操作系统作为产品发布的工程保障。它继承 Linux 发行版 30+ 年沉淀的发行版管理哲学（版本号 + RPM 包 + ISO 镜像 + 仓库管理 + 签名验证），并在其上扩展智能体操作系统专属的 Agent 应用商店、记忆卷载分发、多架构镜像等。
+agentrt-linux 发行版管理体系是操作系统作为产品发布的工程保障。它继承 Linux 发行版 30+ 年沉淀的发行版管理哲学（版本号 + RPM 包 + ISO 镜像 + 仓库管理 + 签名验证），并在其上扩展智能体操作系统专属的 Agent 应用商店、记忆卷载分发、多架构镜像等。
 
-发行版管理不是「打包」的代名词，而是「版本化、可追溯、可验证」的工程体系。agentrt-liunx 发行版管理的核心理念是：**每个版本必须可追溯，每个包必须可验证，每个镜像必须可重现构建**。这要求从源码到发布的全链路工程化，而非手工打包。
+发行版管理不是「打包」的代名词，而是「版本化、可追溯、可验证」的工程体系。agentrt-linux 发行版管理的核心理念是：**每个版本必须可追溯，每个包必须可验证，每个镜像必须可重现构建**。这要求从源码到发布的全链路工程化，而非手工打包。
 
 ### 1.1 发行版分层
 
@@ -25,10 +25,10 @@ agentrt-liunx 发行版管理体系是操作系统作为产品发布的工程保
 | L2 | 包格式 | RPM + dnf | 包管理 |
 | L3 | 镜像构建 | ISO + QCOW2 + Docker | 镜像分发 |
 | L4 | 仓库管理 | dnf 仓库 + 签名 | 软件仓库 |
-| **L5** | **Agent 应用商店** | **agentrt-liunx 专属** | **Agent 应用分发** |
-| **L6** | **记忆卷载分发** | **agentrt-liunx 专属** | **记忆卷载包** |
+| **L5** | **Agent 应用商店** | **agentrt-linux 专属** | **Agent 应用分发** |
+| **L6** | **记忆卷载分发** | **agentrt-linux 专属** | **记忆卷载包** |
 
-### 1.2 agentrt-liunx 扩展
+### 1.2 agentrt-linux 扩展
 
 - **Agent 应用商店**：Agent 应用作为 RPM 包分发
 - **记忆卷载分发**：记忆卷载作为独立包分发
@@ -103,7 +103,7 @@ sha256sum airymaxos-1.0.1-x86_64.iso
 
 ---
 
-## 4. agentrt-liunx 专属扩展
+## 4. agentrt-linux 专属扩展
 
 ### 4.1 Agent 应用商店
 
@@ -147,16 +147,16 @@ Requires: airymaxos-memory >= 1.0.1
 
 ### 4.4 同源 agentrt 版本管理
 
-agentrt 的版本管理与 agentrt-liunx 同源：
+agentrt 的版本管理与 agentrt-linux 同源：
 - agentrt 用户态：语义化版本 + 0.1.1 唯一奠基版本
-- agentrt-liunx 内核态：0.1.1 文档体系完成 + 1.0.1 正式开发
+- agentrt-linux 内核态：0.1.1 文档体系完成 + 1.0.1 正式开发
 - 两端版本号协同但独立
 
 ### 4.5 IRON-9 v2 同源且部分代码共享
 
 发行版管理遵循 IRON-9 原则：
 - agentrt 版本管理（用户态运行时版本）
-- agentrt-liunx 版本管理（OS 级 + 发行版版本）
+- agentrt-linux 版本管理（OS 级 + 发行版版本）
 - 两端独立演进，但通过同源版本号策略保持协同
 
 ---

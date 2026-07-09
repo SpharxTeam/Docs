@@ -1,7 +1,7 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# agentrt-liunx L2 服务通信协议规范
+# agentrt-linux L2 服务通信协议规范
 
 **最新**: 2026-07-07  
 **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）  
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 文档信息卡
 - **目标读者**: 协议设计者、服务开发者、系统集成工程师、云原生架构师  
-- **前置知识**: 理解 agentrt-liunx（AirymaxOS）架构概览，熟悉 JSON-RPC 2.0，了解服务发现机制  
+- **前置知识**: 理解 agentrt-linux（AirymaxOS）架构概览，熟悉 JSON-RPC 2.0，了解服务发现机制  
 - **预计阅读时间**: 45 分钟  
 - **核心概念**: AgentsIPC, 128B 消息头, 服务发现, daemon 命名空间, trace_id 贯穿  
 - **复杂度标识**: 高级  
@@ -23,9 +23,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 引言
 
-L2 服务通信协议是 agentrt-liunx（AirymaxOS）ARE Standards 的中间层规范，定义了 OS 层各服务之间的通信协议。L2 协议建立在 L1 核心运行时接口（IPC 原语）之上，为上层服务提供可发现、可路由、可追踪的通信能力。
+L2 服务通信协议是 agentrt-linux（AirymaxOS）ARE Standards 的中间层规范，定义了 OS 层各服务之间的通信协议。L2 协议建立在 L1 核心运行时接口（IPC 原语）之上，为上层服务提供可发现、可路由、可追踪的通信能力。
 
-agentrt-liunx（AirymaxOS）作为智能体操作系统，其服务通信具有以下特点：
+agentrt-linux（AirymaxOS）作为智能体操作系统，其服务通信具有以下特点：
 
 1. **多服务协同**：12 个 daemon 守护进程（调度、内存、安全、认知、云原生等）需要高效通信
 2. **跨进程协作**：内核态与用户态服务之间需要标准化通信协议
@@ -56,7 +56,7 @@ L2 的设计遵循以下五维正交24原则映射：
 
 ## 2. AgentsIPC 128B 消息头规范
 
-AgentsIPC 是 agentrt-liunx（AirymaxOS）的进程间通信协议族，其核心是 128 字节定长消息头。消息头是 agentrt 与 agentrt-liunx 在 IRON-9 v2 [SC] 共享契约层的核心共享构件。
+AgentsIPC 是 agentrt-linux（AirymaxOS）的进程间通信协议族，其核心是 128 字节定长消息头。消息头是 agentrt 与 agentrt-linux 在 IRON-9 v2 [SC] 共享契约层的核心共享构件。
 
 ### 2.1 消息头布局
 
@@ -182,7 +182,7 @@ typedef struct __attribute__((aligned(128))) {
 
 ## 3. JSON-RPC 2.0 命名空间规范
 
-JSON-RPC 2.0 是 AgentsIPC 中最主要的载荷协议。agentrt-liunx（AirymaxOS）在标准 JSON-RPC 2.0 基础上增加了命名空间规范，用于 OS 层 daemon 之间的方法调用。
+JSON-RPC 2.0 是 AgentsIPC 中最主要的载荷协议。agentrt-linux（AirymaxOS）在标准 JSON-RPC 2.0 基础上增加了命名空间规范，用于 OS 层 daemon 之间的方法调用。
 
 ### 3.1 方法命名约定
 
@@ -267,7 +267,7 @@ kernel.get_stats
 
 ## 4. OS 层 daemon 命名空间
 
-agentrt-liunx（AirymaxOS）的 OS 层定义了 12 个 daemon 守护进程，每个 daemon 拥有独立的命名空间，用于服务发现和消息路由。这些命名空间是 L2 在 [IND] 完全独立层的 OS 专属定义。
+agentrt-linux（AirymaxOS）的 OS 层定义了 12 个 daemon 守护进程，每个 daemon 拥有独立的命名空间，用于服务发现和消息路由。这些命名空间是 L2 在 [IND] 完全独立层的 OS 专属定义。
 
 ### 4.1 命名空间列表
 
@@ -318,7 +318,7 @@ int agentrt_svc_register(const char *namespace, const char *endpoint,
 
 ## 5. 服务发现多后端
 
-agentrt-liunx（AirymaxOS）的服务发现支持多种后端，从简单到复杂场景，符合五维正交24原则中 C-2（增量演化原则）的要求。
+agentrt-linux（AirymaxOS）的服务发现支持多种后端，从简单到复杂场景，符合五维正交24原则中 C-2（增量演化原则）的要求。
 
 ### 5.1 后端对比
 
@@ -373,7 +373,7 @@ struct are_svc_discovery_ops {
 ### 5.4 服务发现配置
 
 ```yaml
-# agentrt-liunx 服务发现配置示例
+# agentrt-linux 服务发现配置示例
 service_discovery:
   backend: "etcd"                    # shm | dns-sd | consul | etcd | k8s
   config:
@@ -389,7 +389,7 @@ service_discovery:
 
 ## 6. trace_id 贯穿机制
 
-trace_id 是 agentrt-liunx（AirymaxOS）可观测性体系的核心，贯穿整个服务调用链，确保每个请求从发起到完成都可以被追踪。
+trace_id 是 agentrt-linux（AirymaxOS）可观测性体系的核心，贯穿整个服务调用链，确保每个请求从发起到完成都可以被追踪。
 
 ### 6.1 trace_id 生成
 
@@ -549,8 +549,8 @@ sequenceDiagram
 
 ### 9.1 [SC] 层共享消息头布局
 
-agentrt 和 agentrt-liunx 在 [SC] 层完全共享 `are_ipc_msg_header_t` 的定义。这意味着：
-- 在 agentrt 用户态运行时构造的消息，可以在 agentrt-liunx 内核中直接解析
+agentrt 和 agentrt-linux 在 [SC] 层完全共享 `are_ipc_msg_header_t` 的定义。这意味着：
+- 在 agentrt 用户态运行时构造的消息，可以在 agentrt-linux 内核中直接解析
 - 消息头字段顺序、偏移量、大小完全一致
 - magic 编号 `0x41524531` 在两端具有相同的语义
 
@@ -564,7 +564,7 @@ agentrt 和 agentrt-liunx 在 [SC] 层完全共享 `are_ipc_msg_header_t` 的定
 
 ### 9.3 [IND] 层 OS 专属
 
-以下内容属于 [IND] 完全独立层，仅在 agentrt-liunx 中存在：
+以下内容属于 [IND] 完全独立层，仅在 agentrt-linux 中存在：
 - 12 个 daemon 命名空间定义
 - systemd 集成和 systemd socket activation
 - LSM 钩子与 IPC 权限检查的集成
@@ -577,7 +577,7 @@ agentrt 和 agentrt-liunx 在 [SC] 层完全共享 `are_ipc_msg_header_t` 的定
 
 ### 10.1 向前兼容
 
-agentrt-liunx L2 协议遵循以下向前兼容规则：
+agentrt-linux L2 协议遵循以下向前兼容规则：
 1. 新增字段只能追加到 extension 区域（90-127 字节）
 2. 新增 payload_type 枚举值不影响已有实现
 3. 新增命名空间不影响已有命名空间
@@ -631,7 +631,7 @@ agentrt-liunx L2 协议遵循以下向前兼容规则：
 
 1. [ARE Standards 总览](./README.md)
 2. [L1 核心运行时接口规范](./L1_runtime_interface.md)
-3. [agentrt-liunx（AirymaxOS）架构设计](../../10-architecture/01-system-architecture.md)
+3. [agentrt-linux（AirymaxOS）架构设计](../../10-architecture/01-system-architecture.md)
 4. JSON-RPC 2.0 规范：https://www.jsonrpc.org/specification
 5. AgentsIPC 协议文档：agentrt/protocols/
 6. OpenTelemetry 规范：https://opentelemetry.io/docs/specs/

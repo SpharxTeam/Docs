@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）云原生 Agent 部署设计
+# agentrt-linux（AirymaxOS）云原生 Agent 部署设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）云原生工程体系主索引
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）云原生工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **优先级**: P1（0.1.1 仅创建 README 占位，1.0.1 完成 5 文档）
@@ -13,9 +13,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 模块定位
 
-agentrt-liunx 云原生 Agent 部署体系是智能体操作系统在云原生场景下的核心工程保障。它继承 Linux 发行版与云原生社区 15+ 年沉淀的容器编排哲学（OCI 标准 + containerd + Kubernetes + CNI + CSI），并在其上扩展智能体操作系统专属的 Agent 容器化、超节点 OS、Agent 即 CRD（Custom Resource Definition）等。
+agentrt-linux 云原生 Agent 部署体系是智能体操作系统在云原生场景下的核心工程保障。它继承 Linux 发行版与云原生社区 15+ 年沉淀的容器编排哲学（OCI 标准 + containerd + Kubernetes + CNI + CSI），并在其上扩展智能体操作系统专属的 Agent 容器化、超节点 OS、Agent 即 CRD（Custom Resource Definition）等。
 
-agentrt-liunx 与生俱来具备云原生亲和力：MicroCoreRT 调度语义与 K8s 调度器对齐，AgentsIPC 协议可作为 K8s CRD 表达，MemoryRovol 记忆卷载可作为 CSI 卷挂载。Agent 应用在 agentrt-liunx 上既可以传统进程形态运行，也可以容器化形态运行，两种形态共享同一套 SDK 与契约。
+agentrt-linux 与生俱来具备云原生亲和力：MicroCoreRT 调度语义与 K8s 调度器对齐，AgentsIPC 协议可作为 K8s CRD 表达，MemoryRovol 记忆卷载可作为 CSI 卷挂载。Agent 应用在 agentrt-linux 上既可以传统进程形态运行，也可以容器化形态运行，两种形态共享同一套 SDK 与契约。
 
 ### 1.1 云原生分层
 
@@ -25,11 +25,11 @@ agentrt-liunx 与生俱来具备云原生亲和力：MicroCoreRT 调度语义与
 | L2 | 容器网络 | CNI + Calico / Cilium | 容器网络 |
 | L3 | 容器存储 | CSI + MemoryRovol 卷 | 容器存储 |
 | L4 | 编排平台 | Kubernetes + CRD | 集群编排 |
-| **L5** | **Agent 容器化** | **agentrt-liunx 专属** | **Agent 镜像规范** |
-| **L6** | **超节点 OS** | **agentrt-liunx 专属** | **超节点容器编排** |
-| **L7** | **Agent CRD** | **agentrt-liunx 专属** | **Agent 即 K8s 资源** |
+| **L5** | **Agent 容器化** | **agentrt-linux 专属** | **Agent 镜像规范** |
+| **L6** | **超节点 OS** | **agentrt-linux 专属** | **超节点容器编排** |
+| **L7** | **Agent CRD** | **agentrt-linux 专属** | **Agent 即 K8s 资源** |
 
-### 1.2 agentrt-liunx 扩展
+### 1.2 agentrt-linux 扩展
 
 - **Agent 容器镜像规范**：基于 OCI 标准，扩展 Token 预算、记忆卷载声明
 - **超节点 OS**：超节点（Supernode）场景下的容器编排，参考 Token 能效框架思想
@@ -42,7 +42,7 @@ agentrt-liunx 与生俱来具备云原生亲和力：MicroCoreRT 调度语义与
 
 ### 2.1 containerd 集成
 
-agentrt-liunx 内置 containerd 作为容器运行时：
+agentrt-linux 内置 containerd 作为容器运行时：
 
 ```yaml
 # /etc/containerd/config.toml
@@ -113,7 +113,7 @@ spec:
 
 ---
 
-## 4. agentrt-liunx 专属扩展
+## 4. agentrt-linux 专属扩展
 
 ### 4.1 Agent 容器镜像规范
 
@@ -135,16 +135,16 @@ spec:
 
 ### 4.3 同源 agentrt gateway
 
-agentrt 的 `gateway_d` daemon 与 agentrt-liunx 云原生体系同源：
+agentrt 的 `gateway_d` daemon 与 agentrt-linux 云原生体系同源：
 - agentrt 用户态：`gateway_d` 进程作为 Agent 网关
-- agentrt-liunx 云原生：gateway 作为 K8s Ingress Controller
+- agentrt-linux 云原生：gateway 作为 K8s Ingress Controller
 - 两端通过同源 AgentsIPC 协议保持互操作
 
 ### 4.4 IRON-9 v2 同源且部分代码共享
 
 云原生体系遵循 IRON-9 原则：
 - agentrt 用户态网关（gateway_d）
-- agentrt-liunx 云原生编排（K8s CRD + containerd）
+- agentrt-linux 云原生编排（K8s CRD + containerd）
 - 两端独立演进，但通过同源 API 保持互操作
 
 ---

@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）C 安全编码规范
+# agentrt-linux（AirymaxOS）C 安全编码规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS）内核态 C 语言安全编码规范
+> **文档定位**: agentrt-linux（AirymaxOS）内核态 C 语言安全编码规范
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
 > **父文档**: [编码规范总览](README.md)
@@ -405,7 +405,7 @@ memzero_explicit(key, sizeof(key));  /* 清零，编译器不会优化掉 */
 
 **根因**：`af_key.c` 中 `pfkey_broadcast()` 函数在释放 `sk` 后仍通过 `sock_net(sk)` 访问 `sk`，导致 UAF。
 
-**agentrt-liunx 教训**：
+**agentrt-linux 教训**：
 - 释放结构体后立即将指针置 NULL（OS-SEC-018）
 - 使用引用计数管理生命周期（OS-KER-031）
 - KASAN 在 CI 中检测 UAF（每次 PR）
@@ -416,7 +416,7 @@ memzero_explicit(key, sizeof(key));  /* 清零，编译器不会优化掉 */
 
 **根因**：ASN.1 解码器在计算 `len = 1 << len` 时未检查溢出，攻击者可通过构造极端 `len` 值触发堆溢出。
 
-**agentrt-liunx 教训**：
+**agentrt-linux 教训**：
 - 所有移位操作必须检查溢出（OS-SEC-012）
 - 使用 `check_shl_overflow()` 替代裸移位
 - 乘法/移位前使用 `struct_size()` / `array_size()`
@@ -427,12 +427,12 @@ memzero_explicit(key, sizeof(key));  /* 清零，编译器不会优化掉 */
 
 **根因**：UDP `ufo_append_data()` 函数在计算片段大小时未检查 `length` 是否溢出，导致 `skb` 数据区被越界覆盖。
 
-**agentrt-liunx 教训**：
+**agentrt-linux 教训**：
 - 网络数据包处理是缓冲区溢出高发区（OS-SEC-010）
 - 所有来自网络的数据长度必须经过多重验证
 - 使用 `check_add_overflow()` 进行累积长度计算
 
-### 9.4 CVE 教训总结：agentrt-liunx 安全编码五大铁律
+### 9.4 CVE 教训总结：agentrt-linux 安全编码五大铁律
 
 ```mermaid
 graph TD
@@ -442,7 +442,7 @@ graph TD
     CVE --> T4["铁律 4：共享数据必须加锁<br/>OS-SEC-019"]
     CVE --> T5["铁律 5：清零所有敏感数据<br/>OS-SEC-027"]
 
-    T1 --> GOAL["agentrt-liunx 内核安全"]
+    T1 --> GOAL["agentrt-linux 内核安全"]
     T2 --> GOAL
     T3 --> GOAL
     T4 --> GOAL
@@ -463,7 +463,7 @@ graph TD
 
 ### 10.1 Coverity Scan
 
-Coverity 是 agentrt-liunx（AirymaxOS）内核代码的深度静态分析工具，检测以下缺陷类别：
+Coverity 是 agentrt-linux（AirymaxOS）内核代码的深度静态分析工具，检测以下缺陷类别：
 - 缓冲区溢出（BUFFER_SIZE）
 - 资源泄漏（RESOURCE_LEAK）
 - 空指针解引用（FORWARD_NULL）
@@ -530,7 +530,7 @@ Coccinelle 是语义模式匹配引擎，可以检测：
 - [C 编码风格规范](C_coding_style_standard.md)：内核态 C 编程风格
 - [Rust 安全编码规范](Rust_secure_coding_standard.md)：内核模块安全编码
 - [工程标准规范 01-代码规范](../../50-engineering-standards/01-coding-standards.md)：语义层代码规则
-- [安全模块（110-security）](../../110-security/README.md)：agentrt-liunx（AirymaxOS）安全体系
+- [安全模块（110-security）](../../110-security/README.md)：agentrt-linux（AirymaxOS）安全体系
 - [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md)
 - CERT C Coding Standard
 - Linux 内核 CVE 数据库

@@ -1,7 +1,7 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# agentrt-liunx 统一术语表
+# agentrt-linux 统一术语表
 
 **最新**: 2026-07-07
 **状态**: 草案（文档体系完成）
@@ -11,33 +11,33 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 一、编制说明
 
-本术语表是 agentrt-liunx（AirymaxOS）规范体系的**唯一权威术语参考**。
+本术语表是 agentrt-linux（AirymaxOS）规范体系的**唯一权威术语参考**。
 
 **目的**:
-- 统一所有 agentrt-liunx（AirymaxOS）规范文档、代码注释、API 文档中的术语定义
+- 统一所有 agentrt-linux（AirymaxOS）规范文档、代码注释、API 文档中的术语定义
 - 当不同文档间存在术语冲突时，**以本表为准**
 - 确保与 agentrt（AirymaxAgentRT）的术语在 IRON-9 v2 [SC] 共享契约层保持一致
 
 **使用规则**:
 1. 编写文档时必须使用本表的**标准名称**
-2. 核心表述统一使用 "agentrt-liunx（AirymaxOS）" 形式，不得单独出现 "AirymaxOS" 而无前缀
+2. 核心表述统一使用 "agentrt-linux（AirymaxOS）" 形式，不得单独出现 "AirymaxOS" 而无前缀
 3. 标注为"禁止使用"的旧称不得出现在任何新的规范文档或代码注释中
 4. 新增术语需经架构团队审核后加入
-5. 标准计算机专业名词（如 IPC、Daemon、Sandbox、Microkernel 等）遵循业界通用定义，本表不重新定义，仅在"标准计算机名词"分区中说明其在 agentrt-liunx（AirymaxOS）中的使用上下文
-6. 当标准名词与 agentrt-liunx 特有概念同名时，以 agentrt-liunx 特有定义为准
+5. 标准计算机专业名词（如 IPC、Daemon、Sandbox、Microkernel 等）遵循业界通用定义，本表不重新定义，仅在"标准计算机名词"分区中说明其在 agentrt-linux（AirymaxOS）中的使用上下文
+6. 当标准名词与 agentrt-linux 特有概念同名时，以 agentrt-linux 特有定义为准
 7. 与 agentrt 术语表中共享的术语，通过 IRON-9 v2 [SC] 层标注保持一致性
 
 ---
 
 ## 二、标准计算机名词（OS 领域通用术语）
 
-本分区所列术语均为计算机科学领域，特别是**操作系统领域**的业界通用专业名词，遵循其标准定义，agentrt-liunx（AirymaxOS）**不重新定义**。仅说明其在 agentrt-liunx 项目中的使用上下文，供文档编写与代码注释参考。
+本分区所列术语均为计算机科学领域，特别是**操作系统领域**的业界通用专业名词，遵循其标准定义，agentrt-linux（AirymaxOS）**不重新定义**。仅说明其在 agentrt-linux 项目中的使用上下文，供文档编写与代码注释参考。
 
 ### IPC / 进程间通信
 
 **业界定义**: Inter-Process Communication，操作系统提供的机制，允许不同进程之间交换数据与信号。常见实现包括管道、消息队列、共享内存、信号量、套接字、io_uring 等。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）微内核化改造的核心机制之一，基于 io_uring 零拷贝消息传递，承载用户态服务（Daemon）之间、Agent 与内核之间的高性能消息传递。128 字节统一消息头（magic=0x41524531）与 agentrt 的 AgentsIPC 同源（IRON-9 v2 [SS] 语义同源层）。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）微内核化改造的核心机制之一，基于 io_uring 零拷贝消息传递，承载用户态服务（Daemon）之间、Agent 与内核之间的高性能消息传递。128 字节统一消息头（magic=0x41524531）与 agentrt 的 AgentsIPC 同源（IRON-9 v2 [SS] 语义同源层）。
 
 **系统内代码**: `agentrt_ipc_*`
 
@@ -49,7 +49,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 在后台运行的长生命周期进程，通常独立于终端会话，提供特定服务。Unix 传统命名以 `d` 后缀（如 `syslogd`、`sshd`）。在 systemd 体系下，daemon 作为 systemd 单元管理。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）采用微内核化改造策略，将功能服务化为用户态进程，通过 systemd 集成管理。命名遵循 `*_d` 约定（如 `gateway_d`、`llm_d`、`tool_d`）。12 个 daemon 服务覆盖认知、安全、记忆、调度等全部功能域。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）采用微内核化改造策略，将功能服务化为用户态进程，通过 systemd 集成管理。命名遵循 `*_d` 约定（如 `gateway_d`、`llm_d`、`tool_d`）。12 个 daemon 服务覆盖认知、安全、记忆、调度等全部功能域。
 
 **系统内代码**: `*_d` 进程后缀，systemd unit 文件
 
@@ -61,7 +61,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 一种安全机制，将程序运行限制在受控的隔离环境中，防止其对宿主系统造成意外或恶意影响。常见实现包括 seccomp、Landlock、namespace、capability 等。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）系统调用层（syscall）的七大功能域之一，为 Agent 与 Skill 提供隔离执行环境。沙箱机制结合 Linux 6.6 内核基线的 seccomp + Landlock + capability 三道防线，配合 Cupolas 共同构成安全防护体系。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）系统调用层（syscall）的七大功能域之一，为 Agent 与 Skill 提供隔离执行环境。沙箱机制结合 Linux 6.6 内核基线的 seccomp + Landlock + capability 三道防线，配合 Cupolas 共同构成安全防护体系。
 
 **系统内代码**: `agentrt_sys_sandbox_*`
 
@@ -73,7 +73,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 操作系统的最小核心，只提供最基本的服务（调度、IPC、地址空间管理、基本内存管理）。文件系统、网络栈、设备驱动等服务运行在用户态。代表实现：seL4、Zircon、Minix3、QNX、L4。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）基于 Linux 6.6 内核进行**微内核化改造**（非从零开发），演进目标为真正的微内核——利用 sched_ext + eBPF + io_uring 实现微内核化，将 VFS、网络栈、部分驱动移到用户态，同时保留 Linux 内核的稳定性和硬件兼容性。遵循 Liedtke minimality principle。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）基于 Linux 6.6 内核进行**微内核化改造**（非从零开发），演进目标为真正的微内核——利用 sched_ext + eBPF + io_uring 实现微内核化，将 VFS、网络栈、部分驱动移到用户态，同时保留 Linux 内核的稳定性和硬件兼容性。遵循 Liedtke minimality principle。
 
 **参见**: Liedtke Minimality Principle、seL4、MicroCoreRT（微核心运行时）
 
@@ -83,7 +83,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Jochen Liedtke（L4 微内核创始人）提出的微内核设计原则："A concept is tolerated inside the microkernel only if moving it outside the kernel, i.e., permitting competing implementations, would prevent the implementation of the system's required functionality."
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）的内核极简原则（五维正交24原则 K-1）直接遵循 Liedtke minimality——内核只保留不可再分的原子机制（调度、IPC、内存管理、时间服务），一切可以在用户态实现的功能都必须在用户态实现。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）的内核极简原则（五维正交24原则 K-1）直接遵循 Liedtke minimality——内核只保留不可再分的原子机制（调度、IPC、内存管理、时间服务），一切可以在用户态实现的功能都必须在用户态实现。
 
 **参见**: K-1 内核极简原则、MicroCoreRT（微核心运行时）、五维正交24原则
 
@@ -93,7 +93,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 一种访问控制机制，使用不可伪造的令牌（capability）代表对资源的访问权限。进程必须持有指向目标资源的 capability 才能进行访问。capability 可以被委托、复制、限制。代表实现：seL4、Zircon。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）安全子系统（airymaxos-security）实现 capability 系统（seL4 风格），与 Cupolas 同源。capability 令牌格式定义于 `include/airymax/security_types.h`（IRON-9 v2 [SC] 共享契约层），结合 LSM 钩子（SELinux）实现纵深防御。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）安全子系统（airymaxos-security）实现 capability 系统（seL4 风格），与 Cupolas 同源。capability 令牌格式定义于 `include/airymax/security_types.h`（IRON-9 v2 [SC] 共享契约层），结合 LSM 钩子（SELinux）实现纵深防御。
 
 **系统内代码**: `agentrt_cap_*`
 
@@ -105,7 +105,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Linux 内核的高性能异步 I/O 接口，由 Jens Axboe 设计。通过共享内存环形缓冲区（submission queue + completion queue）实现零拷贝、低延迟的异步 I/O 操作，支持 read/write/send/recv/accept/connect 等操作。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）IPC 子系统的核心传输机制，基于 io_uring 实现零拷贝消息传递。内核固定 OP 码用于 Agent IPC 消息收发，与 agentrt 的 AgentsIPC 语义同源（IRON-9 v2 [SS] 语义同源层）。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）IPC 子系统的核心传输机制，基于 io_uring 实现零拷贝消息传递。内核固定 OP 码用于 Agent IPC 消息收发，与 agentrt 的 AgentsIPC 语义同源（IRON-9 v2 [SS] 语义同源层）。
 
 **参见**: IPC、AgentsIPC（Agent 进程间通信）、SCHED_AGENT
 
@@ -115,7 +115,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Linux 内核的可扩展调度器框架（主线 6.12+），允许通过 eBPF 程序在用户态定义调度策略，实现自定义调度类。提供 struct_ops 机制将内核调度器行为暴露给 eBPF 程序。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）通过 agentrt-liunx 内核增强策略将 sched_ext 向前移植到 Linux 6.6 内核基线，实现 SCHED_AGENT 策略——专门为 Agent 工作负载优化的 eBPF 用户态调度器。调度语义与 agentrt 的 MicroCoreRT 一致（同源）。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）通过 agentrt-linux 内核增强策略将 sched_ext 向前移植到 Linux 6.6 内核基线，实现 SCHED_AGENT 策略——专门为 Agent 工作负载优化的 eBPF 用户态调度器。调度语义与 agentrt 的 MicroCoreRT 一致（同源）。
 
 **系统内代码**: `agentrt_sched_agent_*`，eBPF 程序
 
@@ -127,7 +127,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Extended Berkeley Packet Filter，Linux 内核的可编程虚拟机。允许在沙箱环境中运行用户提供的程序，安全地扩展内核功能。支持 kfunc（内核函数）、dynamic pointer、struct_ops 等高级特性。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）利用 eBPF 实现三大核心能力：SCHED_AGENT 用户态调度器（sched_ext）、内核可观测性探针（kfunc + dynamic pointer）、安全策略可插拔（BPF + io_uring 集成）。所有 eBPF 程序通过 Cupolas 安全穹顶进行权限校验。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）利用 eBPF 实现三大核心能力：SCHED_AGENT 用户态调度器（sched_ext）、内核可观测性探针（kfunc + dynamic pointer）、安全策略可插拔（BPF + io_uring 集成）。所有 eBPF 程序通过 Cupolas 安全穹顶进行权限校验。
 
 **参见**: sched_ext、SCHED_AGENT、Cupolas（安全穹顶）
 
@@ -137,7 +137,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Multi-Generation LRU，Linux 内核 6.6 引入的页面回收算法。将内存页面按访问热度分为多代（generation），优先回收最冷代页面，实现冷热数据分层和高效内存回收。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）内核内存管理的核心算法，配合 CXL 内存池化实现 MemoryRovol L1-L4 四层记忆的冷热数据分层。MGLRU 的多代回收策略与记忆卷载的遗忘机制（Forgetting Engine）在语义上一致。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）内核内存管理的核心算法，配合 CXL 内存池化实现 MemoryRovol L1-L4 四层记忆的冷热数据分层。MGLRU 的多代回收策略与记忆卷载的遗忘机制（Forgetting Engine）在语义上一致。
 
 **参见**: MemoryRovol（记忆卷载）、Forgetting Engine（遗忘机制）、CXL 内存池化
 
@@ -147,7 +147,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Linux 内核的安全框架，提供钩子（hook）机制允许安全模块（如 SELinux、AppArmor）在关键操作点进行访问控制。LSM 钩子覆盖文件系统、网络、进程管理、capability 等子系统。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）安全子系统（airymaxos-security）利用 LSM 框架实现 Agent 专属安全策略。LSM 钩子 ID 定义于 `include/airymax/security_types.h`（IRON-9 v2 [SC] 共享契约层），与 capability 系统共同构成纵深防御。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）安全子系统（airymaxos-security）利用 LSM 框架实现 Agent 专属安全策略。LSM 钩子 ID 定义于 `include/airymax/security_types.h`（IRON-9 v2 [SC] 共享契约层），与 capability 系统共同构成纵深防御。
 
 **参见**: capability、Cupolas（安全穹顶）、SELinux
 
@@ -157,7 +157,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Linux 系统的初始化系统和服务管理器，负责系统引导、服务管理、日志记录、设备管理等。提供 unit 文件定义服务依赖、启动顺序和资源限制。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）采用 systemd 管理 12 个用户态守护进程。每个 daemon 通过 systemd unit 文件定义隔离策略（独立地址空间、capability 限制、资源限制）。遵循 K-3 服务隔离原则（五维正交24原则）。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）采用 systemd 管理 12 个用户态守护进程。每个 daemon 通过 systemd unit 文件定义隔离策略（独立地址空间、capability 限制、资源限制）。遵循 K-3 服务隔离原则（五维正交24原则）。
 
 **参见**: Daemon（用户态服务进程）、Service Isolation（服务隔离）
 
@@ -167,7 +167,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 一种工程理念，将安全作为系统设计的首要原则，在架构层面而非附加层面解决安全问题。与"安全左移"（Shift Left Security）理念一致，强调默认安全（Secure by Default）。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）的核心设计理念之一（五维正交24原则 E-1），贯穿内核（capability + LSM）、服务层（沙箱 + 隔离）、记忆层（审计哈希链）等所有安全相关组件。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）的核心设计理念之一（五维正交24原则 E-1），贯穿内核（capability + LSM）、服务层（沙箱 + 隔离）、记忆层（审计哈希链）等所有安全相关组件。
 
 **参见**: Cupolas（安全穹顶）、capability、LSM、Service Isolation（服务隔离）
 
@@ -177,7 +177,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 分布式追踪系统中用于唯一标识一次请求链路的标识符，贯穿请求经过的所有服务节点，支持链路分析与性能诊断。常见于 OpenTelemetry、Jaeger、Zipkin 等可观测性体系。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）可观测性子系统的核心标识，贯穿 Agent 任务执行、IPC 消息传递、Daemon 服务调用的全链路。128 字节 IPC 消息头中固定携带 TraceID 字段，与 agentrt 的 TraceID 体系完全一致（IRON-9 v2 [SC] 共享契约层）。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）可观测性子系统的核心标识，贯穿 Agent 任务执行、IPC 消息传递、Daemon 服务调用的全链路。128 字节 IPC 消息头中固定携带 TraceID 字段，与 agentrt 的 TraceID 体系完全一致（IRON-9 v2 [SC] 共享契约层）。
 
 **参见**: IPC、OpenTelemetry、可观测性
 
@@ -187,7 +187,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 一种架构模式，将不同服务的运行环境、资源、权限相互隔离，防止单一服务故障或被攻破后影响整体系统。常见实现包括进程隔离、容器隔离、虚拟机隔离等。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）微内核化改造的设计原则之一（五维正交24原则 K-3），各 Daemon 服务运行于独立地址空间，通过 IPC 通信，资源与权限相互隔离。systemd unit 文件定义隔离边界，与 Sandbox、Cupolas 协同构成纵深防御。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）微内核化改造的设计原则之一（五维正交24原则 K-3），各 Daemon 服务运行于独立地址空间，通过 IPC 通信，资源与权限相互隔离。systemd unit 文件定义隔离边界，与 Sandbox、Cupolas 协同构成纵深防御。
 
 **参见**: Daemon（用户态服务进程）、Sandbox（沙箱）、Cupolas（安全穹顶）、systemd
 
@@ -197,7 +197,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: JSON Remote Procedure Call，一种无状态、轻量级的远程过程调用协议，使用 JSON 作为数据格式。规范定义于 https://www.jsonrpc.org/specification。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）协议适配层支持的标准协议之一，用于 Agent 与外部客户端之间的请求-响应通信。使用强制命名空间格式 `<daemon>.<method>`，错误码体系与 agentrt 统一错误码体系对接。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）协议适配层支持的标准协议之一，用于 Agent 与外部客户端之间的请求-响应通信。使用强制命名空间格式 `<daemon>.<method>`，错误码体系与 agentrt 统一错误码体系对接。
 
 **参见**: IPC、AgentsIPC（Agent 进程间通信）、ErrorCodeSystem（统一错误码体系）
 
@@ -207,7 +207,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: 一种开放标准的互连协议，基于 PCIe 物理层，支持 CPU 与加速器、内存扩展器之间的高速通信。CXL 2.0+ 支持内存池化（memory pooling），允许多个主机共享内存资源。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）利用 Linux 6.6 内核基线的 CXL 支持实现 MemoryRovol L1-L4 跨节点内存池化，配合 MGLRU（多代 LRU）实现冷热数据分层。这是 agentrt-liunx 作为 OS 发行版相对于 agentrt 用户态运行时的独特优势。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）利用 Linux 6.6 内核基线的 CXL 支持实现 MemoryRovol L1-L4 跨节点内存池化，配合 MGLRU（多代 LRU）实现冷热数据分层。这是 agentrt-linux 作为 OS 发行版相对于 agentrt 用户态运行时的独特优势。
 
 **系统内代码**: `agentrt_cxl_*`
 
@@ -219,7 +219,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Data Plane Development Kit，用户态高性能数据包处理框架。AF_XDP（Address Family eXpress Data Path）是 Linux 内核的原生高性能数据路径，允许用户态程序直接访问网卡接收环。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）网络栈用户态化的核心技术，通过 DPDK/AF_XDP 将网络处理从内核态移到用户态（net_d 守护进程），实现微内核化改造。遵循 K-1 内核极简原则（五维正交24原则）。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）网络栈用户态化的核心技术，通过 DPDK/AF_XDP 将网络处理从内核态移到用户态（net_d 守护进程），实现微内核化改造。遵循 K-1 内核极简原则（五维正交24原则）。
 
 **系统内代码**: `agentrt_net_d`（net_d 守护进程）
 
@@ -231,7 +231,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Virtual Function I/O，Linux 内核的用户态驱动框架。VFIO 允许用户态程序直接访问设备 MMIO 区域和 DMA，实现高性能用户态驱动。libvfio 是 VFIO 的用户态库。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）驱动框架用户态化的核心技术，通过 VFIO/libvfio 将部分设备驱动从内核态移到用户态（drv_d 守护进程），实现微内核化改造。遵循 K-1 内核极简原则（五维正交24原则）。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）驱动框架用户态化的核心技术，通过 VFIO/libvfio 将部分设备驱动从内核态移到用户态（drv_d 守护进程），实现微内核化改造。遵循 K-1 内核极简原则（五维正交24原则）。
 
 **系统内代码**: `agentrt_drv_d`（drv_d 守护进程）
 
@@ -239,17 +239,17 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ---
 
-## 三、agentrt-liunx 特有架构术语
+## 三、agentrt-linux 特有架构术语
 
-### agentrt-liunx（AirymaxOS / 极境智能体操作系统）
+### agentrt-linux（AirymaxOS / 极境智能体操作系统）
 
-**定义**: agentrt-liunx 是基于 Linux 6.6 内核基线的智能体操作系统发行版，采用微内核化改造策略（而非从零开发微内核）。代码仓库名 `agentrt-linux`，项目定位为 agentrt（AirymaxAgentRT）的 OS 层最佳载体。与 agentrt 遵循 IRON-9 v2"同源且部分代码共享"原则：[SC] 共享契约层完全共享代码，[SS] 语义同源层 API 签名相同但实现独立，[IND] 完全独立层各自独立。
+**定义**: agentrt-linux 是基于 Linux 6.6 内核基线的智能体操作系统发行版，采用微内核化改造策略（而非从零开发微内核）。代码仓库名 `agentrt-linux`，项目定位为 agentrt（AirymaxAgentRT）的 OS 层最佳载体。与 agentrt 遵循 IRON-9 v2"同源且部分代码共享"原则：[SC] 共享契约层完全共享代码，[SS] 语义同源层 API 签名相同但实现独立，[IND] 完全独立层各自独立。
 
-**标准名称**: agentrt-liunx（AirymaxOS）——正式文档中必须使用此完整形式，不得单独出现 "AirymaxOS" 而无 "agentrt-liunx" 前缀。
+**标准名称**: agentrt-linux（AirymaxOS）——正式文档中必须使用此完整形式，不得单独出现 "AirymaxOS" 而无 "agentrt-linux" 前缀。
 
 **别名**: 极境智能体操作系统（中文完整名称）
 
-**旧称/禁止使用**: 仅出现 "AirymaxOS" 而无 "agentrt-liunx" 前缀的表述
+**旧称/禁止使用**: 仅出现 "AirymaxOS" 而无 "agentrt-linux" 前缀的表述
 
 **系统内代码**: `agentrt_*` 前缀（IRON-9 v2 [SC] 共享契约层）
 
@@ -261,11 +261,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### MicroCoreRT / 微核心运行时
 
-**定义**: agentrt-liunx（AirymaxOS）内核的极简运行时抽象层，提供最基本的 IPC、内存管理、任务调度、时间管理、可观测性功能。与 agentrt 的 MicroCoreRT 共享设计理念（同源），但在 agentrt-liunx 中作为 OS 级实现（内核态 + 用户态服务），而在 agentrt 中作为用户态运行时实现。
+**定义**: agentrt-linux（AirymaxOS）内核的极简运行时抽象层，提供最基本的 IPC、内存管理、任务调度、时间管理、可观测性功能。与 agentrt 的 MicroCoreRT 共享设计理念（同源），但在 agentrt-linux 中作为 OS 级实现（内核态 + 用户态服务），而在 agentrt 中作为用户态运行时实现。
 
 **标准名称**: 微核心运行时 (MicroCoreRT)
 
-**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——API 签名相同（调度语义、IPC 语义、内存管理语义），实现独立（agentrt-liunx 基于 sched_ext + io_uring + MGLRU，agentrt 基于用户态消息队列 + 用户态调度器）。
+**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——API 签名相同（调度语义、IPC 语义、内存管理语义），实现独立（agentrt-linux 基于 sched_ext + io_uring + MGLRU，agentrt 基于用户态消息队列 + 用户态调度器）。
 
 **系统内代码**: `agentrt_core_*`
 
@@ -277,7 +277,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### AgentsIPC / Agent 进程间通信
 
-**定义**: agentrt-liunx（AirymaxOS）的 Agent 间高性能通信机制，基于 io_uring 零拷贝消息传递 + 128 字节统一消息头（magic=0x41524531）。与 agentrt 的 AgentsIPC 语义同源（IRON-9 v2 [SS] 语义同源层），但在 agentrt-liunx 中基于内核 io_uring 固定 OP 码实现，在 agentrt 中基于用户态消息队列实现。
+**定义**: agentrt-linux（AirymaxOS）的 Agent 间高性能通信机制，基于 io_uring 零拷贝消息传递 + 128 字节统一消息头（magic=0x41524531）。与 agentrt 的 AgentsIPC 语义同源（IRON-9 v2 [SS] 语义同源层），但在 agentrt-linux 中基于内核 io_uring 固定 OP 码实现，在 agentrt 中基于用户态消息队列实现。
 
 **标准名称**: Agent 进程间通信 (AgentsIPC)
 
@@ -289,9 +289,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### Cupolas / 安全穹顶
 
-**定义**: agentrt-liunx（AirymaxOS）的内生安全防护层，实现输入净化 -> 权限仲裁 -> 网络过滤 -> 审计记录四重防护链。在 agentrt-liunx 中，Cupolas 结合 capability 系统（seL4 风格）、LSM 钩子（SELinux 集成）、国密算法（SM2/SM3/SM4）和机密计算（TEE/SGX），构成 OS 级纵深防御体系。
+**定义**: agentrt-linux（AirymaxOS）的内生安全防护层，实现输入净化 -> 权限仲裁 -> 网络过滤 -> 审计记录四重防护链。在 agentrt-linux 中，Cupolas 结合 capability 系统（seL4 风格）、LSM 钩子（SELinux 集成）、国密算法（SM2/SM3/SM4）和机密计算（TEE/SGX），构成 OS 级纵深防御体系。
 
-**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——安全模型一致（capability 令牌格式、策略裁决 4 值枚举共享于 [SC] 层），实现独立（agentrt-liunx 基于 LSM + capability 内核态，agentrt 基于用户态安全模块）。
+**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——安全模型一致（capability 令牌格式、策略裁决 4 值枚举共享于 [SC] 层），实现独立（agentrt-linux 基于 LSM + capability 内核态，agentrt 基于用户态安全模块）。
 
 **标准名称**: 安全穹顶 (Cupolas)
 
@@ -305,9 +305,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### MemoryRovol / 记忆卷载
 
-**定义**: agentrt-liunx（AirymaxOS）的四层渐进式记忆架构，从原始数据到深层模式的完整处理管线：L1 原始卷（SHA-256 哈希 + ZSTD 压缩，append-only 持久化）、L2 特征层（HNSW 向量检索 + BM25 文本检索 + 混合融合）、L3 结构层（知识图谱 + VSA 绑定/解绑算子）、L4 模式层（HDBSCAN 聚类 + 0D 持久同调 + 模式挖掘）。
+**定义**: agentrt-linux（AirymaxOS）的四层渐进式记忆架构，从原始数据到深层模式的完整处理管线：L1 原始卷（SHA-256 哈希 + ZSTD 压缩，append-only 持久化）、L2 特征层（HNSW 向量检索 + BM25 文本检索 + 混合融合）、L3 结构层（知识图谱 + VSA 绑定/解绑算子）、L4 模式层（HDBSCAN 聚类 + 0D 持久同调 + 模式挖掘）。
 
-在 agentrt-liunx 中，MemoryRovol 利用 Linux 6.6 内核基线的 CXL 内存池化和 MGLRU（多代 LRU）实现冷热数据分层，这是 agentrt-liunx 作为 OS 发行版的独特优势。
+在 agentrt-linux 中，MemoryRovol 利用 Linux 6.6 内核基线的 CXL 内存池化和 MGLRU（多代 LRU）实现冷热数据分层，这是 agentrt-linux 作为 OS 发行版的独特优势。
 
 **名称由来**: Memory + Rovol（Roll + Volume 的融合造词），寓意记忆的滚动卷载。
 
@@ -319,7 +319,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **代码目录**: `airymaxos-memory/`
 
-**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——记忆模型一致（L1-L4 数据结构、GFP 掩码语义、PMEM 持久化接口共享于 [SC] 层），实现独立（agentrt-liunx 基于 CXL + MGLRU 内核态，agentrt 基于 HeapStore 用户态）。
+**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——记忆模型一致（L1-L4 数据结构、GFP 掩码语义、PMEM 持久化接口共享于 [SC] 层），实现独立（agentrt-linux 基于 CXL + MGLRU 内核态，agentrt 基于 HeapStore 用户态）。
 
 **参见**: CoreLoopThree（认知三阶段循环）、Forgetting Engine（遗忘机制）、MGLRU（多代 LRU）、CXL 内存池化
 
@@ -327,7 +327,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### CoreLoopThree / 认知三阶段循环
 
-**定义**: agentrt-liunx（AirymaxOS）的三层认知-执行-记忆主循环运行时：
+**定义**: agentrt-linux（AirymaxOS）的三层认知-执行-记忆主循环运行时：
 
 | 层级 | 名称 | 职责 |
 |------|------|------|
@@ -335,7 +335,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | L2 执行层 | Execution Engine | 任务执行 -> 单元调度 -> 补偿事务 |
 | L3 记忆层 | Memory Engine | 结果写入 -> 查询 -> 挂载 |
 
-在 agentrt-liunx 中，认知层实现为内核 kthread（而非用户态线程），利用 SCHED_AGENT 策略获得 OS 级调度优先级和确定性延迟。
+在 agentrt-linux 中，认知层实现为内核 kthread（而非用户态线程），利用 SCHED_AGENT 策略获得 OS 级调度优先级和确定性延迟。
 
 **标准名称**: 认知三阶段循环 (CoreLoopThree)
 
@@ -345,7 +345,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **代码目录**: `airymaxos-cognition/`
 
-**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——认知模型一致（CoreLoopThree 阶段枚举、Thinkdual 模式枚举、LLM 推理阶段枚举共享于 [SC] 层），实现独立（agentrt-liunx 基于内核 kthread + SCHED_AGENT，agentrt 基于用户态线程）。
+**与 agentrt 的关系**: 遵循 IRON-9 v2 [SS] 语义同源层——认知模型一致（CoreLoopThree 阶段枚举、Thinkdual 模式枚举、LLM 推理阶段枚举共享于 [SC] 层），实现独立（agentrt-linux 基于内核 kthread + SCHED_AGENT，agentrt 基于用户态线程）。
 
 **参见**: Thinkdual（双思考系统）、MemoryRovol（记忆卷载）、SCHED_AGENT（Agent 调度类）
 
@@ -353,7 +353,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### Thinkdual / 双思考系统
 
-**定义**: agentrt-liunx（AirymaxOS）的核心认知创新，由三组件构成的认知架构：
+**定义**: agentrt-linux（AirymaxOS）的核心认知创新，由三组件构成的认知架构：
 
 | 组件 | 角色 | 功能 |
 |------|------|------|
@@ -378,7 +378,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### SCHED_AGENT / Agent 调度类
 
-**定义**: agentrt-liunx（AirymaxOS）专为 Agent 工作负载优化的 eBPF 用户态调度类，基于 sched_ext 框架实现。SCHED_AGENT 提供 Agent 感知的调度策略（基于认知阶段、Token 预算、任务优先级），调度语义与 agentrt 的 MicroCoreRT 一致（同源）。
+**定义**: agentrt-linux（AirymaxOS）专为 Agent 工作负载优化的 eBPF 用户态调度类，基于 sched_ext 框架实现。SCHED_AGENT 提供 Agent 感知的调度策略（基于认知阶段、Token 预算、任务优先级），调度语义与 agentrt 的 MicroCoreRT 一致（同源）。
 
 **调度策略维度**:
 - 认知阶段感知：Cognition Engine 阶段 Agent 获得更高优先级
@@ -396,7 +396,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### IRON-9 v2 / 同源且部分代码共享
 
-**定义**: agentrt-liunx（AirymaxOS）与 agentrt（AirymaxAgentRT）之间的代码共享与语义同源原则。IRON-9 v2 是 IRON-9 的升级版本（2026-07-07 用户决策变更），从"仅语义同源、实现独立"升级为"同源且部分代码共享"。
+**定义**: agentrt-linux（AirymaxOS）与 agentrt（AirymaxAgentRT）之间的代码共享与语义同源原则。IRON-9 v2 是 IRON-9 的升级版本（2026-07-07 用户决策变更），从"仅语义同源、实现独立"升级为"同源且部分代码共享"。
 
 **三层共享模型**:
 
@@ -404,13 +404,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 |------|------|---------|------|
 | **共享契约层** | [SC] | 完全共享代码 | `include/airymax/` 6 个头文件：`bpf_struct_ops.h`、`memory_types.h`、`security_types.h`、`cognition_types.h`、`sched.h`、`ipc.h`。含 IPC 消息头结构、syscall 编号、capability 令牌格式、错误码、规则编号体系、五维正交24原则 |
 | **语义同源层** | [SS] | API 签名相同，实现独立 | 调度语义（MicroCoreRT）、安全模型（Cupolas）、IPC 传输（AgentsIPC）、记忆模型（MemoryRovol）、认知模型（CoreLoopThree） |
-| **完全独立层** | [IND] | 完全独立 | agentrt-liunx 专属：内核驱动框架、Kbuild、systemd 集成、内核内部 API；agentrt 专属：跨平台用户态运行时、SDK 四语言、CLI/TUI |
+| **完全独立层** | [IND] | 完全独立 | agentrt-linux 专属：内核驱动框架、Kbuild、systemd 集成、内核内部 API；agentrt 专属：跨平台用户态运行时、SDK 四语言、CLI/TUI |
 
 **标准名称**: IRON-9 v2（同源且部分代码共享）
 
 **旧称/禁止使用**: "IRON-9"（指旧版仅语义同源版本）
 
-**参见**: [SC]/[SS]/[IND] 三层标注、五维正交24原则、agentrt-liunx（AirymaxOS）
+**参见**: [SC]/[SS]/[IND] 三层标注、五维正交24原则、agentrt-linux（AirymaxOS）
 
 ---
 
@@ -427,24 +427,24 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | [IND] | Independent | 完全独立层——各自独立 | 内核驱动框架、Kbuild、systemd 集成、跨平台用户态运行时 |
 
 **使用规则**:
-1. 所有跨 agentrt 和 agentrt-liunx 的 API 文档必须标注所属层次
-2. [SC] 层代码变更必须通过 agentrt + agentrt-liunx CI 双向校验
+1. 所有跨 agentrt 和 agentrt-linux 的 API 文档必须标注所属层次
+2. [SC] 层代码变更必须通过 agentrt + agentrt-linux CI 双向校验
 3. [SS] 层 API 签名变更需两端架构评审
 4. [IND] 层各自独立演进，无需同步
 
-**参见**: IRON-9 v2、agentrt-liunx（AirymaxOS）
+**参见**: IRON-9 v2、agentrt-linux（AirymaxOS）
 
 ---
 
 ### 五维正交24原则
 
-**定义**: agentrt-liunx（AirymaxOS）架构设计的顶层设计哲学，基于体系并行论（Multibody Cybernetic Intelligent System），具体实例化为五维正交系统。每个维度对应一类核心设计原则，共 24 条原则覆盖 agentrt-liunx 设计的所有关键方面。
+**定义**: agentrt-linux（AirymaxOS）架构设计的顶层设计哲学，基于体系并行论（Multibody Cybernetic Intelligent System），具体实例化为五维正交系统。每个维度对应一类核心设计原则，共 24 条原则覆盖 agentrt-linux 设计的所有关键方面。
 
 **五维正交24原则概览表**:
 
 | 维度 | 核心问题 | 原则数量 | 核心思想 |
 |------|----------|----------|----------|
-| 系统观 (System) | agentrt-liunx 作为复杂自适应系统，如何维持动态平衡？ | 4 项 (S-1~S-4) | 反馈闭环、层次分解、总体设计部、涌现性管理 |
+| 系统观 (System) | agentrt-linux 作为复杂自适应系统，如何维持动态平衡？ | 4 项 (S-1~S-4) | 反馈闭环、层次分解、总体设计部、涌现性管理 |
 | 内核观 (Kernel) | 内核应该做什么，不应该做什么？ | 4 项 (K-1~K-4) | 内核极简、接口契约化、服务隔离、可插拔策略 |
 | 认知观 (Cognition) | 智能体如何高效、可靠地进行认知决策？ | 4 项 (C-1~C-4) | 认知层双思考功能、增量演化、记忆卷载、遗忘机制 |
 | 工程观 (Engineering) | 如何构建可维护、可测试、可演进的工程系统？ | 8 项 (E-1~E-8) | 安全内生、可观测性、资源确定性、跨平台一致性、命名语义化、错误可追溯、文档即代码、可测试性 |
@@ -475,7 +475,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 体系并行论
 
-**定义**: agentrt-liunx（AirymaxOS）和 agentrt（AirymaxAgentRT）的底层理论根基（Multibody Cybernetic Intelligent System）。体系并行论将智能体系统建模为多个并行运转的体系（基础体 + 认知体 + 执行体 + 记忆体 + 安全体），体系之间通过契约层交互，各自独立演进但共享顶层设计哲学。
+**定义**: agentrt-linux（AirymaxOS）和 agentrt（AirymaxAgentRT）的底层理论根基（Multibody Cybernetic Intelligent System）。体系并行论将智能体系统建模为多个并行运转的体系（基础体 + 认知体 + 执行体 + 记忆体 + 安全体），体系之间通过契约层交互，各自独立演进但共享顶层设计哲学。
 
 **标准名称**: 体系并行论 (Multibody Cybernetic Intelligent System)
 
@@ -485,7 +485,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### ErrorCodeSystem / 统一错误码体系
 
-**定义**: agentrt-liunx（AirymaxOS）采用双错误码体系：
+**定义**: agentrt-linux（AirymaxOS）采用双错误码体系：
 
 | 体系 | 适用场景 | 格式 |
 |------|---------|------|
@@ -521,7 +521,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **定义**: 基于艾宾浩斯遗忘曲线驱动的记忆衰减与清理机制。遗忘公式: R(t) = e^(-t/τ)，τ 默认 7 天。支持 NONE/EBBINGHAUS/LINEAR/ACCESS_BASED 四种遗忘策略。
 
-在 agentrt-liunx 中，遗忘机制与 MGLRU（多代 LRU）的多代页面回收策略在语义上一致——冷数据被遗忘（归档），热数据被保留（活跃代）。
+在 agentrt-linux 中，遗忘机制与 MGLRU（多代 LRU）的多代页面回收策略在语义上一致——冷数据被遗忘（归档），热数据被保留（活跃代）。
 
 **系统内代码**: `agentrt_forgetting_*`
 
@@ -533,7 +533,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### MemorySwap / 记忆交换算法
 
-**定义**: 记忆卷载的存储层级交换机制。借鉴操作系统虚拟内存分页交换，将记忆按访问热度划分为热/温/冷三个存储层级，在不同层级之间自动迁移。在 agentrt-liunx 中，MemorySwap 直接利用 MGLRU 的多代回收机制 + CXL 内存池化实现硬件级加速。
+**定义**: 记忆卷载的存储层级交换机制。借鉴操作系统虚拟内存分页交换，将记忆按访问热度划分为热/温/冷三个存储层级，在不同层级之间自动迁移。在 agentrt-linux 中，MemorySwap 直接利用 MGLRU 的多代回收机制 + CXL 内存池化实现硬件级加速。
 
 **标准名称**: 记忆交换算法（正式）/ MemorySwap（简称）
 
@@ -585,7 +585,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### Memory Safety Macro System / 安全宏体系
 
-**定义**: agentrt-liunx（AirymaxOS）的内存操作安全宏体系，覆盖分配、释放、字符串操作和禁止函数，确保内存操作的类型安全和空指针安全。适用于内核态和用户态代码。
+**定义**: agentrt-linux（AirymaxOS）的内存操作安全宏体系，覆盖分配、释放、字符串操作和禁止函数，确保内存操作的类型安全和空指针安全。适用于内核态和用户态代码。
 
 **核心宏**:
 - 分配: `AGENTRT_MALLOC` / `AGENTRT_CALLOC` / `AGENTRT_REALLOC`
@@ -612,7 +612,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### Linux 6.6 内核基线
 
-**定义**: agentrt-liunx（AirymaxOS）1.0.1 版本锁定的内核基线版本。所有 agentrt-liunx 内核态代码、驱动、安全模块均基于 Linux 6.6 内核基线开发。禁止引用 6.7+ 主线特性作为 6.6 原生能力（IRON-10 / BAN-361）。
+**定义**: agentrt-linux（AirymaxOS）1.0.1 版本锁定的内核基线版本。所有 agentrt-linux 内核态代码、驱动、安全模块均基于 Linux 6.6 内核基线开发。禁止引用 6.7+ 主线特性作为 6.6 原生能力（IRON-10 / BAN-361）。
 
 **基线核心特性**:
 - EEVDF 调度器（Linux 6.6 原生）
@@ -621,7 +621,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - XFS 在线 fsck（Linux 6.6 原生）
 - eBPF kfunc + dynamic pointer（Linux 6.6 原生）
 - io_uring 异步 I/O 改进（Linux 6.6 原生）
-- agentrt-liunx 内核增强：sched_ext（主线 6.12+ 向前移植）
+- agentrt-linux 内核增强：sched_ext（主线 6.12+ 向前移植）
 
 **标准名称**: Linux 6.6 内核基线
 
@@ -633,7 +633,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 8 子仓架构
 
-**定义**: agentrt-liunx（AirymaxOS）的代码组织架构，按能力域划分为 8 个独立子仓库：
+**定义**: agentrt-linux（AirymaxOS）的代码组织架构，按能力域划分为 8 个独立子仓库：
 
 | 子仓 | 能力域 | 代码目录 |
 |------|--------|----------|
@@ -646,7 +646,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | airymaxos-system | 系统编排 | `airymaxos-system/` |
 | airymaxos-tests | 测试框架 | `airymaxos-tests/` |
 
-**参见**: agentrt-liunx（AirymaxOS）、IRON-9 v2
+**参见**: agentrt-linux（AirymaxOS）、IRON-9 v2
 
 ---
 
@@ -654,7 +654,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 标准中文 | 标准英文 | 代码前缀 | IRON-9 v2 层次 | 禁止使用的旧称 |
 |----------|----------|---------|---------------|---------------|
-| agentrt-liunx（极境智能体操作系统） | agentrt-liunx（AirymaxOS） | `agentrt_*` | [SC]/[SS]/[IND] | 仅出现 "AirymaxOS" 而无前缀 |
+| agentrt-linux（极境智能体操作系统） | agentrt-linux（AirymaxOS） | `agentrt_*` | [SC]/[SS]/[IND] | 仅出现 "AirymaxOS" 而无前缀 |
 | 微核心运行时 | MicroCoreRT | `agentrt_core_*` | [SS] | 微内核（不加限定词时） |
 | Agent 进程间通信 | AgentsIPC | `agentrt_ipc_*` | [SS] | — |
 | 安全穹顶 | Cupolas | `cupolas_*` | [SS] | Cupolas安全模块 |
@@ -749,7 +749,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | hook_d | 钩子服务（事件处理与系统钩子） | `hook_d.service` |
 | plugin_d | 插件服务（外部插件管理） | `plugin_d.service` |
 
-### B. agentrt-liunx 用户态驱动服务（3 个）
+### B. agentrt-linux 用户态驱动服务（3 个）
 
 | 服务 | 功能 | 实现技术 |
 |------|------|----------|
@@ -808,11 +808,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 [2] 认知层理论 — `Basic_Theories/CN_02_认知层设计.md`
 [3] 记忆层理论 — `Basic_Theories/CN_03_记忆层设计.md`
 [4] 设计原则 — `Basic_Theories/CN_04_系统设计原则.md`
-[5] 五维正交24原则与 agentrt-liunx（AirymaxOS）落地映射 — `docs/AirymaxAgentOS/10-architecture/02-five-dimensional-principles.md`
-[6] agentrt-liunx 架构设计 — `docs/AirymaxAgentOS/10-architecture/01-system-architecture.md`
+[5] 五维正交24原则与 agentrt-linux（AirymaxOS）落地映射 — `docs/AirymaxAgentOS/10-architecture/02-five-dimensional-principles.md`
+[6] agentrt-linux 架构设计 — `docs/AirymaxAgentOS/10-architecture/01-system-architecture.md`
 [7] 微内核设计思想详解 — `docs/AirymaxAgentOS/10-architecture/03-microkernel-strategy.md`
-[8] agentrt-liunx（AirymaxOS）工程基线 — `docs/AirymaxAgentOS/10-architecture/04-engineering-baseline.md`
-[9] agentrt-liunx 工程标准规范 — `docs/AirymaxAgentOS/50-engineering-standards/README.md`
+[8] agentrt-linux（AirymaxOS）工程基线 — `docs/AirymaxAgentOS/10-architecture/04-engineering-baseline.md`
+[9] agentrt-linux 工程标准规范 — `docs/AirymaxAgentOS/50-engineering-standards/README.md`
 [10] agentrt 统一术语表 — `docs/AirymaxAgentRT/Capital_Specifications/TERMINOLOGY.md`
 [11] agentrt 技术规范 — `docs/AirymaxAgentRT/Capital_Specifications/README.md`
 

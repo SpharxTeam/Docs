@@ -29,7 +29,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | Agent | 一个具备感知、思考、行动能力的智能体单元 |
 | 运行时（Runtime） | 加载、调度、执行 Agent 的载体 |
 | 微核心（micro-core） | 用户态极简运行时核心（agentrt 定位） |
-| 微内核（micro-kernel） | 操作系统发行版的内核极简化形态（agentrt-liunx 定位） |
+| 微内核（micro-kernel） | 操作系统发行版的内核极简化形态（agentrt-linux 定位） |
 | Token 预算 | Agent 一次执行可用 LLM token 上限 |
 | 能力声明（Capability Manifest） | Agent 声明其需要的资源、权限、依赖的元数据 |
 

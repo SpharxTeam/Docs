@@ -25,7 +25,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - **LLM 推理引擎开发者**：对接 PREFILL/DECODE/SPECULATIVE 推理阶段。
 - **能效优化方**：基于 Token 能效指标优化推理成本。
 
-本标准遵循 IRON-9 v2 [SC] 共享契约层——CoreLoopThree 阶段枚举、Thinkdual 模式枚举、LLM 推理阶段枚举在 agentrt 与 agentrt-liunx 之间完全共享。
+本标准遵循 IRON-9 v2 [SC] 共享契约层——CoreLoopThree 阶段枚举、Thinkdual 模式枚举、LLM 推理阶段枚举在 agentrt 与 agentrt-linux 之间完全共享。
 
 ### 1.1 术语
 

@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）Agent 应用开发设计
+# agentrt-linux（AirymaxOS）Agent 应用开发设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）Agent 应用开发工程体系主索引
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）Agent 应用开发工程体系主索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **优先级**: P1（0.1.1 仅创建 README 占位，1.0.1 完成 6 文档）
@@ -13,9 +13,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 模块定位
 
-agentrt-liunx Agent 应用开发体系是连接系统底座与上层智能体应用的核心工程保障。它继承 Linux 发行版 30+ 年沉淀的应用开发哲学（系统调用 + 库 ABI + 包管理 + 运行时），并在其上扩展智能体操作系统专属的 Agent 租户模型、Token 预算契约、记忆卷载 API、认知循环 SDK 等。
+agentrt-linux Agent 应用开发体系是连接系统底座与上层智能体应用的核心工程保障。它继承 Linux 发行版 30+ 年沉淀的应用开发哲学（系统调用 + 库 ABI + 包管理 + 运行时），并在其上扩展智能体操作系统专属的 Agent 租户模型、Token 预算契约、记忆卷载 API、认知循环 SDK 等。
 
-Agent 应用是 agentrt-liunx 上的运行时租户：它通过 SDK 调用系统能力，受 Cupolas 安全穹顶约束，遵循 MicroCoreRT 调度语义，通过 AgentsIPC 与其他 Agent 或 daemon 通信。Agent 应用与 agentrt-liunx 的关系不是「应用程序 vs 操作系统」的二元对立，而是「租户 vs 平台」的契约关系——平台承诺稳定 ABI，租户承诺遵守资源契约。
+Agent 应用是 agentrt-linux 上的运行时租户：它通过 SDK 调用系统能力，受 Cupolas 安全穹顶约束，遵循 MicroCoreRT 调度语义，通过 AgentsIPC 与其他 Agent 或 daemon 通信。Agent 应用与 agentrt-linux 的关系不是「应用程序 vs 操作系统」的二元对立，而是「租户 vs 平台」的契约关系——平台承诺稳定 ABI，租户承诺遵守资源契约。
 
 ### 1.1 应用开发分层
 
@@ -26,10 +26,10 @@ Agent 应用是 agentrt-liunx 上的运行时租户：它通过 SDK 调用系统
 | L3 | C 运行时库 | libc + libagentrt + libcupolas | C 应用基础 |
 | L4 | 多语言 SDK | Python / Rust / Go / TypeScript | 4 语言 4 嵌套客户端 |
 | L5 | Agent 应用框架 | CognitionClient / SafetyClient / ToolClient / ChatClient | 16 嵌套客户端 |
-| **L6** | **Agent 运行时租户** | **agentrt-liunx 专属** | **租户隔离 + Token 预算** |
-| **L7** | **Agent 编排** | **agentrt-liunx 专属** | **多 Agent 协作** |
+| **L6** | **Agent 运行时租户** | **agentrt-linux 专属** | **租户隔离 + Token 预算** |
+| **L7** | **Agent 编排** | **agentrt-linux 专属** | **多 Agent 协作** |
 
-### 1.2 agentrt-liunx 扩展
+### 1.2 agentrt-linux 扩展
 
 - **租户隔离**：每个 Agent 进程是独立租户，受 cgroup v2 + Landlock + capability 三重隔离
 - **Token 预算契约**：Agent 必须声明 Token 预算，超出后由 MicroCoreRT 调度降级
@@ -52,7 +52,7 @@ Agent 应用通过 `AGENTRT_SYS_*` 系统调用访问内核能力：
 #define AGENTRT_SYS_AGENT_REGISTER     1004
 ```
 
-所有系统调用遵循 IRON-9 v2 同源且部分代码共享原则：与 agentrt 的应用级 API 同源语义，但 agentrt-liunx 为 OS 级实现。
+所有系统调用遵循 IRON-9 v2 同源且部分代码共享原则：与 agentrt 的应用级 API 同源语义，但 agentrt-linux 为 OS 级实现。
 
 ### 2.2 AgentsIPC 协议
 
@@ -117,13 +117,13 @@ result = client.process(prompt="hello")
 
 ---
 
-## 4. agentrt-liunx 专属扩展
+## 4. agentrt-linux 专属扩展
 
 ### 4.1 Agent 租户模型
 
-Agent 应用是 agentrt-liunx 上的运行时租户：
+Agent 应用是 agentrt-linux 上的运行时租户：
 
-| 维度 | 传统应用 | agentrt-liunx Agent |
+| 维度 | 传统应用 | agentrt-linux Agent |
 |------|---------|----------------|
 | 资源隔离 | 进程级 | cgroup v2 + Landlock + capability |
 | 通信 | socket / pipe | AgentsIPC 128B 协议 |
@@ -133,22 +133,22 @@ Agent 应用是 agentrt-liunx 上的运行时租户：
 
 ### 4.2 同源 agentrt SDK
 
-agentrt 的四语言 SDK 与 agentrt-liunx SDK 同源：
+agentrt 的四语言 SDK 与 agentrt-linux SDK 同源：
 
-| 维度 | agentrt SDK | agentrt-liunx SDK |
+| 维度 | agentrt SDK | agentrt-linux SDK |
 |------|------------|---------------|
 | 实现层 | 用户态库 | OS 级 SDK（封装系统调用） |
 | 接口 | `agentrt_cognition_*` | `agentrt_cognition_*`（同源语义） |
 | 通信 | 用户态消息队列 | AgentsIPC（io_uring 零拷贝） |
 | 隔离 | 进程级 | cgroup + Landlock |
 
-agentrt 在 agentrt-liunx 上运行时，SDK 调用天然适配 agentrt-liunx 内核能力，无需适配层。
+agentrt 在 agentrt-linux 上运行时，SDK 调用天然适配 agentrt-linux 内核能力，无需适配层。
 
 ### 4.3 IRON-9 v2 同源且部分代码共享
 
 应用开发遵循 IRON-9 原则：
 - agentrt 应用开发规范（用户态运行时 SDK）
-- agentrt-liunx 应用开发规范（OS 级 SDK + 系统调用 + 租户隔离）
+- agentrt-linux 应用开发规范（OS 级 SDK + 系统调用 + 租户隔离）
 - 两端独立演进，但通过同源 SDK API 保持互操作
 
 ---

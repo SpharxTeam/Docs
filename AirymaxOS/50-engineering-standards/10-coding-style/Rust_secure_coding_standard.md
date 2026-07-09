@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）Rust 安全编码规范
+# agentrt-linux（AirymaxOS）Rust 安全编码规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS）内核模块 Rust 语言安全编码规范
+> **文档定位**: agentrt-linux（AirymaxOS）内核模块 Rust 语言安全编码规范
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
 > **父文档**: [编码规范总览](README.md)
@@ -17,7 +17,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 Rust 的安全保证（无数据竞争、无 UAF、无悬垂指针）在 safe Rust 中由编译器强制执行，但在 unsafe Rust 中由开发者负责。每个 unsafe 块都是 Rust 安全模型的"信任边界"——边界内的代码必须手动维护所有安全不变量，否则整个系统的安全保证就会崩溃。
 
-agentrt-liunx（AirymaxOS）内核模块中的 unsafe 代码主要用于以下场景，每个场景都需要专门的审计标准：
+agentrt-linux（AirymaxOS）内核模块中的 unsafe 代码主要用于以下场景，每个场景都需要专门的审计标准：
 
 | unsafe 场景 | 典型用途 | 审计重点 |
 |-------------|---------|---------|
@@ -104,7 +104,7 @@ Rust 的所有权系统在编译时消除了以下内存安全漏洞类别：
 - 空指针解引用：`Option<T>` 强制处理 `None` 情况
 - 未初始化内存：必须初始化后方可使用
 
-agentrt-liunx（AirymaxOS）内核模块 Rust 代码应充分利用这些安全保证，将 unsafe 代码限制在最小范围内。
+agentrt-linux（AirymaxOS）内核模块 Rust 代码应充分利用这些安全保证，将 unsafe 代码限制在最小范围内。
 
 ### 2.2 借用检查器的利用（OS-SEC-032）
 
@@ -319,7 +319,7 @@ pub fn agentrt_ipc_send_rs(channel: u32, msg: &[u8]) -> i32 {
 
 ### 5.2 类型布局兼容性（OS-SEC-041）
 
-> **OS-SEC-041**：FFI 边界上的结构体必须使用 `#[repr(C)]` 确保与 C 的布局兼容。Rust 默认布局（`repr(Rust)`）不保证字段顺序和填充，不能用于 FFI。IRON-9 v2 [SC] 共享契约层的结构体（如 `AgentrtIpcMsgHdr`）在 agentrt 和 agentrt-liunx（AirymaxOS）两端必须位级兼容，`#[repr(C)]` 是保证这一兼容性的前提。
+> **OS-SEC-041**：FFI 边界上的结构体必须使用 `#[repr(C)]` 确保与 C 的布局兼容。Rust 默认布局（`repr(Rust)`）不保证字段顺序和填充，不能用于 FFI。IRON-9 v2 [SC] 共享契约层的结构体（如 `AgentrtIpcMsgHdr`）在 agentrt 和 agentrt-linux（AirymaxOS）两端必须位级兼容，`#[repr(C)]` 是保证这一兼容性的前提。
 
 ```rust
 /// [SC] 共享契约层：IP 消息头，与 C 结构体 agentrt_ipc_msg_hdr 完全一致。
@@ -434,9 +434,9 @@ fn verify_capability_check() {
 
 ### 7.3 与 seL4 形式化验证的关系
 
-seL4 微内核是形式化验证的标杆——它的 C 代码被完全形式化验证，证明其满足功能正确性、完整性和安全性属性。agentrt-liunx（AirymaxOS）的内核形式化验证策略借鉴了 seL4 的方法论，但采取了更务实的路径：
+seL4 微内核是形式化验证的标杆——它的 C 代码被完全形式化验证，证明其满足功能正确性、完整性和安全性属性。agentrt-linux（AirymaxOS）的内核形式化验证策略借鉴了 seL4 的方法论，但采取了更务实的路径：
 
-| 维度 | seL4 | agentrt-liunx（AirymaxOS） |
+| 维度 | seL4 | agentrt-linux（AirymaxOS） |
 |------|------|---------------------------|
 | 验证对象 | 整个微内核（~10K LOC C） | 安全关键模块（capability、LSM hook、IPC 协议） |
 | 验证方法 | Isabelle/HOL 演绎证明 | Kani 模型检查 + Creusot 演绎验证 |
@@ -466,7 +466,7 @@ graph TD
     KANI --> OK
     CREUSOT --> OK
 
-    OK --> DEPLOY["部署到 agentrt-liunx 内核"]
+    OK --> DEPLOY["部署到 agentrt-linux 内核"]
 
     style RUST fill:#1a1a2e,stroke:#e94560,color:#eee
     style SAFE fill:#0f3460,stroke:#00ff88,color:#eee
@@ -497,7 +497,7 @@ graph TD
 - [Rust 编码风格规范](Rust_coding_style_standard.md)：内核模块编程风格
 - [C 安全编码规范](C_Cpp_secure_coding_standard.md)：内核态安全编码
 - [C 编码风格规范](C_coding_style_standard.md)：内核态 C 编程风格
-- [安全模块（110-security）](../../110-security/README.md)：agentrt-liunx（AirymaxOS）安全体系
+- [安全模块（110-security）](../../110-security/README.md)：agentrt-linux（AirymaxOS）安全体系
 - [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md)
 - Rust Secure Code Guidelines
 - seL4 形式化验证方法论

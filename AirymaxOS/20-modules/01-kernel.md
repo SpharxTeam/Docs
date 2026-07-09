@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）内核设计文档（airymaxos-kernel，极境内核）
+# agentrt-linux（AirymaxOS）内核设计文档（airymaxos-kernel，极境内核）
 
 > **子仓编号**：01
 > **子仓代号**：极境内核（Airymax Kernel）
@@ -20,7 +20,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [4. 核心特性](#4-核心特性)
 - [5. 微内核思想体现](#5-微内核思想体现)
 - [6. IRON-9 v2 三层共享模型落地](#6-iron-9-v2-三层共享模型落地)
-- [7. agentrt-liunx 工程基线](#7-agentrt-liunx-工程基线)
+- [7. agentrt-linux 工程基线](#7-agentrt-linux-工程基线)
 - [8. 前沿理论参考](#8-前沿理论参考)
 - [9. 与其他子仓的协作](#9-与其他子仓的协作)
 - [10. 里程碑（M1-M6）](#10-里程碑m1-m6)
@@ -32,11 +32,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-kernel` 是 agentrt-liunx（AirymaxOS）的内核子仓，承担以下核心职责：
+`airymaxos-kernel` 是 agentrt-linux（AirymaxOS）的内核子仓，承担以下核心职责：
 
-1. **Linux 6.6 内核维护 [IND]**：基于 Linux 6.6 内核基线，保持与上游社区同步演进，遵循 agentrt-liunx 多版本内核策略。
+1. **Linux 6.6 内核维护 [IND]**：基于 Linux 6.6 内核基线，保持与上游社区同步演进，遵循 agentrt-linux 多版本内核策略。
 2. **微内核化改造 [IND]**：在保留 Linux 6.6 完整能力的前提下，遵循 Liedtke minimality principle，将 VFS、网络栈、设备驱动等子系统逐步用户态化，最小化特权态代码体积。
-3. **Agent 感知调度（sched_ext）[SS]**：通过 sched_ext（agentrt-liunx 内核增强，主线 6.12+ 引入并持续演进）实现 SCHED_AGENT 策略，允许 eBPF 程序在用户态定义调度策略。任务描述符与优先级语义 [SC] 与 agentrt 共享。
+3. **Agent 感知调度（sched_ext）[SS]**：通过 sched_ext（agentrt-linux 内核增强，主线 6.12+ 引入并持续演进）实现 SCHED_AGENT 策略，允许 eBPF 程序在用户态定义调度策略。任务描述符与优先级语义 [SC] 与 agentrt 共享。
 4. **高性能 IPC 基础（io_uring）[SS]**：基于 io_uring（2026 已成为默认高性能 I/O 路径）构建零 syscall、零拷贝的消息传递基础设施。IPC 消息头与操作码语义 [SC] 与 agentrt 共享。
 5. **eBPF 可编程扩展 [SS]**：提供 struct_ops 注册机制 + kfunc 扩展 + ringbuf 上报，可观测/网络/安全/调度均可通过 eBPF 编程。struct_ops 状态机与 common_value 布局 [SC] 与 agentrt 共享。
 6. **Rust 安全驱动 [IND]**：依托 Linux 6.6 中 Rust 实验性支持（持续演进中），构建安全驱动开发框架。
@@ -44,7 +44,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 横切关注点声明
 
-内核是横切关注点（cross-cutting concern），机制骨架贯穿 agentrt-liunx 全部 4 大数据流：
+内核是横切关注点（cross-cutting concern），机制骨架贯穿 agentrt-linux 全部 4 大数据流：
 
 | 数据流 | 内核切入点 | 同源标注 |
 |--------|-----------|----------|
@@ -57,7 +57,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 atoms/corekern）与 agentrt-liunx（内核态 airymaxos-kernel）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 atoms/corekern）与 agentrt-linux（内核态 airymaxos-kernel）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 内核子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
@@ -67,7 +67,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（atoms/corekern） | agentrt-liunx（airymaxos-kernel） | 同源标注 |
+| 维度 | agentrt（atoms/corekern） | agentrt-linux（airymaxos-kernel） | 同源标注 |
 |------|--------------------------|------------------------------|----------|
 | 设计目标 | RT 微核心 + Agent 调度 | Linux 6.6 + 微内核化 + Agent 调度 | [SS] |
 | 调度模型 | MicroCoreRT 实时调度 | SCHED_AGENT（sched_ext + eBPF） | [SS] |
@@ -96,7 +96,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ```
 airymaxos-kernel/
 ├── linux/                 # Linux 6.6 内核源码（Linux 6.6 内核基线，git subtree）[IND]
-├── patches/               # agentrt-liunx 内核补丁
+├── patches/               # agentrt-linux 内核补丁
 │   ├── sched_ext-agent/   # SCHED_AGENT 策略（eBPF 程序）[SS]
 │   ├── io_uring-ipc/      # 基于 io_uring 的 IPC 优化 [SS]
 │   ├── bpf-struct-ops/   # eBPF struct_ops 扩展 [SS]
@@ -150,7 +150,7 @@ Rust 安全驱动框架：
 
 ## 4. 核心特性
 
-### 4.1 sched_ext（agentrt-liunx 内核增强，主线 6.12+，2026 成熟）[SS]
+### 4.1 sched_ext（agentrt-linux 内核增强，主线 6.12+，2026 成熟）[SS]
 
 **SCHED_AGENT 策略**：
 - 通过 sched_ext 提供的 BPF 调度接口，在用户态实现完整调度器 [SS]。
@@ -170,7 +170,7 @@ Rust 安全驱动框架：
 **vtime 衰减公式** [SC]（`include/airymax/sched.h`）：
 
 ```c
-/* vtime 衰减公式 [SC]——agentrt 与 agentrt-liunx 共享 */
+/* vtime 衰减公式 [SC]——agentrt 与 agentrt-linux 共享 */
 static inline airymax_vtime_t
 airymax_vtime_decay(airymax_vtime_t vtime, u64 consumed_slice, u32 weight) {
     return vtime + consumed_slice * 100 / weight;
@@ -197,7 +197,7 @@ airymax_vtime_decay(airymax_vtime_t vtime, u64 consumed_slice, u32 weight) {
 
 ### 4.4 Rust 实验性支持（Linux 6.6）[IND]
 
-- Linux 6.6 中 Rust 持续作为实验性支持语言演进（agentrt-liunx 内核增强）。
+- Linux 6.6 中 Rust 持续作为实验性支持语言演进（agentrt-linux 内核增强）。
 - 安全驱动开发：通过类型系统消除 UAF、Buffer Overflow、Data Race。
 - 与 `airymaxos-kernel/patches/rust-drivers` 配套。
 
@@ -261,7 +261,7 @@ VFS/网络栈/驱动逐步用户态化，内核仅保留机制骨架，符合微
 
 ### 6.1 [SC] 共享契约层——3 个头文件
 
-内核模块涉及 3 个 [SC] 共享契约头文件，agentrt 用户态与 agentrt-liunx 内核态两端直接 include：
+内核模块涉及 3 个 [SC] 共享契约头文件，agentrt 用户态与 agentrt-linux 内核态两端直接 include：
 
 **6.1.1 `include/airymax/sched.h`**（sched_ext 契约）
 
@@ -302,7 +302,7 @@ API 签名同源，实现独立。三大子系统的同源 API：
 
 **6.2.1 sched_ext 同源 API（17 项）**
 
-| 序号 | API | 语义 | agentrt 实现 | agentrt-liunx 实现 |
+| 序号 | API | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|-----|------|-------------|---------------|
 | 1 | `agent_select_cpu` | CPU 选择 | 用户态 NUMA 亲和 | 内核 BPF select_cpu 回调 |
 | 2 | `agent_enqueue`/`agent_dequeue` | 入队/出队 | 用户态链表 | 内核 DSQ + BPF 回调 |
@@ -314,7 +314,7 @@ API 签名同源，实现独立。三大子系统的同源 API：
 
 **6.2.2 io_uring 同源 API（8 项）**
 
-| 序号 | API | 语义 | agentrt 实现 | agentrt-liunx 实现 |
+| 序号 | API | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|-----|------|-------------|---------------|
 | 1 | `agentrt_ipc_ring_create()` | 环创建 | 用户态 mmap | 内核 io_uring_setup() |
 | 2 | `agentrt_ipc_ring_enter()` | 提交/等待 | 用户态轮询 | 内核 io_uring_enter() |
@@ -327,7 +327,7 @@ API 签名同源，实现独立。三大子系统的同源 API：
 
 **6.2.3 eBPF 同源 API（11 项）**
 
-| 序号 | API | 语义 | agentrt 实现 | agentrt-liunx 实现 |
+| 序号 | API | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|-----|------|-------------|---------------|
 | 1 | struct_ops 注册宏 | 注册回调 | 策略引擎注册 | 内核 register_bpf_struct_ops() |
 | 2 | struct_ops 状态机 | 4 状态 | 策略引擎状态 | 内核 bpf_struct_ops_state |
@@ -345,21 +345,21 @@ API 签名同源，实现独立。三大子系统的同源 API：
 
 | 序号 | 内容 | 不共享原因 |
 |------|------|-----------|
-| 1 | ext_sched_class 注册 | 内核调度类注册仅 agentrt-liunx |
-| 2 | scx_ops_enable/disable | BPF 加载内核态机制仅 agentrt-liunx |
-| 3 | kf_mask 上下文追踪 | 内核态 kfunc 上下文掩码仅 agentrt-liunx |
-| 4 | fallback_dsq 回退 | 内核态 fallback 机制仅 agentrt-liunx |
-| 5 | cgroup 集成（CONFIG_EXT_GROUP_SCHED） | 内核 cgroup 仅 agentrt-liunx |
-| 6 | core-sched 集成 | SMT 兄弟核排序仅 agentrt-liunx |
-| 7 | io-wq 工作队列 | 内核异步工作队列仅 agentrt-liunx |
-| 8 | JIT 后端 | x86_64/arm64 JIT 仅 agentrt-liunx 内核态 |
-| 9 | trampoline 本机码生成 | arch_prepare_bpf_trampoline() 仅 agentrt-liunx |
-| 10 | verifier 实现 | 内核 verifier.c（21091 行）仅 agentrt-liunx |
+| 1 | ext_sched_class 注册 | 内核调度类注册仅 agentrt-linux |
+| 2 | scx_ops_enable/disable | BPF 加载内核态机制仅 agentrt-linux |
+| 3 | kf_mask 上下文追踪 | 内核态 kfunc 上下文掩码仅 agentrt-linux |
+| 4 | fallback_dsq 回退 | 内核态 fallback 机制仅 agentrt-linux |
+| 5 | cgroup 集成（CONFIG_EXT_GROUP_SCHED） | 内核 cgroup 仅 agentrt-linux |
+| 6 | core-sched 集成 | SMT 兄弟核排序仅 agentrt-linux |
+| 7 | io-wq 工作队列 | 内核异步工作队列仅 agentrt-linux |
+| 8 | JIT 后端 | x86_64/arm64 JIT 仅 agentrt-linux 内核态 |
+| 9 | trampoline 本机码生成 | arch_prepare_bpf_trampoline() 仅 agentrt-linux |
+| 10 | verifier 实现 | 内核 verifier.c（21091 行）仅 agentrt-linux |
 | 11 | BPF_SCHED CFS 钩子 | 上游 Linux 6.6 不含，不移植到 AirymaxOS |
-| 12 | cfi_stubs | kCFI 桩函数表仅 agentrt-liunx |
+| 12 | cfi_stubs | kCFI 桩函数表仅 agentrt-linux |
 | 13 | KABI_RESERVE | kABI 兼容机制，AirymaxOS 不采用 |
-| 14 | VFS/网络/驱动用户态化改造 | 微内核化改造仅 agentrt-liunx |
-| 15 | Rust 驱动框架 | 内核 Rust 绑定仅 agentrt-liunx |
+| 14 | VFS/网络/驱动用户态化改造 | 微内核化改造仅 agentrt-linux |
+| 15 | Rust 驱动框架 | 内核 Rust 绑定仅 agentrt-linux |
 
 ### 6.4 跨态协作流
 
@@ -368,7 +368,7 @@ sequenceDiagram
     participant AGENT as Agent 进程
     participant SCX_U as agentrt MicroCoreRT (用户态)
     participant IPC as io_uring / AgentsIPC
-    participant SCX_K as agentrt-liunx SCHED_AGENT kthread (内核态)
+    participant SCX_K as agentrt-linux SCHED_AGENT kthread (内核态)
     participant BPF as eBPF struct_ops
     participant EEVDF as EEVDF fallback
 
@@ -427,12 +427,12 @@ graph TD
 
 ---
 
-## 7. agentrt-liunx 工程基线
+## 7. agentrt-linux 工程基线
 
-- **agentrt-liunx 内核治理组**：内核社区贡献与最佳实践 [IND]。
-- **agentrt-liunx 多版本内核策略**：支持 LTS 内核与演进内核并存 [IND]。
-- **agentrt-liunx 内存管理**：MGLRU、CXL、THP 等特性贡献（详见 `04-memory.md`）[SS]。
-- **agentrt-liunx 编译工具链**：GCC、Clang、Rust 工具链集成 [IND]。
+- **agentrt-linux 内核治理组**：内核社区贡献与最佳实践 [IND]。
+- **agentrt-linux 多版本内核策略**：支持 LTS 内核与演进内核并存 [IND]。
+- **agentrt-linux 内存管理**：MGLRU、CXL、THP 等特性贡献（详见 `04-memory.md`）[SS]。
+- **agentrt-linux 编译工具链**：GCC、Clang、Rust 工具链集成 [IND]。
 - **Linux 6.6 内核基线**：sched_ext + io_uring + eBPF + EEVDF + MGLRU + userfaultfd + CXL bus + ZONE_DEVICE + DAX [SS]。
 
 ### 7.1 五维正交 24 原则映射
@@ -455,7 +455,7 @@ graph TD
 |------|------|------|----------|
 | Liedtke minimality principle | seL4 / L4 | 微内核化改造哲学 | [IND] |
 | Capability-based security | seL4 / Zircon | 内核 capability 接口 | [SS] |
-| sched_ext | agentrt-liunx 内核增强（主线 6.12+） | SCHED_AGENT 策略 | [SS] |
+| sched_ext | agentrt-linux 内核增强（主线 6.12+） | SCHED_AGENT 策略 | [SS] |
 | io_uring zero-copy | Linux 5.x+ | IPC 基础设施 | [SS] |
 | eBPF programmable kernel | Linux 6.x+ | 观测/网络/安全/调度 | [SS] |
 | struct_ops registration | Linux 6.x+ | BPF 子系统集成 | [SS] |
@@ -497,7 +497,7 @@ graph TD
 
 ### 11.1 命名一致性
 
-| 维度 | agentrt | agentrt-liunx 调度策略 | 一致性 |
+| 维度 | agentrt | agentrt-linux 调度策略 | 一致性 |
 |------|---------|------------------------|--------|
 | 任务描述符 | `agentrt_task_desc_t` | `agentrt_task_desc_t` | ✅ [SC] 共享契约 |
 | 调度类编号 | （用户态无） | `SCHED_EXT 7`（复用 OLK-6.6 sched_ext） | ✅ AirymaxOS 专属策略（BPF struct_ops） |
@@ -510,7 +510,7 @@ graph TD
 
 ### 11.2 语义一致性
 
-| 语义 | agentrt MicroCoreRT | agentrt-liunx SCHED_AGENT | 一致 |
+| 语义 | agentrt MicroCoreRT | agentrt-linux SCHED_AGENT | 一致 |
 |------|---------------------|------------------------|------|
 | 调度类 | 用户态调度协程 | 内核调度类 + BPF 策略 | ✅ [SS] 同源语义 |
 | 入队/出队 | 用户态链表 | DSQ + BPF 回调 | ✅ [SS] 同源语义 |
@@ -566,7 +566,7 @@ graph TD
 - Liedtke, J. "On μ-Kernel Construction"（1995）
 - seL4 项目文档
 - Zircon 内核设计文档
-- agentrt-liunx 内核治理组文档
+- agentrt-linux 内核治理组文档
 - agentrt atoms/corekern 设计文档
 - sched_ext 设计文档（Documentation/scheduler/sched-ext.rst）
 - io_uring 设计文档（Documentation/io_uring/）
@@ -575,4 +575,4 @@ graph TD
 
 ---
 
-> **文档结束** | agentrt-liunx（AirymaxOS）内核设计文档 v1.1 | 2026-07-07
+> **文档结束** | agentrt-linux（AirymaxOS）内核设计文档 v1.1 | 2026-07-07

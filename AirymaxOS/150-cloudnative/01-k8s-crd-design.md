@@ -2,13 +2,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # K8s CRD 设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）云原生体系核心子文档，定义 Agent 自定义资源（CRD）的声明式模型、controller 逻辑与调度到 agentrt-liunx 节点的机制
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）云原生体系核心子文档，定义 Agent 自定义资源（CRD）的声明式模型、controller 逻辑与调度到 agentrt-linux 节点的机制
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
 > **SPDX-License-Identifier**: AGPL-3.0-or-later OR Apache-2.0
-> **同源映射**: agentrt gateway + Linux 6.6 容器编排（IRON-9 v2 [IND] 完全独立层，云原生为 agentrt-liunx 专属扩展）
-> **IRON-9 v2 层次**: [IND] 完全独立层（K8s CRD 与 controller 为 agentrt-liunx 云原生专属实现）
+> **同源映射**: agentrt gateway + Linux 6.6 容器编排（IRON-9 v2 [IND] 完全独立层，云原生为 agentrt-linux 专属扩展）
+> **IRON-9 v2 层次**: [IND] 完全独立层（K8s CRD 与 controller 为 agentrt-linux 云原生专属实现）
 
 ---
 
@@ -16,10 +16,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 设计目标
 
-agentrt-liunx（AirymaxOS）将 Agent 应用建模为 Kubernetes 自定义资源（Custom Resource），实现声明式管理。CRD 设计达成以下工程目标：
+agentrt-linux（AirymaxOS）将 Agent 应用建模为 Kubernetes 自定义资源（Custom Resource），实现声明式管理。CRD 设计达成以下工程目标：
 
 1. **声明式 Agent 管理**：通过 YAML 声明 Agent 的镜像、Token 预算、记忆卷载、认知循环等属性
-2. **OS 级调度联动**：CRD controller 与 agentrt-liunx 节点的 SCHED_AGENT 调度器联动
+2. **OS 级调度联动**：CRD controller 与 agentrt-linux 节点的 SCHED_AGENT 调度器联动
 3. **记忆卷载 CSI 集成**：Agent CRD 自动声明 MemoryRovol CSI 卷并挂载至容器
 4. **Cupolas 安全策略联动**：CRD 安全字段映射至 Cupolas capability 令牌与 Landlock 规则
 5. **水平弹性伸缩**：基于 Token 预算消耗与认知负载的 HPA 自动伸缩
@@ -35,9 +35,9 @@ agentrt-liunx（AirymaxOS）将 Agent 应用建模为 Kubernetes 自定义资源
 
 ### 1.3 与传统 K8s 工作负载对比
 
-| 维度 | Deployment/Pod | agentrt-liunx Agent CRD |
+| 维度 | Deployment/Pod | agentrt-linux Agent CRD |
 |------|----------------|--------------------------|
-| 调度目标 | 通用节点 | agentrt-liunx 节点（标签选择） |
+| 调度目标 | 通用节点 | agentrt-linux 节点（标签选择） |
 | 资源声明 | CPU/Memory | CPU/Memory + Token 预算 |
 | 存储 | PVC | MemoryRovol CSI 卷 |
 | 安全 | SecurityContext | Cupolas capability + Landlock |
@@ -184,7 +184,7 @@ spec:
                   type: object
                   additionalProperties:
                     type: string
-                  description: 节点选择器（默认选 agentrt-liunx 节点）
+                  description: 节点选择器（默认选 agentrt-linux 节点）
 
             status:
               type: object
@@ -264,7 +264,7 @@ spec:
     pids: 200
 
   nodeSelector:
-    airymaxos.dev/node-type: agentrt-liunx
+    airymaxos.dev/node-type: agentrt-linux
     airymaxos.dev/sched-ext: "true"
 ```
 
@@ -291,7 +291,7 @@ spec:
 │ │           v                                     │
 │ │  ┌───────────────────────────────────────────┐ │
 │ │  │ Node Allocator                            │ │ │
-│ │  │  - 选择 agentrt-liunx 节点                │ │ │
+│ │  │  - 选择 agentrt-linux 节点                │ │ │
 │ │  │  - 与 SCHED_AGENT 调度器联动               │ │ │
 │ │  └───────────────────────────────────────────┘ │
 │ │           |                                     │
@@ -307,7 +307,7 @@ spec:
 └─────────|───────────────────────────────────────────┘
           v
    ┌──────────────────────────┐
-   │ agentrt-liunx Node        │
+   │ agentrt-linux Node        │
    │  - kubelet + containerd   │
    │  - SCHED_AGENT 策略     │
    │  - MemoryRovol CSI 插件   │
@@ -380,7 +380,7 @@ func (r *AgentReconciler) handleCreate(ctx context.Context,
 		return ctrl.Result{}, err
 	}
 
-	/* 分配 agentrt-liunx 节点 */
+	/* 分配 agentrt-linux 节点 */
 	nodeName, err := r.allocateNode(ctx, agent)
 	if err != nil {
 		log.Error(err, "failed to allocate node")
@@ -448,12 +448,12 @@ func (r *AgentReconciler) buildAgentPod(agent *agentv1.Agent,
 	return pod
 }
 
-/* allocateNode 选择 agentrt-liunx 节点 */
+/* allocateNode 选择 agentrt-linux 节点 */
 func (r *AgentReconciler) allocateNode(ctx context.Context,
 	agent *agentv1.Agent) (string, error) {
 	var nodes corev1.NodeList
 	labelSelector := client.MatchingLabels{
-		"airymaxos.dev/node-type": "agentrt-liunx",
+		"airymaxos.dev/node-type": "agentrt-linux",
 		"airymaxos.dev/sched-ext": "true",
 	}
 	if err := r.List(ctx, &nodes, labelSelector); err != nil {
@@ -466,21 +466,21 @@ func (r *AgentReconciler) allocateNode(ctx context.Context,
 			return node.Name, nil
 		}
 	}
-	return "", fmt.Errorf("no eligible agentrt-liunx node with budget")
+	return "", fmt.Errorf("no eligible agentrt-linux node with budget")
 }
 ```
 
 ---
 
-## 4. 调度到 agentrt-liunx 节点机制
+## 4. 调度到 agentrt-linux 节点机制
 
 ### 4.1 节点标签体系
 
-agentrt-liunx 节点通过标签声明能力：
+agentrt-linux 节点通过标签声明能力：
 
 ```yaml
-# agentrt-liunx 节点标签
-airymaxos.dev/node-type: agentrt-liunx       # 节点类型
+# agentrt-linux 节点标签
+airymaxos.dev/node-type: agentrt-linux       # 节点类型
 airymaxos.dev/kernel-version: "6.6-airymax"   # 内核版本
 airymaxos.dev/sched-ext: "true"               # 支持 sched_ext
 airymaxos.dev/sched-agent: "true"             # 支持 SCHED_AGENT
@@ -492,7 +492,7 @@ airymaxos.dev/token-budget-available: "5000000"
 
 ### 4.2 RuntimeClass 定义
 
-Agent Pod 通过 RuntimeClass 指定使用 agentrt-liunx 专属 OCI runtime：
+Agent Pod 通过 RuntimeClass 指定使用 agentrt-linux 专属 OCI runtime：
 
 ```yaml
 # runtimeclass-agent.yaml
@@ -503,7 +503,7 @@ metadata:
 handler: airymaxos-shim   # 指向 containerd shim v2
 scheduling:
   nodeSelector:
-    airymaxos.dev/node-type: agentrt-liunx
+    airymaxos.dev/node-type: agentrt-linux
     airymaxos.dev/sched-agent: "true"
   tolerations:
     - key: airymaxos.dev/agent-only
@@ -521,7 +521,7 @@ overhead:
 Controller 通过节点的 daemonset 与 SCHED_AGENT 调度器联动：
 
 ```go
-/* agentrt-sched-agent-agent: daemonset 运行于 agentrt-liunx 节点
+/* agentrt-sched-agent-agent: daemonset 运行于 agentrt-linux 节点
  * 监听 Pod 创建事件，向内核 SCHED_AGENT 提交调度参数 */
 func handlePodCreate(pod *corev1.Pod) error {
 	if pod.Labels["app"] != "agentrt-agent" {
@@ -602,7 +602,7 @@ func (v *AgentValidator) validateBudget(ctx context.Context,
 
 ### 6.1 状态同步
 
-Controller 周期性从 agentrt-liunx 节点同步 Agent 状态：
+Controller 周期性从 agentrt-linux 节点同步 Agent 状态：
 
 ```go
 /* syncAgentStatus 周期性同步状态 */
@@ -714,5 +714,5 @@ spec:
 
 ---
 
-> **文档结束** | agentrt-liunx（AirymaxOS）K8s CRD 设计 v0.1.1
-> 遵循 IRON-9 v2 [IND] 完全独立层（agentrt-liunx 云原生专属）
+> **文档结束** | agentrt-linux（AirymaxOS）K8s CRD 设计 v0.1.1
+> 遵循 IRON-9 v2 [IND] 完全独立层（agentrt-linux 云原生专属）

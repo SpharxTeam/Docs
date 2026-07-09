@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）模块需求手册
+# agentrt-linux（AirymaxOS）模块需求手册
 
 | 元信息 | 说明 |
 |--------|------|
@@ -12,15 +12,15 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 引言
 
-本文档定义了 **agentrt-liunx（AirymaxOS）** 项目中各个子模块的功能边界、接口约定、性能要求和安全规范。本设计遵循 **五维正交** 架构原则，确保模块间低耦合、高内聚，并满足 IRON-9 v2 硬件平台的适配要求。
+本文档定义了 **agentrt-linux（AirymaxOS）** 项目中各个子模块的功能边界、接口约定、性能要求和安全规范。本设计遵循 **五维正交** 架构原则，确保模块间低耦合、高内聚，并满足 IRON-9 v2 硬件平台的适配要求。
 
-agentrt-liunx（AirymaxOS）作为面向Agent计算的下一代操作系统，采用了 **五维正交** 分解方法，将系统划分为8个独立开发的子仓库，每个子仓库对应一个核心模块，通过清晰的接口契约保证整体系统的一致性。
+agentrt-linux（AirymaxOS）作为面向Agent计算的下一代操作系统，采用了 **五维正交** 分解方法，将系统划分为8个独立开发的子仓库，每个子仓库对应一个核心模块，通过清晰的接口契约保证整体系统的一致性。
 
 ---
 
 ## 2. 模块总体架构
 
-agentrt-liunx（AirymaxOS）采用分层模块化设计，基于 **五维正交** 架构方法论实现功能解耦。以下为高层架构示意图：
+agentrt-linux（AirymaxOS）采用分层模块化设计，基于 **五维正交** 架构方法论实现功能解耦。以下为高层架构示意图：
 
 ```mermaid
 graph TB
@@ -41,7 +41,7 @@ graph TB
     class B,C,D,E,F,G,H module;
 ```
 
-IRON-9 v2 硬件平台提供了丰富的扩展接口，agentrt-liunx（AirymaxOS）各个模块需要针对该平台进行深度优化，充分发挥其异构计算能力。
+IRON-9 v2 硬件平台提供了丰富的扩展接口，agentrt-linux（AirymaxOS）各个模块需要针对该平台进行深度优化，充分发挥其异构计算能力。
 
 ---
 
@@ -342,7 +342,7 @@ matrix
 
 ### 5.1 Syscall 接口规范
 
-- agentrt-liunx（AirymaxOS）保持对 Linux ABI 的向后兼容
+- agentrt-linux（AirymaxOS）保持对 Linux ABI 的向后兼容
 - 新增系统调用必须遵守 `agentrt_*` 命名前缀
 - 每个 syscall 必须包含权限检查，集成 security 模块钩子
 - 系统调用编号必须在 upstream 预留范围分配
@@ -368,7 +368,7 @@ matrix
 - 新功能的添加必须增加次版本号
 - 向后兼容的修复必须增加修订版本号
 - 接口废弃必须有至少两个版本的过渡期
-- agentrt-liunx（AirymaxOS）各模块接口版本号在 `VERSION` 文件中维护
+- agentrt-linux（AirymaxOS）各模块接口版本号在 `VERSION` 文件中维护
 
 ### 5.5 接口文档要求
 
@@ -525,6 +525,6 @@ matrix
 
 ## 10. 总结
 
-本文档定义了 agentrt-liunx（AirymaxOS）8个子模块的详细需求。各模块开发必须严格遵守本文档定义的功能边界、接口约定和质量要求。遵循 **五维正交** 设计原则，保证模块化开发能够并行进行，同时保证最终系统集成的一致性。针对 IRON-9 v2 平台的优化需求必须在各个模块中充分考虑，发挥硬件最大性能。
+本文档定义了 agentrt-linux（AirymaxOS）8个子模块的详细需求。各模块开发必须严格遵守本文档定义的功能边界、接口约定和质量要求。遵循 **五维正交** 设计原则，保证模块化开发能够并行进行，同时保证最终系统集成的一致性。针对 IRON-9 v2 平台的优化需求必须在各个模块中充分考虑，发挥硬件最大性能。
 
-所有模块必须满足 主流 Linux 发行版标准 兼容性和 Linux ABI 稳定性要求，确保生态兼容性。通过严格的质量门禁和生命周期管理，保证 agentrt-liunx（AirymaxOS）整体质量可控。
+所有模块必须满足 主流 Linux 发行版标准 兼容性和 Linux ABI 稳定性要求，确保生态兼容性。通过严格的质量门禁和生命周期管理，保证 agentrt-linux（AirymaxOS）整体质量可控。

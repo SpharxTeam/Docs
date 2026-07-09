@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）废弃 API 动态清单
+# agentrt-linux（AirymaxOS）废弃 API 动态清单
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）内核态废弃 API 动态清单。基于 OLK-6.6 `Documentation/process/deprecated.rst` 与 `scripts/checkpatch.pl` 中的 `deprecated_apis` 表，登记所有禁止新增的 API 及其替代方案与迁移示例。
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）内核态废弃 API 动态清单。基于 OLK-6.6 `Documentation/process/deprecated.rst` 与 `scripts/checkpatch.pl` 中的 `deprecated_apis` 表，登记所有禁止新增的 API 及其替代方案与迁移示例。
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本文件登记 agentrt-liunx 内核态所有禁止新增的废弃 API，每条含：废弃 API → 替代 API → OLK-6.6 源码路径 → 迁移示例。checkpatch 在 CI 中根据此清单与新代码扫描，禁止新增废弃 API 调用。
+本文件登记 agentrt-linux 内核态所有禁止新增的废弃 API，每条含：废弃 API → 替代 API → OLK-6.6 源码路径 → 迁移示例。checkpatch 在 CI 中根据此清单与新代码扫描，禁止新增废弃 API 调用。
 
 ### 0.2 OLK-6.6 源码路径
 
@@ -27,7 +27,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.3 术语约束
 
-- agentrt（用户态）= 微核心（micro-core）；agentrt-liunx（OS 发行版）= 微内核（micro-kernel）
+- agentrt（用户态）= 微核心（micro-core）；agentrt-linux（OS 发行版）= 微内核（micro-kernel）
 - 禁止使用特定上游发行版名称，统一用"主流 Linux 发行版"
 
 ---
@@ -609,10 +609,10 @@ static ssize_t id_show(struct kobject *kobj, struct kobj_attribute *attr, char *
 
 ### 10.1 清单动态更新流程
 
-本清单随 OLK-6.6 升级与 agentrt-liunx 演进动态更新：
+本清单随 OLK-6.6 升级与 agentrt-linux 演进动态更新：
 
 1. OLK-6.6 `deprecated.rst` 或 `checkpatch.pl` 新增废弃 API → 触发清单更新 MR
-2. agentrt-liunx 内部废弃某 API → 经 L3 总维护者批准后登记
+2. agentrt-linux 内部废弃某 API → 经 L3 总维护者批准后登记
 3. 每次更新在"历史与变更记录"追加条目
 
 ### 10.2 CI 集成

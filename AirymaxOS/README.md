@@ -1,23 +1,23 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx 设计文档
+# agentrt-linux 设计文档
 
-> **文档定位**: agentrt-liunx（AirymaxOS）的全部设计思想、架构设计、子仓设计草案
-> **正式全称**: agentrt-liunx（极境智能体操作系统，正式英文名：AirymaxAgentOS，简称 AirymaxOS）
+> **文档定位**: agentrt-linux（AirymaxOS）的全部设计思想、架构设计、子仓设计草案
+> **正式全称**: agentrt-linux（极境智能体操作系统，正式英文名：AirymaxAgentOS，简称 AirymaxOS）
 > **仓库别名**: agentrt-linux（仓库名）
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
 
-## 1. agentrt-liunx 是什么
+## 1. agentrt-linux 是什么
 
-**agentrt-liunx**（正式英文名：AirymaxAgentOS，简称 AirymaxOS，中文：极境智能体操作系统）是基于 Linux 内核的**操作系统发行版**，与 agentrt（AirymaxAgentRT / 极境智能体运行底座平台工程）**同源**。
+**agentrt-linux**（正式英文名：AirymaxAgentOS，简称 AirymaxOS，中文：极境智能体操作系统）是基于 Linux 内核的**操作系统发行版**，与 agentrt（AirymaxAgentRT / 极境智能体运行底座平台工程）**同源**。
 
 **同源关系**:
 
 - agentrt = 跨平台用户态运行时（Linux/macOS/Windows）
-- agentrt-liunx = 基于 Linux 内核的发行版（专为 Agent 工作负载优化）
+- agentrt-linux = 基于 Linux 内核的发行版（专为 Agent 工作负载优化）
 - 两者共享 Airymax 设计理念（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree 的语义）
-- agentrt 在 agentrt-liunx 上运行**天然更稳健和适配**（架构同源，无适配层）
+- agentrt 在 agentrt-linux 上运行**天然更稳健和适配**（架构同源，无适配层）
 
 ## 2. 设计三大支柱
 
@@ -124,7 +124,7 @@ docs/AirymaxAgentOS/
 
 ## 5. 仓库地址
 
-所有 agentrt-liunx 仓库归属 `openairymax` 组织，托管于 atomgit.com：
+所有 agentrt-linux 仓库归属 `openairymax` 组织，托管于 atomgit.com：
 
 | 仓库   | URL                                               |
 | ---- | ------------------------------------------------- |
@@ -140,10 +140,10 @@ docs/AirymaxAgentOS/
 
 ## 6. 版本规划
 
-| 版本        | agentrt-liunx 范围                       | agentrt 范围                 |
+| 版本        | agentrt-linux 范围                       | agentrt 范围                 |
 | --------- | -------------------------------------- | -------------------------- |
 | **0.1.1** | 文档体系完成（README + 设计草案 + 工程基线声明，\~64 文档） | 全部三大支柱（奠基 + 29 仓拆分 + 生产就绪） |
-| **1.0.1** | 内核和 OS 实际开发                            | 与 agentrt-liunx 协同验证           |
+| **1.0.1** | 内核和 OS 实际开发                            | 与 agentrt-linux 协同验证           |
 
 ## 7. 前沿理论参考（2026-07-07 最新）
 
@@ -166,16 +166,16 @@ docs/AirymaxAgentOS/
 ```
 agentrt（AirymaxAgentRT，跨平台用户态运行时）
    │
-   └── 运行在 agentrt-liunx 上: 天然更稳健和适配（同源）
+   └── 运行在 agentrt-linux 上: 天然更稳健和适配（同源）
        │
-       ├── agentrt 的 MicroCoreRT 调度 ←→ agentrt-liunx 的 SCHED_AGENT 策略（语义同源）
-       ├── agentrt 的 AgentsIPC 协议 ←→ agentrt-liunx 的 IPC 子系统（128B 消息头同源）
-       ├── agentrt 的 Cupolas 安全 ←→ agentrt-liunx 的 capability + LSM（模型同源）
-       ├── agentrt 的 MemoryRovol ←→ agentrt-liunx 的 记忆子系统（记忆模型同源）
-       └── agentrt 的 CoreLoopThree ←→ agentrt-liunx 的 认知 kthread（循环模型同源）
+       ├── agentrt 的 MicroCoreRT 调度 ←→ agentrt-linux 的 SCHED_AGENT 策略（语义同源）
+       ├── agentrt 的 AgentsIPC 协议 ←→ agentrt-linux 的 IPC 子系统（128B 消息头同源）
+       ├── agentrt 的 Cupolas 安全 ←→ agentrt-linux 的 capability + LSM（模型同源）
+       ├── agentrt 的 MemoryRovol ←→ agentrt-linux 的 记忆子系统（记忆模型同源）
+       └── agentrt 的 CoreLoopThree ←→ agentrt-linux 的 认知 kthread（循环模型同源）
 ```
 
-**同源红利**: agentrt 的设计假设和 agentrt-liunx 的实现假设一致，agentrt 在 agentrt-liunx 上运行**无适配层**，天然契合，更稳健。
+**同源红利**: agentrt 的设计假设和 agentrt-linux 的实现假设一致，agentrt 在 agentrt-linux 上运行**无适配层**，天然契合，更稳健。
 
 ## 9. 相关文档
 
@@ -186,5 +186,5 @@ agentrt（AirymaxAgentRT，跨平台用户态运行时）
 
 ***
 
-> **文档结束** | agentrt-liunx 0.1.1 P0 文档体系
+> **文档结束** | agentrt-linux 0.1.1 P0 文档体系
 

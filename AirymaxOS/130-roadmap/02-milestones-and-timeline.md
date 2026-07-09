@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）里程碑与时间线
+# agentrt-linux（AirymaxOS）里程碑与时间线
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）里程碑定义、时间线与关键路径
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）里程碑定义、时间线与关键路径
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **同源映射**: agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，36 天路线图）
@@ -12,7 +12,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 里程碑总览
 
-agentrt-liunx 开发方案拆分为 9 个里程碑（M0-M8），对应 9 个 Part。P0 包含 M0-M6（60-90 天），P1 包含 M7-M8（30-45 天），总计约 120 天。
+agentrt-linux 开发方案拆分为 9 个里程碑（M0-M8），对应 9 个 Part。P0 包含 M0-M6（60-90 天），P1 包含 M7-M8（30-45 天），总计约 120 天。
 
 | 里程碑 | 名称 | 对应 Part | 工期 | 完成标准 |
 |--------|------|-----------|------|---------|
@@ -42,7 +42,7 @@ agentrt-liunx 开发方案拆分为 9 个里程碑（M0-M8），对应 9 个 Par
 
 ```mermaid
 gantt
-    title agentrt-liunx 1.0.1 开发时间线（M0-M8，约 126 天）
+    title agentrt-linux 1.0.1 开发时间线（M0-M8，约 126 天）
     dateFormat YYYY-MM-DD
     axisFormat %m-%d
 
@@ -242,7 +242,7 @@ P1 阶段覆盖 M7-M8，净工期 35 天（5 周），在 P0 完成后启动。
 
 ## 5. 0.1.1 版本范围
 
-0.1.1 是 agentrt-liunx 的"文档体系奠基版本"，目标是完成全部设计文档与工程标准框架（不含内核/OS 代码实施）。
+0.1.1 是 agentrt-linux 的"文档体系奠基版本"，目标是完成全部设计文档与工程标准框架（不含内核/OS 代码实施）。
 
 ### 5.1 0.1.1 完成范围
 
@@ -274,7 +274,7 @@ P1 阶段覆盖 M7-M8，净工期 35 天（5 周），在 P0 完成后启动。
 
 ## 6. 1.0.1 版本范围
 
-1.0.1 是 agentrt-liunx 的"实际开发版本"，目标是完成可投产的智能体操作系统。
+1.0.1 是 agentrt-linux 的"实际开发版本"，目标是完成可投产的智能体操作系统。
 
 ### 6.1 1.0.1 完成范围
 
@@ -296,7 +296,7 @@ P1 阶段覆盖 M7-M8，净工期 35 天（5 周），在 P0 完成后启动。
 
 ### 6.3 1.0.1 与 agentrt 协同
 
-| 协同内容 | agentrt 侧 | agentrt-liunx 侧 | 验证方式 |
+| 协同内容 | agentrt 侧 | agentrt-linux 侧 | 验证方式 |
 |---------|-----------|--------------|---------|
 | 调度 | MicroCoreRT 调度语义 | SCHED_AGENT 策略 | 端到端调度延迟测试 |
 | IPC | AgentsIPC 128B 消息头 | IPC 子系统 | 端到端消息吞吐测试 |
@@ -308,7 +308,7 @@ P1 阶段覆盖 M7-M8，净工期 35 天（5 周），在 P0 完成后启动。
 
 ## 7. 关键路径
 
-关键路径是决定项目最短工期的依赖链。agentrt-liunx 关键路径为：M0 → M1 → (M2, M4) → M6 → M7 → M8。
+关键路径是决定项目最短工期的依赖链。agentrt-linux 关键路径为：M0 → M1 → (M2, M4) → M6 → M7 → M8。
 
 ```mermaid
 graph LR
@@ -420,7 +420,7 @@ graph LR
 - `docs/ARCHITECTURAL_PRINCIPLES.md` — 五维正交 24 原则（S-4 / E-6 / A-4）
 - 内部工程改进方案（闭源） — agentrt 36 天路线图（v4.2，对照参考）
 
-### 11.3 agentrt-liunx 设计文档
+### 11.3 agentrt-linux 设计文档
 
 - `50-engineering-standards/` — 工程标准（M0 范围）
 - `10-architecture/` + `20-modules/` — 架构与模块（M1 范围）
@@ -434,7 +434,7 @@ graph LR
 ## 12. 文档版本与维护
 
 - **当前版本**: v1.0（2026-07-06）
-- **维护者**: agentrt-liunx 工程标准委员会（待成立）
+- **维护者**: agentrt-linux 工程标准委员会（待成立）
 - **变更流程**: 任何里程碑变更必须经过 RFC → 评审 → ACC 验收流程
 - **回顾周期**: 里程碑回顾（每 M 完成时）+ 季度时间线回顾
 

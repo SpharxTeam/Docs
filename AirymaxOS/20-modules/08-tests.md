@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）测试设计文档（airymaxos-tests，极境测试）
+# agentrt-linux（AirymaxOS）测试设计文档（airymaxos-tests，极境测试）
 
 > **子仓编号**：08
 > **子仓代号**：极境测试（Airymax Tests）
@@ -20,7 +20,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [4. 核心特性](#4-核心特性)
 - [5. 微内核思想体现](#5-微内核思想体现)
 - [6. IRON-9 v2 三层共享模型落地](#6-iron-9-v2-三层共享模型落地)
-- [7. agentrt-liunx 工程基线](#7-agentrt-liunx-工程基线)
+- [7. agentrt-linux 工程基线](#7-agentrt-linux-工程基线)
 - [8. 前沿理论参考](#8-前沿理论参考)
 - [9. 与其他子仓的协作](#9-与其他子仓的协作)
 - [10. 里程碑（M1-M6）](#10-里程碑m1-m6)
@@ -32,21 +32,21 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-tests` 是 agentrt-liunx（AirymaxOS）的测试与验证子仓，承担以下核心职责：
+`airymaxos-tests` 是 agentrt-linux（AirymaxOS）的测试与验证子仓，承担以下核心职责：
 
 1. **单元测试框架 [SS]**：为各子仓提供单元测试框架（Rust cargo test + Go testing + C googletest），与 agentrt 全模块测试语义同源。
-2. **集成测试框架 [IND]**：基于 agentrt-liunx 系统级测试套件，提供集成测试框架（agentrt-liunx 自研）。
+2. **集成测试框架 [IND]**：基于 agentrt-linux 系统级测试套件，提供集成测试框架（agentrt-linux 自研）。
 3. **形式化验证 [IND]**：参考 seL4 风格，对微内核关键部分进行形式化验证（Isabelle/HOL + Coq），验证对象引用 [SC] 共享类型。
 4. **Soak Test [IND]**：72 小时持续运行的稳定性测试，监控 MemoryRovol L1-L4 指标 [SC]。
 5. **混沌工程 [IND]**：参考 Chaos Mesh，提供故障注入测试。
 6. **性能基准测试 [SS]**：性能基准与回归测试，基准指标与 agentrt 同源。
 7. **eBPF 可观测性验证 [IND]**：验证 eBPF 可观测性正确性，验证 struct_ops 状态机 [SC]。
 
-测试覆盖全部 8 个子仓，确保 agentrt-liunx 的可靠性、稳定性与安全性。
+测试覆盖全部 8 个子仓，确保 agentrt-linux 的可靠性、稳定性与安全性。
 
 ### 1.1 横切关注点声明
 
-测试是横切关注点（cross-cutting concern），贯穿 agentrt-liunx 全部 4 大数据流：
+测试是横切关注点（cross-cutting concern），贯穿 agentrt-linux 全部 4 大数据流：
 
 | 数据流 | 测试切入点 | 同源标注 |
 |--------|-----------|----------|
@@ -59,20 +59,20 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态全模块测试）与 agentrt-liunx（airymaxos-tests）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态全模块测试）与 agentrt-linux（airymaxos-tests）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 测试子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
 | **[SC] 共享契约层** | 完全共享代码 | IPC 测试验证的消息头格式（magic 0x41524531 'ARE1' + 128B `agentrt_ipc_msg_hdr_t`）；调度器测试验证的 task_desc（magic 0x41475453 'AGTS'）+ vtime 衰减公式；安全形式化验证的 capability 38 ID 枚举 + LSM 254 ID 枚举；struct_ops 状态机验证（INIT/INUSE/TOBEFREE/READY）；MemoryRovol 快照一致性验证的 L1-L4 数据结构 + GFP 掩码语义；认知测试验证的 CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 | `include/airymax/` 6 个头文件（测试框架验证这些共享类型） |
 | **[SS] 语义同源层** | API 签名同源，实现独立 | 单元测试框架语义（agentrt cargo test/go test/googletest → OS 级同框架）、集成测试模式（agentrt 集成测试 → OS 级集成测试）、性能基准指标（IPC 延迟/调度延迟/内存吞吐/I/O 吞吐——两端同指标）、覆盖率目标（≥90%/≥80%/≥70%——两端同标准）、回归测试方法（性能不退化——两端同方法）等 8+ 项 | 各自独立实现 |
-| **[IND] 完全独立层** | 完全独立 | 形式化验证框架（seL4 Isabelle/HOL + Coq——OS 专属）、Soak Test 框架（72h 持续运行——OS 专属）、混沌工程框架（Chaos Mesh 类似——OS 专属）、eBPF 可观测性验证（OS 专属）、agentrt-liunx 集成测试框架（OS 专属）、测试运行器与报告生成（OS 专属） | 各自独立仓库 |
+| **[IND] 完全独立层** | 完全独立 | 形式化验证框架（seL4 Isabelle/HOL + Coq——OS 专属）、Soak Test 框架（72h 持续运行——OS 专属）、混沌工程框架（Chaos Mesh 类似——OS 专属）、eBPF 可观测性验证（OS 专属）、agentrt-linux 集成测试框架（OS 专属）、测试运行器与报告生成（OS 专属） | 各自独立仓库 |
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（全模块测试） | agentrt-liunx（airymaxos-tests） | 同源标注 |
+| 维度 | agentrt（全模块测试） | agentrt-linux（airymaxos-tests） | 同源标注 |
 |------|---------------------|------------------------------|----------|
 | 单元测试框架 | cargo test + go test + googletest | cargo test + go test + googletest | [SS] |
-| 集成测试 | 模块间集成测试 | 子仓间集成测试（agentrt-liunx 自研） | [IND] |
+| 集成测试 | 模块间集成测试 | 子仓间集成测试（agentrt-linux 自研） | [IND] |
 | 形式化验证 | 无 | seL4 风格（Isabelle/HOL + Coq） | [IND] |
 | Soak Test | 长时间运行测试 | 72h Soak Test | [IND] |
 | 混沌工程 | 无 | Chaos Mesh 类似混沌测试 | [IND] |
@@ -99,7 +99,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ```
 airymaxos-tests/
 ├── unit/                   # 单元测试框架 [SS]
-├── integration/            # 集成测试框架（agentrt-liunx 自研）[IND]
+├── integration/            # 集成测试框架（agentrt-linux 自研）[IND]
 ├── formal-verification/    # 形式化验证（seL4 风格，验证 [SC] 类型）[IND]
 ├── soak/                   # Soak Test（72h 持续运行）[IND]
 ├── chaos/                  # 混沌工程（Chaos Mesh 类似）[IND]
@@ -121,10 +121,10 @@ airymaxos-tests/
   - `system/`：系统单元测试 [IND]。
 - `coverage/`：代码覆盖率工具（llvm-cov、tarpaulin）[IND]。
 
-### 3.2 integration/（集成测试框架，agentrt-liunx 自研）[IND]
+### 3.2 integration/（集成测试框架，agentrt-linux 自研）[IND]
 
-基于 **agentrt-liunx 集成测试框架**：
-- `airymaxos-itf/`：agentrt-liunx 集成测试框架 [IND]。
+基于 **agentrt-linux 集成测试框架**：
+- `airymaxos-itf/`：agentrt-linux 集成测试框架 [IND]。
 - `testcases/`：测试用例 [IND]。
   - `cross-subrepo/`：跨子仓集成测试（验证 [SC] 契约层跨子仓一致性）[IND]。
   - `end-to-end/`：端到端测试 [IND]。
@@ -216,9 +216,9 @@ airymaxos-tests/
 - `include/airymax/security_types.h`：验证 capability 38 ID + LSM 254 ID [SC]。
 - `include/airymax/cognition_types.h`：验证 CoreLoopThree 阶段枚举 [SC]。
 
-### 4.2 集成测试框架（agentrt-liunx 集成测试标准）[IND]
+### 4.2 集成测试框架（agentrt-linux 集成测试标准）[IND]
 
-基于 **agentrt-liunx 集成测试框架**：
+基于 **agentrt-linux 集成测试框架**：
 - 测试用例以 shell 脚本 + 配置文件描述 [IND]。
 - 支持测试套件组织 [IND]。
 - 支持依赖管理 [IND]。
@@ -357,7 +357,7 @@ source $OET_PATH/libs/locallibs/common_lib.sh
 
 ### 5.4 共享契约层验证 [SC]
 
-测试框架验证 [SC] 共享契约层的 6 个头文件，确保 agentrt 与 agentrt-liunx 两端契约一致：
+测试框架验证 [SC] 共享契约层的 6 个头文件，确保 agentrt 与 agentrt-linux 两端契约一致：
 - 单元测试验证类型正确性 [SC]。
 - 形式化验证验证性质正确性 [SC]。
 - 集成测试验证跨子仓一致性 [SC]。
@@ -384,7 +384,7 @@ source $OET_PATH/libs/locallibs/common_lib.sh
 
 API 签名同源，实现独立。测试模块的同源 API：
 
-| 序号 | 语义 | agentrt 实现 | agentrt-liunx 实现 |
+| 序号 | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|------|-------------|-------------------|
 | 1 | 单元测试框架 | cargo test + go test + googletest | cargo test + go test + googletest |
 | 2 | IPC 延迟基准 | 应用层 IPC 延迟测量 | io_uring IPC 延迟测量 |
@@ -399,16 +399,16 @@ API 签名同源，实现独立。测试模块的同源 API：
 
 | 序号 | 内容 | 不共享原因 |
 |------|------|-----------|
-| 1 | 形式化验证框架（Isabelle/HOL + Coq） | OS 级形式化验证仅 agentrt-liunx |
-| 2 | Soak Test 框架（72h） | OS 级长时间测试仅 agentrt-liunx |
-| 3 | 混沌工程框架（Chaos Mesh） | OS 级混沌测试仅 agentrt-liunx |
-| 4 | eBPF 可观测性验证 | OS 级 eBPF 验证仅 agentrt-liunx |
-| 5 | agentrt-liunx 集成测试框架 | OS 级集成测试仅 agentrt-liunx |
-| 6 | 测试运行器与报告生成 | OS 级测试工具仅 agentrt-liunx |
-| 7 | 跨子仓集成测试用例 | OS 级跨子仓测试仅 agentrt-liunx |
-| 8 | 端到端测试用例 | OS 级 E2E 测试仅 agentrt-liunx |
-| 9 | 兼容性测试用例 | OS 级兼容性测试仅 agentrt-liunx |
-| 10 | 宏基准测试用例（Agent 吞吐/LLM Token/s） | OS 级宏基准仅 agentrt-liunx |
+| 1 | 形式化验证框架（Isabelle/HOL + Coq） | OS 级形式化验证仅 agentrt-linux |
+| 2 | Soak Test 框架（72h） | OS 级长时间测试仅 agentrt-linux |
+| 3 | 混沌工程框架（Chaos Mesh） | OS 级混沌测试仅 agentrt-linux |
+| 4 | eBPF 可观测性验证 | OS 级 eBPF 验证仅 agentrt-linux |
+| 5 | agentrt-linux 集成测试框架 | OS 级集成测试仅 agentrt-linux |
+| 6 | 测试运行器与报告生成 | OS 级测试工具仅 agentrt-linux |
+| 7 | 跨子仓集成测试用例 | OS 级跨子仓测试仅 agentrt-linux |
+| 8 | 端到端测试用例 | OS 级 E2E 测试仅 agentrt-linux |
+| 9 | 兼容性测试用例 | OS 级兼容性测试仅 agentrt-linux |
+| 10 | 宏基准测试用例（Agent 吞吐/LLM Token/s） | OS 级宏基准仅 agentrt-linux |
 
 ### 6.4 跨态协作流
 
@@ -472,7 +472,7 @@ graph TD
         SOAK[Soak Test<br/>72h 持续运行]
         CHAOS[混沌工程<br/>Chaos Mesh 类似]
         EBPF_VER[eBPF 可观测性验证]
-        ITF[集成测试框架<br/>agentrt-liunx 自研]
+        ITF[集成测试框架<br/>agentrt-linux 自研]
     end
     IPC_TEST --> UNIT_FW
     SCHED_TEST --> UNIT_FW
@@ -488,12 +488,12 @@ graph TD
 
 ---
 
-## 7. agentrt-liunx 工程基线
+## 7. agentrt-linux 工程基线
 
-- **agentrt-liunx 集成测试框架**：集成测试框架基线。
-- **agentrt-liunx QA SIG**：质量保证最佳实践。
-- **agentrt-liunx 性能测试**：性能基准基线。
-- **agentrt-liunx 兼容性测试**：兼容性测试基线。
+- **agentrt-linux 集成测试框架**：集成测试框架基线。
+- **agentrt-linux QA SIG**：质量保证最佳实践。
+- **agentrt-linux 性能测试**：性能基准基线。
+- **agentrt-linux 兼容性测试**：兼容性测试基线。
 
 ---
 
@@ -504,7 +504,7 @@ graph TD
 | seL4 形式化验证 | seL4 项目 | 微内核形式化验证 |
 | 混沌工程 | Netflix | Chaos Mesh 类似混沌测试 |
 | eBPF 可观测性 | Linux eBPF | 可观测性验证 |
-| agentrt-liunx 集成测试框架 | agentrt-liunx | 集成测试框架 |
+| agentrt-linux 集成测试框架 | agentrt-linux | 集成测试框架 |
 | Property-based testing | 学术研究 | 属性测试 |
 | Fuzzing | 学术研究 | 模糊测试 |
 
@@ -529,7 +529,7 @@ graph TD
 | 阶段 | 目标 | 时间 |
 |------|------|------|
 | M1 | 单元测试框架 + 各子仓单元测试 | 2026 Q3 |
-| M2 | 集成测试框架（agentrt-liunx 自研） | 2026 Q4 |
+| M2 | 集成测试框架（agentrt-linux 自研） | 2026 Q4 |
 | M3 | Soak Test 框架 + 首次 72h 测试 | 2027 Q1 |
 | M4 | 混沌工程框架 | 2027 Q2 |
 | M5 | 性能基准测试 + 回归 | 2027 Q3 |
@@ -541,7 +541,7 @@ graph TD
 
 | 检查项 | 验证内容 | 结果 |
 |--------|----------|------|
-| 命名一致性 | 核心表述使用 `agentrt-liunx（AirymaxOS）` 全角括号配对 | ✅ PASS |
+| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | ✅ PASS |
 | 语义同源标注 | 单元测试框架/性能基准指标/覆盖率目标/回归测试标注 [SS] | ✅ PASS |
 | IRON-9 v2 三层合规 | [SC] 6 头文件验证 + [SS] 8 API + [IND] 10 项独立实现 | ✅ PASS |
 | [SC] 头文件引用 | 6 个头文件均在 §1.1/§3.3/§4.1/§4.3/§6.1 引用 | ✅ PASS |
@@ -572,8 +572,8 @@ graph TD
 - Isabelle/HOL 教程
 - Coq 教程
 - Chaos Mesh 项目文档
-- agentrt-liunx 集成测试框架文档
-- agentrt-liunx QA SIG 文档
+- agentrt-linux 集成测试框架文档
+- agentrt-linux QA SIG 文档
 - Linux 性能测试工具文档
 - eBPF 可观测性文档
 - agentrt 全模块测试设计文档

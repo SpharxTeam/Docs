@@ -1,24 +1,24 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）架构设计
+# agentrt-linux（AirymaxOS）架构设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS）架构设计层的总览与索引
+> **文档定位**: agentrt-linux（AirymaxOS）架构设计层的总览与索引
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
-> **父文档**: [agentrt-liunx 总览](../README.md)
+> **父文档**: [agentrt-linux 总览](../README.md)
 
 ---
 
 ## 1. 架构设计概览
 
-agentrt-liunx 架构设计建立在三大支柱之上，三大支柱相辅相成，共同支撑 agentrt-liunx 作为 Agentic OS 的设计哲学。
+agentrt-linux 架构设计建立在三大支柱之上，三大支柱相辅相成，共同支撑 agentrt-linux 作为 Agentic OS 的设计哲学。
 
 ### 1.1 三大支柱总览
 
 | 支柱 | 核心思想 | 参考来源 | 落地子仓 |
 |------|----------|----------|----------|
 | **微内核设计思想** | 最小化特权态代码（Liedtke minimality）、服务用户态化、消息传递通信、capability 安全 | seL4 / Zircon / Minix3 | airymaxos-kernel / airymaxos-services / airymaxos-security |
-| **agentrt-liunx 工程基线** | 采用 agentrt-liunx 自身的模块设计、技术规格、标准和规范，兼容企业级 Linux 生态 | Linux 6.6 内核基线 / 下一代内核基线 | airymaxos-system / airymaxos-tests / airymaxos-cloudnative |
+| **agentrt-linux 工程基线** | 采用 agentrt-linux 自身的模块设计、技术规格、标准和规范，兼容企业级 Linux 生态 | Linux 6.6 内核基线 / 下一代内核基线 | airymaxos-system / airymaxos-tests / airymaxos-cloudnative |
 | **Airymax 同源性** | 与 agentrt 共享 MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree 设计理念，天然适配无适配层 | agentrt atoms/cupolas/coreloopthree | 全部 8 子仓 |
 
 ### 1.2 支柱之间的关系
@@ -26,30 +26,30 @@ agentrt-liunx 架构设计建立在三大支柱之上，三大支柱相辅相成
 三大支柱并非并列叠加，而是构成正交支撑：
 
 - **微内核设计思想** 提供"如何设计内核"的方法论
-- **agentrt-liunx 工程基线** 提供"如何对接生态"的工程标准
+- **agentrt-linux 工程基线** 提供"如何对接生态"的工程标准
 - **Airymax 同源性** 提供"如何与 agentrt 协同"的语义约束
 
-三者缺一不可：缺少微内核思想则 agentrt-liunx 退化为普通 Linux 发行版；缺少工程基线则失去生态兼容性；缺少同源性则 agentrt 失去 OS 级天然适配红利。
+三者缺一不可：缺少微内核思想则 agentrt-linux 退化为普通 Linux 发行版；缺少工程基线则失去生态兼容性；缺少同源性则 agentrt 失去 OS 级天然适配红利。
 
 ### 1.3 架构设计的核心约束
 
 | 约束 | 来源 | 影响 |
 |------|------|------|
-| 内核基线锁定 Linux 6.6 内核基线 | agentrt-liunx 工程基线 | 禁止引用未来内核专属特性作为 6.6 原生能力（见 IRON-10） |
+| 内核基线锁定 Linux 6.6 内核基线 | agentrt-linux 工程基线 | 禁止引用未来内核专属特性作为 6.6 原生能力（见 IRON-10） |
 | 微内核化而非从零开发微内核 | 微内核设计思想 | 基于 sched_ext + eBPF kfunc + io_uring 实现微内核化改造 |
-| 与 agentrt 同源且部分代码共享 | Airymax 同源性 | agentrt 是跨平台用户态运行时，agentrt-liunx 是 Linux 专属优化 |
+| 与 agentrt 同源且部分代码共享 | Airymax 同源性 | agentrt 是跨平台用户态运行时，agentrt-linux 是 Linux 专属优化 |
 
 ---
 
 ## 2. 8 子仓架构图
 
-agentrt-liunx 由 8 个子仓构成，按"内核 → 服务 → 认知 → 云原生 → 系统 → 测试"的层次关系组织。
+agentrt-linux 由 8 个子仓构成，按"内核 → 服务 → 认知 → 云原生 → 系统 → 测试"的层次关系组织。
 
 ### 2.1 Mermaid 层次关系图
 
 ```mermaid
 graph TB
-    subgraph "agentrt-liunx 8 子仓架构"
+    subgraph "agentrt-linux 8 子仓架构"
         direction TB
 
         KERNEL["airymaxos-kernel<br/>极境内核<br/>Linux 6.6 + 微内核化改造<br/>同源: atoms/corekern (MicroCoreRT)"]
@@ -114,13 +114,13 @@ graph TB
 
 ## 3. 架构层次模型
 
-agentrt-liunx 采用 7 层架构模型，自底向上分别为硬件层、内核层、服务层、认知层、云原生层、系统层和测试层。每一层只依赖其直接下层提供的抽象接口，从不越级访问。
+agentrt-linux 采用 7 层架构模型，自底向上分别为硬件层、内核层、服务层、认知层、云原生层、系统层和测试层。每一层只依赖其直接下层提供的抽象接口，从不越级访问。
 
 ### 3.1 层次模型 Mermaid 图
 
 ```mermaid
 graph TB
-    subgraph "agentrt-liunx 7 层架构模型"
+    subgraph "agentrt-linux 7 层架构模型"
         direction TB
         L7["L7 测试层 (airymaxos-tests)<br/>单元测试 + 集成测试 + 形式化验证 + Soak + 混沌"]
         L6["L6 系统层 (airymaxos-system)<br/>包管理 + 配置 + shell + 基础库 + DevStation"]
@@ -169,7 +169,7 @@ graph TB
 
 ### 3.3 层次纪律
 
-agentrt-liunx 严格遵守层次分解原则（S-2）：
+agentrt-linux 严格遵守层次分解原则（S-2）：
 
 1. 每层只依赖其直接下层的抽象接口，禁止越级访问
 2. 同层之间通过 IPC 通信，禁止直接函数调用
@@ -180,11 +180,11 @@ agentrt-liunx 严格遵守层次分解原则（S-2）：
 
 ## 4. 与 agentrt 的架构对应关系
 
-agentrt-liunx 与 agentrt 同源且部分代码共享（IRON-9 v2）。两者在多个核心模块上存在同源映射关系，共享契约层代码（`include/airymax/` 头文件库），实现层各自独立。
+agentrt-linux 与 agentrt 同源且部分代码共享（IRON-9 v2）。两者在多个核心模块上存在同源映射关系，共享契约层代码（`include/airymax/` 头文件库），实现层各自独立。
 
 ### 4.1 同源映射表
 
-| agentrt 模块 | agentrt 性质 | agentrt-liunx 同源子仓 | 同源语义 | 同源契约 |
+| agentrt 模块 | agentrt 性质 | agentrt-linux 同源子仓 | 同源语义 | 同源契约 |
 |--------------|--------------|---------------------|----------|----------|
 | atoms/corekern (MicroCoreRT) | 跨平台用户态微核心 | airymaxos-kernel (SCHED_AGENT) | 调度语义一致 | SCHED_AGENT 策略语义同源 |
 | atoms/ipc + protocols (AgentsIPC) | 跨平台 IPC 协议 | airymaxos-services (消息传递) | IPC 协议语义一致 | 128B 消息头 + magic 0x41524531 ('ARE1') 同源 |
@@ -197,36 +197,36 @@ agentrt-liunx 与 agentrt 同源且部分代码共享（IRON-9 v2）。两者在
 
 ### 4.2 同源红利
 
-agentrt 在 agentrt-liunx 上运行时享有"无适配层天然契合"的同源红利：
+agentrt 在 agentrt-linux 上运行时享有"无适配层天然契合"的同源红利：
 
-- **调度同源**：agentrt 的 MicroCoreRT 调度语义与 agentrt-liunx 的 SCHED_AGENT 策略一致，agentrt 可选调用 SCHED_AGENT 获得原生调度优先级
-- **IPC 同源**：agentrt 的 AgentsIPC 128B 消息头与 agentrt-liunx 内核原生 IPC 协议一致，IPC 无需任何转换层
-- **安全同源**：agentrt 的 Cupolas capability 模型与 agentrt-liunx 的 capability 系统一致，权限检查天然兼容
-- **记忆同源**：agentrt 的 MemoryRovol L1-L4 与 agentrt-liunx 内核态 MemoryRovol 一致，记忆持久化无语义损失
-- **认知同源**：agentrt 的 CoreLoopThree 三层循环与 agentrt-liunx 的 kthread 实现一致，认知调度天然契合
+- **调度同源**：agentrt 的 MicroCoreRT 调度语义与 agentrt-linux 的 SCHED_AGENT 策略一致，agentrt 可选调用 SCHED_AGENT 获得原生调度优先级
+- **IPC 同源**：agentrt 的 AgentsIPC 128B 消息头与 agentrt-linux 内核原生 IPC 协议一致，IPC 无需任何转换层
+- **安全同源**：agentrt 的 Cupolas capability 模型与 agentrt-linux 的 capability 系统一致，权限检查天然兼容
+- **记忆同源**：agentrt 的 MemoryRovol L1-L4 与 agentrt-linux 内核态 MemoryRovol 一致，记忆持久化无语义损失
+- **认知同源**：agentrt 的 CoreLoopThree 三层循环与 agentrt-linux 的 kthread 实现一致，认知调度天然契合
 
 ### 4.3 同源且部分代码共享的边界
 
-| 维度 | agentrt | agentrt-liunx |
+| 维度 | agentrt | agentrt-linux |
 |------|---------|-----------|
 | 性质 | 跨平台用户态运行时 | Linux 发行版 |
 | 平台 | Linux / macOS / Windows | 仅 Linux 6.6 内核基线 |
 | 代码 | 用户态库 + 守护进程 | Linux 内核 + 用户态服务 |
 | 共享 | 设计理念同源 + 契约层代码共享（`include/airymax/`）+ 实现独立 | 设计理念同源 + 契约层代码共享（`include/airymax/`）+ 实现独立 |
-| 关系 | 可独立运行 | agentrt-liunx 是 agentrt 的最佳载体 |
+| 关系 | 可独立运行 | agentrt-linux 是 agentrt 的最佳载体 |
 
 ---
 
 ## 5. 本目录文档索引
 
-agentrt-liunx 架构设计层包含 5 个核心文档，覆盖系统架构、五维原则、微内核策略、工程基线和架构决策记录。
+agentrt-linux 架构设计层包含 5 个核心文档，覆盖系统架构、五维原则、微内核策略、工程基线和架构决策记录。
 
 | # | 文档 | 内容 | 状态 |
 |---|------|------|------|
 | 1 | [01-system-architecture.md](01-system-architecture.md) | 系统架构总览（三大支柱 + 整体架构 + 同源关系 + 前沿理论） | 已存在 |
-| 2 | [02-five-dimensional-principles.md](02-five-dimensional-principles.md) | 五维正交 24 原则与 agentrt-liunx 落地映射（S/K/C/E/A 全维度） | 新增 |
+| 2 | [02-five-dimensional-principles.md](02-five-dimensional-principles.md) | 五维正交 24 原则与 agentrt-linux 落地映射（S/K/C/E/A 全维度） | 新增 |
 | 3 | [03-microkernel-strategy.md](03-microkernel-strategy.md) | 微内核化改造策略（seL4/Zircon/Minix3 参考 + 改造路径） | 已存在 |
-| 4 | [04-engineering-baseline.md](04-engineering-baseline.md) | agentrt-liunx 工程基线（治理组对应 + AI 原生 + 技术规格） | 已存在 |
+| 4 | [04-engineering-baseline.md](04-engineering-baseline.md) | agentrt-linux 工程基线（治理组对应 + AI 原生 + 技术规格） | 已存在 |
 | 5 | [05-adrs.md](05-adrs.md) | 架构决策记录 ADR-001~010（10 个核心决策） | 新增 |
 
 ### 5.1 文档阅读顺序建议
@@ -242,13 +242,13 @@ agentrt-liunx 架构设计层包含 5 个核心文档，覆盖系统架构、五
 
 ## 6. 设计原则引用
 
-agentrt-liunx 架构设计严格遵循 `docs/ARCHITECTURAL_PRINCIPLES.md` 中的五维正交 24 原则，详细落地映射请参见 [02-five-dimensional-principles.md](02-five-dimensional-principles.md)。
+agentrt-linux 架构设计严格遵循 `docs/ARCHITECTURAL_PRINCIPLES.md` 中的五维正交 24 原则，详细落地映射请参见 [02-five-dimensional-principles.md](02-five-dimensional-principles.md)。
 
 ### 6.1 五维原则概览
 
-| 维度 | 核心问题 | 原则数量 | agentrt-liunx 落地文档 |
+| 维度 | 核心问题 | 原则数量 | agentrt-linux 落地文档 |
 |------|----------|----------|---------------------|
-| 系统观 (System) | agentrt-liunx 作为复杂自适应系统如何维持动态平衡 | 4 项 (S-1~S-4) | [02-five-dimensional-principles.md §2](02-five-dimensional-principles.md) |
+| 系统观 (System) | agentrt-linux 作为复杂自适应系统如何维持动态平衡 | 4 项 (S-1~S-4) | [02-five-dimensional-principles.md §2](02-five-dimensional-principles.md) |
 | 内核观 (Kernel) | 内核应该做什么，不应该做什么 | 4 项 (K-1~K-4) | [02-five-dimensional-principles.md §3](02-five-dimensional-principles.md) |
 | 认知观 (Cognition) | 智能体如何高效可靠地进行认知决策 | 4 项 (C-1~C-4) | [02-five-dimensional-principles.md §4](02-five-dimensional-principles.md) |
 | 工程观 (Engineering) | 如何构建可维护可测试可演进的工程系统 | 8 项 (E-1~E-8) | [02-five-dimensional-principles.md §5](02-five-dimensional-principles.md) |
@@ -268,7 +268,7 @@ agentrt-liunx 架构设计严格遵循 `docs/ARCHITECTURAL_PRINCIPLES.md` 中的
 
 ## 7. 相关文档
 
-- [agentrt-liunx 总览](../README.md)：agentrt-liunx 设计文档总览
+- [agentrt-linux 总览](../README.md)：agentrt-linux 设计文档总览
 - [需求分析层](../00-requirements/README.md)：业务需求 + 功能需求 + 非功能需求
 - [模块设计层](../20-modules/)：8 子仓详细设计
 - [接口设计层](../30-interfaces/)：syscall + IPC + SDK + 编码规范

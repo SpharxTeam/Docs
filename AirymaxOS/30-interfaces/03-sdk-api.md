@@ -2,7 +2,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # SDK API
 
-> **文档定位**: agentrt-liunx（AirymaxOS） SDK 的 4 语言矩阵、4 嵌套客户端、代码示例与错误处理策略
+> **文档定位**: agentrt-linux（AirymaxOS） SDK 的 4 语言矩阵、4 嵌套客户端、代码示例与错误处理策略
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-06
 > **父文档**: [接口设计](README.md)
@@ -11,7 +11,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. SDK 4 语言矩阵
 
-agentrt-liunx 提供 4 种语言的官方 SDK，统一封装 8 子仓能力，遵循同源 agentrt sdk 的"管理接口"语义，升级为 OS 级 SDK。
+agentrt-linux 提供 4 种语言的官方 SDK，统一封装 8 子仓能力，遵循同源 agentrt sdk 的"管理接口"语义，升级为 OS 级 SDK。
 
 | 语言 | 包名 | 仓库 | 同源 agentrt | 目标用户 |
 |------|------|------|--------------|---------|
@@ -106,7 +106,7 @@ permission = safety.check_capability(
 tool = client.tool
 result = tool.execute(
     name="web_search",
-    args={"query": "agentrt-liunx 认知循环"}
+    args={"query": "agentrt-linux 认知循环"}
 )
 
 # ChatClient - 对话层
@@ -186,7 +186,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ToolClient - 工具层
     let tool = client.tool();
     let result = tool
-        .execute("web_search", &[("query", "agentrt-liunx 认知循环")])
+        .execute("web_search", &[("query", "agentrt-linux 认知循环")])
         .await?;
     println!("result={result:?}");
 
@@ -281,7 +281,7 @@ func main() {
     // ToolClient - 工具层
     tool := client.Tool()
     result, err := tool.Execute(ctx, "web_search", map[string]string{
-        "query": "agentrt-liunx 认知循环",
+        "query": "agentrt-linux 认知循环",
     })
     if err != nil {
         log.Fatalf("execute failed: %v", err)
@@ -343,7 +343,7 @@ async function main(): Promise<void> {
     const tool = client.tool;
     const result = await tool.execute({
         name: "web_search",
-        args: { query: "agentrt-liunx 认知循环" },
+        args: { query: "agentrt-linux 认知循环" },
     });
     console.log(`result=${JSON.stringify(result)}`);
 

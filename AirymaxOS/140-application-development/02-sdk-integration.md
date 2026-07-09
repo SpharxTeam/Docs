@@ -2,7 +2,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # SDK 集成设计
 
-> **文档定位**: agentrt-liunx（AirymaxOS，极境智能体操作系统）Agent 应用开发体系核心子文档，定义 Python/Rust/Go/TypeScript 四语言 SDK 与 agentrt-liunx 内核通信的集成设计
+> **文档定位**: agentrt-linux（AirymaxOS，极境智能体操作系统）Agent 应用开发体系核心子文档，定义 Python/Rust/Go/TypeScript 四语言 SDK 与 agentrt-linux 内核通信的集成设计
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-09
 > **理论根基**: Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论
@@ -16,12 +16,12 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 设计目标
 
-agentrt-liunx（AirymaxOS）提供四语言 SDK（Python / Rust / Go / TypeScript），统一封装与内核的通信细节，使上层 Agent 应用无需关心底层 syscall 或 AgentsIPC 协议。SDK 集成设计达成以下工程目标：
+agentrt-linux（AirymaxOS）提供四语言 SDK（Python / Rust / Go / TypeScript），统一封装与内核的通信细节，使上层 Agent 应用无需关心底层 syscall 或 AgentsIPC 协议。SDK 集成设计达成以下工程目标：
 
 1. **零拷贝高性能**：通过 io_uring 提交队列与内核共享内存，避免数据拷贝
 2. **FFI 边界安全**：四语言与 C ABI 边界严格类型检查，杜绝内存安全漏洞
 3. **同源 API 一致性**：四语言 SDK API 签名完全一致，遵循 IRON-9 v2 [SS] 层
-4. **运行时环境感知**：SDK 自动检测宿主为 agentrt-liunx 或 agentrt，切换通信路径
+4. **运行时环境感知**：SDK 自动检测宿主为 agentrt-linux 或 agentrt，切换通信路径
 5. **统一错误码**：四语言共享 `include/airymax/error.h` 错误码（[SC] 层）
 
 ### 1.2 SDK 分层架构
@@ -41,13 +41,13 @@ agentrt-liunx（AirymaxOS）提供四语言 SDK（Python / Rust / Go / TypeScrip
 ├─────────────────────────────────────────────────────────┤
 │ L1: syscall / AgentsIPC（io_uring）                      │
 ├─────────────────────────────────────────────────────────┤
-│ L0: agentrt-liunx 内核                                   │
+│ L0: agentrt-linux 内核                                   │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ### 1.3 IRON-9 v2 共享层次
 
-| 层次 | 共享内容 | agentrt-liunx SDK | agentrt SDK |
+| 层次 | 共享内容 | agentrt-linux SDK | agentrt SDK |
 |------|----------|-------------------|-------------|
 | [SC] | IPC 消息头结构、syscall 编号、错误码、规则编号体系 | 完全共享 | 完全共享 |
 | [SS] | CognitionClient/SafetyClient 等 16 客户端 API 签名 | 签名同源，实现独立 | 签名同源，实现独立 |
@@ -422,7 +422,7 @@ export class Client {
 
 ### 5.1 SDK 内部 syscall 路径
 
-当 SDK 检测到宿主为 agentrt-liunx 时，自动切换至 syscall 路径：
+当 SDK 检测到宿主为 agentrt-linux 时，自动切换至 syscall 路径：
 
 ```c
 /* libagentrt/sdk.c 内部实现 */
@@ -448,7 +448,7 @@ int agentrt_client_call(agentrt_client_t *client,
 	hdr.trace_id = client->next_trace_id++;
 	hdr.seq = client->next_seq++;
 
-	/* agentrt-liunx 路径：syscall（io_uring 注册） */
+	/* agentrt-linux 路径：syscall（io_uring 注册） */
 	if (client->use_syscall) {
 		ret = syscall(AGENTRT_SYS_IPC_SEND, &hdr, payload, payload_len);
 		if (ret < 0)
@@ -483,7 +483,7 @@ class CognitionClient:
     def process(self, prompt: str, **kwargs) -> dict:
         """
         执行认知处理（封装 syscall AGENTRT_SYS_COGNITION_PROCESS）
-        当宿主为 agentrt-liunx 时，SDK 内部走 syscall 路径
+        当宿主为 agentrt-linux 时，SDK 内部走 syscall 路径
         """
         if self._tokens_used >= self._token_budget:
             raise AgentrtError(-401)  # AGENTRT_EBUDGET_EXHAUSTED
@@ -495,7 +495,7 @@ class CognitionClient:
         }).encode()
 
         # SDK 内部检测宿主：
-        #   - agentrt-liunx -> syscall(AGENTRT_SYS_COGNITION_PROCESS)
+        #   - agentrt-linux -> syscall(AGENTRT_SYS_COGNITION_PROCESS)
         #   - agentrt 用户态 -> AgentsIPC 调用 llm_d
         resp = self._client.call(self.LLM_DAEMON_ID,
                                   "cognition.process", payload)
@@ -522,7 +522,7 @@ class CognitionClient:
 [libagentrt.so]
    agentrt_client_call()
        |
-       v (检测宿主为 agentrt-liunx)
+       v (检测宿主为 agentrt-linux)
    syscall(AGENTRT_SYS_IPC_SEND, hdr, payload)
        |
        v
@@ -601,7 +601,7 @@ bool agentrt_host_is_airymaxos(void)
 
 | 宿主 | 通信路径 | 传输机制 | 性能 |
 |------|----------|----------|------|
-| agentrt-liunx | syscall | io_uring 零拷贝 | 最高 |
+| agentrt-linux | syscall | io_uring 零拷贝 | 最高 |
 | agentrt 用户态 | AgentsIPC | 用户态消息队列 | 高 |
 | 主流 Linux 发行版 | Unix socket | 回环 socket | 中 |
 
@@ -688,5 +688,5 @@ go test -race ./...
 
 ---
 
-> **文档结束** | agentrt-liunx（AirymaxOS）SDK 集成设计 v0.1.1
+> **文档结束** | agentrt-linux（AirymaxOS）SDK 集成设计 v0.1.1
 > 遵循 IRON-9 v2 [SC] 共享契约层 + [SS] 语义同源层与 agentrt SDK 同源

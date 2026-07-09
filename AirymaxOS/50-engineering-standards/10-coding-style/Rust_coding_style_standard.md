@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）Rust 语言编码风格规范
+# agentrt-linux（AirymaxOS）Rust 语言编码风格规范
 
-> **文档定位**: agentrt-liunx（AirymaxOS）内核模块 Rust 语言编码风格规范
+> **文档定位**: agentrt-linux（AirymaxOS）内核模块 Rust 语言编码风格规范
 > **版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
 > **最后更新**: 2026-07-07
 > **父文档**: [编码规范总览](README.md)
@@ -15,7 +15,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 定位与适用范围
 
-agentrt-liunx（AirymaxOS）的 Rust 代码仅用于**内核模块**（安全敏感且非热路径的子系统），典型场景包括：
+agentrt-linux（AirymaxOS）的 Rust 代码仅用于**内核模块**（安全敏感且非热路径的子系统），典型场景包括：
 - 安全策略裁决（LSM hook 实现）
 - 文件系统解析（路径遍历的字符串处理）
 - 配置解析器（Kconfig 派生配置验证）
@@ -25,7 +25,7 @@ agentrt-liunx（AirymaxOS）的 Rust 代码仅用于**内核模块**（安全敏
 
 ### 1.2 与 Rust for Linux 社区的关系
 
-agentrt-liunx（AirymaxOS）的 Rust 编码风格以 Rust for Linux 社区约定为基线，在此基础上增加：
+agentrt-linux（AirymaxOS）的 Rust 编码风格以 Rust for Linux 社区约定为基线，在此基础上增加：
 - `agentrt_` / `airymaxos_` 前缀隔离
 - IRON-9 v2 三层模型代码归属标注
 - 内核模块专属的 unsafe 审计规范
@@ -130,13 +130,13 @@ const AGENTRT_IPC_MSG_HDR_SIZE: usize = 128;
 
 > **OS-STD-034**：Rust 代码同样遵循 `agentrt_` / `airymaxos_` 前缀隔离规范：
 > - `agentrt_*` 前缀：同源 API（[SS] 语义同源层），与 agentrt 用户态 API 签名一致
-> - `airymaxos_*` 前缀：agentrt-liunx（AirymaxOS）专属 API（[IND] 完全独立层）
+> - `airymaxos_*` 前缀：agentrt-linux（AirymaxOS）专属 API（[IND] 完全独立层）
 
 ```rust
 /// [SS] 语义同源层：与 agentrt 用户态 agentrt_ipc_send() 签名一致
 pub fn agentrt_ipc_send(channel: u32, msg: &[u8]) -> Result<()> { ... }
 
-/// [IND] 完全独立层：agentrt-liunx（AirymaxOS）内核专属
+/// [IND] 完全独立层：agentrt-linux（AirymaxOS）内核专属
 pub fn airymaxos_lsm_hook_register(hooks: &SecurityHookList) -> Result<()> { ... }
 ```
 
@@ -217,7 +217,7 @@ pub unsafe fn agentrt_task_desc_read(ptr: *const AgentrtTaskDesc) -> AgentrtTask
 
 ### 5.1 Result<T, E> 优于 panic（OS-STD-036）
 
-> **OS-STD-036**：内核模块 Rust 代码禁止使用 `panic!()` / `unwrap()` / `expect()`，必须使用 `Result<T, E>` 返回错误。内核 panic 等同于系统崩溃，这在 agentrt-liunx（AirymaxOS）中不可接受。
+> **OS-STD-036**：内核模块 Rust 代码禁止使用 `panic!()` / `unwrap()` / `expect()`，必须使用 `Result<T, E>` 返回错误。内核 panic 等同于系统崩溃，这在 agentrt-linux（AirymaxOS）中不可接受。
 
 ```rust
 // 好：返回 Result
@@ -270,7 +270,7 @@ if let Some(task) = agentrt_task_find(task_id) {
 
 ### 6.1 kernel crate（OS-STD-039）
 
-> **OS-STD-039**：agentrt-liunx（AirymaxOS）内核模块 Rust 代码使用 `kernel` crate 提供的安全抽象访问内核 API。禁止直接使用 `bindings::*` 中的裸函数（除非有对应的安全封装）。
+> **OS-STD-039**：agentrt-linux（AirymaxOS）内核模块 Rust 代码使用 `kernel` crate 提供的安全抽象访问内核 API。禁止直接使用 `bindings::*` 中的裸函数（除非有对应的安全封装）。
 
 ```rust
 use kernel::prelude::*;
@@ -439,7 +439,7 @@ pub unsafe extern "C" fn agentrt_ipc_channel_create(
 
 ```rust
 // SPDX-License-Identifier: GPL-2.0
-//! agentrt-liunx（AirymaxOS）IPC 通道内核模块（Rust 实现）
+//! agentrt-linux（AirymaxOS）IPC 通道内核模块（Rust 实现）
 //!
 //! [SS] 语义同源层：API 签名与 agentrt 用户态 AgentrtIpcChannel 一致。
 //!
@@ -455,7 +455,7 @@ module! {
     type: AgentrtIpcModule,
     name: "agentrt_ipc",
     author: "SPHARX Ltd.",
-    description: "agentrt-liunx（AirymaxOS）IPC Channel Module (Rust)",
+    description: "agentrt-linux（AirymaxOS）IPC Channel Module (Rust)",
     license: "GPL",
 }
 
@@ -577,7 +577,7 @@ graph TD
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| 0.1.1 | 2026-07-07 | 初始版本：基于 Rust for Linux 社区约定，融合 agentrt-liunx 专属规范 |
+| 0.1.1 | 2026-07-07 | 初始版本：基于 Rust for Linux 社区约定，融合 agentrt-linux 专属规范 |
 | 1.0.1 | TBD | 首个开发版本：与代码实现同步验证 |
 
 ---

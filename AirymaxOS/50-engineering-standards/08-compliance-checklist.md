@@ -1,8 +1,8 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-liunx（AirymaxOS）规范符合性检查机制
+# agentrt-linux（AirymaxOS）规范符合性检查机制
 
-> **文档定位**: agentrt-liunx（AirymaxOS）工程标准规范符合性检查清单与自动化验证机制
+> **文档定位**: agentrt-linux（AirymaxOS）工程标准规范符合性检查清单与自动化验证机制
 > **版本**: 0.1.1（文档体系完成）
 > **最后更新**: 2026-07-07
 > **父文档**: [工程标准规范 README](README.md)
@@ -16,7 +16,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 建立系统化的规范符合性检查机制，对所有设计文档和代码实现进行标准化审查，减少因不规范导致的潜在技术风险。本检查机制是用户决策指南第 4 点的直接落地：
 
-> "制定并严格执行 agentrt-liunx 工程标准规范；对所有设计文档和代码实现进行标准化审查；建立规范符合性检查机制，减少因不规范导致的潜在技术风险"
+> "制定并严格执行 agentrt-linux 工程标准规范；对所有设计文档和代码实现进行标准化审查；建立规范符合性检查机制，减少因不规范导致的潜在技术风险"
 
 ### 1.2 检查范围
 
@@ -223,6 +223,8 @@ done
 /* Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved. */
 ```
 
+> **适用范围说明**：`Apache-2.0` 适用于检查脚本（CI/格式校验/禁词扫描等 `.sh`/`.py` 脚本）。内核态代码使用 `GPL-2.0-only WITH Linux-syscall-note`，用户态代码与文档使用 `AGPL-3.0-or-later OR Apache-2.0`，构建脚本使用 `GPL-2.0`。完整 5 类文件许可证策略矩阵见 [09-license-strategy.md](./09-license-strategy.md)。
+
 **检查脚本**：
 ```bash
 #!/bin/bash
@@ -244,9 +246,9 @@ find atoms/ daemons/ commons/ memoryrovol/ -name "*.c" -o -name "*.h" | \
 | 前缀 | 用途 | 示例 |
 |------|------|------|
 | `agentrt_` | agentrt 同源 API（[SS] 语义同源层） | `agentrt_ipc_send()` |
-| `airymaxos_` | agentrt-liunx 专属 API（[IND] 独立层） | `airymaxos_kthread_create()` |
+| `airymaxos_` | agentrt-linux 专属 API（[IND] 独立层） | `airymaxos_kthread_create()` |
 | `AGENTRT_` | agentrt 宏/常量（[SC] 共享层） | `AGENTRT_API` / `AGENTRT_SYS_*` |
-| `AIRYMAXOS_` | agentrt-liunx 宏/常量（[IND] 独立层） | `AIRYMAXOS_CONFIG_*` |
+| `AIRYMAXOS_` | agentrt-linux 宏/常量（[IND] 独立层） | `AIRYMAXOS_CONFIG_*` |
 
 **检查脚本**：
 ```bash
@@ -341,7 +343,7 @@ out_free_a:
 
 ### 4.1 [SC] 共享契约层一致性检查
 
-**规则 STD-IRON-01**：[SC] 共享契约层的 6 个头文件必须 agentrt 与 agentrt-liunx 完全一致。
+**规则 STD-IRON-01**：[SC] 共享契约层的 6 个头文件必须 agentrt 与 agentrt-linux 完全一致。
 
 **检查方法**：
 ```bash
@@ -357,10 +359,10 @@ SC_HEADERS="
 "
 
 for h in $SC_HEADERS; do
-    # 对比 agentrt 仓库与 agentrt-liunx 仓库的同名文件
+    # 对比 agentrt 仓库与 agentrt-linux 仓库的同名文件
     diff "agentrt/$h" "airymaxos/$h" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        echo "SC MISMATCH: $h differs between agentrt and agentrt-liunx"
+        echo "SC MISMATCH: $h differs between agentrt and agentrt-linux"
     fi
 done
 ```
@@ -371,7 +373,7 @@ done
 
 **规则 STD-IRON-02**：[SS] 语义同源层的 API 签名必须一致（函数名、参数类型、返回值）。
 
-**检查方法**：使用 `diff` 对比 agentrt 与 agentrt-liunx 的头文件 API 声明部分。
+**检查方法**：使用 `diff` 对比 agentrt 与 agentrt-linux 的头文件 API 声明部分。
 
 ### 4.3 [IND] 独立层隔离检查
 
@@ -381,9 +383,9 @@ done
 ```bash
 #!/bin/bash
 # check-ind-isolation.sh
-# agentrt-liunx（AirymaxOS）不应引用 agentrt 内部实现
+# agentrt-linux（AirymaxOS）不应引用 agentrt 内部实现
 grep -rn "#include.*agentrt/" airymaxos-kernel/ 2>/dev/null
-# agentrt 不应引用 agentrt-liunx 内部实现
+# agentrt 不应引用 agentrt-linux 内部实现
 grep -rn "#include.*airymaxos/" agentrt/ 2>/dev/null
 ```
 
@@ -391,7 +393,7 @@ grep -rn "#include.*airymaxos/" agentrt/ 2>/dev/null
 
 ### 4.4 主流发行版兼容性检查
 
-**规则 STD-IRON-04**：agentrt-liunx 工程思想与上游 Linux 保持一致性。
+**规则 STD-IRON-04**：agentrt-linux 工程思想与上游 Linux 保持一致性。
 
 **检查项**：
 
@@ -540,7 +542,7 @@ scripts/
 | Copyright 检查 | 每次提交 | CI |
 | IRON-9 v2 标注检查 | 每次提交 | CI |
 | 链接完整性检查 | 每日 | 定时任务 + CI |
-| [SC] 一致性检查 | 每次提交 | CI（双向：agentrt + agentrt-liunx） |
+| [SC] 一致性检查 | 每次提交 | CI（双向：agentrt + agentrt-linux） |
 | 主流发行版兼容性检查 | 每次内核基线升级 | 手动 + CI |
 | 全量检查 | 每日 | 定时任务 |
 
