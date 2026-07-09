@@ -4,11 +4,12 @@
 
 ## 概述
 
-`docs/` 是 Airymax 平台的统一文档中心，包含三个项目的完整文档体系：
+`docs/` 是 Airymax 平台的统一文档中心，包含四个项目的完整文档体系：
 
 - **[AirymaxRT](AirymaxRT/README.md)** — 极境智能体运行底座平台工程（agentrt）的设计文档、API 参考、开发指南和编码规范
 - **[AirymaxOS](AirymaxOS/README.md)** — 极境智能体操作系统（agentrt-linux）的架构设计、子仓设计草案和工程标准
 - **[OpenStandards](OpenStandards/README.md)** — Airymax 开放标准体系（运行时标准/IPC协议/安全模型/MemoryRovol/认知循环/调度标准）
+- **[Publications](Publications/README.md)** — Airymax 研究成果发布中心（期刊论文/会议论文/技术报告/预印本）
 
 ## 目录结构
 
@@ -28,7 +29,6 @@ docs/
 │   ├── Capital_API/                       # API 参考（syscall/daemon/toolkit/algorithms）
 │   ├── Capital_Guides/                    # 开发指南（快速入门/构建/部署/创建Agent/排错）
 │   ├── Capital_Specifications/            # 规范标准（编码规范/契约/ARE标准/集成标准）
-│   ├── Paper_Academic/                    # 学术论文
 │   └── Source_Other/                      # 其他资源
 │
 ├── AirymaxOS/                             # 极境智能体操作系统文档
@@ -55,27 +55,34 @@ docs/
 │   ├── 180-i18n/                          # 国际化
 │   └── 190-distribution/                  # 发行版管理
 │
-└── OpenStandards/                         # Airymax 开放标准体系
-    ├── README.md                          # 开放标准总览
-    ├── 01-airymax-agent-runtime-standard.md    # 智能体运行时标准
-    ├── 02-airymax-ipc-protocol-standard.md     # IPC 协议标准
-    ├── 03-airymax-security-model-standard.md   # 安全模型标准
-    ├── 04-airymax-memory-rovol-standard.md    # MemoryRovol 标准
-    ├── 05-airymax-cognition-loop-standard.md  # 认知循环标准
-    └── 06-airymax-scheduling-standard.md      # 调度标准
+├── OpenStandards/                         # Airymax 开放标准体系
+│   ├── README.md                          # 开放标准总览
+│   ├── 01-airymax-agent-runtime-standard.md    # 智能体运行时标准
+│   ├── 02-airymax-ipc-protocol-standard.md     # IPC 协议标准
+│   ├── 03-airymax-security-model-standard.md   # 安全模型标准
+│   ├── 04-airymax-memory-rovol-standard.md    # MemoryRovol 标准
+│   ├── 05-airymax-cognition-loop-standard.md  # 认知循环标准
+│   └── 06-airymax-scheduling-standard.md      # 调度标准
+│
+└── Publications/                          # Airymax 研究成果发布中心
+    ├── README.md                          # 研究成果发布中心入口
+    ├── Journals/                          # 期刊论文
+    ├── Conferences/                       # 会议论文
+    ├── Technical_Reports/                 # 技术报告
+    └── Preprints/                         # 预印本（arXiv）
 ```
 
-## 三个项目的关系
+## 四个项目的关系
 
-| 维度 | AirymaxRT | AirymaxOS | OpenStandards |
-|------|----------|-----------|---------------|
-| **定位** | AI Agent 运行时平台工程 | 智能体操作系统发行版 | 开放标准体系 |
-| **英文名** | AirymaxRT | AirymaxOS | OpenStandards |
-| **代码仓库** | agentrt/（管理仓 + 7 叶子仓） | agentrt-linux/（管理仓 + 8 叶子仓） | docs/OpenStandards/ |
-| **内核基线** | 跨平台用户态（Linux/macOS/Windows） | Linux 6.6 内核 | - |
-| **关系** | 独立运行时 | 与 agentrt 同源，基于 Linux 内核 | AirymaxRT 与 AirymaxOS 共享的标准契约 |
+| 维度 | AirymaxRT | AirymaxOS | OpenStandards | Publications |
+|------|----------|-----------|---------------|--------------|
+| **定位** | AI Agent 运行时平台工程 | 智能体操作系统发行版 | 开放标准体系 | 研究成果发布中心 |
+| **英文名** | AirymaxRT | AirymaxOS | OpenStandards | Publications |
+| **代码仓库** | agentrt/（管理仓 + 7 叶子仓） | agentrt-linux/（管理仓 + 8 叶子仓） | docs/OpenStandards/ | docs/Publications/ |
+| **内核基线** | 跨平台用户态（Linux/macOS/Windows） | Linux 6.6 内核 | - | - |
+| **关系** | 独立运行时 | 与 agentrt 同源，基于 Linux 内核 | AirymaxRT 与 AirymaxOS 共享的标准契约 | AirymaxRT 与 AirymaxOS 的研究产出 |
 
-三个项目共享 Airymax 设计理念（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree），通过 IRON-9 v2 同源且部分代码共享原则保持互操作。OpenStandards 定义了 AirymaxRT 与 AirymaxOS 之间的共享契约层。
+四个项目共享 Airymax 设计理念（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree），通过 IRON-9 v2 同源且部分代码共享原则保持互操作。OpenStandards 定义了 AirymaxRT 与 AirymaxOS 之间的共享契约层，Publications 集中管理两个项目的学术研究成果。
 
 ## 快速导航
 
@@ -87,6 +94,7 @@ docs/
 | **运维工程师** | AirymaxRT → Capital_Guides/deployment_guide.md → monitoring_guide.md |
 | **OS 开发者** | AirymaxOS → 10-architecture/ → 20-modules/ → 50-engineering-standards/ |
 | **标准制定者** | OpenStandards/ → 01-airymax-agent-runtime-standard.md |
+| **研究人员** | Publications/ → Journals/ / Conferences/ / Preprints/ |
 
 ## 许可证
 
