@@ -309,7 +309,7 @@ spec:
    ┌──────────────────────────┐
    │ agentrt-liunx Node        │
    │  - kubelet + containerd   │
-   │  - SCHED_AGENT 调度类     │
+   │  - SCHED_AGENT 策略     │
    │  - MemoryRovol CSI 插件   │
    │  - Cupolas 安全穹顶       │
    └──────────────────────────┘

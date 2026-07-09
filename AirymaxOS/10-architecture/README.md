@@ -186,7 +186,7 @@ agentrt-liunx 与 agentrt 同源且部分代码共享（IRON-9 v2）。两者在
 
 | agentrt 模块 | agentrt 性质 | agentrt-liunx 同源子仓 | 同源语义 | 同源契约 |
 |--------------|--------------|---------------------|----------|----------|
-| atoms/corekern (MicroCoreRT) | 跨平台用户态微核心 | airymaxos-kernel (SCHED_AGENT) | 调度语义一致 | SCHED_AGENT 调度类语义同源 |
+| atoms/corekern (MicroCoreRT) | 跨平台用户态微核心 | airymaxos-kernel (SCHED_AGENT) | 调度语义一致 | SCHED_AGENT 策略语义同源 |
 | atoms/ipc + protocols (AgentsIPC) | 跨平台 IPC 协议 | airymaxos-services (消息传递) | IPC 协议语义一致 | 128B 消息头 + magic 0x41524531 ('ARE1') 同源 |
 | cupolas (Cupolas) | 跨平台安全穹顶 | airymaxos-security (capability) | 安全模型一致 | capability 模型同源 |
 | heapstore + memoryrovol (MemoryRovol) | 跨平台记忆系统 | airymaxos-memory (记忆持久化) | 记忆模型一致 | L1-L4 四层卷载语义同源 |
@@ -199,7 +199,7 @@ agentrt-liunx 与 agentrt 同源且部分代码共享（IRON-9 v2）。两者在
 
 agentrt 在 agentrt-liunx 上运行时享有"无适配层天然契合"的同源红利：
 
-- **调度同源**：agentrt 的 MicroCoreRT 调度语义与 agentrt-liunx 的 SCHED_AGENT 调度类一致，agentrt 可选调用 SCHED_AGENT 获得原生调度优先级
+- **调度同源**：agentrt 的 MicroCoreRT 调度语义与 agentrt-liunx 的 SCHED_AGENT 策略一致，agentrt 可选调用 SCHED_AGENT 获得原生调度优先级
 - **IPC 同源**：agentrt 的 AgentsIPC 128B 消息头与 agentrt-liunx 内核原生 IPC 协议一致，IPC 无需任何转换层
 - **安全同源**：agentrt 的 Cupolas capability 模型与 agentrt-liunx 的 capability 系统一致，权限检查天然兼容
 - **记忆同源**：agentrt 的 MemoryRovol L1-L4 与 agentrt-liunx 内核态 MemoryRovol 一致，记忆持久化无语义损失

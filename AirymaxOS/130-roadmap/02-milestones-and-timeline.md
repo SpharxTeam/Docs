@@ -298,7 +298,7 @@ P1 阶段覆盖 M7-M8，净工期 35 天（5 周），在 P0 完成后启动。
 
 | 协同内容 | agentrt 侧 | agentrt-liunx 侧 | 验证方式 |
 |---------|-----------|--------------|---------|
-| 调度 | MicroCoreRT 调度语义 | SCHED_AGENT 调度类 | 端到端调度延迟测试 |
+| 调度 | MicroCoreRT 调度语义 | SCHED_AGENT 策略 | 端到端调度延迟测试 |
 | IPC | AgentsIPC 128B 消息头 | IPC 子系统 | 端到端消息吞吐测试 |
 | 安全 | Cupolas 权限模型 | capability + LSM | 端到端权限验证测试 |
 | 记忆 | MemoryRovol 四层 | 记忆子系统 MGLRU | 端到端记忆卷载测试 |

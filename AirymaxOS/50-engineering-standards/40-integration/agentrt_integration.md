@@ -162,7 +162,7 @@ agentrt 在 agentrt-liunx 上的运行示意：
 #define AIRYMAX_SCHED_BPF_NAME_MAX  16
 #define SCHED_AGENT_NAME            "sched_agent"
 
-/* sched_ext 策略通过 bpf_struct_ops 注册，禁止定义 SCHED_AGENT 调度类编号宏 */
+/* sched_ext 策略通过 bpf_struct_ops 注册，禁止定义 SCHED_AGENT 策略编号宏 */
 struct airymax_sched_ops {
     struct bpf_struct_ops_common_val common;
     s32 (*select_cpu)(struct task_struct *p, s32 prev_cpu, u64 enq_flags);
@@ -318,7 +318,7 @@ typedef enum {
 #define AIRYMAX_PRIO_MAX          139
 #define MAC_MAX_AGENTS            1024
 
-/* 禁止定义 SCHED_AGENT 调度类编号宏，复用内核 SCHED_EXT=7 */
+/* 禁止定义 SCHED_AGENT 策略编号宏，复用内核 SCHED_EXT=7 */
 
 typedef struct __attribute__((aligned(64))) {
     uint32_t magic;           /* AIRYMAX_TASK_MAGIC (0x41475453) */
@@ -403,7 +403,7 @@ typedef struct __attribute__((aligned(64))) {
 
 | 维度 | agentrt（MicroCoreRT） | agentrt-liunx（SCHED_AGENT） | 同源语义 |
 |------|------------------------|------------------------------|----------|
-| **调度模型** | 用户态优先级调度 | 内核态 SCHED_AGENT 调度类 | 优先级调度语义一致 |
+| **调度模型** | 用户态优先级调度 | 内核态 SCHED_AGENT 策略 | 优先级调度语义一致 |
 | **任务描述** | `agentrt_task_desc_t` | 内核态 `task_struct` 扩展 | 任务结构语义一致 |
 | **调度策略** | 可插拔策略（FIFO/RR/CFS） | EEVDF + SCHED_AGENT | 策略可插拔语义一致 |
 | **优先级范围** | 0-139 | 0-139 | 优先级范围一致 |
@@ -415,7 +415,7 @@ typedef struct __attribute__((aligned(64))) {
 ```
 agentrt MicroCoreRT 在 agentrt-liunx 上运行时：
   标准模式: agentrt 使用 pthread 调度（优先级映射到 Linux nice 值）
-  增强模式: agentrt 可选调用 SCHED_AGENT 调度类
+  增强模式: agentrt 可选调用 SCHED_AGENT 策略
             → 因为 SCHED_AGENT 的语义和 MicroCoreRT 一致
             → 所以调用是自然的，无需适配层
 ```

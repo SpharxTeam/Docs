@@ -193,7 +193,7 @@ agentrt-liunx **不是从零开发微内核**，而是基于 Linux 内核进行*
 
 ```
 阶段 1（1.0.1）: 基于 Linux 6.6 + sched_ext + io_uring
-  ├── SCHED_AGENT 调度类（eBPF 用户态调度器）
+  ├── SCHED_AGENT 策略（eBPF 用户态调度器）
   ├── 基于 io_uring 的高性能 IPC
   └── eBPF 可编程内核
 

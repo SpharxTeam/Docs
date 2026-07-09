@@ -387,8 +387,10 @@ int cupolas_tc_ingress(struct __sk_buff *skb)
 		return TC_ACT_SHOT;
 
 	/* 查找策略 */
-	key.src_agent_id = bpf_skb_get_agent_id(skb, true);  /* 发送方 */
-	key.dst_agent_id = bpf_skb_get_agent_id(skb, false); /* 接收方 */
+	/* 通过 BPF map（agent_map）维护 skb->mark → agent ID 映射，
+	 * 替代 Linux 6.6 中不存在的 bpf_skb_get_agent_id() helper */
+	key.src_agent_id = bpf_map_lookup_elem(&agent_map, &skb->mark);  /* 从 skb->mark 查 agent ID */
+	key.dst_agent_id = bpf_map_lookup_elem(&agent_map, &skb->mark);   /* 同上，接收方通过 socket cookie */
 	key.dst_port = bpf_ntohs(tcp->dest);
 
 	policy = bpf_map_lookup_elem(&cupolas_net_policy, &key);

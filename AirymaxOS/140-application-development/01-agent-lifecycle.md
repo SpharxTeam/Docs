@@ -344,7 +344,7 @@ out_free_agent:
  * @agent_id: Agent 标识
  *
  * 状态转移：READY -> RUNNING
- * 触发 SCHED_AGENT 调度类接管
+ * 触发 SCHED_AGENT 策略接管
  */
 int agentrt_agent_run(int agent_id)
 {
@@ -372,7 +372,7 @@ int agentrt_agent_run(int agent_id)
 	agent->state = AGENTRT_AGENT_STATE_RUNNING;
 	spin_unlock(&agent->state_lock);
 
-	/* 提交至 SCHED_AGENT 调度类 */
+	/* 提交至 SCHED_AGENT 策略 */
 	ret = agentrt_sched_agent_submit(agent);
 	if (ret)
 		goto out_revert_state;

@@ -36,7 +36,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 1. **Linux 6.6 内核维护 [IND]**：基于 Linux 6.6 内核基线，保持与上游社区同步演进，遵循 agentrt-liunx 多版本内核策略。
 2. **微内核化改造 [IND]**：在保留 Linux 6.6 完整能力的前提下，遵循 Liedtke minimality principle，将 VFS、网络栈、设备驱动等子系统逐步用户态化，最小化特权态代码体积。
-3. **Agent 感知调度（sched_ext）[SS]**：通过 sched_ext（agentrt-liunx 内核增强，主线 6.12+ 引入并持续演进）实现 SCHED_AGENT 调度类，允许 eBPF 程序在用户态定义调度策略。任务描述符与优先级语义 [SC] 与 agentrt 共享。
+3. **Agent 感知调度（sched_ext）[SS]**：通过 sched_ext（agentrt-liunx 内核增强，主线 6.12+ 引入并持续演进）实现 SCHED_AGENT 策略，允许 eBPF 程序在用户态定义调度策略。任务描述符与优先级语义 [SC] 与 agentrt 共享。
 4. **高性能 IPC 基础（io_uring）[SS]**：基于 io_uring（2026 已成为默认高性能 I/O 路径）构建零 syscall、零拷贝的消息传递基础设施。IPC 消息头与操作码语义 [SC] 与 agentrt 共享。
 5. **eBPF 可编程扩展 [SS]**：提供 struct_ops 注册机制 + kfunc 扩展 + ringbuf 上报，可观测/网络/安全/调度均可通过 eBPF 编程。struct_ops 状态机与 common_value 布局 [SC] 与 agentrt 共享。
 6. **Rust 安全驱动 [IND]**：依托 Linux 6.6 中 Rust 实验性支持（持续演进中），构建安全驱动开发框架。
@@ -97,7 +97,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 airymaxos-kernel/
 ├── linux/                 # Linux 6.6 内核源码（Linux 6.6 内核基线，git subtree）[IND]
 ├── patches/               # agentrt-liunx 内核补丁
-│   ├── sched_ext-agent/   # SCHED_AGENT 调度类（eBPF 程序）[SS]
+│   ├── sched_ext-agent/   # SCHED_AGENT 策略（eBPF 程序）[SS]
 │   ├── io_uring-ipc/      # 基于 io_uring 的 IPC 优化 [SS]
 │   ├── bpf-struct-ops/   # eBPF struct_ops 扩展 [SS]
 │   ├── rust-drivers/      # Rust 安全驱动 [IND]
@@ -112,7 +112,7 @@ airymaxos-kernel/
 
 ### 3.1 patches/sched_ext-agent [SS]
 
-存放 SCHED_AGENT 调度类的 eBPF 程序源码。任务描述符与优先级 [SC] 与 agentrt 共享：
+存放 SCHED_AGENT 策略的 eBPF 程序源码。任务描述符与优先级 [SC] 与 agentrt 共享：
 - `sched_agent.bpf.c`：核心调度器逻辑（基于 sched_ext BPF 接口）[SS]。
 - `sub-schedulers/`：按 cgroup 附加的子调度器（实时型、批处理型、交互型、Agent 认知型）[SS]。
 - `tools/`：用户态控制器（scxctl 命令行工具）[IND]。
@@ -152,7 +152,7 @@ Rust 安全驱动框架：
 
 ### 4.1 sched_ext（agentrt-liunx 内核增强，主线 6.12+，2026 成熟）[SS]
 
-**SCHED_AGENT 调度类**：
+**SCHED_AGENT 策略**：
 - 通过 sched_ext 提供的 BPF 调度接口，在用户态实现完整调度器 [SS]。
 - 支持 sub-scheduler 机制：不同 cgroup 可附加不同调度策略 [SS]。
 - Agent 认知型 sub-scheduler：识别 CoreLoopThree 的"感知-思考-行动"三阶段，动态调整时间片 [SS]。
@@ -445,7 +445,7 @@ graph TD
 | **S-1 同源传承** | atoms/corekern → SCHED_AGENT 语义同源 |
 | **C-1 跨态协作** | 用户态 io_uring + 内核态 ring |
 | **E-1 安全内生** | capability + LSM hook + eBPF 签名验证 |
-| **A-1 Agent 优先** | SCHED_AGENT 调度类 + CoreLoopThree 感知 |
+| **A-1 Agent 优先** | SCHED_AGENT 策略 + CoreLoopThree 感知 |
 
 ---
 
@@ -455,7 +455,7 @@ graph TD
 |------|------|------|----------|
 | Liedtke minimality principle | seL4 / L4 | 微内核化改造哲学 | [IND] |
 | Capability-based security | seL4 / Zircon | 内核 capability 接口 | [SS] |
-| sched_ext | agentrt-liunx 内核增强（主线 6.12+） | SCHED_AGENT 调度类 | [SS] |
+| sched_ext | agentrt-liunx 内核增强（主线 6.12+） | SCHED_AGENT 策略 | [SS] |
 | io_uring zero-copy | Linux 5.x+ | IPC 基础设施 | [SS] |
 | eBPF programmable kernel | Linux 6.x+ | 观测/网络/安全/调度 | [SS] |
 | struct_ops registration | Linux 6.x+ | BPF 子系统集成 | [SS] |

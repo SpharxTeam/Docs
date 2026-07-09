@@ -115,7 +115,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Linux 内核的可扩展调度器框架（主线 6.12+），允许通过 eBPF 程序在用户态定义调度策略，实现自定义调度类。提供 struct_ops 机制将内核调度器行为暴露给 eBPF 程序。
 
-**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）通过 agentrt-liunx 内核增强策略将 sched_ext 向前移植到 Linux 6.6 内核基线，实现 SCHED_AGENT 调度类——专门为 Agent 工作负载优化的 eBPF 用户态调度器。调度语义与 agentrt 的 MicroCoreRT 一致（同源）。
+**agentrt-liunx 使用上下文**: agentrt-liunx（AirymaxOS）通过 agentrt-liunx 内核增强策略将 sched_ext 向前移植到 Linux 6.6 内核基线，实现 SCHED_AGENT 策略——专门为 Agent 工作负载优化的 eBPF 用户态调度器。调度语义与 agentrt 的 MicroCoreRT 一致（同源）。
 
 **系统内代码**: `agentrt_sched_agent_*`，eBPF 程序
 
@@ -335,7 +335,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | L2 执行层 | Execution Engine | 任务执行 -> 单元调度 -> 补偿事务 |
 | L3 记忆层 | Memory Engine | 结果写入 -> 查询 -> 挂载 |
 
-在 agentrt-liunx 中，认知层实现为内核 kthread（而非用户态线程），利用 SCHED_AGENT 调度类获得 OS 级调度优先级和确定性延迟。
+在 agentrt-liunx 中，认知层实现为内核 kthread（而非用户态线程），利用 SCHED_AGENT 策略获得 OS 级调度优先级和确定性延迟。
 
 **标准名称**: 认知三阶段循环 (CoreLoopThree)
 

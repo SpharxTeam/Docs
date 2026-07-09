@@ -459,7 +459,7 @@ agentrt-liunx 在 Linux 6.6 基线上有大量专属补丁，需在 merge 时保
 
 | 补丁类别 | 估计数量 | 冲突风险 |
 |----------|----------|----------|
-| SCHED_AGENT 调度类 | ~50 补丁 | 高（与 sched/ 冲突） |
+| SCHED_AGENT 策略 | ~50 补丁 | 高（与 sched/ 冲突） |
 | Cupolas 安全穹顶 | ~80 补丁 | 中（与 security/ 冲突） |
 | MemoryRovol 记忆卷载 | ~60 补丁 | 中（与 mm/ 冲突） |
 | AgentsIPC io_uring | ~40 补丁 | 高（与 io_uring/ 冲突） |

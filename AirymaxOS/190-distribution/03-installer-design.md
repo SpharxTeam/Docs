@@ -173,7 +173,7 @@ menuentry "agentrt-liunx (AirymaxOS) 1.0.1" {
         ro crashkernel=auto rd.lvm.lv=airymaxos/root \
         rd.lvm.lv=airymaxos/swap \
         rhgb quiet \
-        agentrt.sched_ext=7 \
+        agentrt.sched_ext=1 \
         agentrt.io_uring_batch=64 \
         agentrt.mglru_min_ttl_ms=10000 \
         systemd.machine_id=cgroup
@@ -289,7 +289,7 @@ btrfs /.snapshots --subvol --name=@snapshots btrfs.01
 
 # 引导加载器
 bootloader --location=mbr --boot-drive=sda \
-    --append="agentrt.sched_ext=7 agentrt.io_uring_batch=64"
+    --append="agentrt.sched_ext=1 agentrt.io_uring_batch=64"
 
 # 软件包选择
 %packages
@@ -384,7 +384,7 @@ logvol swap --vgname=airymaxos --size=8192 --name=swap
 
 # 引导加载器
 bootloader --location=mbr --boot-drive=sda \
-    --append="agentrt.sched_ext=7 agentrt.io_uring_batch=64 \
+    --append="agentrt.sched_ext=1 agentrt.io_uring_batch=64 \
               agentrt.mglru_min_ttl_ms=10000"
 
 # 软件包选择（完整）

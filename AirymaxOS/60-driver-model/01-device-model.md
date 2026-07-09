@@ -38,7 +38,7 @@ Linux 设备模型核心可一句话概括："**device 描述有什么，driver 
 | **device** | `struct device` | `include/linux/device.h` | 描述硬件或虚拟设备实例（资源、属性、状态） | Agent 实例（含 SDK 句柄） |
 | **driver** | `struct device_driver` | `include/linux/device/driver.h` | 描述如何操作设备（probe/remove/PM 回调） | Agent 实现模块 |
 | **bus** | `struct bus_type` | `include/linux/device/bus.h` | 匹配 device 与 driver，承载总线级回调 | `agent_bus_type`（用户态） |
-| **class** | `struct class` | `include/linux/class.h` | 按功能分组设备（无拓扑含义） | Agent 角色分组 |
+| **class** | `struct class` | `include/linux/device/class.h` | 按功能分组设备（无拓扑含义） | Agent 角色分组 |
 
 ### 2.2 关键结构体字段
 

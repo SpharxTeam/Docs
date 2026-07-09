@@ -168,7 +168,7 @@ agentrt（AirymaxAgentRT，跨平台用户态运行时）
    │
    └── 运行在 agentrt-liunx 上: 天然更稳健和适配（同源）
        │
-       ├── agentrt 的 MicroCoreRT 调度 ←→ agentrt-liunx 的 SCHED_AGENT 调度类（语义同源）
+       ├── agentrt 的 MicroCoreRT 调度 ←→ agentrt-liunx 的 SCHED_AGENT 策略（语义同源）
        ├── agentrt 的 AgentsIPC 协议 ←→ agentrt-liunx 的 IPC 子系统（128B 消息头同源）
        ├── agentrt 的 Cupolas 安全 ←→ agentrt-liunx 的 capability + LSM（模型同源）
        ├── agentrt 的 MemoryRovol ←→ agentrt-liunx 的 记忆子系统（记忆模型同源）

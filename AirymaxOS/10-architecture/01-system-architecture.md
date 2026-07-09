@@ -146,7 +146,7 @@ agentrt（跨平台用户态运行时，代码不变）
        │   └── 天然更稳健 ← 因为同源，设计假设和实现假设一致
        │
        └── 可选使用 OS 原生能力（同源红利）
-           例：agentrt 可选调用 SCHED_AGENT 调度类
+           例：agentrt 可选调用 SCHED_AGENT 策略
                因为 SCHED_AGENT 的语义和 MicroCoreRT 一致（同源）
                所以调用是自然的，无适配层
 ```

@@ -325,7 +325,7 @@ static struct task_struct *taskflow_kthread;
 /**
  * agentrt_taskflow_kthread - TaskFlow 引擎内核线程
  *
- * 作为 SCHED_AGENT 调度类的常驻 kthread
+ * 作为 SCHED_AGENT 策略的常驻 kthread
  * 周期性扫描工作流队列，调度就绪超步
  * 通过 kfifo + wait_event_interruptible 与其他 kthread 通信
  */

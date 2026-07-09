@@ -321,7 +321,7 @@ graph TB
         A5[CoreLoopThree<br/>循环模型]
     end
     subgraph agentrt-liunx[agentrt-liunx OS 发行版]
-        O1[SCHED_AGENT 调度类]
+        O1[SCHED_AGENT 策略]
         O2[IPC 子系统]
         O3[capability + LSM]
         O4[记忆子系统]
@@ -342,7 +342,7 @@ agentrt 的设计假设和 agentrt-liunx 的实现假设一致，agentrt 在 age
 
 | 同源点 | agentrt 侧 | agentrt-liunx 侧 | 互操作效果 |
 |--------|-----------|--------------|-----------|
-| 调度 | MicroCoreRT 调度 | SCHED_AGENT 调度类 | 调度语义一致，无调度适配 |
+| 调度 | MicroCoreRT 调度 | SCHED_AGENT 策略 | 调度语义一致，无调度适配 |
 | IPC | AgentsIPC 128B 消息头 | IPC 子系统 | 消息格式一致，无序列化转换 |
 | 安全 | Cupolas 权限模型 | capability + LSM | 安全模型一致，无权限映射 |
 | 记忆 | MemoryRovol 四层 | 记忆子系统 MGLRU | 记忆模型一致，无记忆迁移 |

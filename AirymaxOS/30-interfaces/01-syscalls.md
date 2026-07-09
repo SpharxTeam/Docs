@@ -124,11 +124,11 @@ agentrt-liunx 专用系统调用编号从 `512` 起始分配（避开 Linux 6.6 
  * @brief 提交 Agent 任务到内核调度器
  *
  * @param task_desc 任务描述符指针（同源 agentrt AgentsIPC 128B 消息头）
- * @param priority 任务优先级（0-139，SCHED_AGENT 调度类）
+ * @param priority 任务优先级（0-139，SCHED_AGENT 策略）
  * @return 任务 ID（>0 成功，<0 失败）
  *
  * @since 1.0.1
- * @see SCHED_AGENT 调度类
+ * @see SCHED_AGENT 策略
  */
 AGENTRT_API int agentrt_sys_task_submit(const agentrt_task_desc_t *task_desc,
                                        uint32_t priority);
@@ -185,7 +185,7 @@ AGENTRT_API int agentrt_sys_rovol_snapshot(uint32_t pid, uint64_t *snapshot_id_o
 AGENTRT_API int agentrt_sys_rovol_restore(uint64_t snapshot_id, uint32_t pid);
 
 /**
- * @brief 设置 sched_ext 调度策略（SCHED_AGENT 调度类）
+ * @brief 设置 sched_ext 调度策略（SCHED_AGENT 策略）
  *
  * @param cgroup_path cgroup 路径
  * @param policy 策略名称（scx_realtime / scx_batch / scx_interactive / scx_agent）
@@ -267,7 +267,7 @@ AGENTRT_API int agentrt_sys_ipc_recv(agentrt_ipc_msg_hdr_t *hdr,
 
 ### 5.2 调度路径优化
 
-- **SCHED_AGENT 调度类**：通过 sched_ext（agentrt-liunx 内核增强，主线 6.12+）在用户态 eBPF 程序中实现调度策略，避免内核态策略切换开销。
+- **SCHED_AGENT 策略**：通过 sched_ext（agentrt-liunx 内核增强，主线 6.12+）在用户态 eBPF 程序中实现调度策略，避免内核态策略切换开销。
 - **EEVDF 调度器**：Linux 6.6 原生 EEVDF 调度器提供混合抢占模式，兼顾吞吐与响应。
 - **CoreLoopThree 阶段感知**：`agentrt_sys_clt_phase_notify` 在思考阶段提升优先级，行动阶段恢复正常，减少关键路径抢占。
 
@@ -291,7 +291,7 @@ AGENTRT_API int agentrt_sys_ipc_recv(agentrt_ipc_msg_hdr_t *hdr,
 
 ### 5.5 优先级与延迟预算
 
-agentrt-liunx 为不同 Agent 任务类别定义延迟预算（latency budget），由 SCHED_AGENT 调度类强制：
+agentrt-liunx 为不同 Agent 任务类别定义延迟预算（latency budget），由 SCHED_AGENT 策略强制：
 
 | 任务类别 | cgroup | 优先级范围 | 延迟预算（P99） | 典型场景 |
 |---------|---------|-----------|----------------|---------|

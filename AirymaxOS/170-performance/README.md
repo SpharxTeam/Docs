@@ -57,7 +57,7 @@ perf stat -e cycles,instructions,cache-misses
 ### 2.2 sched_ext 可插拔调度
 
 ```c
-// SCHED_AGENT 调度类（eBPF 程序）
+// SCHED_AGENT 策略（eBPF 程序）
 SEC("struct_ops/agent_enqueue")
 int BPF_PROG(agent_enqueue, struct task_struct *p, u64 enq_flags) {
     // Agent 任务入队，按 Token 预算排序

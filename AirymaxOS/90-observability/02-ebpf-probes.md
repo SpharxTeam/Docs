@@ -197,7 +197,7 @@ eBPF 安全性由验证器在加载时保证，分两阶段：第一阶段做 DA
 
 **OS-OBS-015: agentrt-liunx BPF 程序必须通过 `-O2 -g -target bpf` 编译，确保验证器能正确追踪寄存器状态；禁用 `-O0`（验证器会因复杂控制流拒绝）。**
 
-**OS-KER-015: airymaxos-kernel 必须开启 CONFIG_BPFVerifier_STATE_MARK 验证器状态标记能力，确保复杂 BPF 程序（如 Agent 决策追踪）能通过验证。**
+**OS-KER-015: airymaxos-kernel 必须开启 CONFIG_BPF_VERIFIER_STATE_MARK 验证器状态标记能力，确保复杂 BPF 程序（如 Agent 决策追踪）能通过验证。**
 
 ### 6.3 验证器日志
 

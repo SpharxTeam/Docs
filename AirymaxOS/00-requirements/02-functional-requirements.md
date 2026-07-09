@@ -73,7 +73,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
 | FR-001 | 内核调度（EEVDF + sched_ext） | 任务描述 + 调度策略 | 调度结果 | atoms/corekern Task | 调度延迟 < 100ms |
-| FR-002 | SCHED_AGENT 调度类 | Agent 任务 + 优先级 | 调度决策 | MicroCoreRT 调度器 | Agent 优先级抢占正确 |
+| FR-002 | SCHED_AGENT 策略 | Agent 任务 + 优先级 | 调度决策 | MicroCoreRT 调度器 | Agent 优先级抢占正确 |
 | FR-003 | IPC 子系统（io_uring 零拷贝） | 消息（128B 头 + payload） | 接收确认 | atoms/corekern IPC | 吞吐 > 100K msg/s |
 | FR-004 | 内存管理（MGLRU，Linux 6.6 多代 LRU） | 内存分配请求 | 内存指针 | atoms/corekern Mem | 多代 LRU 正确回收 |
 | FR-005 | 时间服务（时钟 + 定时器） | 定时器请求 | 定时器触发 | atoms/corekern Time | 定时器精度 < 1ms |

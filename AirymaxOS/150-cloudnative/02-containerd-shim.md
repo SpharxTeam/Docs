@@ -42,7 +42,7 @@ agentrt-liunx（AirymaxOS）提供专属 containerd shim v2 实现，作为 Agen
 │ │   - 注册 Agent 至内核                        │ │
 │ │   - 挂载 MemoryRovol 卷                      │ │
 │ │   - 注入 Cupolas 安全策略                     │ │
-│ │   - 切换 SCHED_AGENT 调度类                  │ │
+│ │   - 切换 SCHED_AGENT 策略                  │ │
 │ └──────────────────────────────────────────────┘ │
 │     |                                            │
 │     v                                            │
@@ -50,7 +50,7 @@ agentrt-liunx（AirymaxOS）提供专属 containerd shim v2 实现，作为 Agen
 │     |                                            │
 │     v                                            │
 │ Linux 6.6 内核（agentrt-liunx）                  │
-│   - SCHED_AGENT 调度类                          │
+│   - SCHED_AGENT 策略                          │
 │   - MemoryRovol CSI                             │
 │   - Cupolas 安全穹顶                            │
 └──────────────────────────────────────────────────┘
@@ -204,7 +204,7 @@ func (s *AirymaxosShim) Create(ctx context.Context,
 	}, nil
 }
 
-/* Start 启动 Agent 容器并切换 SCHED_AGENT 调度类 */
+/* Start 启动 Agent 容器并切换 SCHED_AGENT 策略 */
 func (s *AirymaxosShim) Start(ctx context.Context,
 	req *task.StartRequest) (*task.StartResponse, error) {
 	s.mu.Lock()
@@ -413,7 +413,7 @@ func registerAgentToKernel(meta *AgentMeta) (uint32, error) {
 shim 在容器启动后切换主进程调度类：
 
 ```go
-/* setSchedAgent 将 PID 切换至 SCHED_AGENT 调度类 */
+/* setSchedAgent 将 PID 切换至 SCHED_AGENT 策略 */
 func setSchedAgent(pid int) error {
 	/* 通过 /proc/<pid>/sched_agent 写入调度类 */
 	path := fmt.Sprintf("/proc/%d/sched_agent", pid)

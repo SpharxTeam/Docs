@@ -465,7 +465,7 @@ scripts/
 [2026-07-07 18:30:01] [  OK  ] STD-DOC-02 Forbidden words: 0 violations
 [2026-07-07 18:30:02] [  OK  ] STD-DOC-03 IRON-9 v2 annotations: 8/8 modules pass
 [2026-07-07 18:30:03] [  OK  ] STD-DOC-05 Link integrity: 0 broken links
-[2026-07-07 18:30:04] [  OK  ] STD-IRON-01 [SC] consistency: 4/4 headers identical
+[2026-07-07 18:30:04] [  OK  ] STD-IRON-01 [SC] consistency: 6/6 headers identical
 ```
 
 **违规报告**：

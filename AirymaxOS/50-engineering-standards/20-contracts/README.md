@@ -55,7 +55,7 @@ graph TB
         subgraph "内核态"
             D1[系统调用入口]
             D2[io_uring IPC 引擎]
-            D3[SCHED_AGENT 调度类]
+            D3[SCHED_AGENT 策略]
             D4[capability 安全模块]
         end
     end

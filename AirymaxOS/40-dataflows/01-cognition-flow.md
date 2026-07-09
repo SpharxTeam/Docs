@@ -92,7 +92,7 @@ flowchart TD
 
 ## 4. CoreLoopThree kthread 数据流
 
-CoreLoopThree kthread 是认知循环的内核态驱动器（FR-041），同源 agentrt coreloopthree。它在内核态以 SCHED_AGENT 调度类运行，避免用户态 ↔ 内核态上下文切换开销。
+CoreLoopThree kthread 是认知循环的内核态驱动器（FR-041），同源 agentrt coreloopthree。它在内核态以 SCHED_AGENT 策略运行，避免用户态 ↔ 内核态上下文切换开销。
 
 ### 4.1 三个 kthread 分工
 

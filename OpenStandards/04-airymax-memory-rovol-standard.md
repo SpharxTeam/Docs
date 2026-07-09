@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# Airymax 记忆卷载标准
+# Airymax 记忆卷载标准  
 
 > **文档定位**: Airymax 开放标准
 > **版本**: 1.0（开放标准草案）

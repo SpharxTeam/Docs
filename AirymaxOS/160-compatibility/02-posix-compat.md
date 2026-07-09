@@ -164,7 +164,7 @@ SYSCALL_DEFINE0(fork)
  * - cgroup v2 + Landlock + capability 三重隔离
  * - 独立 Token 预算契约
  * - 可挂载 MemoryRovol 子卷
- * - 默认 SCHED_AGENT 调度类
+ * - 默认 SCHED_AGENT 策略
  * - 继承父 Agent TraceID
  */
 SYSCALL_DEFINE1(agentrt_agent_fork,

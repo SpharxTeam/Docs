@@ -80,8 +80,8 @@ struct agentrt_ipc_msg_hdr {
 	/* [28..43] SpanID（16B） */
 	__u8  span_id[16];
 
-	/* [44..51] 时间戳（8B，TSC 周期） */
-	__u64 ts_tsc;
+	/* [44..51] 时间戳（8B，纳秒） */
+	__u64 ts_ns;
 
 	/* [52..59] 序列号 */
 	__u64 seq_no;
@@ -333,7 +333,7 @@ static void fill_msg_hdr(struct agentrt_ipc_msg_hdr *h,
 	h->priority = 5;
 	h->stage = 1;       /* Cognition Engine L1 */
 	memset(h->trace_id, 0xAB, 16);
-	h->ts_tsc = rdtsc();
+	h->ts_ns = ktime_get_ns();
 	h->seq_no = seq;
 	h->src_daemon = src;
 	h->dst_daemon = dst;

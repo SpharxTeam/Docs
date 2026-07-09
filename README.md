@@ -82,7 +82,8 @@ docs/
 | **内核基线** | 跨平台用户态（Linux/macOS/Windows） | Linux 6.6 内核 | - | - |
 | **关系** | 独立运行时 | 与 agentrt 同源，基于 Linux 内核 | AirymaxRT 与 AirymaxOS 共享的标准契约 | AirymaxRT 与 AirymaxOS 的研究产出 |
 
-四个项目共享 Airymax 设计理念（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree），通过 IRON-9 v2 同源且部分代码共享原则保持互操作。OpenStandards 定义了 AirymaxRT 与 AirymaxOS 之间的共享契约层，Publications 集中管理两个项目的学术研究成果。
+四个项目共享 Airymax 设计理念（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree），通过 IRON-9 v2 同源且部分代码共享原则保持互操作。  
+OpenStandards 定义了 AirymaxRT 与 AirymaxOS 之间的共享契约层，Publications 集中管理两个项目的学术研究成果。  
 
 ## 快速导航
 
