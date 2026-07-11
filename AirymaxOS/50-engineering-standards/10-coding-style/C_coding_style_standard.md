@@ -3,18 +3,18 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）C 语言编码风格规范
 
 > **文档定位**： agentrt-linux（AirymaxOS）内核态 C 语言编码风格规范\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [编码规范总览](README.md)\
 > **同源参考**： Linux 6.6 内核基线 `Documentation/process/coding-style.rst`\
 > **理论根基**： Linux 内核工程思想 + Airymax 五维正交 24 原则\
-> **SSoT 声明（C-2.6 D-03，2026-07-09）**： 本文件为 C 内核开发者导航参考。**格式规则**（§2）的唯一权威来源为 [02-code-format.md](../02-code-format.md)；**语义规则**（§3-§6）的唯一权威来源为 [01-coding-standards.md](../01-coding-standards.md)。本文件 §2 中的历史编号（OS-KER-011~014）与 02 冲突，已由 §0 映射表对齐；§7-§10（goto/GFP/锁/RCU/[SC][SS]）为内核态专属权威内容，保留独立规则效力。本文件与 SSoT 的任何冲突，以 SSoT 为准。
+> **SSoT 声明**： 本文件为 C 内核开发者导航参考。**格式规则**（§2）的唯一权威来源为 [02-code-format.md](../02-code-format.md)；**语义规则**（§3-§6）的唯一权威来源为 [01-coding-standards.md](../01-coding-standards.md)。本文件 §2 中的历史编号（OS-KER-011~014）与 02 冲突，已由 §0 映射表对齐；§7-§10（goto/GFP/锁/RCU/[SC][SS]）为内核态专属权威内容，保留独立规则效力。本文件与 SSoT 的任何冲突，以 SSoT 为准。
 
 ---
 
 ## 0. SSoT 对齐声明与编号映射
 
-> **本节由 C-2.6 合并决策 D-03 执行新增（2026-07-09）**。本文件 §2（格式规则）的历史编号与 SSoT 文件 `02-code-format.md` 存在冲突。为消除编号歧义，下表给出权威映射；§2 正文中的历史编号仅作导航参考，**规则效力以 02-code-format.md 为准**。
+> **本节为 SSoT 对齐声明**。本文件 §2（格式规则）的历史编号与 SSoT 文件 `02-code-format.md` 存在冲突。为消除编号歧义，下表给出权威映射；§2 正文中的历史编号仅作导航参考，**规则效力以 02-code-format.md 为准**。
 
 ### 0.1 格式规则映射（SSoT = 02-code-format.md）
 
@@ -22,24 +22,24 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 |----------------|----------|-------------------------------|
 | OS-KER-011 | Tab 8 字符缩进 | OS-KER-005 |
 | OS-KER-012 | 80 列行宽 | OS-KER-004 |
-| OS-KER-013 | K&R 大括号 | OS-KER-008 + OS-STD-047 |
+| OS-KER-013 | K&R 大括号 | OS-KER-008 + OS-STD-CODE-047 |
 | OS-KER-014 | 空格规则 | OS-KER-010 / 011 / 012 / 013 / 014 |
 
 ### 0.2 语义规则映射（SSoT = 01-coding-standards.md）
 
-§3-§6 已正确使用"复用"标注（如 `OS-STD-005（复用）`、`OS-STD-007 复用`），引用关系已建立。以下编号在 01 中已定义，本文件引用时不再重新定义：
+§3-§6 已正确使用"复用"标注（如 `OS-STD-CODE-005（复用）`、`OS-STD-CODE-007 复用`），引用关系已建立。以下编号在 01 中已定义，本文件引用时不再重新定义：
 
 | 本文件引用编号 | 规则内容 | 01 SSoT 位置 |
 |----------------|----------|-------------|
-| OS-STD-005 | airy_/airymaxos_ 前缀 | §1.6（一致，无冲突） |
-| OS-STD-028 | snake_case 命名 | 01 §1 + 闭源总纲补充 |
-| OS-STD-029 | 命名语义化 | 01 §1.1 + 闭源总纲补充 |
-| OS-STD-004 | 函数返回值约定 | §1.5 |
-| OS-STD-006 | 函数长度 | §2.1 |
-| OS-STD-007 | 函数原型元素顺序 | §2.2 |
-| OS-STD-008 | 参数命名 | §2.3 |
-| OS-STD-010~013 | 注释规范 | §3.1-§3.4 |
-| OS-STD-015~017 | 头文件规范 | §4.1-§4.3 |
+| OS-STD-CODE-005 | airy_/airymaxos_ 前缀 | §1.6（一致，无冲突） |
+| OS-STD-CODE-028 | snake_case 命名 | 01 §1 + 工程规范委员会补充 |
+| OS-STD-CODE-029 | 命名语义化 | 01 §1.1 + 工程规范委员会补充 |
+| OS-STD-CODE-004 | 函数返回值约定 | §1.5 |
+| OS-STD-CODE-006 | 函数长度 | §2.1 |
+| OS-STD-CODE-007 | 函数原型元素顺序 | §2.2 |
+| OS-STD-CODE-008 | 参数命名 | §2.3 |
+| OS-STD-CODE-010~013 | 注释规范 | §3.1-§3.4 |
+| OS-STD-CODE-015~017 | 头文件规范 | §4.1-§4.3 |
 
 ### 0.3 本文件保留的权威内容（无 SSoT 对应）
 
@@ -61,7 +61,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 agentrt-linux（AirymaxOS）的 C 语言编码风格以 Linux 6.6 内核 `Documentation/process/coding-style.rst` 为基线。这不是简单的照搬，而是在 Linux 30 余年内核工程思想的基础上，针对 agentrt-linux（AirymaxOS）的智能体操作系统场景进行的定制化落地。
 
 与 Linux 内核编码风格的关系：**基线对齐，扩展独立**。agentrt-linux（AirymaxOS）在基线基础上增加了以下专属规则：
-- `airy_` / `airymaxos_` 前缀隔离（OS-STD-005）
+- `airy_` / `airymaxos_` 前缀隔离（OS-STD-CODE-005）
 - IRON-9 v2 三层模型代码归属标注
 - 五维正交 24 原则映射注释
 - 内核模块 Rust 互操作 FFI 边界规范
@@ -159,9 +159,9 @@ for (i = 0; i < count; i++)
 
 ## 3. 命名约定
 
-### 3.1 airy_ 前缀（OS-STD-005）
+### 3.1 airy_ 前缀（OS-STD-CODE-005）
 
-> **OS-STD-005**（复用）：`airy_*` 前缀保留给 agentrt 同源 API（[SS] 语义同源层）；`airymaxos_*` 前缀用于 agentrt-linux（AirymaxOS）内核/发行版专属 API（[IND] 完全独立层）。两者共享 Airymax 同源语义，但前缀隔离确保无适配层互操作时不冲突。
+> **OS-STD-CODE-005**（复用）：`airy_*` 前缀保留给 agentrt 同源 API（[SS] 语义同源层）；`airymaxos_*` 前缀用于 agentrt-linux（AirymaxOS）内核/发行版专属 API（[IND] 完全独立层）。两者共享 Airymax 同源语义，但前缀隔离确保无适配层互操作时不冲突。
 
 ```c
 /* [SS] 语义同源层：与 agentrt 同源 API */
@@ -173,9 +173,9 @@ int airymaxos_lsm_hook_register(const struct security_hook_list *hooks);
 int airymaxos_sched_class_register(struct sched_class *sc);
 ```
 
-### 3.2 snake_case 命名（OS-STD-028）
+### 3.2 snake_case 命名（OS-STD-CODE-028）
 
-> **OS-STD-028**：函数名、变量名使用 `snake_case`（小写字母 + 下划线）。常量宏使用 `UPPER_SNAKE_CASE`（全大写 + 下划线）。结构体名使用 `snake_case`，但声明时使用 `struct` 关键字（不 typedef）。
+> **OS-STD-CODE-028**：函数名、变量名使用 `snake_case`（小写字母 + 下划线）。常量宏使用 `UPPER_SNAKE_CASE`（全大写 + 下划线）。结构体名使用 `snake_case`，但声明时使用 `struct` 关键字（不 typedef）。
 
 ```c
 /* 函数名：snake_case */
@@ -204,9 +204,9 @@ enum airy_task_state {
 };
 ```
 
-### 3.3 命名语义化（OS-STD-029）
+### 3.3 命名语义化（OS-STD-CODE-029）
 
-> **OS-STD-029**：全局符号必须描述性命名，禁止无意义缩写。局部变量短小精悍（循环计数器 `i`、临时指针 `tmp`、缓冲区 `buf`）。命名应让代码自解释，减少对注释的依赖。
+> **OS-STD-CODE-029**：全局符号必须描述性命名，禁止无意义缩写。局部变量短小精悍（循环计数器 `i`、临时指针 `tmp`、缓冲区 `buf`）。命名应让代码自解释，减少对注释的依赖。
 
 ```c
 /* 好：自解释 */
@@ -249,7 +249,7 @@ static int airy_ipc_handle_message(struct airy_ipc_channel *chan,
 }
 ```
 
-### 4.2 函数原型元素顺序（OS-STD-007 复用）
+### 4.2 函数原型元素顺序（OS-STD-CODE-007 复用）
 
 函数原型元素固定顺序：`storage class → storage class attributes → return type → return type attributes → name → parameters → parameter attributes → behavior attributes`。
 
@@ -259,11 +259,11 @@ airy_ipc_channel_create(enum airy_ipc_type type, size_t cap,
                            u32 flags) __printf(2, 3) __malloc;
 ```
 
-### 4.3 参数命名（OS-STD-008 复用）
+### 4.3 参数命名（OS-STD-CODE-008 复用）
 
 函数原型必须包含参数名——它是面向读者的廉价文档。
 
-### 4.4 函数返回值约定（OS-STD-004 复用）
+### 4.4 函数返回值约定（OS-STD-CODE-004 复用）
 
 动作式函数返回错误码（0 = 成功，-Exxx = 失败）；谓词式函数返回 `bool`。
 
@@ -276,11 +276,11 @@ bool airy_task_is_pending(const struct airy_task *task); /* 谓词式 */
 
 ## 5. 注释规范
 
-### 5.1 注释原则（OS-STD-010 复用）
+### 5.1 注释原则（OS-STD-CODE-010 复用）
 
 注释说明 WHAT 与 WHY，不说明 HOW。好代码自解释 HOW。函数头说明做什么、为什么这样做。
 
-### 5.2 kernel-doc 格式（OS-STD-012 复用）
+### 5.2 kernel-doc 格式（OS-STD-CODE-012 复用）
 
 所有公共 API（`EXPORT_SYMBOL*` 函数、公共结构体、公共宏）必须用 kernel-doc 注释。
 
@@ -301,7 +301,7 @@ bool airy_task_is_pending(const struct airy_task *task); /* 谓词式 */
 int airy_ipc_send(u32 channel, const void *msg, size_t len);
 ```
 
-### 5.3 数据结构注释（OS-STD-013 复用）
+### 5.3 数据结构注释（OS-STD-CODE-013 复用）
 
 数据声明每行一个，留出注释空间。IRON-9 v2 层级归属必须标注。
 
@@ -317,7 +317,7 @@ struct airy_task {
 };
 ```
 
-### 5.4 多行注释风格（OS-STD-011 复用）
+### 5.4 多行注释风格（OS-STD-CODE-011 复用）
 
 通用代码用通用风格（左列星号，首尾近空白行）；`net/` 与 `drivers/net/` 用 net 风格（与上游一致便于回填）。
 
@@ -325,7 +325,7 @@ struct airy_task {
 
 ## 6. 头文件组织
 
-### 6.1 include 顺序（OS-STD-016 复用）
+### 6.1 include 顺序（OS-STD-CODE-016 复用）
 
 include 顺序固定：系统头 → 架构头 → 本地头 → `#define CREATE_TRACE_POINTS` → trace events 头。
 
@@ -339,11 +339,11 @@ include 顺序固定：系统头 → 架构头 → 本地头 → `#define CREATE
 #include <trace/events/agentrt.h>
 ```
 
-### 6.2 显式声明原则（OS-STD-015 复用）
+### 6.2 显式声明原则（OS-STD-CODE-015 复用）
 
 每个 `.c` 必须显式 `#include` 其直接依赖的头文件，不得依赖间接传递包含。
 
-### 6.3 include guard 规范（OS-STD-017 复用）
+### 6.3 include guard 规范（OS-STD-CODE-017 复用）
 
 ```c
 #ifndef _AIRY_IPC_H
@@ -575,7 +575,7 @@ kfree(old);
 ### 10.1 [SC] 层定义
 
 [SC] 共享契约层是 IRON-9 v2 三层模型中**代码完全共享**的层级。agentrt-linux（AirymaxOS）与 agentrt 共享 `include/airymax/` 下的 6 个头文件：
-- `bpf_struct_ops.h`：sched_ext BPF 调度器 struct_ops 状态机 + common_value
+- `syscalls.h`：12 核心 syscall 编号（AIRY_SYS_CALL/SEND/RECV/NBSEND/NBRECV/REPLY_RECV/YIELD/ROVOL_CTL/SCHED_CTL/CLT_NOTIFY/REPLY/NOTIFY）+ 12 预留槽位
 - `memory_types.h`：MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口
 - `security_types.h`：Cupolas capability 令牌结构、POSIX capability 41 ID 枚举、LSM 钩子 252 ID 枚举、capability 派生模型、Vault backend 抽象、策略裁决 4 值枚举
 - `cognition_types.h`：CoreLoopThree 阶段枚举、Thinkdual 模式枚举、LLM 推理阶段枚举、Token 能效指标、GPU/NPU 能力描述符

@@ -2,8 +2,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）废弃 API 动态清单
 
-> **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）内核态废弃 API 动态清单。基于 OLK-6.6 `Documentation/process/deprecated.rst` 与 `scripts/checkpatch.pl` 中的 `deprecated_apis` 表，登记所有禁止新增的 API 及其替代方案与迁移示例。\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）内核态废弃 API 动态清单。基于 Linux 6.6 内核基线 `Documentation/process/deprecated.rst` 与 `scripts/checkpatch.pl` 中的 `deprecated_apis` 表，登记所有禁止新增的 API 及其替代方案与迁移示例。\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-09\
 > **理论根基**： Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**： AGPL-3.0-or-later OR Apache-2.0
@@ -14,9 +14,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本文件登记 agentrt-linux 内核态所有禁止新增的废弃 API，每条含：废弃 API → 替代 API → OLK-6.6 源码路径 → 迁移示例。checkpatch 在 CI 中根据此清单与新代码扫描，禁止新增废弃 API 调用。
+本文件登记 agentrt-linux 内核态所有禁止新增的废弃 API，每条含：废弃 API → 替代 API → Linux 6.6 内核基线 源码路径 → 迁移示例。checkpatch 在 CI 中根据此清单与新代码扫描，禁止新增废弃 API 调用。
 
-### 0.2 OLK-6.6 源码路径
+### 0.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/deprecated.rst`（16575 字节，废弃接口说明文档）
 - `scripts/checkpatch.pl:836-851` —— `%deprecated_apis` 哈希表（11 条 RCU/kmap 废弃映射）
@@ -40,7 +40,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 |------|------|
 | **废弃 API** | `strcpy()` |
 | **替代 API** | `strscpy()`（需 NUL 终止）/ `strscpy_pad()`（需 NUL 填充）/ `strtomem()`（非 NUL 终止） |
-| **OLK-6.6 源码路径** | `deprecated.rst:122-132` / `checkpatch.pl:7029-7031` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:122-132` / `checkpatch.pl:7029-7031` |
 | **废弃理由** | `strcpy` 无边界检查，可导致线性堆溢出。`CONFIG_FORTIFY_SOURCE=y` 仅减风险不根除。 |
 | **checkpatch 规则** | `WARN("STRCPY")` |
 
@@ -62,7 +62,7 @@ if (copied < 0)
 |------|------|
 | **废弃 API** | `strncpy()` |
 | **替代 API** | `strscpy()` / `strscpy_pad()` / `strtomem()` / `strtomem_pad()` |
-| **OLK-6.6 源码路径** | `deprecated.rst:134-154` / `checkpatch.pl:7041-7043` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:134-154` / `checkpatch.pl:7041-7043` |
 | **废弃理由** | `strncpy` 不保证 NUL 终止，且源短时多余 NUL 填充浪费性能。 |
 | **checkpatch 规则** | `WARN("STRNCPY")` |
 
@@ -88,7 +88,7 @@ strtomem(buf, src);
 |------|------|
 | **废弃 API** | `strlcpy()` |
 | **替代 API** | `strscpy()` |
-| **OLK-6.6 源码路径** | `deprecated.rst:156-163` / `checkpatch.pl:7035-7037` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:156-163` / `checkpatch.pl:7035-7037` |
 | **废弃理由** | `strlcpy` 为返回 strlen() 会读整个源缓冲，可能溢出读。 |
 | **checkpatch 规则** | `WARN("STRLCPY")` |
 
@@ -108,7 +108,7 @@ strscpy(dst, src, sizeof(dst));
 |------|------|
 | **废弃 API** | `simple_strtol()` / `simple_strtoll()` / `simple_strtoul()` / `simple_strtoull()` |
 | **替代 API** | `kstrtol()` / `kstrtoll()` / `kstrtoul()` / `kstrtoull()` |
-| **OLK-6.6 源码路径** | `deprecated.rst:112-120` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:112-120` |
 | **废弃理由** | `simple_strtol` 系列显式忽略溢出，可能产生意外结果。`kstrtol` 系列要求 NUL 或换行终止。 |
 | **checkpatch 规则** | `WARN("SSCANF_TO_KSTRTO")`（间接） |
 
@@ -135,7 +135,7 @@ if (ret)
 |------|------|
 | **废弃 API** | `kmalloc(n * size, ...)` / `kzalloc(sizeof(*h) + count * sizeof(*h->item), ...)` |
 | **替代 API** | `kmalloc_array(n, size, ...)` / `kcalloc(n, size, ...)` / `struct_size(p, member, n)` / `flex_array_size()` |
-| **OLK-6.6 源码路径** | `deprecated.rst:54-110` / `checkpatch.pl:7255` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:54-110` / `checkpatch.pl:7255` |
 | **废弃理由** | 乘法在分配器参数中可能溢出，导致分配过小并线性堆溢出。 |
 | **checkpatch 规则** | `WARN("ALLOC_WITH_MULTIPLY")` |
 
@@ -168,7 +168,7 @@ h = kzalloc(struct_size(h, items, count), GFP_KERNEL);
 |------|------|
 | **废弃 API** | `kmalloc(sizeof(struct xxx), ...)` |
 | **替代 API** | `kmalloc(sizeof(*p), ...)` |
-| **OLK-6.6 源码路径** | `coding-style.rst:925-933` / `checkpatch.pl:7229` |
+| **Linux 6.6 内核基线 源码路径** | `coding-style.rst:925-933` / `checkpatch.pl:7229` |
 | **废弃理由** | 指针类型变更时 `sizeof(struct)` 不会跟随，产生隐蔽 bug。 |
 | **checkpatch 规则** | `CHK("ALLOC_SIZEOF_STRUCT")` |
 
@@ -188,7 +188,7 @@ struct airy_task *task = kmalloc(sizeof(*task), GFP_KERNEL);
 |------|------|
 | **废弃 API** | `p = kmalloc(...); memset(p, 0, sizeof(*p));` |
 | **替代 API** | `p = kzalloc(...)` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:6978-6981` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:6978-6981` |
 | **废弃理由** | `kzalloc` 一步完成分配 + 清零，避免 `memset` 的双重遍历。 |
 | **checkpatch 规则** | `WARN("MEMSET")` |
 
@@ -213,7 +213,7 @@ if (!task)
 |------|------|
 | **废弃 API** | `kmap()` / `kmap_atomic()` / `kunmap()` / `kunmap_atomic()` |
 | **替代 API** | `kmap_local_page()` / `kunmap_local()` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:847-850` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:847-850` |
 | **废弃理由** | `kmap` 系列在 32 位上有全局锁竞争，`kmap_local_page` 无此问题。 |
 | **checkpatch 规则** | `ERROR("DEPRECATED_API")` |
 
@@ -237,7 +237,7 @@ kunmap_local(addr);
 |------|------|
 | **废弃 API** | `p = krealloc(p, new_size, GFP_KERNEL);` |
 | **替代 API** | 用临时变量保存 krealloc 返回值，失败时不丢失原 p |
-| **OLK-6.6 源码路径** | `checkpatch.pl:7268` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:7268` |
 | **废弃理由** | krealloc 失败返回 NULL 但不释放原 p，重用原 p 变量会丢失原指针导致泄漏。 |
 | **checkpatch 规则** | `WARN("KREALLOC_ARG_REUSE")` |
 
@@ -268,7 +268,7 @@ buf = new_buf;
 |------|------|
 | **废弃 API** | `BUG()` / `BUG_ON()` / `VM_BUG_ON()` |
 | **替代 API** | `WARN()` / `WARN_ON()` / `WARN_ON_ONCE()`（首选） |
-| **OLK-6.6 源码路径** | `deprecated.rst:32-52` / `coding-style.rst:1189-1249` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:32-52` / `coding-style.rst:1189-1249` |
 | **废弃理由** | `BUG()` 系列导致内核崩溃，无法调试且破坏系统。`WARN` 系列仅日志不崩溃。 |
 | **checkpatch 规则** | （间接，通过 deprecated API 登记） |
 
@@ -292,7 +292,7 @@ if (WARN_ON_ONCE(x > MAX))
 |------|------|
 | **废弃 API** | `kfree_rcu(ptr)` / `kvfree_rcu(ptr)`（单参数） |
 | **替代 API** | `kfree_rcu(ptr, rcu_head)` / `kvfree_rcu(ptr, rcu_head)` 或 `kfree_rcu_mightsleep()` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:6454-6458` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:6454-6458` |
 | **废弃理由** | 单参数 API 已废弃，应显式传递 rcu_head 或用 mightsleep 变体。 |
 | **checkpatch 规则** | `ERROR("DEPRECATED_API")` |
 
@@ -315,8 +315,8 @@ kfree_rcu_mightsleep(obj);
 |------|------|
 | **废弃 API** | `panic()`（运行期） |
 | **替代 API** | `WARN()` + 恢复代码；仅启动期 OOM 等无可恢复场景可用 `panic()` |
-| **OLK-6.6 源码路径** | `coding-style.rst:1195-1201` |
-| **废弃理由** | 运行期 panic 剥夺用户决策权，崩溃决策应属于用户。 |
+| **Linux 6.6 内核基线 源码路径** | `coding-style.rst:1195-1201` |
+| **废弃理由** | 运行期 panic 剥夺开源极境工程与规范委员会决策权，崩溃决策应属于用户。 |
 | **checkpatch 规则** | （审查提示，非自动检查） |
 
 ---
@@ -329,7 +329,7 @@ kfree_rcu_mightsleep(obj);
 |------|------|
 | **废弃 API** | `struct foo { ...; struct bar items[0]; };` / `items[1]` |
 | **替代 API** | `struct foo { ...; struct bar items[]; };`（C99 柔性数组成员） |
-| **OLK-6.6 源码路径** | `deprecated.rst:237-348` / `checkpatch.pl:7479` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:237-348` / `checkpatch.pl:7479` |
 | **废弃理由** | 零长/单元素数组 sizeof 计算错误，编译器无法检测非末尾使用。柔性数组成员 sizeof 不完整类型，可检测误用。 |
 | **checkpatch 规则** | `ERROR("FLEXIBLE_ARRAY")` |
 
@@ -364,7 +364,7 @@ q = kzalloc(struct_size(q, entries, count), GFP_KERNEL);
 |------|------|
 | **废弃 API** | union 中 `items[0]` |
 | **替代 API** | `DECLARE_FLEX_ARRAY(type, name)` |
-| **OLK-6.6 源码路径** | `deprecated.rst:350-373` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:350-373` |
 | **废弃理由** | union 中的零长数组违反 C99，需用 `DECLARE_FLEX_ARRAY` 辅助宏。 |
 
 **迁移示例**：
@@ -393,7 +393,7 @@ struct payload {
 |------|------|
 | **废弃 API** | `typedef struct { ... } foo_t;` |
 | **替代 API** | `struct foo { ... };` 直接用 `struct foo` |
-| **OLK-6.6 源码路径** | `coding-style.rst:359-440` / `checkpatch.pl:4788` |
+| **Linux 6.6 内核基线 源码路径** | `coding-style.rst:359-440` / `checkpatch.pl:4788` |
 | **废弃理由** | typedef 结构体隐藏类型，降低可读性。 |
 | **checkpatch 规则** | `WARN("NEW_TYPEDEFS")` |
 
@@ -421,7 +421,7 @@ struct airy_task {
 |------|------|
 | **废弃 API** | `volatile int flag;` |
 | **替代 API** | `int flag;` + `READ_ONCE(flag)` / `WRITE_ONCE(flag, val)` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:6275` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:6275` |
 | **废弃理由** | `volatile` 不提供内存屏障，且阻止编译器优化。`READ_ONCE`/`WRITE_ONCE` 显式且正确。 |
 | **checkpatch 规则** | `WARN("VOLATILE")` |
 
@@ -446,7 +446,7 @@ WRITE_ONCE(ready, 1);
 |------|------|
 | **废弃 API** | `smp_mb()` / `smp_rmb()` / `smp_wmb()` |
 | **替代 API** | `smp_store_release()` / `smp_load_acquire()` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:6695,6706` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:6695,6706` |
 | **废弃理由** | 全屏障开销大，release/acquire 语义更精确且性能更佳。 |
 | **checkpatch 规则** | `WARN("MEMORY_BARRIER")` |
 
@@ -473,7 +473,7 @@ smp_store_release(&ready, 1);
 |------|------|
 | **废弃 API** | `synchronize_rcu_bh()` / `synchronize_rcu_bh_expedited()` / `call_rcu_bh()` / `rcu_barrier_bh()` |
 | **替代 API** | `synchronize_rcu()` / `synchronize_rcu_expedited()` / `call_rcu()` / `rcu_barrier()` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:837-840` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:837-840` |
 | **废弃理由** | bh 变体已合并入普通 RCU API。 |
 | **checkpatch 规则** | `ERROR("DEPRECATED_API")` |
 
@@ -495,7 +495,7 @@ call_rcu(&obj->rcu, obj_free);
 |------|------|
 | **废弃 API** | `synchronize_sched()` / `synchronize_sched_expedited()` / `call_rcu_sched()` / `rcu_barrier_sched()` / `get_state_synchronize_sched()` / `cond_synchronize_sched()` |
 | **替代 API** | `synchronize_rcu()` / `synchronize_rcu_expedited()` / `call_rcu()` / `rcu_barrier()` / `get_state_synchronize_rcu()` / `cond_synchronize_rcu()` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:841-846` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:841-846` |
 | **废弃理由** | sched 变体已合并入普通 RCU API。 |
 | **checkpatch 规则** | `ERROR("DEPRECATED_API")` |
 
@@ -509,7 +509,7 @@ call_rcu(&obj->rcu, obj_free);
 |------|------|
 | **废弃 API** | `sprintf()` |
 | **替代 API** | `scnprintf()`（含边界检查）/ `sysfs_emit()`（sysfs） |
-| **OLK-6.6 源码路径** | `checkpatch.pl:7469`（sysfs_emit 检查） |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:7469`（sysfs_emit 检查） |
 | **废弃理由** | `sprintf` 无边界检查，可溢出。 |
 | **checkpatch 规则** | `WARN("SYSFS_EMIT")`（sysfs 场景） |
 
@@ -535,7 +535,7 @@ static ssize_t id_show(struct kobject *kobj, struct kobj_attribute *attr, char *
 |------|------|
 | **废弃 API** | `printk("msg")`（无 KERN_LEVEL） |
 | **替代 API** | `pr_info()` / `pr_warn()` / `pr_err()` / `dev_err()` 等 |
-| **OLK-6.6 源码路径** | `checkpatch.pl:4870` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:4870` |
 | **废弃理由** | 无 KERN_LEVEL 的 printk 无法被动态调试控制。 |
 | **checkpatch 规则** | `WARN("PRINTK_WITHOUT_KERN_LEVEL")` / `WARN("PREFER_PR_LEVEL")` / `WARN("PREFER_DEV_LEVEL")` |
 
@@ -549,7 +549,7 @@ static ssize_t id_show(struct kobject *kobj, struct kobj_attribute *attr, char *
 |------|------|
 | **废弃 API** | `udelay(usec)`（usec > 10） |
 | **替代 API** | `usleep_range(min, max)` / `msleep(msec)` |
-| **OLK-6.6 源码路径** | `checkpatch.pl:6616,6620,6628` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:6616,6620,6628` |
 | **废弃理由** | `udelay` 忙等，长延迟应让出 CPU。 |
 | **checkpatch 规则** | `CHK("USLEEP_RANGE")` / `WARN("LONG_UDELAY")` / `WARN("MSLEEP")` |
 
@@ -559,7 +559,7 @@ static ssize_t id_show(struct kobject *kobj, struct kobj_attribute *attr, char *
 |------|------|
 | **废弃 API** | `sscanf(buf, "%d", &val)` |
 | **替代 API** | `kstrtoint()` / `kstrtoull()` 等 |
-| **OLK-6.6 源码路径** | `checkpatch.pl:7112` |
+| **Linux 6.6 内核基线 源码路径** | `checkpatch.pl:7112` |
 | **废弃理由** | `sscanf` 无溢出检查，`kstrto*` 系列更安全。 |
 | **checkpatch 规则** | `WARN("SSCANF_TO_KSTRTO")` |
 
@@ -569,14 +569,14 @@ static ssize_t id_show(struct kobject *kobj, struct kobj_attribute *attr, char *
 |------|------|
 | **废弃 API** | `__deprecated` 属性标注 |
 | **替代 API** | 彻底移除接口，或登记到本清单 |
-| **OLK-6.6 源码路径** | `deprecated.rst:20-30` |
+| **Linux 6.6 内核基线 源码路径** | `deprecated.rst:20-30` |
 | **废弃理由** | `__deprecated` 不再产生构建警告，标注无意义。 |
 
 ---
 
 ## 9. 废弃 API 速查表
 
-| 废弃 API | 替代 API | OLK-6.6 主源码 | checkpatch 规则 |
+| 废弃 API | 替代 API | Linux 6.6 内核基线 主源码 | checkpatch 规则 |
 |---------|---------|---------------|----------------|
 | `strcpy` | `strscpy` | `deprecated.rst:122` | `STRCPY` |
 | `strncpy` | `strscpy`/`strscpy_pad` | `deprecated.rst:134` | `STRNCPY` |
@@ -609,9 +609,9 @@ static ssize_t id_show(struct kobject *kobj, struct kobj_attribute *attr, char *
 
 ### 10.1 清单动态更新流程
 
-本清单随 OLK-6.6 升级与 agentrt-linux 演进动态更新：
+本清单随 Linux 6.6 内核基线 升级与 agentrt-linux 演进动态更新：
 
-1. OLK-6.6 `deprecated.rst` 或 `checkpatch.pl` 新增废弃 API → 触发清单更新 MR
+1. Linux 6.6 内核基线 `deprecated.rst` 或 `checkpatch.pl` 新增废弃 API → 触发清单更新 MR
 2. agentrt-linux 内部废弃某 API → 经 L3 总维护者批准后登记
 3. 每次更新在"历史与变更记录"追加条目
 

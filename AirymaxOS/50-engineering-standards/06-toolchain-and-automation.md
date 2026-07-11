@@ -3,11 +3,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）工具链与自动化标准
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）工程标准规范第 6 卷——工具链与自动化。本卷规定 7 层自动化验证体系、编译期/静态/动态分析工具链、格式化与风格检查、测试框架、覆盖率门槛、CI/CD 流水线与 24 项提交检查清单。\
-> **版本**： 1.0.1（开发）\
+> **版本**： 1.0.1\
 > **最后更新**： 2026-07-06\
 > **同源映射**： `docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）+ Linux 6.6 内核基线 `Documentation/dev-tools/testing-overview.rst`\
 > **理论根基**： Linux 6.6 内核基线工程思想 + Airymax 体系并行论（Multibody Cybernetic Intelligent System）\
-> **SSoT 声明（C-2.6 D-06，2026-07-09）**： 本卷为 agentrt-linux **工具链与自动化规则**的唯一权威来源（SSoT）。本卷规则编号的目标体系为 **OS-STD-TOOL-NNN**（4 段前缀，TOOL = Toolchain）。本卷正文中现存的历史编号 **OS-STD-002~158**（与 05-development-process.md 共用 OS-STD-101~158 段导致 30+ 项语义冲突）将逐步迁移为 OS-STD-TOOL-002~158，迁移映射见 §0.2。迁移完成前，历史编号与 OS-STD-TOOL 编号**并存且等价**，规则效力以本卷正文为准。
+> **SSoT 声明**： 本卷为 agentrt-linux **工具链与自动化规则**的唯一权威来源（SSoT）。本卷规则编号的目标体系为 **OS-STD-TOOL-NNN**（4 段前缀，TOOL = Toolchain）。本卷正文中现存的历史编号 **OS-STD-002~158**（与 05-development-process.md 共用 OS-STD-101~158 段导致 30+ 项语义冲突）将迁移为 OS-STD-TOOL-002~158，迁移映射见 §0.2。历史编号与 OS-STD-TOOL 编号**并存且等价**，规则效力以本卷正文为准。
 
 ---
 
@@ -20,9 +20,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 本卷所有强制规则均赋予 **OS-STD** / **OS-TEST** / **OS-BUILD** 编号，与 07 维护者制度与治理的"规则编号注册表"对齐。
 
-### 0.2 OS-STD → OS-STD-TOOL 编号段隔离声明（C-2.6 D-06）
+### 0.2 OS-STD → OS-STD-TOOL 编号段隔离声明
 
-> **本节由 C-2.6 合并决策 D-06 执行新增（2026-07-09）**。本卷与 05-development-process.md 历史上共用 `OS-STD-101~158` 编号段，导致同一编号在两卷中定义完全不同（如 `OS-STD-101` 在本卷 = "checkpatch --strict 无 ERROR"，在 05 = "L1/L2 接口设计需 RFC"）。为消除冲突，本卷规则迁移至 `OS-STD-TOOL-NNN` 段（TOOL = Toolchain），05 迁移至 `OS-STD-PROD-NNN` 段（PROD = Process/Development）。
+> **本节为编号段隔离声明**。本卷与 05-development-process.md 历史上共用 `OS-STD-101~158` 编号段，导致同一编号在两卷中定义完全不同（如 `OS-STD-101` 在本卷 = "checkpatch --strict 无 ERROR"，在 05 = "L1/L2 接口设计需 RFC"）。为消除冲突，本卷规则迁移至 `OS-STD-TOOL-NNN` 段（TOOL = Toolchain），05 迁移至 `OS-STD-PROD-NNN` 段（PROD = Process/Development）。
 
 #### 0.2.1 编号段隔离对照表
 
@@ -37,10 +37,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 #### 0.2.2 迁移状态
 
-- **当前阶段**：编号并存阶段（历史 `OS-STD-NNN` 与目标 `OS-STD-TOOL-NNN` 等价有效）。
-- **迁移触发**：1.0.1 开发阶段，当 CI/CD 流水线脚本与 GitHub Actions workflow 实施时，统一替换为 `OS-STD-TOOL-NNN`。
+- **编号体系**：历史 `OS-STD-NNN` 与目标 `OS-STD-TOOL-NNN` 等价有效。
+- **编号统一**：CI/CD 流水线脚本与 GitHub Actions workflow 实施时统一替换为 `OS-STD-TOOL-NNN`。
 - **冲突消解**：迁移后，本卷与 05-development-process.md 的 `OS-STD-101~158` 段冲突彻底消除——本卷独占 `OS-STD-TOOL-NNN` 段，05 独占 `OS-STD-PROD-NNN` 段。
-- **保留编号**：`OS-TEST-xxx`（测试规则）与 `OS-BUILD-xxx`（构建规则）不受本次迁移影响，这两个前缀已在闭源总纲中确立。
+- **保留编号**：`OS-TEST-xxx`（测试规则）与 `OS-BUILD-xxx`（构建规则）不受本次迁移影响，这两个前缀由工程规范委员会确立。
 
 ### 0.1 关键术语
 
@@ -311,7 +311,7 @@ flowchart TD
 - **OS-STD-101**：所有 commit 的 diff 必须通过 `scripts/checkpatch.pl --strict` 检查，ERROR 禁止存在。
 - **OS-STD-102**：剩余的 WARNING/CHECK 必须可被作者辩护（justified）。
 
-> **交叉引用**：本节是 checkpatch 在 7 层验证体系中的框架定位。OLK-6.6 `scripts/checkpatch.pl` 中 ≥30 条 ERROR/WARNING/CHECK 规则到 agentrt-linux 规则编号（OS-STD-CODE-NNN）的逐条映射表、每条规则的 OLK-6.6 源码行号与触发示例，详见 [60-checkpatch-rule-map.md](60-checkpatch-rule-map.md) §1-§8（55 条规则映射）与 §10（CI 集成与门禁配置）。
+> **交叉引用**：本节是 checkpatch 在 7 层验证体系中的框架定位。Linux 6.6 内核基线 `scripts/checkpatch.pl` 中 ≥30 条 ERROR/WARNING/CHECK 规则到 agentrt-linux 规则编号（OS-STD-CODE-NNN）的逐条映射表、每条规则的 Linux 6.6 内核基线 源码行号与触发示例，详见 [60-checkpatch-rule-map.md](60-checkpatch-rule-map.md) §1-§8（55 条规则映射）与 §10（CI 集成与门禁配置）。
 
 ### 5.2 .clang-format（C/C++ 格式化）
 
@@ -319,7 +319,7 @@ flowchart TD
 - 命令：`clang-format -i <file>`
 - **OS-STD-103**：所有 C/C++ 文件必须通过 `clang-format` 格式化。
 
-> **SSoT 对齐（v0.3.1）**：原 `80-clang-format-enforcement.md` 已按 D-02 决策合并入 [02-code-format.md](02-code-format.md) §8/§9。格式规则定义与规则到配置项的速查映射表详见 02-code-format.md §1-§7 与 §9。完整 `.clang-format` YAML 文件、OLK-6.6 源码行号标注、Makefile 目标定义与 CI 集成脚本在 1.0.1 开发阶段随代码实现补全。
+> **SSoT 对齐**：原 `80-clang-format-enforcement.md` 已合并入 [02-code-format.md](02-code-format.md) §8/§9。格式规则定义与规则到配置项的速查映射表详见 02-code-format.md §1-§7 与 §9。完整 `.clang-format` YAML 文件、Linux 6.6 内核基线 源码行号标注、Makefile 目标定义与 CI 集成脚本随代码实现补全。
 
 ### 5.3 .rustfmt.toml（Rust 格式化）
 
@@ -345,7 +345,7 @@ flowchart TD
 - **OS-STD-107**：CI 流水线必须包含 `make format-check` 步骤；失败即 PR 阻断。
 - `make format-check` 聚合上述所有格式化检查，统一报告。
 
-> **SSoT 对齐（v0.3.1）**：原 `80-clang-format-enforcement.md` 已按 D-02 决策合并入 [02-code-format.md](02-code-format.md) §8/§9。`make format-check` 规则定义详见 02-code-format.md §8.5（OS-STD-211）。Makefile 目标定义、Git pre-commit 钩子脚本、CI 流水线集成与 checkpatch 协作流水线在 1.0.1 开发阶段随代码实现补全。
+> **SSoT 对齐**：原 `80-clang-format-enforcement.md` 已合并入 [02-code-format.md](02-code-format.md) §8/§9。`make format-check` 规则定义详见 02-code-format.md §8.5（OS-STD-211）。Makefile 目标定义、Git pre-commit 钩子脚本、CI 流水线集成与 checkpatch 协作流水线随代码实现补全。
 
 ---
 

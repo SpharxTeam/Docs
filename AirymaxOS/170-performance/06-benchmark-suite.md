@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # 基准测试套件实现方案
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）性能工程体系核心子文档，定义统一的基准测试框架、测试用例与回归检测机制\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **理论根基**：Linux 6.6 perf benchmark + seL4 l4bench 基准思想 + Airymax E-8 可测试性 + A-4 完美主义\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\

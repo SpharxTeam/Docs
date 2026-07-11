@@ -63,7 +63,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 层次 | 共享程度 | 系统子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | airymaxmon 读取的 struct_ops 状态机（INIT/INUSE/TOBEFREE/READY）+ common_value；SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）+ task_desc（magic 0x41475453 'AGTS'）+ vtime 类型；MemoryRovol L1-L4 数据结构 + GFP 掩码语义；capability 41 ID 枚举（安全配置工具引用）；IPC 消息头（magic 0x41524531 'ARE1'）+ 128B msg_hdr（DevStation 通信）；CoreLoopThree 阶段枚举 + Thinkdual 模式枚举（DevStation 调用 LLM 引用） | `include/airymax/` 6 个头文件（与 airymaxos-kernel/services/security/memory/cognition 共享） |
+| **[SC] 共享契约层** | 完全共享代码 | airymaxmon 读取的 struct_ops 状态机（INIT/REGISTERED/ACTIVE/DRAINING）+ common_value；SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）+ task_desc（magic 0x41475453 'AGTS'）+ vtime 类型；MemoryRovol L1-L4 数据结构 + GFP 掩码语义；capability 41 ID 枚举（安全配置工具引用）；IPC 消息头（magic 0x41524531 'ARE1'）+ 128B msg_hdr（DevStation 通信）；CoreLoopThree 阶段枚举 + Thinkdual 模式枚举（DevStation 调用 LLM 引用） | `include/airymax/` 6 个头文件（与 airymaxos-kernel/services/security/memory/cognition 共享） |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | commons 公共工具语义（agentrt commons → airymaxos-system 工具）、监控 API（agentrt monitoring → top/htop/perf/airymaxmon）、配置管理语义（agentrt config → sysctl/systemd-config）、AI 助手语义（agentrt assistant → DevStation）、日志语义（agentrt log_write → journald/syslog）等 8+ 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | RPM + dnf 包管理实现、glibc + musl 基础库实现、bash/fish/zsh shell 实现、sysctl/systemd-config 实现细节、top/htop/perf/bpftrace/sysstat 工具实现、DevStation OS 级实现（auto-fix/code-gen/knowledge-base） | 各自独立仓库 |
 
@@ -73,7 +73,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 |------|--------------------|-------------------------------|----------|
 | 公共工具 | commons（应用层） | 系统管理工具（OS 级） | [SS] |
 | 监控 API | 应用层监控 | top/htop/perf/airymaxmon | [SS] |
-| struct_ops 状态 | 不涉及 | airymaxmon 读取 INIT/INUSE/TOBEFREE/READY | [SC] |
+| struct_ops 状态 | 不涉及 | airymaxmon 读取 INIT/REGISTERED/ACTIVE/DRAINING | [SC] |
 | SCHED_AGENT 统计 | 不涉及 | airymaxmon 读取 task_desc + vtime | [SC] |
 | MemoryRovol 监控 | heapstore 监控 | airymaxmon 读取 L1-L4 指标 | [SC] |
 | 配置管理 | 应用配置 | sysctl + systemd-config | [SS] |
@@ -147,7 +147,7 @@ airymaxos-system/
 - `bpftrace/`：bpftrace 动态追踪 [IND]。
 - `sysstat/`：sar、iostat 等系统统计 [IND]。
 - `airymaxmon/`：agentrt-linux 专属监控工具，读取 [SC] 共享类型 [IND]：
-  - struct_ops 状态机（INIT/INUSE/TOBEFREE/READY）[SC]
+  - struct_ops 状态机（INIT/REGISTERED/ACTIVE/DRAINING）[SC]
   - SCHED_AGENT 统计（task_desc magic 0x41475453 + vtime）[SC]
   - MemoryRovol L1-L4 指标（GFP 掩码语义）[SC]
   - capability 41 ID 状态（安全监控）[SC]
@@ -249,7 +249,7 @@ net.ipv4.tcp_max_syn_backlog = 65535
 **sysstat**：系统统计（sar、iostat）[IND]。
 
 **agentrt-linux 专属监控（airymaxmon）**——读取 [SC] 共享契约层类型：
-- struct_ops 状态机监控（INIT/INUSE/TOBEFREE/READY 四态）[SC]。
+- struct_ops 状态机监控（INIT/REGISTERED/ACTIVE/DRAINING 四态）[SC]。
 - SCHED_AGENT 调度统计（task_desc magic 0x41475453 + vtime 衰减）[SC]。
 - MemoryRovol L1-L4 分级内存指标（GFP 掩码语义）[SC]。
 - capability 41 ID 安全状态监控 [SC]。
@@ -319,7 +319,7 @@ DevStation: 检测到 agent.slice 内存使用达到上限。
 ### 5.4 共享契约层监控 [SC]
 
 airymaxmon 通过 [SC] 共享契约层读取内核子系统状态，确保监控指标与 agentrt 用户态一致：
-- struct_ops 状态机（`include/airymax/bpf_struct_ops.h`）[SC]。
+- struct_ops 状态机（`include/airymax/syscalls.h`）[SC]。
 - SCHED_AGENT 调度统计（`include/airymax/sched.h`）[SC]。
 - MemoryRovol L1-L4 指标（`include/airymax/memory_types.h`）[SC]。
 - capability 安全状态（`include/airymax/security_types.h`）[SC]。
@@ -336,7 +336,7 @@ airymaxmon 通过 [SC] 共享契约层读取内核子系统状态，确保监控
 
 | 头文件 | 共享内容 | 系统使用场景 |
 |--------|---------|-------------|
-| `include/airymax/bpf_struct_ops.h` | struct_ops 状态机（INIT/INUSE/TOBEFREE/READY）+ common_value 16B | airymaxmon 监控 struct_ops 状态 |
+| `include/airymax/syscalls.h` | Syscall 编号体系（12 核心 + 12 预留 = 24 槽位） | airymaxmon 监控 syscall 调用统计 |
 | `include/airymax/sched.h` | SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）+ task_desc（magic 0x41475453 'AGTS'）+ vtime 类型与衰减公式 | airymaxmon 监控调度统计 |
 | `include/airymax/memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口 | airymaxmon 监控分级内存 |
 | `include/airymax/security_types.h` | capability 41 ID 枚举 + LSM 钩子 252 ID + Cupolas blob 布局 | airymaxmon 安全监控 + 安全配置工具 |
@@ -500,21 +500,21 @@ graph TD
 
 | 检查项 | 验证内容 | 结果 |
 |--------|----------|------|
-| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | ✅ PASS |
-| 语义同源标注 | commons/监控/配置/AI 助手/日志等标注 [SS] | ✅ PASS |
-| IRON-9 v2 三层合规 | [SC] 6 头文件 + [SS] 8 API + [IND] 12 项独立实现 | ✅ PASS |
-| [SC] 头文件引用 | 6 个头文件均在 §1.1/§3.5/§3.6/§6.1 引用 | ✅ PASS |
-| 不移植特性声明 | 无 KABI_RESERVE/BPF_SCHED/KMSAN/etmem/dynamic_pool/numa_remote | ✅ PASS |
-| 横切关注点声明 | §1.1 声明系统贯穿 4 大数据流 | ✅ PASS |
-| Mermaid 图 | §6.4 sequenceDiagram + §6.5 graph TD（≥2） | ✅ PASS |
-| 行数范围 | 542 行（300-700 范围内） | ✅ PASS |
-| 禁词检查 | 无'中枢'等禁词 | ✅ PASS |
+| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | PASS |
+| 语义同源标注 | commons/监控/配置/AI 助手/日志等标注 [SS] | PASS |
+| IRON-9 v2 三层合规 | [SC] 6 头文件 + [SS] 8 API + [IND] 12 项独立实现 | PASS |
+| [SC] 头文件引用 | 6 个头文件均在 §1.1/§3.5/§3.6/§6.1 引用 | PASS |
+| 不移植特性声明 | 无 KABI_RESERVE/BPF_SCHED/KMSAN/etmem/dynamic_pool/numa_remote | PASS |
+| 横切关注点声明 | §1.1 声明系统贯穿 4 大数据流 | PASS |
+| Mermaid 图 | §6.4 sequenceDiagram + §6.5 graph TD（≥2） | PASS |
+| 行数范围 | 542 行（300-700 范围内） | PASS |
+| 禁词检查 | 无'中枢'等禁词 | PASS |
 
 ---
 
 ## 12. 相关文档
 
-- [01-kernel.md](01-kernel.md)——内核模块（[SC] sched.h + ipc.h + bpf_struct_ops.h）
+- [01-kernel.md](01-kernel.md)——内核模块（[SC] sched.h + ipc.h + syscalls.h）
 - [02-services.md](02-services.md)——服务模块（[SC] ipc.h，systemd 集成）
 - [03-security.md](03-security.md)——安全模块（[SC] security_types.h，安全配置工具）
 - [04-memory.md](04-memory.md)——记忆模块（[SC] memory_types.h，airymaxmon 监控）

@@ -486,7 +486,7 @@ typedef enum {
 | 7 | IMA 策略 DB | agentrt-linux 用 Cupolas 声明式策略引擎替代 |
 | 8 | EVM xattr 签名 | agentrt-linux 用 Cupolas Vault seal/unseal 替代 |
 | 9 | 内核 ABI 预留机制 | 与 IRON-1 冲突（0.1.1 唯一奠基版本） |
-| 10 | 内核发行版特有增强 | 详见闭源安全技术规范参考文档 |
+| 10 | 内核发行版特有增强 | 详见工程规范委员会发布的安全技术规范 |
 
 ### 6.4 跨态协作流
 
@@ -595,21 +595,21 @@ sequenceDiagram
 
 | 序号 | 检查项 | agentrt 状态 | agentrt-linux 状态 | 结论 |
 |------|--------|-------------|---------------|------|
-| 1 | capability ID 枚举一致性 | 41 个 POSIX caps | 41 个 POSIX caps | ✅ PASS [SC] |
-| 2 | LSM 钩子 ID 枚举一致性 | 252 个钩子 ID | 252 个钩子 ID | ✅ PASS [SC] |
-| 3 | capability 派生模型一致性 | mint/mintcopy/derive/revoke | mint/mintcopy/derive/revoke | ✅ PASS [SC] |
-| 4 | Cupolas blob 布局一致性 | cred/inode/file/task | cred/inode/file/task | ✅ PASS [SC] |
-| 5 | Vault backend 抽象一致性 | 5 函数（init/seal/unseal/attest） | 5 函数（init/seal/unseal/attest） | ✅ PASS [SC] |
-| 6 | 策略裁决结果一致性 | 4 值（ALLOW/DENY/AUDIT/LOG） | 4 值（ALLOW/DENY/AUDIT/LOG） | ✅ PASS [SC] |
-| 7 | `security_add_hooks()` 语义等价性 | 用户态注册 | 内核 `hlist_add_tail_rcu` | ✅ PASS [SS] |
-| 8 | `call_int_hook` 短路语义一致性 | first-deny | first-deny | ✅ PASS [SS] |
-| 9 | Landlock 三系统调用一致性 | 用户态包装 | 内核 syscall | ✅ PASS [SS] |
-| 10 | `cap_capable()` 检查流程一致性 | 用户态模拟 | 内核 `commoncap.c` | ✅ PASS [SS] |
-| 11 | BPF_LSM X-macro 模式一致性 | 用户态 eBPF | 内核 trampoline | ✅ PASS [SS] |
-| 12 | Cupolas 7 大子系统命名一致性 | Guards/Permission/Sanitizer/Audit/Workbench/Vault/Network | 同名 | ✅ PASS [SS] |
-| 13 | `DEFINE_LSM(cupolas)` 声明一致性 | 用户态模拟 | 内核 `lsm_info` | ✅ PASS [SS] |
-| 14 | `no_new_privs` 检查一致性 | 用户态模拟 | 内核标志位 | ✅ PASS [SS] |
-| 15 | SELinux/AppArmor/IMA 独立性 | 不实现 | 不移植 | ✅ PASS [IND] |
+| 1 | capability ID 枚举一致性 | 41 个 POSIX caps | 41 个 POSIX caps | PASS [SC] |
+| 2 | LSM 钩子 ID 枚举一致性 | 252 个钩子 ID | 252 个钩子 ID | PASS [SC] |
+| 3 | capability 派生模型一致性 | mint/mintcopy/derive/revoke | mint/mintcopy/derive/revoke | PASS [SC] |
+| 4 | Cupolas blob 布局一致性 | cred/inode/file/task | cred/inode/file/task | PASS [SC] |
+| 5 | Vault backend 抽象一致性 | 5 函数（init/seal/unseal/attest） | 5 函数（init/seal/unseal/attest） | PASS [SC] |
+| 6 | 策略裁决结果一致性 | 4 值（ALLOW/DENY/AUDIT/LOG） | 4 值（ALLOW/DENY/AUDIT/LOG） | PASS [SC] |
+| 7 | `security_add_hooks()` 语义等价性 | 用户态注册 | 内核 `hlist_add_tail_rcu` | PASS [SS] |
+| 8 | `call_int_hook` 短路语义一致性 | first-deny | first-deny | PASS [SS] |
+| 9 | Landlock 三系统调用一致性 | 用户态包装 | 内核 syscall | PASS [SS] |
+| 10 | `cap_capable()` 检查流程一致性 | 用户态模拟 | 内核 `commoncap.c` | PASS [SS] |
+| 11 | BPF_LSM X-macro 模式一致性 | 用户态 eBPF | 内核 trampoline | PASS [SS] |
+| 12 | Cupolas 7 大子系统命名一致性 | Guards/Permission/Sanitizer/Audit/Workbench/Vault/Network | 同名 | PASS [SS] |
+| 13 | `DEFINE_LSM(cupolas)` 声明一致性 | 用户态模拟 | 内核 `lsm_info` | PASS [SS] |
+| 14 | `no_new_privs` 检查一致性 | 用户态模拟 | 内核标志位 | PASS [SS] |
+| 15 | SELinux/AppArmor/IMA 独立性 | 不实现 | 不移植 | PASS [IND] |
 
 **结论**：agentrt cupolas 设计无需修改。15 项检查全部 PASS，两端在 [SC]/[SS]/[IND] 三层共享模型下完全一致。
 
@@ -625,13 +625,6 @@ sequenceDiagram
 - `80-testing/` 安全测试文档
 - `90-observability/README.md`（安全审计）
 - agentrt cupolas 设计文档（同源 [SC]/[SS]）
-
-### 12.1 闭源参考文档
-
-以下文档为闭源内部参考，不公开：
-
-- 闭源源码映射文档（OLK-6.6 security/ 源码 → agentrt-linux Cupolas 映射）
-- 闭源安全技术规范参考文档（内核发行版安全工程规范全面参考）
 
 ---
 

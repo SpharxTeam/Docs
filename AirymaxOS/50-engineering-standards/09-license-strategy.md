@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **⚠️ 本文档已废弃（2026-07-09）**：本卷的许可证策略矩阵与合规执行内容已合并至 [110-spdx-license-compliance.md](./110-spdx-license-compliance.md)。请以 110 卷为权威来源。本卷保留仅作为历史参考，不再维护更新。
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）工程标准规范第 9 卷——SPDX 许可证策略。本卷明确 agentrt-linux 全部 8 子仓中各类文件的许可证标识，消解历史三套策略并存且边界未声明的合规风险。\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-09\
 > **父文档**： [工程标准规范 README](README.md)\
 > **配套文档**： [00-engineering-standards-handbook.md](./00-engineering-standards-handbook.md)（SSoT 索引）、[08-compliance-checklist.md](./08-compliance-checklist.md)（合规检查 STD-CODE-01）\
@@ -17,7 +17,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 历史三套策略并存
 
-审查报告 TS-P0-15 发现 agentrt-linux 文档与代码中存在三套 SPDX 许可证策略，且各类文件的适用边界未声明：
+经审查发现 agentrt-linux 文档与代码中存在三套 SPDX 许可证策略，且各类文件的适用边界未声明：
 
 | 历史策略 | 出现位置 | 适用范围（隐含） |
 |---------|---------|----------------|
@@ -193,7 +193,7 @@ done
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| 0.1.1 | 2026-07-09 | 初始版本：建立 5 类文件许可证策略矩阵，消解三套历史策略并存（TS-P0-15 修复） |
+| 0.1.1 | 2026-07-09 | 初始版本：建立 5 类文件许可证策略矩阵，消解三套历史策略并存 |
 
 ---
 

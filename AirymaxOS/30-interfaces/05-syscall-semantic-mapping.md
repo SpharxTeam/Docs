@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt ↔ agentrt-linux 系统调用语义映射
 
 > **文档定位**： 基于 P0-03 决策（方案 D：分层 API 设计），建立 agentrt（用户态运行时）与 agentrt-linux（AirymaxOS 内核态）之间的系统调用语义映射关系，落地 IRON-9 v2 [SS] 语义同源层
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-10\
 > **父文档**： [接口设计](README.md)
 
@@ -74,7 +74,7 @@ graph TB
         SC3[security_types.h]
         SC4[memory_types.h]
         SC5[cognition_types.h]
-        SC6[bpf_struct_ops.h]
+        SC6[syscalls.h]
     end
 
     APP --> SDK_PY
@@ -335,7 +335,7 @@ static int detect_kernel_accel(void)
 
 | 层次 | 共享程度 | 本映射文档涉及内容 |
 |------|---------|------------------|
-| **[SC] 共享契约层** | 完全共享代码 | `sched.h`（任务描述符）+ `ipc.h`（128B 消息头）+ `security_types.h`（capability）+ `memory_types.h`（MemoryRovol）+ `cognition_types.h`（CLT 三阶段）+ `bpf_struct_ops.h`（eBPF 策略） |
+| **[SC] 共享契约层** | 完全共享代码 | `sched.h`（任务描述符）+ `ipc.h`（128B 消息头）+ `security_types.h`（capability）+ `memory_types.h`（MemoryRovol）+ `cognition_types.h`（CLT 三阶段）+ `syscalls.h`（eBPF 策略） |
 | **[SS] 语义同源层** | 概念操作一致，签名独立演进 | 6 组直接语义映射 + 5 组条件语义映射（见 §3） |
 | **[IND] 完全独立层** | 完全独立 | agentrt 独有 19 个高层 API（见 §4）+ agentrt-linux 独有 11 个内核 syscall（见 §5） |
 
@@ -348,7 +348,7 @@ static int detect_kernel_accel(void)
 | `security_types.h` | capability 41 ID 枚举约束 capability_request 的语义同源 | 同上 |
 | `memory_types.h` | MemoryRovol L1-L4 快照结构约束 memory_write/rovol_snapshot 的语义同源 | 同上 |
 | `cognition_types.h` | CoreLoopThree 三阶段枚举约束 clt_phase_notify 的语义同源 | 同上 |
-| `bpf_struct_ops.h` | eBPF 策略引擎状态机约束 sched_set_policy 的语义同源 | 同上 |
+| `syscalls.h` | 12 核心 syscall 编号体系约束 airy_sys_call/send/recv 等的语义同源 | 同上 |
 
 ### 8.3 [SS] 语义同源层——映射完整性
 
@@ -397,7 +397,7 @@ graph TB
         SC3[security_types.h<br/>41 cap ID]
         SC4[memory_types.h<br/>L1-L4]
         SC5[cognition_types.h<br/>3 阶段]
-        SC6[bpf_struct_ops.h<br/>eBPF]
+        SC6[syscalls.h<br/>eBPF]
     end
 
     APP --> SDK

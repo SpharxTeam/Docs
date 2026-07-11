@@ -3,9 +3,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）国际化与本地化设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）国际化与本地化工程体系主索引\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
-> **优先级**：P2（0.1.1 完成 5 文档，1.0.1 实施验证）\
+> **优先级**：P2（5 文档）\
 > **同源映射**：agentrt 多语言错误码 + Linux 6.6 locale / gettext / iconv\
 > **理论根基**：软件国际化哲学 + Airymax A-3 人文关怀 + E-7 文档即代码
 
@@ -89,11 +89,11 @@ docs/AirymaxOS/50-engineering-standards/
 ```
 180-i18n/
 ├── README.md                       # 本文件
-├── 01-locale-design.md             # Locale 区域设置设计 ✅
-├── 02-encoding-spec.md             # 字符编码规范与 UTF-8 处理 ✅
-├── 03-error-message-i18n.md        # 错误消息国际化 ✅
-├── 04-cjk-support.md              # CJK 中文/日文/韩文支持 ✅
-└── 05-doc-i18n.md                 # 文档国际化与双语同步 ✅
+├── 01-locale-design.md             # Locale 区域设置设计 
+├── 02-encoding-spec.md             # 字符编码规范与 UTF-8 处理 
+├── 03-error-message-i18n.md        # 错误消息国际化 
+├── 04-cjk-support.md              # CJK 中文/日文/韩文支持 
+└── 05-doc-i18n.md                 # 文档国际化与双语同步 
 ```
 
 ### 3.1 0.1.1 版本范围
@@ -189,4 +189,4 @@ agentrt 的多语言错误码与 agentrt-linux 同源：
 
 ---
 
-> **文档结束** | 0.1.1 完成 5 文档，1.0.1 实施验证
+> **文档结束** | 5 文档

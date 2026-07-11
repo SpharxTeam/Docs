@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # SDK 集成设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）Agent 应用开发体系核心子文档，定义 Python/Rust/Go/TypeScript 四语言 SDK 与 agentrt-linux 内核通信的集成设计\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\

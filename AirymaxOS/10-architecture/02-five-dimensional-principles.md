@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）五维正交 24 原则与落地映射
 
 > **文档定位**：agentrt-linux（AirymaxOS）架构设计原则的完整定义与落地映射\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
 > **父文档**：[架构设计](README.md)\
 > **原则来源**：[00-architectural-principles.md](../../AirymaxRT/00-architectural-principles.md)
@@ -583,7 +583,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 |--------|---------|-------------------|--------|
 | `sched.h` | S 系统观 | magic 0x41475453 'AGTS' + SCHED_EXT=7（禁用 SCHED_AGENT 宏）+ MAC_MAX_AGENTS=1024 | kernel / cognition |
 | `ipc.h` | S 系统观 | magic 0x41524531 'ARE1' + 128B 消息头（`struct airy_ipc_msg_hdr`）契约 | kernel / services |
-| `bpf_struct_ops.h` | K 内核观 | struct_ops 4 状态机（INIT/INUSE/TOBEFREE/READY）+ common_value 16B | kernel / cognition |
+| `syscalls.h` | K 接口契约 | 12 核心 + 12 预留 = 24 槽位（8 IPC 原语 + 3 控制原语 + 1 通知原语） | kernel / cognition |
 | `security_types.h` | E 工程观 | 41 capability + 252 LSM 钩子 + Cupolas blob 布局 | kernel / security |
 | `memory_types.h` | E 工程观 | MemoryRovol L1-L4 + GFP 掩码语义 + PMEM 接口 | kernel / memory |
 | `cognition_types.h` | C 认知观 | 三阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual 模式 | kernel / cognition |
@@ -595,7 +595,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 | S 系统观 | MicroCoreRT atoms + AgentsIPC | airymaxos-kernel + services | sched_ext 17 项 + io_uring 8 项 |
 | K 内核观 | 用户态 priority queue | sched_ext + BPF struct_ops | 调度类编号同源（SCHED_EXT=7） |
 | C 认知观 | CoreLoopThree 协程 | cognition kthread + EEVDF | 三阶段枚举 + Thinkdual |
-| E 工程观 | CMake + libc/POSIX | Kbuild + Kconfig + Linux 6.6 | OLK-6.6 编码契约 |
+| E 工程观 | CMake + libc/POSIX | Kbuild + Kconfig + Linux 6.6 | Linux 6.6 内核基线 编码契约 |
 | A 设计美学 | 五维正交命名 | 五维正交命名 | 24 原则命名同源 |
 
 ### 10.4 [IND] 完全独立层
@@ -626,7 +626,7 @@ graph TB
     end
 
     subgraph "[SC] 共享契约层（6 头文件）"
-        SC[cognition_types.h + sched.h + ipc.h<br/>security_types.h + memory_types.h + bpf_struct_ops.h]
+        SC[cognition_types.h + sched.h + ipc.h<br/>security_types.h + memory_types.h + syscalls.h]
     end
 
     RT_S -.->|"API 同源 [SS]"| OS_S

@@ -271,8 +271,8 @@ import { TaskPlan, TaskResult, TaskStatus } from './types';
  * 3. 工具函数: MIT (第三方库 [库名])
  * 
  * 兼容性分析：
- * - Apache-2.0 与 BSD-3-Clause 兼容 ✅
- * - Apache-2.0 与 MIT 兼容 ✅
+ * - Apache-2.0 与 BSD-3-Clause 兼容 
+ * - Apache-2.0 与 MIT 兼容 
  * - 组合许可证: Apache-2.0 AND BSD-3-Clause AND MIT
  * 
  * 使用限制：
@@ -370,10 +370,10 @@ def process_user_data(user_data: Dict[str, Any]) -> Dict[str, Any]:
  *   - 专利检查: 已进行专利前置审查，未发现侵权风险
  *   
  * @patent 第三方专利排查:
- *   1. US Patent 5,838,919 (数据压缩方法) - 已过期 ✅
- *   2. US Patent 6,009,177 (LZ派生算法) - 已过期 ✅  
+ *   1. US Patent 5,838,919 (数据压缩方法) - 已过期 
+ *   2. US Patent 6,009,177 (LZ派生算法) - 已过期  
  *   3. CN Patent ZL201110123456.7 (中文优化) - 不相关 ❌
- *   4. EP Patent 1234567 (哈希优化) - 已规避 ✅
+ *   4. EP Patent 1234567 (哈希优化) - 已规避 
  *   
  * @patent 合规措施:
  *   1. 使用已进入公共领域的算法基础

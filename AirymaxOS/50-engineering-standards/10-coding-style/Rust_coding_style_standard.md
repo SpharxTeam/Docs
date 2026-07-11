@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）Rust 语言编码风格规范
 
 > **文档定位**： agentrt-linux（AirymaxOS）内核模块 Rust 语言编码风格规范\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [编码规范总览](README.md)\
 > **同源参考**： Rust for Linux 社区编码约定 + `rust/kernel/` 目录代码风格\
@@ -526,7 +526,7 @@ graph TD
         end
 
         subgraph "[SC] 共享契约层"
-            SC_HDR["include/airymax/<br/>bpf_struct_ops.h / memory_types.h<br/>security_types.h / cognition_types.h<br/>sched.h / ipc.h"]
+            SC_HDR["include/airymax/<br/>syscalls.h / memory_types.h<br/>security_types.h / cognition_types.h<br/>sched.h / ipc.h"]
         end
     end
 

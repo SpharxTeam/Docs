@@ -576,21 +576,21 @@ sequenceDiagram
 
 | 序号 | 检查项 | agentrt 状态 | agentrt-linux 状态 | 结论 |
 |------|--------|-------------|---------------|------|
-| 1 | CoreLoopThree 阶段枚举一致性 | 3 阶段（PERCEPTION/THINKING/ACTION） | 3 阶段（同） | ✅ PASS [SC] |
-| 2 | Thinkdual 模式枚举一致性 | 2 模式（SYSTEM1_FAST/SYSTEM2_SLOW） | 2 模式（同） | ✅ PASS [SC] |
-| 3 | LLM 推理阶段枚举一致性 | 3 阶段（PREFILL/DECODE/SPECULATIVE） | 3 阶段（同） | ✅ PASS [SC] |
-| 4 | CoreLoopThree 上下文结构一致性 | 6 字段 | 6 字段（同） | ✅ PASS [SC] |
-| 5 | Token 能效指标结构一致性 | 6 字段 | 6 字段（同） | ✅ PASS [SC] |
-| 6 | GPU/NPU 能力描述符一致性 | 7 字段 | 7 字段（同） | ✅ PASS [SC] |
-| 7 | `coreloopthree_run()` 语义等价性 | 用户态循环 | 内核 kthread 循环 | ✅ PASS [SS] |
-| 8 | `coreloopthree_notify_phase()` 语义等价性 | 用户态回调 | sched_ext 接口 | ✅ PASS [SS] |
-| 9 | `thinkdual_switch()` 语义等价性 | 用户态切换 | 内核态切换 | ✅ PASS [SS] |
-| 10 | `llm_scheduler_submit()` 语义等价性 | 用户态队列 | io_uring 提交 | ✅ PASS [SS] |
-| 11 | `llm_scheduler_query_phase()` 语义等价性 | 用户态查询 | 内核 BPF tracing | ✅ PASS [SS] |
-| 12 | `wasm_runtime_instantiate()` 语义等价性 | 用户态 wasmtime | 内核态 WAMR | ✅ PASS [SS] |
-| 13 | `gpu_npu_schedule()` 语义等价性 | 用户态 API | drm_sched + drivers/accel/ | ✅ PASS [SS] |
-| 14 | `token_efficiency_record()` 语义等价性 | 用户态记录 | 内核 ftrace | ✅ PASS [SS] |
-| 15 | Wasm runtime/GPU 驱动/超节点沙箱独立性 | 用户态实现 | 内核态实现 | ✅ PASS [IND] |
+| 1 | CoreLoopThree 阶段枚举一致性 | 3 阶段（PERCEPTION/THINKING/ACTION） | 3 阶段（同） | PASS [SC] |
+| 2 | Thinkdual 模式枚举一致性 | 2 模式（SYSTEM1_FAST/SYSTEM2_SLOW） | 2 模式（同） | PASS [SC] |
+| 3 | LLM 推理阶段枚举一致性 | 3 阶段（PREFILL/DECODE/SPECULATIVE） | 3 阶段（同） | PASS [SC] |
+| 4 | CoreLoopThree 上下文结构一致性 | 6 字段 | 6 字段（同） | PASS [SC] |
+| 5 | Token 能效指标结构一致性 | 6 字段 | 6 字段（同） | PASS [SC] |
+| 6 | GPU/NPU 能力描述符一致性 | 7 字段 | 7 字段（同） | PASS [SC] |
+| 7 | `coreloopthree_run()` 语义等价性 | 用户态循环 | 内核 kthread 循环 | PASS [SS] |
+| 8 | `coreloopthree_notify_phase()` 语义等价性 | 用户态回调 | sched_ext 接口 | PASS [SS] |
+| 9 | `thinkdual_switch()` 语义等价性 | 用户态切换 | 内核态切换 | PASS [SS] |
+| 10 | `llm_scheduler_submit()` 语义等价性 | 用户态队列 | io_uring 提交 | PASS [SS] |
+| 11 | `llm_scheduler_query_phase()` 语义等价性 | 用户态查询 | 内核 BPF tracing | PASS [SS] |
+| 12 | `wasm_runtime_instantiate()` 语义等价性 | 用户态 wasmtime | 内核态 WAMR | PASS [SS] |
+| 13 | `gpu_npu_schedule()` 语义等价性 | 用户态 API | drm_sched + drivers/accel/ | PASS [SS] |
+| 14 | `token_efficiency_record()` 语义等价性 | 用户态记录 | 内核 ftrace | PASS [SS] |
+| 15 | Wasm runtime/GPU 驱动/超节点沙箱独立性 | 用户态实现 | 内核态实现 | PASS [IND] |
 
 **结论**：agentrt coreloopthree + frameworks 设计无需修改。15 项检查全部 PASS，两端在 [SC]/[SS]/[IND] 三层共享模型下完全一致。
 
@@ -603,13 +603,6 @@ sequenceDiagram
 - `80-testing/` 认知测试文档
 - `90-observability/README.md`（认知监控）
 - agentrt coreloopthree + frameworks 设计文档（同源 [SC]/[SS]）
-
-### 12.1 闭源参考文档
-
-以下文档为闭源内部参考，不公开：
-
-- 闭源源码映射文档（OLK-6.6 kthread + GPU 调度 + 加速器框架支撑机制映射）
-- 闭源认知技术规范参考文档（行业最新理论参考）
 
 ---
 

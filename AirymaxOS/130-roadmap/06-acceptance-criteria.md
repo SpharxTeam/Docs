@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）验收标准与质量门禁
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）开发详细方案（路线图）模块第 6 文档\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
 > **同源映射**：agentrt `0.1.1工程标准规范手册.md`（v28.0，§38.10 ACC-OS04 + 149 项 ACC）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则（体系并行论）\
@@ -95,7 +95,7 @@ agentrt-linux 1.0.1 共定义约 110 项 OS-ACC 验收标准，覆盖 9 个 Part
 | OS-ACC-008 ★ | 五维原则映射 | `grep -rE "S-1\|S-2\|S-3\|S-4\|K-1\|K-2\|K-3\|K-4\|C-1\|C-2\|C-3\|C-4\|E-1\|E-2\|E-3\|E-4\|E-5\|E-6\|E-7\|E-8\|A-1\|A-2\|A-3\|A-4" docs/AirymaxOS/50-engineering-standards/*.md` | 每个文档包含映射 | P0 | M0 |
 | OS-ACC-009 | 代码示例 | `grep -rE "\`\`\`(c\|rust\|python\|ts\|bash)" docs/AirymaxOS/50-engineering-standards/*.md` | 每个文档 ≥5 个代码示例 | P0 | M0 |
 | OS-ACC-010 ★ | Mermaid 图表 | `grep -rE "\`\`\`mermaid" docs/AirymaxOS/50-engineering-standards/*.md` | 关键文档包含图表 | P0 | M0 |
-| OS-ACC-011 | Linux 6.6 内核基线声明 | `grep -rE "Linux 6.6 内核基线\|Linux 6.6（OLK-6.6）" docs/AirymaxOS/50-engineering-standards/` | 全部文档包含 | P0 | M0 |
+| OS-ACC-011 | Linux 6.6 内核基线声明 | `grep -rE "Linux 6.6 内核基线\|Linux 6.6（Linux 6.6 内核基线）" docs/AirymaxOS/50-engineering-standards/` | 全部文档包含 | P0 | M0 |
 | OS-ACC-012 ★ | IRON-9 v2 同源且部分代码共享声明 | `grep -rE "IRON-9 v2 同源且部分代码共享" docs/AirymaxOS/50-engineering-standards/` | ≥3 处声明 | P0 | M0 |
 | OS-ACC-013 | 五维正交 24 原则声明 | `grep -rE "五维正交 24 原则\|五维正交" docs/AirymaxOS/50-engineering-standards/` | 全部文档包含 | P0 | M0 |
 | OS-ACC-014 | .clang-format 配置 | `find . -name ".clang-format" \| wc -l` | ≥1 个 | P0 | M0 |
@@ -417,8 +417,8 @@ graph LR
 ### 15.2 同源 Airymax 文档
 
 - `docs/AirymaxRT/00-architectural-principles.md` — 五维正交 24 原则
-- IRON-9 v2 工程铁律（闭源内部参考） — 17 类规则编号体系（v28.0，含 IRON-9 + ACC-OS04 + 149 项 ACC）
-- 内部工程改进方案（闭源） — agentrt 三大支柱方案（v4.2）
+- IRON-9 v2 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9 + ACC-OS04 + 149 项 ACC）
+- agentrt 工程改进方案 — agentrt 三大支柱方案（v4.2）
 
 ### 15.3 agentrt-linux 工程标准
 

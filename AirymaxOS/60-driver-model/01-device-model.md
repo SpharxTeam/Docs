@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）驱动模型 — device/driver/bus 三元组详解
 
 > **文档定位**： agentrt-linux（AirymaxOS）驱动子系统 60 模块首篇——device/driver/bus/class 四元关系核心抽象\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **同源映射**： agentrt `daemons`（用户态服务）+ Linux 6.6 `drivers/base/`（device/driver/bus/class 实现）\
 > **理论根基**： Linux 6.6 内核基线 + Airymax 五维正交 24 原则\
@@ -658,7 +658,7 @@ struct agent_driver {
  *
  * 返回: 0 成功，<0 失败（-EINVAL/-EBUSY）
  *
- * @since 1.0.1（代码实施）
+ * @since 1.0.1
  */
 int agent_driver_register(struct agent_driver *drv);
 
@@ -791,7 +791,7 @@ Agent 设备的 probe/remove 与内核 uevent 形成异步协作：daemon 侧完
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 device/driver/bus/class 四元驱动模型所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `include/linux/device.h`、`include/linux/device/driver.h`、`include/linux/device/bus.h`、`include/linux/device/class.h`、`drivers/base/base.h` 及 `include/airymax/sched.h`（[SC] 间接依赖层）。
+> **附录定位**： 本附录汇集 device/driver/bus/class 四元驱动模型所需的完整 C 接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `include/linux/device.h`、`include/linux/device/driver.h`、`include/linux/device/bus.h`、`include/linux/device/class.h`、`drivers/base/base.h` 及 `include/airymax/sched.h`（[SC] 间接依赖层）。
 
 ### A.1 核心数据结构
 
@@ -1041,7 +1041,7 @@ struct subsys_private {
  *
  * 返回: 0 成功，<0 失败（-EINVAL/-ENOMEM）
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/core.c
  */
@@ -1073,7 +1073,7 @@ void device_unregister(struct device *dev);
  * 返回: 0 成功，<0 失败（-EINVAL/-EBUSY/-ENOMEM）
  *       -EBUSY: 同名 driver 已注册
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/driver.c
  */
@@ -1104,7 +1104,7 @@ void driver_unregister(struct device_driver *drv);
  * 返回: 0 成功，<0 失败（-EEXIST/-ENOMEM）
  *       -EEXIST: 同名 bus 已注册
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/bus.c
  */
@@ -1133,7 +1133,7 @@ void bus_unregister(struct bus_type *bus);
  *
  * 返回: 0 成功，<0 失败（-EEXIST/-ENOMEM）
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/class.c
  */

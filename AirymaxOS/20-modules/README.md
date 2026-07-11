@@ -3,10 +3,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux 模块设计
 
 > **文档定位**：agentrt-linux（AirymaxOS）8 子仓模块设计的总览与索引\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-07\
 > **父文档**：[agentrt-linux 总览](../README.md)\
-> **核心约束**：IRON-9 v2 同源且部分代码共享——[SC] 共享契约层 6 个头文件（bpf_struct_ops.h/memory_types.h/security_types.h/cognition_types.h/sched.h/ipc.h）落地于 include/airymax/
+> **核心约束**：IRON-9 v2 同源且部分代码共享——[SC] 共享契约层 6 个头文件（syscalls.h/memory_types.h/security_types.h/cognition_types.h/sched.h/ipc.h）落地于 include/airymax/
 
 ---
 
@@ -257,12 +257,12 @@ agentrt-linux 采用语义化版本（Semantic Versioning）：
 | MINOR | 向后兼容的功能新增 | 1.0.1 → 1.1.0 |
 | PATCH | 向后兼容的缺陷修复 | 1.0.1 → 1.0.2 |
 
-### 6.2 当前版本状态
+### 6.2 版本范围
 
-| 版本 | agentrt-linux 范围 | 状态 |
+| 版本 | agentrt-linux 范围 | 定位 |
 |------|---------------|------|
-| 0.1.1 | 文档体系完成 + 设计草案 + agentrt-linux 工程基线声明 | 文档体系 |
-| 1.0.1 | 内核和 OS 实际开发 | 开发中 |
+| 0.1.1 | 设计文档体系 + 设计草案 + 工程基线声明 | 文档体系 |
+| 1.0.1 | 内核和 OS 实现 | 开发 |
 
 ### 6.3 演进策略
 

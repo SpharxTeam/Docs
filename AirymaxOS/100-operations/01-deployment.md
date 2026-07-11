@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）部署体系
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）运维体系第 1 卷——部署工程。本文档规定从裸机到可用 Agent 工作负载的完整交付链路：RPM 包格式、dnf 包管理器、ISO 镜像制作、Kickstart 自动化安装、PXE 网络安装、系统初始化、12 daemons 部署、DevStation 部署、版本升级路径与回滚机制。
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt daemons（12 个用户态服务）+ Linux 6.6 systemd 集成 + MicroCoreRT 极简内核契约
 > **理论根基**： Linux 6.6 内核基线工程思想 + Airymax 五维正交 24 原则 + S-1 反馈闭环
@@ -767,7 +767,7 @@ graph TD
 
 ## 第 15 章 文档版本与维护
 
-- **当前版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
+- **当前版本**: 0.1.1
 - **最后更新**: 2026-07-06
 - **维护者**: 工程规范委员会（待成立，详见 50-engineering-standards/07-maintainers-and-governance.md）
 - **变更流程**: 任何部署规则变更必须经 RFC → 评审 → ACC 验收流程，涉及 AgentsIPC 协议或 MicroCoreRT 契约的变更需额外经工程规范委员会签字
@@ -777,7 +777,7 @@ graph TD
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集部署体系所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核基线 RPM/systemd 工程实践、主流 Linux 发行版工具链（rpmbuild/dnf/lorax/dractu），以及 agentrt-linux 12 daemons 部署专属契约（`include/airymax/deploy_types.h`）。
+> **附录定位**： 本附录汇集部署体系所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核基线 RPM/systemd 工程实践、主流 Linux 发行版工具链（rpmbuild/dnf/lorax/dractu），以及 agentrt-linux 12 daemons 部署专属契约（`include/airymax/deploy_types.h`）。
 
 ### A.1 核心数据结构
 
@@ -1036,7 +1036,7 @@ struct pxe_config {
  * 构建完成后自动 GPG 签名（OS-OPS-004），未签名产物禁止发布。
  *
  * @return: 0 成功，<0 失败（见 RPM_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核基线 rpmbuild + mock 工程实践
  */
@@ -1059,7 +1059,7 @@ int rpm_build(const struct rpm_spec *spec,
  * 依赖图校验：检测循环依赖（OS-STD-109），有环则拒绝安装。
  *
  * @return: 0 成功，<0 失败（见 DAEMON_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 systemd（v254+）单元安装规范
  */
@@ -1081,7 +1081,7 @@ int systemd_install(const struct systemd_unit *unit,
  * 检查通过后执行 systemctl start <unit>，并启动 watchdog 心跳监控。
  *
  * @return: 0 成功，<0 失败（见 DAEMON_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * agentrt-linux 专属（对齐 12 daemons 生命周期管理）
  */
@@ -1096,7 +1096,7 @@ int daemon_start(const struct daemon_config *config);
  * 停止后注销 AgentsIPC 队列，释放 IPC 资源。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  */
 int daemon_stop(const struct daemon_config *config, bool graceful);
 
@@ -1108,7 +1108,7 @@ int daemon_stop(const struct daemon_config *config, bool graceful);
  * 重启后必须执行健康检查（OS-OPS-014 watchdog）。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  */
 int daemon_restart(const struct daemon_config *config);
 ```
@@ -1128,7 +1128,7 @@ int daemon_restart(const struct daemon_config *config);
  *           (5) GPG 签名 + SHA-256 校验和（OS-OPS-001/OS-OPS-008）。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核基线 lorax + livemedia-creator 工程实践
  */
@@ -1150,7 +1150,7 @@ int iso_create(const struct iso_image_spec *spec,
  *         (5) 包段含 airymaxos-kernel + airymaxos-services-core。
  *
  * @return: 0 校验通过，<0 校验失败（见 KS_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核基线 Anaconda ksvalidator 规范
  */
@@ -1171,7 +1171,7 @@ int kickstart_validate(const struct kickstart_config *ks);
  *           (3) GPG 密钥已安装到 /etc/pki/rpm-gpg/。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核基线 PXE + 主流 Linux 发行版网络部署规范
  */
@@ -1285,4 +1285,4 @@ int pxe_setup(const struct pxe_config *pxe, bool repo_sync);
 
 ---
 
-> **文档结束** | 100-operations 第 1 卷 | 0.1.1 P0 优先完成
+> **文档结束** | 100-operations 第 1 卷 | 

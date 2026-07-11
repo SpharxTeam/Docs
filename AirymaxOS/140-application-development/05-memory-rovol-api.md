@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # MemoryRovol 记忆卷载 API 契约
 
 > **文档定位**：agentrt-linux（AirymaxOS）MemoryRovol 记忆卷载子系统的完整应用层 API 契约，定义 10 个系统调用（编号 552-561）的签名、参数语义、状态机、数据流、错误处理与 SDK 集成\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **父文档**：[Agent 应用开发 README](README.md)\
 > **文档性质**：实现方案文档（非设计文档）。本契约在 [02-memory-flow.md](../40-dataflows/02-memory-flow.md) 数据流设计与 [04-memory.md](../20-modules/04-memory.md) 子仓设计的基础上，补充完整的 API 签名、状态机与接口定义\
@@ -1617,13 +1617,6 @@ L1 原始卷与 L4 模式层在 PMEM 持久化时启用 TEE 加密：
 - [04-token-budget.md](04-token-budget.md)——Token 预算契约
 - [03-capability-model.md](../110-security/03-capability-model.md)——Capability 安全模型
 - [01-agent-lifecycle.md](01-agent-lifecycle.md)——Agent 生命周期管理
-
-### 17.3 闭源参考文档
-
-以下文档为闭源内部参考，不公开（位于 `docs-closed/agentrt-linux/`）：
-
-- OLK-6.6 mm/ 源码映射文档
-- 内核发行版内存工程规范参考文档
 
 ---
 

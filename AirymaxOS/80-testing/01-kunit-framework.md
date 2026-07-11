@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）KUnit 单元测试框架详解
 
 > **文档定位**： agentrt-linux（AirymaxOS）测试工程体系第 1 卷——KUnit 白盒单元测试框架详解。本卷规定 KUnit 架构、`kunit_suite`/`kunit_case` 结构、`KUNIT_EXPECT_*`/`KUNIT_ASSERT_*` 宏、参数化测试、套件注册、KUnit 运行器、Kconfig 集成（`CONFIG_KUNIT`）、TAP 输出格式与 in-tree 测试组织。
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt 7 层验证 L1（白盒单元测试）+ Linux 6.6 内核基线 `lib/kunit/`、`include/kunit/test.h`
 > **理论根基**： Linux 6.6 内核基线测试思想 + Airymax 五维正交 24 原则（E-8 可测试性 / A-4 完美主义）
@@ -447,7 +447,7 @@ CI 矩阵覆盖 `arch: [um, x86_64, arm64, riscv64] × config: [defconfig, allmo
 
 **无直接 [SC] 共享头文件**。
 
-测试框架层不属于 IRON-9 v2 的 6 个 [SC] 共享头文件清单（`bpf_struct_ops.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。测试框架是验证基础设施，两端运行环境截然不同（用户态进程 vs 内核态 kthread），其断言宏与套件注册宏各自定义，源码层无共享头文件依赖。这一约束确保 agentrt 用户态测试框架演进时不会被动牵连 agentrt-linux KUnit，反之亦然——测试框架层的演进由各自的 **OS-TEST 评审** 独立裁决。两端仅通过 **AgentsIPC** 汇总测试结果，实现跨态协作而非代码共享。
+测试框架层不属于 IRON-9 v2 的 6 个 [SC] 共享头文件清单（`syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。测试框架是验证基础设施，两端运行环境截然不同（用户态进程 vs 内核态 kthread），其断言宏与套件注册宏各自定义，源码层无共享头文件依赖。这一约束确保 agentrt 用户态测试框架演进时不会被动牵连 agentrt-linux KUnit，反之亦然——测试框架层的演进由各自的 **OS-TEST 评审** 独立裁决。两端仅通过 **AgentsIPC** 汇总测试结果，实现跨态协作而非代码共享。
 
 #### 11.2.3 [SS] 语义同源层
 
@@ -721,7 +721,7 @@ static void tool_terminate_test(struct kunit *test)
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 KUnit 单元测试框架所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `include/kunit/test.h`、`lib/kunit/test.c`、`lib/kunit/assert.c`、`lib/kunit/try-catch.c`、`lib/kunit/executor.c` 及 `include/airymax/test_types.h`（[SC] 共享契约层）。KUnit 框架与 Linux 6.6 上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立套件形式注入，禁止改写上游核心代码。
+> **附录定位**： 本附录汇集 KUnit 单元测试框架所需的完整 C 接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `include/kunit/test.h`、`lib/kunit/test.c`、`lib/kunit/assert.c`、`lib/kunit/try-catch.c`、`lib/kunit/executor.c` 及 `include/airymax/test_types.h`（[SC] 共享契约层）。KUnit 框架与 Linux 6.6 上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立套件形式注入，禁止改写上游核心代码。
 
 ### A.1 核心数据结构
 
@@ -870,7 +870,7 @@ struct kunit_assert {
  * 多套件变体：kunit_test_suites(&suite1, &suite2, ...)
  *
  * 对齐 Linux 6.6 include/kunit/test.h
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  */
 #define kunit_test_suite(suite) \
     static struct kunit_suite *const ___kunit_suite_##suite[] \
@@ -904,7 +904,7 @@ int kunit_run_tests(struct kunit_suite *suite);
  * 返回: 0 全部成功；非零存在失败用例
  *
  * 对齐 Linux 6.6 lib/kunit/executor.c
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  */
 int kunit_run_all_tests(const char *filter);
 ```
@@ -988,7 +988,7 @@ void kunit_suite_exit(struct kunit_suite *suite);
 #define KUNIT_EXPECT_MEMEQ(test, left, right, size)
 #define KUNIT_EXPECT_MEMNEQ(test, left, right, size)
 
-/* @since 0.1.1（文档体系）/ 1.0.1（代码实施） */
+/* @since 0.1.1 */
 ```
 
 #### A.3.2 KUNIT_ASSERT_* 宏家族
@@ -1024,7 +1024,7 @@ void kunit_suite_exit(struct kunit_suite *suite);
 #define KUNIT_ASSERT_MEMEQ(test, left, right, size)
 #define KUNIT_ASSERT_MEMNEQ(test, left, right, size)
 
-/* @since 0.1.1（文档体系）/ 1.0.1（代码实施） */
+/* @since 0.1.1 */
 ```
 
 #### A.3.3 KUNIT_SUCCEED / KUNIT_FAIL 与辅助宏
@@ -1066,7 +1066,7 @@ void kunit_suite_exit(struct kunit_suite *suite);
  */
 #define KUNIT_PARAM_DESC_SIZE  128
 
-/* @since 0.1.1（文档体系）/ 1.0.1（代码实施） */
+/* @since 0.1.1 */
 ```
 
 #### A.3.4 KUnit 状态码与 CONFIG
@@ -1104,4 +1104,4 @@ void kunit_suite_exit(struct kunit_suite *suite);
 
 ---
 
-> **文档结束** | agentrt-linux 测试工程第 1 卷（KUnit 框架详解）| 0.1.1 P0 优先完成 | 同源 Linux 6.6 内核基线 KUnit
+> **文档结束** | agentrt-linux 测试工程第 1 卷（KUnit 框架详解）|  | 同源 Linux 6.6 内核基线 KUnit

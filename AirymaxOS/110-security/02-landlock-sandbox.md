@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # Landlock 用户态沙箱
 
 > **文档定位**： agentrt-linux（AirymaxOS）安全工程体系第 2 主题文档——Landlock 用户态安全沙箱深度剖析\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **同源映射**： agentrt Cupolas（安全穹顶）+ Linux 6.6 LSM/Landlock/capability\
 > **理论根基**： Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + E-1 安全内生\
@@ -679,7 +679,7 @@ Cupolas daemon 创建 ruleset 后按 L0→L1→L2 顺序追加规则并三次调
 | 字段 | 值 |
 |------|------|
 | 文档定位 | Landlock 用户态沙箱 |
-| 当前版本 | 0.1.1（文档体系完成）/ 1.0.1（开发） |
+| 当前版本 | 0.1.1 |
 | 最后更新 | 2026-07-06 |
 | 维护者 | agentrt-linux 安全工程组 |
 | 同源映射 | agentrt Cupolas + Linux 6.6 LSM/Landlock/capability |
@@ -694,7 +694,7 @@ Cupolas daemon 创建 ruleset 后按 L0→L1→L2 顺序追加规则并三次调
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 Landlock 用户态沙箱所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `security/landlock/ruleset.h`、`security/landlock/object.h`、`security/landlock/syscalls.c`、`security/landlock/cred.c`、`security/landlock/fs.c`、`include/uapi/linux/landlock.h` 及 `include/airymax/security_types.h`（[SC] 共享契约层）。
+> **附录定位**： 本附录汇集 Landlock 用户态沙箱所需的完整 C 接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `security/landlock/ruleset.h`、`security/landlock/object.h`、`security/landlock/syscalls.c`、`security/landlock/cred.c`、`security/landlock/fs.c`、`include/uapi/linux/landlock.h` 及 `include/airymax/security_types.h`（[SC] 共享契约层）。
 
 ### A.1 核心数据结构
 
@@ -921,7 +921,7 @@ struct landlock_net_port_attr {
  *
  * 返回: 指向新 ruleset 的指针；失败返回 ERR_PTR(-ENOMEM)
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 security/landlock/ruleset.c
  */
@@ -945,7 +945,7 @@ landlock_create_ruleset(const access_mask_t fs_access_mask);
  *
  * 返回: 0 成功，<0 失败（-EINVAL/-ENOMSG/-EBADFD/-ENOMEM）
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 security/landlock/syscalls.c
  */
@@ -968,7 +968,7 @@ int landlock_add_rule(struct landlock_ruleset *const ruleset,
  *
  * 返回: 0 成功；<0 失败（-EOPNOTSUPP/-EPERM/-EINVAL/-ENOMEM）
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 security/landlock/syscalls.c
  */
@@ -1282,4 +1282,4 @@ DEFINE_LSM(landlock, {
 
 ---
 
-> **文档结束** | 0.1.1 P0 优先完成 Landlock 沙箱核心机制
+> **文档结束** |  Landlock 沙箱核心机制

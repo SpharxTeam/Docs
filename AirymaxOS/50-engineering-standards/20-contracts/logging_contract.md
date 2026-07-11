@@ -2,7 +2,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）日志格式契约
 
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [OS 层契约规范总览](README.md)
 

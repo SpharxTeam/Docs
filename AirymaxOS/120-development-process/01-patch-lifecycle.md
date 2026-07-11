@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）补丁生命周期 6 阶段详解
 
 > **文档定位**： agentrt-linux（AirymaxOS）120-development-process 模块第 1 卷——补丁生命周期。本文档详述代码从设计构想到主线、稳定版、长期维护的 6 阶段全生命周期，是工程标准层 `50-engineering-standards/05-development-process.md` 在模块设计层的展开。
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt 开发流程 + Linux 6.6 内核开发流程（`Documentation/process/development-process.rst` 8 章）
 > **理论根基**： Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + S-4 涌现性管理 + C-2 增量演化
@@ -342,7 +342,7 @@ stateDiagram-v2
     MAINLINE --> STABLE: 进入 linux-next 消化期后合入 mainline
     MAINLINE --> REJECTED: 社区否决（Nacked-by）
 
-    STABLE --> LTS: backport 到 LTS 分支（如 OLK-6.6）
+    STABLE --> LTS: backport 到 LTS 分支（如 Linux 6.6 内核基线）
 
     REJECTED --> [*]: 补丁被社区否决，归档关闭
     LTS --> [*]: 补丁进入长期维护，生命周期完成
@@ -376,7 +376,7 @@ stateDiagram-v2
 | WIDER_REVIEW | EARLY_REVIEW | 需要重大修订，重新走早期审查 | 补丁退回 Early Review 阶段，保留 develop 集成经验，重新提交修订版 |
 | MAINLINE | STABLE | 补丁进入 linux-next 消化期后合入 mainline，通过 `-rc` 验证 | 补丁随正式版本发布，进入 `release/*` 分支，开始 stable 维护（OS-DEV-141） |
 | MAINLINE | REJECTED | 社区否决，收到 `Nacked-by` 标签（须附技术理由，OS-DEV-242） | 补丁被拒绝合并，PR 关闭，记录否决原因供后续参考 |
-| STABLE | LTS | backport 到 LTS 分支（如 OLK-6.6），stable kernel team 审批通过（48 小时 ACK，OS-DEV-142） | 补丁进入 LTS 候选名单，LTS 维护者负责季度维护版本发布（OS-DEV-154） |
+| STABLE | LTS | backport 到 LTS 分支（如 Linux 6.6 内核基线），stable kernel team 审批通过（48 小时 ACK，OS-DEV-142） | 补丁进入 LTS 候选名单，LTS 维护者负责季度维护版本发布（OS-DEV-154） |
 | REJECTED | —（终态） | 补丁被社区否决，归档关闭 | 补丁生命周期终止，PR 标记为 closed，设计文档保留供参考 |
 | LTS | —（终态） | 补丁进入长期维护，12 个月响应期结束（OS-DEV-151） | 补丁生命周期完成，作者持续负责或标记为 Orphaned 寻找新维护者 |
 
@@ -698,7 +698,7 @@ agentrt-linux 的 umbrella repo 通过 `.gitmodules` 引用 8 子仓的 commit S
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集补丁生命周期 6 阶段所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核开发流程（`Documentation/process/`）、git format-patch 补丁格式规范、DCO 1.1 标准，以及 agentrt-linux GitHub PR 工作流专属契约（`include/airymax/patch_types.h`）。
+> **附录定位**： 本附录汇集补丁生命周期 6 阶段所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核开发流程（`Documentation/process/`）、git format-patch 补丁格式规范、DCO 1.1 标准，以及 agentrt-linux GitHub PR 工作流专属契约（`include/airymax/patch_types.h`）。
 
 ### A.1 核心数据结构
 
@@ -914,7 +914,7 @@ struct stage_transition {
  *         (6) 无 force-push 到 main/develop/release/*（OS-DEV-182）。
  *
  * @return: 0 校验通过，<0 校验失败（见 PATCH_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核 submitting-patches.rst 规范
  */
@@ -937,7 +937,7 @@ int patch_validate(const struct patch_metadata *metadata);
  *           (5) 调用 gh pr create 创建 PR。
  *
  * @return: PR 编号（>0 成功），<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 agentrt-linux GitHub PR 工作流（§11）
  */
@@ -962,7 +962,7 @@ int pr_create(const struct pr_template *template,
  *           (5) 若失败且超过 max_retries，回退到 Design（OS-DEV-162）。
  *
  * @return: 0 转换成功，<0 转换失败（见 PATCH_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 agentrt-linux §9 转换条件矩阵
  */
@@ -985,7 +985,7 @@ int stage_transition(const char *patch_sha,
  * 应用到 main 需先通过 CI 全绿（OS-DEV-134）。
  *
  * @return: 0 成功，<0 失败（见 PATCH_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 git cherry-pick / git am 工程实践
  */
@@ -1011,7 +1011,7 @@ int patch_apply(const char *patch_sha,
  *          顶级子系统维护者（OS-KER-221）。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核 review 标签语义
  */
@@ -1037,7 +1037,7 @@ int review_add(const char *patch_sha,
  * 工程规范委员会有 48 小时给出 ACK 或 NAK（OS-DEV-142）。
  *
  * @return: 0 成功，<0 失败（见 PATCH_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核 stable-kernel-rules.rst 规范
  */
@@ -1184,4 +1184,4 @@ int stable_backport(const char *patch_sha,
 
 ---
 
-> **文档结束** | 120-development-process/01-patch-lifecycle.md | 版本 0.1.1（文档体系完成）
+> **文档结束** | 120-development-process/01-patch-lifecycle.md | 版本 0.1.1

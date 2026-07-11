@@ -63,7 +63,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 层次 | 共享程度 | 测试子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | IPC 测试验证的消息头格式（magic 0x41524531 'ARE1' + 128B `struct airy_ipc_msg_hdr`）；调度器测试验证的 task_desc（magic 0x41475453 'AGTS'）+ vtime 衰减公式；安全形式化验证的 capability 41 ID 枚举 + LSM 252 ID 枚举；struct_ops 状态机验证（INIT/INUSE/TOBEFREE/READY）；MemoryRovol 快照一致性验证的 L1-L4 数据结构 + GFP 掩码语义；认知测试验证的 CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 | `include/airymax/` 6 个头文件（测试框架验证这些共享类型） |
+| **[SC] 共享契约层** | 完全共享代码 | IPC 测试验证的消息头格式（magic 0x41524531 'ARE1' + 128B `struct airy_ipc_msg_hdr`）；调度器测试验证的 task_desc（magic 0x41475453 'AGTS'）+ vtime 衰减公式；安全形式化验证的 capability 41 ID 枚举 + LSM 252 ID 枚举；struct_ops 状态机验证（INIT/REGISTERED/ACTIVE/DRAINING）；MemoryRovol 快照一致性验证的 L1-L4 数据结构 + GFP 掩码语义；认知测试验证的 CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 | `include/airymax/` 6 个头文件（测试框架验证这些共享类型） |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | 单元测试框架语义（agentrt cargo test/go test/googletest → OS 级同框架）、集成测试模式（agentrt 集成测试 → OS 级集成测试）、性能基准指标（IPC 延迟/调度延迟/内存吞吐/I/O 吞吐——两端同指标）、覆盖率目标（≥90%/≥80%/≥70%——两端同标准）、回归测试方法（性能不退化——两端同方法）等 8+ 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | 形式化验证框架（seL4 Isabelle/HOL + Coq——OS 专属）、Soak Test 框架（72h 持续运行——OS 专属）、混沌工程框架（Chaos Mesh 类似——OS 专属）、eBPF 可观测性验证（OS 专属）、agentrt-linux 集成测试框架（OS 专属）、测试运行器与报告生成（OS 专属） | 各自独立仓库 |
 
@@ -112,7 +112,7 @@ tests-linux/
 
 - `framework/`：单元测试框架（基于 Rust cargo test、Go testing、C googletest）[SS]。
 - `cases/`：测试用例 [IND]。
-  - `kernel/`：内核单元测试（验证 sched.h + ipc.h + bpf_struct_ops.h [SC]）[IND]。
+  - `kernel/`：内核单元测试（验证 sched.h + ipc.h + syscalls.h [SC]）[IND]。
   - `services/`：服务单元测试（验证 ipc.h [SC]）[IND]。
   - `security/`：安全单元测试（验证 security_types.h [SC]）[IND]。
   - `memory/`：记忆单元测试（验证 memory_types.h [SC]）[IND]。
@@ -211,7 +211,7 @@ tests-linux/
 单元测试验证 6 个 [SC] 头文件类型的正确性：
 - `include/airymax/ipc.h`：验证 128B msg_hdr 格式 + magic 0x41524531 [SC]。
 - `include/airymax/sched.h`：验证 task_desc magic 0x41475453 + vtime 衰减 [SC]。
-- `include/airymax/bpf_struct_ops.h`：验证 struct_ops 状态机四态 [SC]。
+- `include/airymax/syscalls.h`：验证 12 核心 syscall 编号 + 24 槽位 [SC]。
 - `include/airymax/memory_types.h`：验证 MemoryRovol L1-L4 数据结构 [SC]。
 - `include/airymax/security_types.h`：验证 capability 41 ID + LSM 252 ID [SC]。
 - `include/airymax/cognition_types.h`：验证 CoreLoopThree 阶段枚举 [SC]。
@@ -255,7 +255,7 @@ source $OET_PATH/libs/locallibs/common_lib.sh
 | IPC 机制 | 无死锁、无消息丢失 | Coq | 128B msg_hdr + magic 0x41524531 [SC] |
 | 调度器框架 | 公平性、有界延迟 | Isabelle/HOL | task_desc magic 0x41475453 + vtime [SC] |
 | MemoryRovol | 快照一致性 | Coq | MemoryRovol L1-L4 [SC] |
-| struct_ops | 状态机正确性 | Isabelle/HOL | INIT/INUSE/TOBEFREE/READY [SC] |
+| struct_ops | 状态机正确性 | Isabelle/HOL | INIT/REGISTERED/ACTIVE/DRAINING [SC] |
 | CoreLoopThree | 阶段转换正确性 | Coq | PERCEPTION/THINKING/ACTION [SC] |
 
 ### 4.4 Soak Test（72 小时持续运行）[IND]
@@ -375,7 +375,7 @@ source $OET_PATH/libs/locallibs/common_lib.sh
 |--------|---------|---------|
 | `include/airymax/ipc.h` | 128B msg_hdr 格式 + magic 0x41524531 'ARE1' + SQE/CQE 操作码 | 单元测试 + 形式化验证（Coq 无死锁） |
 | `include/airymax/sched.h` | task_desc magic 0x41475453 'AGTS' + vtime 衰减公式 + 优先级范围 | 单元测试 + 形式化验证（Isabelle/HOL 公平性） |
-| `include/airymax/bpf_struct_ops.h` | struct_ops 状态机（INIT/INUSE/TOBEFREE/READY）+ common_value 16B | 单元测试 + eBPF 可观测性验证 |
+| `include/airymax/syscalls.h` | 12 核心 syscall 编号 + 12 预留槽位 = 24 槽位 | 单元测试 + syscall 调用验证 |
 | `include/airymax/memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口 | 单元测试 + 形式化验证（Coq 快照一致性）+ Soak 监控 |
 | `include/airymax/security_types.h` | capability 41 ID 枚举 + LSM 252 ID + Cupolas blob 布局 + 派生模型 | 单元测试 + 形式化验证（Isabelle/HOL 不可伪造） |
 | `include/airymax/cognition_types.h` | CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 + LLM 推理阶段枚举 | 单元测试 + 形式化验证（Coq 阶段转换）+ Soak 监控 |
@@ -423,7 +423,7 @@ sequenceDiagram
     participant SC as [SC] 共享契约层
 
     CI->>UNIT: 运行单元测试（验证 6 头文件 [SC]）
-    UNIT->>SC: 验证 ipc.h/sched.h/bpf_struct_ops.h
+    UNIT->>SC: 验证 syscalls.h/ipc.h/sched.h
     UNIT->>SC: 验证 memory_types.h/security_types.h/cognition_types.h
     SC-->>UNIT: 类型正确性 PASS
 
@@ -541,21 +541,21 @@ graph TD
 
 | 检查项 | 验证内容 | 结果 |
 |--------|----------|------|
-| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | ✅ PASS |
-| 语义同源标注 | 单元测试框架/性能基准指标/覆盖率目标/回归测试标注 [SS] | ✅ PASS |
-| IRON-9 v2 三层合规 | [SC] 6 头文件验证 + [SS] 8 API + [IND] 10 项独立实现 | ✅ PASS |
-| [SC] 头文件引用 | 6 个头文件均在 §1.1/§3.3/§4.1/§4.3/§6.1 引用 | ✅ PASS |
-| 不移植特性声明 | 无 KABI_RESERVE/BPF_SCHED/KMSAN/etmem/dynamic_pool/numa_remote | ✅ PASS |
-| 横切关注点声明 | §1.1 声明测试贯穿 4 大数据流 | ✅ PASS |
-| Mermaid 图 | §6.4 sequenceDiagram + §6.5 graph TD（≥2） | ✅ PASS |
-| 行数范围 | 577 行（300-700 范围内） | ✅ PASS |
-| 禁词检查 | 无'中枢'等禁词 | ✅ PASS |
+| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | PASS |
+| 语义同源标注 | 单元测试框架/性能基准指标/覆盖率目标/回归测试标注 [SS] | PASS |
+| IRON-9 v2 三层合规 | [SC] 6 头文件验证 + [SS] 8 API + [IND] 10 项独立实现 | PASS |
+| [SC] 头文件引用 | 6 个头文件均在 §1.1/§3.3/§4.1/§4.3/§6.1 引用 | PASS |
+| 不移植特性声明 | 无 KABI_RESERVE/BPF_SCHED/KMSAN/etmem/dynamic_pool/numa_remote | PASS |
+| 横切关注点声明 | §1.1 声明测试贯穿 4 大数据流 | PASS |
+| Mermaid 图 | §6.4 sequenceDiagram + §6.5 graph TD（≥2） | PASS |
+| 行数范围 | 577 行（300-700 范围内） | PASS |
+| 禁词检查 | 无'中枢'等禁词 | PASS |
 
 ---
 
 ## 12. 相关文档
 
-- [01-kernel.md](01-kernel.md)——内核模块（[SC] sched.h + ipc.h + bpf_struct_ops.h）
+- [01-kernel.md](01-kernel.md)——内核模块（[SC] sched.h + ipc.h + syscalls.h）
 - [02-services.md](02-services.md)——服务模块（[SC] ipc.h，服务集成测试）
 - [03-security.md](03-security.md)——安全模块（[SC] security_types.h，capability 形式化验证）
 - [04-memory.md](04-memory.md)——记忆模块（[SC] memory_types.h，MemoryRovol 快照验证）

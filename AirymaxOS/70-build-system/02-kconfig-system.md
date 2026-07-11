@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）Kconfig 配置系统详解
 
 > **文档定位**： agentrt-linux（AirymaxOS）构建系统第 2 卷——Kconfig 配置系统详解。本卷剖析 Kconfig 语法（`config`/`menuconfig`/`choice`/`depends on`/`select`）、`CONFIG_*` 宏与 `obj-$(CONFIG_*)` 门控、Kconfig 子目录组织、`Kconfig.airymaxos` 供应商扩展、配置工具（`menuconfig`/`nconfig`/`gconfig`）与 `KCONFIG_ALLCONFIG` 全配置覆盖机制。
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt `cmake/`（用户态选项缓存）+ Linux 6.6 Kconfig 系统（`Kconfig`、`lib/Kconfig`、`lib/Kconfig.debug`、`Kconfig.airymaxos`、`scripts/kconfig/`）
 > **理论根基**： Linux 6.6 内核基线 Kconfig 工程 + Airymax 五维正交 24 原则（S/K/C/E/A 五维）
@@ -497,7 +497,7 @@ agentrt-linux 配置系统在 **Linux 6.6 内核基线** 上构建，其 `config
 
 **无直接 [SC] 共享头文件**。
 
-配置系统层不属于 IRON-9 v2 的 6 个 [SC] 共享头文件清单（`bpf_struct_ops.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。配置系统是编译期/运行期基础设施，其产物（`CONFIG_*` 宏 / CMake 变量）通过宏展开与变量传递解耦，而源码层无共享头文件依赖。这一约束确保 agentrt 用户态配置参数演进时不会被动牵连 agentrt-linux Kconfig，反之亦然——配置系统层的演进由各自的 **OS-KER 配置评审** 独立裁决。
+配置系统层不属于 IRON-9 v2 的 6 个 [SC] 共享头文件清单（`syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。配置系统是编译期/运行期基础设施，其产物（`CONFIG_*` 宏 / CMake 变量）通过宏展开与变量传递解耦，而源码层无共享头文件依赖。这一约束确保 agentrt 用户态配置参数演进时不会被动牵连 agentrt-linux Kconfig，反之亦然——配置系统层的演进由各自的 **OS-KER 配置评审** 独立裁决。
 
 #### 9.1.3 [SS] 语义同源层
 
@@ -627,7 +627,7 @@ graph LR
 
 ## 12. 文档版本与维护
 
-- **当前版本**: v0.1.1（文档体系完成）/ v1.0.1（开发中）
+- **当前版本**: v0.1.1/ v1.0.1（开发中）
 - **维护者**: agentrt-linux 构建系统 SIG（待成立，详见 07 卷维护者制度）
 - **变更流程**: 本卷变更必须经过 RFC → 评审 → ACC 验收流程；Kconfig 语法层变更需同步评估对 `airymaxos-base.config` 与各架构 `defconfig` 的影响。
 - **回顾周期**: 随 Linux 6.6 内核基线 LTS 更新季度回顾 + agentrt-linux 大版本年度回顾。
@@ -638,7 +638,7 @@ graph LR
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 Kconfig 配置系统所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `scripts/kconfig/`（解析器与配置工具）、`init/Kconfig`、`lib/Kconfig.airymaxos` 及 `include/airymax/kconfig_types.h`（[SC] 共享契约层）。A.1 以 C 结构体建模 Kconfig 符号/菜单的内部表示，A.2 以解析器入口函数为主，A.3 给出 `CONFIG_AIRY_*` 完整清单与三态语义。
+> **附录定位**： 本附录汇集 Kconfig 配置系统所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `scripts/kconfig/`（解析器与配置工具）、`init/Kconfig`、`lib/Kconfig.airymaxos` 及 `include/airymax/kconfig_types.h`（[SC] 共享契约层）。A.1 以 C 结构体建模 Kconfig 符号/菜单的内部表示，A.2 以解析器入口函数为主，A.3 给出 `CONFIG_AIRY_*` 完整清单与三态语义。
 
 ### A.1 核心数据结构
 

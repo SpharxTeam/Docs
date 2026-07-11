@@ -3,9 +3,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）云原生 Agent 部署设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）云原生工程体系主索引\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
-> **优先级**：P1（0.1.1 完成 5 文档，1.0.1 实施验证）\
+> **优先级**：P1（5 文档）\
 > **同源映射**：agentrt gateway + Linux 6.6 容器与编排（containerd / K8s / OCI）\
 > **理论根基**：云原生计算哲学 + Airymax S-4 涌现性管理 + K-3 服务隔离
 
@@ -96,11 +96,11 @@ spec:
 ```
 150-cloudnative/
 ├── README.md                       # 本文件
-├── 01-k8s-crd-design.md           # K8s CRD 设计 ✅
-├── 02-containerd-shim.md          # containerd shim 集成 ✅
-├── 03-cni-network-policy.md       # CNI 网络策略 ✅
-├── 04-supernode-os.md             # 超节点 OS 实现方案 ✅
-└── 05-memoryrovol-csi.md          # MemoryRovol CSI 驱动 ✅
+├── 01-k8s-crd-design.md           # K8s CRD 设计 
+├── 02-containerd-shim.md          # containerd shim 集成 
+├── 03-cni-network-policy.md       # CNI 网络策略 
+├── 04-supernode-os.md             # 超节点 OS 实现方案 
+└── 05-memoryrovol-csi.md          # MemoryRovol CSI 驱动 
 ```
 
 ### 3.1 0.1.1 版本范围
@@ -109,7 +109,7 @@ spec:
 
 ### 3.2 1.0.1 版本范围
 
-150 模块 5/5 文档全部完成（100%），1.0.1 阶段实施云原生工程标准与生产就绪验证。
+150 模块 5/5 文档覆盖云原生部署工程标准与生产就绪验证。
 
 ---
 
@@ -181,4 +181,4 @@ agentrt 的 `gateway_d` daemon 与 agentrt-linux 云原生体系同源：
 
 ---
 
-> **文档结束** | 0.1.1 P1 占位，1.0.1 完成 5 文档
+> **文档结束** | 5 文档

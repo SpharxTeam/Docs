@@ -297,7 +297,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **旧称/禁止使用**: "记忆漩涡引擎"
 
-**系统内代码**: `airy_layer*_*` / `airy_memoryrov_*`
+**系统内代码**: `airy_layer*_*` / `airy_mr_*`
 
 **代码目录**: `MemoryRovol/`（独立模块，原位于 `AgentRT/agentrt/atoms/memoryrovol/`，现已独立为 Airymax 商业化核心模块）
 
@@ -488,7 +488,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 吸引子网络 | Attractor Network | `airy_attractor_network_*` |
 | 检索缓存 | Retrieval Cache | `airy_retrieval_cache_*` |
 | 重排序器 | Reranker | `airy_reranker_*` |
-| 挂载算子 | Mount Operator | `airy_memoryrov_mount` |
+| 挂载算子 | Mount Operator | `airy_mr_mount` |
 
 ### 遗忘机制
 

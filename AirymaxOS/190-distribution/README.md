@@ -3,9 +3,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）发行版管理设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）发行版管理工程体系主索引\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
-> **优先级**：P2（0.1.1 完成 5 文档，1.0.1 实施验证）\
+> **优先级**：P2（5 文档）\
 > **同源映射**：agentrt 版本管理 + Linux 6.6 发行版工程（RPM / dnf / ISO / 镜像）\
 > **理论根基**：Linux 发行版管理哲学 + Airymax S-4 涌现性管理 + C-2 增量演化
 
@@ -43,7 +43,7 @@ agentrt-linux 发行版管理体系是操作系统作为产品发布的工程保
 
 | 版本类型 | 格式 | 生命周期 | 示例 |
 |---------|------|---------|------|
-| 文档体系版本 | 0.1.1 | 短期 | 0.1.1（文档体系完成） |
+| 文档体系版本 | 0.1.1 | 短期 | 0.1.1 |
 | 正式版本 | X.Y.Z | 2 年 | 1.0.1 |
 | LTS 版本 | X.0 LTS | 5 年 | 1.0 LTS / 3.0 LTS |
 | 维护版本 | X.Y.Z | 季度 | 1.0.1 / 1.0.2 |
@@ -86,11 +86,11 @@ sha256sum airymaxos-1.0.1-x86_64.iso
 ```
 190-distribution/
 ├── README.md                       # 本文件
-├── 01-rpm-packaging.md             # RPM 打包规范 ✅
-├── 02-dnf-repo-design.md           # dnf 仓库设计（分层 + GPG 签名）✅
-├── 03-installer-design.md          # 安装器设计（三模式 + Btrfs + SB + TPM）✅
-├── 04-update-mechanism.md          # 更新机制（热更新 + 原子更新 + 回滚）✅
-└── 05-reproducible-build.md        # 可重现构建 ✅
+├── 01-rpm-packaging.md             # RPM 打包规范 
+├── 02-dnf-repo-design.md           # dnf 仓库设计（分层 + GPG 签名）
+├── 03-installer-design.md          # 安装器设计（三模式 + Btrfs + SB + TPM）
+├── 04-update-mechanism.md          # 更新机制（热更新 + 原子更新 + 回滚）
+└── 05-reproducible-build.md        # 可重现构建 
 ```
 
 ### 3.1 0.1.1 版本范围

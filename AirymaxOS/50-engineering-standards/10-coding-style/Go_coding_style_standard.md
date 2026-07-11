@@ -99,7 +99,7 @@ func ParseJSON(...) {}
 func FormatTime(...) {}
 ```
 
-✅ **必须**按职责拆分到独立子包：
+**必须**按职责拆分到独立子包：
 
 ```go
 // client/client.go — HTTP 客户端职责
@@ -130,13 +130,13 @@ package telemetry
 **必须**使用全小写、无下划线、无驼峰的简短名词：
 
 ```go
-package agentrt    // ✅ 正确
-package client     // ✅ 正确
-package types      // ✅ 正确
-package modules    // ✅ 正确
-package task       // ✅ 正确
-package telemetry  // ✅ 正确
-package syscall    // ✅ 正确
+package agentrt    // 正确
+package client     // 正确
+package types      // 正确
+package modules    // 正确
+package task       // 正确
+package telemetry  // 正确
+package syscall    // 正确
 ```
 
 ❌ **禁止**以下包名风格：
@@ -157,12 +157,12 @@ package util       // 禁止：过于笼统（应为 utils）
 **必须**使用 PascalCase 命名所有导出类型，名词短语优先：
 
 ```go
-type Client struct{}           // ✅
-type TaskManager struct{}      // ✅
-type AgentRTError struct{}     // ✅
-type Config struct{}           // ✅
-type ProtocolType int          // ✅
-type ResourceConverter[T any] interface {} // ✅
+type Client struct{}           // 
+type TaskManager struct{}      // 
+type AgentRTError struct{}     // 
+type Config struct{}           // 
+type ProtocolType int          // 
+type ResourceConverter[T any] interface {} // 
 ```
 
 ❌ **禁止**：
@@ -178,12 +178,12 @@ type TASKMANAGER struct{}      // 禁止：全大写
 **必须**使用 PascalCase 命名所有导出函数：
 
 ```go
-func NewClient(...) (*Client, error)       // ✅
-func NewConfig(...) *Config                // ✅
-func NewTaskManager(...) *TaskManager      // ✅
-func IsNetworkError(err error) bool        // ✅
-func IsErrorCode(err error, code ErrorCode) bool // ✅
-func HTTPStatusToError(...) *AgentRTError  // ✅
+func NewClient(...) (*Client, error)       // 
+func NewConfig(...) *Config                // 
+func NewTaskManager(...) *TaskManager      // 
+func IsNetworkError(err error) bool        // 
+func IsErrorCode(err error, code ErrorCode) bool // 
+func HTTPStatusToError(...) *AgentRTError  // 
 ```
 
 ### 3.3 未导出函数：camelCase
@@ -191,11 +191,11 @@ func HTTPStatusToError(...) *AgentRTError  // ✅
 **必须**使用 camelCase 命名所有未导出函数：
 
 ```go
-func parseTaskFromMap(data map[string]interface{}) *types.Task  // ✅
-func buildQueryString(params map[string]string) string          // ✅
-func calculateBackoff(base time.Duration, attempt int) time.Duration // ✅
-func shouldRetry(statusCode int) bool                           // ✅
-func generateRequestID() string                                // ✅
+func parseTaskFromMap(data map[string]interface{}) *types.Task  // 
+func buildQueryString(params map[string]string) string          // 
+func calculateBackoff(base time.Duration, attempt int) time.Duration // 
+func shouldRetry(statusCode int) bool                           // 
+func generateRequestID() string                                // 
 ```
 
 ❌ **禁止**：
@@ -210,22 +210,22 @@ func parse_task_from_map(...) // 禁止：下划线
 **必须**使用 `New` 前缀命名所有构造函数：
 
 ```go
-func NewClient(opts ...ConfigOption) (*Client, error)        // ✅
-func NewConfig(opts ...ConfigOption) *Config                 // ✅
-func NewTaskManager(api APIClient) *TaskManager              // ✅
-func NewError(code ErrorCode, msg string, cause error) *AgentRTError // ✅
-func NewPluginRegistry() *PluginRegistry                     // ✅
-func NewMeter() *Meter                                       // ✅
+func NewClient(opts ...ConfigOption) (*Client, error)        // 
+func NewConfig(opts ...ConfigOption) *Config                 // 
+func NewTaskManager(api APIClient) *TaskManager              // 
+func NewError(code ErrorCode, msg string, cause error) *AgentRTError // 
+func NewPluginRegistry() *PluginRegistry                     // 
+func NewMeter() *Meter                                       // 
 ```
 
 当存在多种构造方式时，**必须**使用描述性后缀：
 
 ```go
-func NewClient(opts ...ConfigOption) (*Client, error)           // ✅ 默认构造
-func NewClientWithConfig(config *Config) (*Client, error)       // ✅ 显式配置构造
-func NewConfigFromEnv() (*Config, error)                        // ✅ 环境变量构造
-func NewProtocolConfigFromEnv() *ProtocolConfig                 // ✅
-func NewHTTPSyscallBinding(apiClient APIClient) *HTTPSyscallBinding // ✅
+func NewClient(opts ...ConfigOption) (*Client, error)           // 默认构造
+func NewClientWithConfig(config *Config) (*Client, error)       // 显式配置构造
+func NewConfigFromEnv() (*Config, error)                        // 环境变量构造
+func NewProtocolConfigFromEnv() *ProtocolConfig                 // 
+func NewHTTPSyscallBinding(apiClient APIClient) *HTTPSyscallBinding // 
 ```
 
 ❌ **禁止**：
@@ -241,16 +241,16 @@ func ClientNew(...)       // 禁止：后置 New
 **必须**使用 `With` 前缀命名所有 Functional Option 函数：
 
 ```go
-func WithEndpoint(endpoint string) ConfigOption        // ✅
-func WithTimeout(timeout time.Duration) ConfigOption   // ✅
-func WithAPIKey(apiKey string) ConfigOption            // ✅
-func WithMaxRetries(maxRetries int) ConfigOption       // ✅
-func WithDebug(debug bool) ConfigOption                // ✅
-func WithRequestTimeout(timeout time.Duration) RequestOption // ✅
-func WithHeader(key, value string) RequestOption       // ✅
-func WithQueryParam(key, value string) RequestOption   // ✅
-func WithSandboxDisabled() func(*PluginManager)        // ✅
-func WithPluginDirectories(dirs []string) func(*PluginManager) // ✅
+func WithEndpoint(endpoint string) ConfigOption        // 
+func WithTimeout(timeout time.Duration) ConfigOption   // 
+func WithAPIKey(apiKey string) ConfigOption            // 
+func WithMaxRetries(maxRetries int) ConfigOption       // 
+func WithDebug(debug bool) ConfigOption                // 
+func WithRequestTimeout(timeout time.Duration) RequestOption // 
+func WithHeader(key, value string) RequestOption       // 
+func WithQueryParam(key, value string) RequestOption   // 
+func WithSandboxDisabled() func(*PluginManager)        // 
+func WithPluginDirectories(dirs []string) func(*PluginManager) // 
 ```
 
 ❌ **禁止**：
@@ -266,11 +266,11 @@ func With_endpoint(endpoint string) ConfigOption // 禁止：下划线
 **必须**使用 `Is` 前缀命名所有返回 `bool` 的判断函数：
 
 ```go
-func IsNetworkError(err error) bool      // ✅
-func IsServerError(err error) bool       // ✅
-func IsErrorCode(err error, code ErrorCode) bool // ✅
-func (s TaskStatus) IsTerminal() bool    // ✅
-func (l MemoryLayer) IsValid() bool      // ✅
+func IsNetworkError(err error) bool      // 
+func IsServerError(err error) bool       // 
+func IsErrorCode(err error, code ErrorCode) bool // 
+func (s TaskStatus) IsTerminal() bool    // 
+func (l MemoryLayer) IsValid() bool      // 
 ```
 
 ❌ **禁止**：
@@ -289,9 +289,9 @@ func Is_network_error(err error) bool    // 禁止：下划线
 
 ```go
 const (
-    Version = "0.1.0"     // ✅
-    Author  = "SpharxWorks" // ✅
-    License = "MIT"       // ✅
+    Version = "0.1.0"     // 
+    Author  = "SpharxWorks" // 
+    License = "MIT"       // 
 )
 ```
 
@@ -301,17 +301,17 @@ const (
 
 ```go
 const (
-    CodeSuccess          ErrorCode = "0x0000"  // ✅ 通用
-    CodeUnknown          ErrorCode = "0x0001"  // ✅
-    CodeInvalidParameter ErrorCode = "0x0002"  // ✅
-    CodeNotFound         ErrorCode = "0x0005"  // ✅
+    CodeSuccess          ErrorCode = "0x0000"  // 通用
+    CodeUnknown          ErrorCode = "0x0001"  // 
+    CodeInvalidParameter ErrorCode = "0x0002"  // 
+    CodeNotFound         ErrorCode = "0x0005"  // 
 
-    CodeLoopCreateFailed ErrorCode = "0x1001"  // ✅ 核心循环
-    CodeCognitionFailed  ErrorCode = "0x2001"  // ✅ 认知层
-    CodeTaskFailed       ErrorCode = "0x3001"  // ✅ 执行层
-    CodeMemoryNotFound   ErrorCode = "0x4001"  // ✅ 记忆层
-    CodeTelemetryError   ErrorCode = "0x5001"  // ✅ 系统调用
-    CodePermissionDenied ErrorCode = "0x6001"  // ✅ 安全域
+    CodeLoopCreateFailed ErrorCode = "0x1001"  // 核心循环
+    CodeCognitionFailed  ErrorCode = "0x2001"  // 认知层
+    CodeTaskFailed       ErrorCode = "0x3001"  // 执行层
+    CodeMemoryNotFound   ErrorCode = "0x4001"  // 记忆层
+    CodeTelemetryError   ErrorCode = "0x5001"  // 系统调用
+    CodePermissionDenied ErrorCode = "0x6001"  // 安全域
 )
 ```
 
@@ -344,21 +344,21 @@ const CodeSuccess int = 0          // 禁止：非 string 类型
 type TaskStatus string
 
 const (
-    TaskStatusPending   TaskStatus = "pending"   // ✅
-    TaskStatusRunning   TaskStatus = "running"   // ✅
-    TaskStatusCompleted TaskStatus = "completed" // ✅
-    TaskStatusFailed    TaskStatus = "failed"    // ✅
-    TaskStatusCancelled TaskStatus = "cancelled" // ✅
+    TaskStatusPending   TaskStatus = "pending"   // 
+    TaskStatusRunning   TaskStatus = "running"   // 
+    TaskStatusCompleted TaskStatus = "completed" // 
+    TaskStatusFailed    TaskStatus = "failed"    // 
+    TaskStatusCancelled TaskStatus = "cancelled" // 
 )
 
 type ProtocolType int
 
 const (
-    ProtocolJSONRPC ProtocolType = iota // ✅
-    ProtocolMCP                          // ✅
-    ProtocolA2A                          // ✅
-    ProtocolOpenAI                       // ✅
-    ProtocolAutoDetect                   // ✅
+    ProtocolJSONRPC ProtocolType = iota // 
+    ProtocolMCP                          // 
+    ProtocolA2A                          // 
+    ProtocolOpenAI                       // 
+    ProtocolAutoDetect                   // 
 )
 ```
 
@@ -378,13 +378,13 @@ const (
 
 ```go
 var (
-    ErrNotFound         = NewError(CodeNotFound, "资源未找到", nil)         // ✅
-    ErrTimeout          = NewError(CodeTimeout, "操作超时", nil)            // ✅
-    ErrInvalidConfig    = NewError(CodeInvalidConfig, "配置无效", nil)      // ✅
-    ErrNetworkError     = NewError(CodeNetworkError, "网络错误", nil)       // ✅
-    ErrTaskFailed       = NewError(CodeTaskFailed, "任务执行失败", nil)     // ✅
-    ErrMemoryNotFound   = NewError(CodeMemoryNotFound, "记忆未找到", nil)   // ✅
-    ErrPermissionDenied = NewError(CodePermissionDenied, "权限不足", nil)   // ✅
+    ErrNotFound         = NewError(CodeNotFound, "资源未找到", nil)         // 
+    ErrTimeout          = NewError(CodeTimeout, "操作超时", nil)            // 
+    ErrInvalidConfig    = NewError(CodeInvalidConfig, "配置无效", nil)      // 
+    ErrNetworkError     = NewError(CodeNetworkError, "网络错误", nil)       // 
+    ErrTaskFailed       = NewError(CodeTaskFailed, "任务执行失败", nil)     // 
+    ErrMemoryNotFound   = NewError(CodeMemoryNotFound, "记忆未找到", nil)   // 
+    ErrPermissionDenied = NewError(CodePermissionDenied, "权限不足", nil)   // 
 )
 ```
 
@@ -401,11 +401,11 @@ var notFoundErr = NewError(...)   // 禁止：小写（哨兵错误必须导出�
 **必须**使用语义名（而非 `I` 前缀或 `Interface` 后缀）命名接口：
 
 ```go
-type APIClient interface {}            // ✅ 语义名
-type BasePlugin interface {}           // ✅ 语义名
-type SyscallBinding interface {}       // ✅ 语义名
-type ResourceConverter[T any] interface {} // ✅ 泛型接口
-type PluginFactory func() BasePlugin   // ✅ 函数类型别名
+type APIClient interface {}            // 语义名
+type BasePlugin interface {}           // 语义名
+type SyscallBinding interface {}       // 语义名
+type ResourceConverter[T any] interface {} // 泛型接口
+type PluginFactory func() BasePlugin   // 函数类型别名
 ```
 
 ❌ **禁止**：
@@ -479,7 +479,7 @@ type Task struct {
 
 ```go
 func (c *Client) GetConfig() *agentrt.Config {
-    return c.config.Clone() // ✅ 返回克隆，防止外部修改
+    return c.config.Clone() // 返回克隆，防止外部修改
 }
 ```
 
@@ -518,7 +518,7 @@ func (p ProtocolType) String() string {
 **必须**使用 `type` 定义枚举底层类型，**禁止**使用裸 `int`/`string`：
 
 ```go
-// ✅ 正确：基于 string 的枚举
+// 正确：基于 string 的枚举
 type TaskStatus string
 
 const (
@@ -527,7 +527,7 @@ const (
     TaskStatusCompleted TaskStatus = "completed"
 )
 
-// ✅ 正确：基于 int 的枚举（iota）
+// 正确：基于 int 的枚举（iota）
 type ProtocolType int
 
 const (
@@ -574,7 +574,7 @@ type APIClient interface {
 **必须**在实现类型所在文件中添加编译期接口满足性检查：
 
 ```go
-var _ APIClient = (*Client)(nil) // ✅ 编译期验证 Client 实现 APIClient
+var _ APIClient = (*Client)(nil) // 编译期验证 Client 实现 APIClient
 ```
 
 ❌ **禁止**省略此检查：
@@ -694,7 +694,7 @@ func DefaultConfig() *Config {
 // 3. 实现 With 前缀的 Option 函数
 func WithEndpoint(endpoint string) ConfigOption {
     return func(c *Config) {
-        if endpoint != "" { // ✅ 防御性校验：零值不覆盖默认
+        if endpoint != "" { // 防御性校验：零值不覆盖默认
             c.Endpoint = endpoint
         }
     }
@@ -702,7 +702,7 @@ func WithEndpoint(endpoint string) ConfigOption {
 
 func WithTimeout(timeout time.Duration) ConfigOption {
     return func(c *Config) {
-        if timeout > 0 { // ✅ 防御性校验
+        if timeout > 0 { // 防御性校验
             c.Timeout = timeout
         }
     }
@@ -723,7 +723,7 @@ func NewConfig(opts ...ConfigOption) *Config {
 ```go
 func WithTimeout(timeout time.Duration) ConfigOption {
     return func(c *Config) {
-        if timeout > 0 { // ✅ 零值不覆盖
+        if timeout > 0 { // 零值不覆盖
             c.Timeout = timeout
         }
     }
@@ -747,12 +747,12 @@ func WithTimeout(timeout time.Duration) ConfigOption {
 **必须**使用类型首字母的小写作为接收者名：
 
 ```go
-func (c *Client) Get(...) (...)      // ✅ Client → c
-func (tm *TaskManager) Submit(...)   // ✅ TaskManager → tm
-func (bm *BaseManager[T]) ExecuteGet(...) // ✅ BaseManager → bm
-func (r *PluginRegistry) Register(...)    // ✅ PluginRegistry → r
-func (m *Meter) Record(...)               // ✅ Meter → m
-func (t *Tracer) StartSpan(...)           // ✅ Tracer → t
+func (c *Client) Get(...) (...)      // Client → c
+func (tm *TaskManager) Submit(...)   // TaskManager → tm
+func (bm *BaseManager[T]) ExecuteGet(...) // BaseManager → bm
+func (r *PluginRegistry) Register(...)    // PluginRegistry → r
+func (m *Meter) Record(...)               // Meter → m
+func (t *Tracer) StartSpan(...)           // Tracer → t
 ```
 
 ❌ **禁止**：
@@ -772,14 +772,14 @@ func (client *Client) Get(...)  // 禁止：与类型名相同
 - 接口方法**应当**使用指针接收者
 
 ```go
-// ✅ 结构体 → 指针接收者
+// 结构体 → 指针接收者
 func (c *Client) Get(...) (*APIResponse, error)
 
-// ✅ 枚举 → 值接收者
+// 枚举 → 值接收者
 func (s TaskStatus) String() string { return string(s) }
 func (s TaskStatus) IsTerminal() bool { ... }
 
-// ✅ 枚举 → 值接收者（ProtocolType 底层为 int）
+// 枚举 → 值接收者（ProtocolType 底层为 int）
 func (p ProtocolType) String() string { ... }
 ```
 
@@ -792,9 +792,9 @@ func (p ProtocolType) String() string { ... }
 **必须**在所有涉及 I/O、网络、阻塞等待的公共方法中接受 `context.Context` 作为第一个参数：
 
 ```go
-func (tm *TaskManager) Submit(ctx context.Context, description string) (*types.Task, error) // ✅
-func (tm *TaskManager) Wait(ctx context.Context, taskID string, timeout time.Duration) (*types.TaskResult, error) // ✅
-func (c *ProtocolClient) SendRequest(ctx context.Context, method string, params map[string]interface{}) ([]byte, error) // ✅
+func (tm *TaskManager) Submit(ctx context.Context, description string) (*types.Task, error) // 
+func (tm *TaskManager) Wait(ctx context.Context, taskID string, timeout time.Duration) (*types.TaskResult, error) // 
+func (c *ProtocolClient) SendRequest(ctx context.Context, method string, params map[string]interface{}) ([]byte, error) // 
 ```
 
 ❌ **禁止**在 I/O 方法中省略 context：
@@ -808,10 +808,10 @@ func (tm *TaskManager) Submit(description string) (*types.Task, error) // 禁止
 **必须**使用 `opts ...Option` 可变参数模式替代配置结构体参数：
 
 ```go
-// ✅ 正确：Functional Options
+// 正确：Functional Options
 func NewClient(opts ...agentrt.ConfigOption) (*Client, error)
 
-// ✅ 正确：Request Options
+// 正确：Request Options
 func (c *Client) Get(ctx context.Context, path string, opts ...types.RequestOption) (*types.APIResponse, error)
 ```
 
@@ -866,13 +866,13 @@ func (e *AgentRTError) Is(target error) bool {
 
 ```go
 // 无原因错误
-err := agentrt.NewError(agentrt.CodeNotFound, "资源未找到", nil)          // ✅
+err := agentrt.NewError(agentrt.CodeNotFound, "资源未找到", nil)          // 
 
 // 格式化消息
-err := agentrt.NewErrorf(agentrt.CodeTaskTimeout, "任务 %s 超时", taskID) // ✅
+err := agentrt.NewErrorf(agentrt.CodeTaskTimeout, "任务 %s 超时", taskID) // 
 
 // 包装已有错误
-err := agentrt.WrapError(agentrt.CodeNetworkError, "网络异常", cause)     // ✅
+err := agentrt.WrapError(agentrt.CodeNetworkError, "网络异常", cause)     // 
 ```
 
 ❌ **禁止**：
@@ -916,7 +916,7 @@ if errors.Is(err, agentrt.ErrNotFound) {
 **必须**使用分类查询函数判断错误类别，**禁止**直接比较错误码字符串：
 
 ```go
-// ✅ 正确：使用分类查询
+// 正确：使用分类查询
 if agentrt.IsNetworkError(err) {
     // 处理网络错误
 }
@@ -943,7 +943,7 @@ if agentErr, ok := err.(*AgentRTError); ok && agentErr.Code == "0x0005" { ... }
 **必须**使用 `HTTPStatusToError()` 将 HTTP 状态码转换为 SDK 错误，**禁止**直接返回 HTTP 错误：
 
 ```go
-// ✅ 正确
+// 正确
 if resp.StatusCode >= 400 {
     lastErr = agentrt.HTTPStatusToError(resp.StatusCode, string(respBody))
 }
@@ -961,15 +961,15 @@ return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
 **必须**在哨兵错误和面向用户的错误消息中使用中文描述：
 
 ```go
-ErrNotFound       = NewError(CodeNotFound, "资源未找到", nil)         // ✅
-ErrTaskFailed     = NewError(CodeTaskFailed, "任务执行失败", nil)      // ✅
-ErrSessionExpired = NewError(CodeSessionExpired, "会话已过期", nil)    // ✅
+ErrNotFound       = NewError(CodeNotFound, "资源未找到", nil)         // 
+ErrTaskFailed     = NewError(CodeTaskFailed, "任务执行失败", nil)      // 
+ErrSessionExpired = NewError(CodeSessionExpired, "会话已过期", nil)    // 
 ```
 
 Mock 和测试辅助代码中的错误消息**可以**使用英文：
 
 ```go
-return nil, agentrt.NewError(agentrt.CodeNotSupported, "Mock GET handler not configured", nil) // ✅
+return nil, agentrt.NewError(agentrt.CodeNotSupported, "Mock GET handler not configured", nil) // 
 ```
 
 ---
@@ -982,7 +982,7 @@ return nil, agentrt.NewError(agentrt.CodeNotSupported, "Mock GET handler not con
 
 ```go
 type PluginRegistry struct {
-    mu        sync.RWMutex       // ✅ 互斥锁
+    mu        sync.RWMutex       // 互斥锁
     factories map[string]PluginFactory
     instances map[string]BasePlugin
     manifests map[string]PluginManifest
@@ -993,7 +993,7 @@ type PluginRegistry struct {
 **必须**遵循读写分离的锁策略：
 
 ```go
-// ✅ 读操作使用 RLock
+// 读操作使用 RLock
 func (r *PluginRegistry) Get(pluginID string) (BasePlugin, bool) {
     r.mu.RLock()
     defer r.mu.RUnlock()
@@ -1001,7 +1001,7 @@ func (r *PluginRegistry) Get(pluginID string) (BasePlugin, bool) {
     return instance, exists
 }
 
-// ✅ 写操作使用 Lock
+// 写操作使用 Lock
 func (r *PluginRegistry) Register(factory PluginFactory, manifest *PluginManifest) (string, error) {
     r.mu.Lock()
     defer r.mu.Unlock()
@@ -1059,7 +1059,7 @@ func (tm *TaskManager) Wait(ctx context.Context, taskID string, timeout time.Dur
 
         select {
         case <-ctx.Done():
-            return nil, ctx.Err()           // ✅ 响应上下文取消
+            return nil, ctx.Err()           // 响应上下文取消
         case <-time.After(500 * time.Millisecond):
         }
     }
@@ -1073,7 +1073,7 @@ for attempt := 0; attempt <= c.config.MaxRetries; attempt++ {
     if attempt > 0 {
         select {
         case <-ctx.Done():
-            return nil, agentrt.WrapError(agentrt.CodeTimeout, "请求在重试等待中被取消", ctx.Err()) // ✅
+            return nil, agentrt.WrapError(agentrt.CodeTimeout, "请求在重试等待中被取消", ctx.Err()) // 
         case <-time.After(delay):
         }
     }
@@ -1086,7 +1086,7 @@ for attempt := 0; attempt <= c.config.MaxRetries; attempt++ {
 **必须**使用缓冲 channel 防止 goroutine 泄漏：
 
 ```go
-resultCh := make(chan *types.TaskResult, len(taskIDs))  // ✅ 缓冲大小 = goroutine 数
+resultCh := make(chan *types.TaskResult, len(taskIDs))  // 缓冲大小 = goroutine 数
 errCh := make(chan error, len(taskIDs))
 ```
 
@@ -1114,7 +1114,7 @@ go func() {
 ```go
 for i, id := range taskIDs {
     wg.Add(1)
-    go func(idx int, taskID string) { // ✅ 通过参数捕获
+    go func(idx int, taskID string) { // 通过参数捕获
         defer wg.Done()
         // ...
     }(i, id)
@@ -1139,7 +1139,7 @@ for i, id := range taskIDs {
 ```go
 func (r *PluginRegistry) Register(...) (string, error) {
     r.mu.Lock()
-    defer r.mu.Unlock() // ✅ 立即 defer
+    defer r.mu.Unlock() // 立即 defer
     // ...
 }
 ```
@@ -1232,12 +1232,12 @@ tm := NewTaskManager(mock)
 **必须**使用 `Test<类型>_<方法>_<场景>` 格式命名测试函数：
 
 ```go
-func TestTaskManager_Submit_Success(t *testing.T)          // ✅
-func TestTaskManager_Submit_Empty(t *testing.T)            // ✅
-func TestTaskManager_Submit_APIError(t *testing.T)         // ✅
-func TestTaskManager_Wait_Timeout(t *testing.T)            // ✅
-func TestTaskManager_Wait_ContextCancel(t *testing.T)      // ✅
-func TestTaskManager_BatchSubmit_PartialFailure(t *testing.T) // ✅
+func TestTaskManager_Submit_Success(t *testing.T)          // 
+func TestTaskManager_Submit_Empty(t *testing.T)            // 
+func TestTaskManager_Submit_APIError(t *testing.T)         // 
+func TestTaskManager_Wait_Timeout(t *testing.T)            // 
+func TestTaskManager_Wait_ContextCancel(t *testing.T)      // 
+func TestTaskManager_BatchSubmit_PartialFailure(t *testing.T) // 
 ```
 
 ❌ **禁止**：
@@ -1307,8 +1307,8 @@ func BenchmarkConcurrentTaskSubmits(b *testing.B) {
 
 ```
 modules/task/manager.go
-modules/task/manager_test.go    // ✅ 同包白盒测试
-modules/task/benchmark_test.go  // ✅ 基准测试
+modules/task/manager_test.go    // 同包白盒测试
+modules/task/benchmark_test.go  // 基准测试
 ```
 
 ---
@@ -1443,7 +1443,7 @@ type MockAPIClient struct { ... }
 module github.com/spharx/agentrt/toolkit/go
 
 go 1.22
-// 无 require — ✅ 正确
+// 无 require — 正确
 ```
 
 ❌ **禁止**引入任何第三方依赖：
@@ -1715,7 +1715,7 @@ import (
 
 // MyPlugin 自定义插件实现
 type MyPlugin struct {
-    plugin.BasePluginImpl // ✅ 嵌入默认实现
+    plugin.BasePluginImpl // 嵌入默认实现
 }
 
 // GetPluginID 返回插件唯一标识
@@ -1791,8 +1791,8 @@ func NewXxxSyscall(binding SyscallBinding) *XxxSyscall {
 
 func (x *XxxSyscall) SomeOperation(ctx context.Context, param string) (*SyscallResponse, error) {
     return x.binding.Invoke(ctx, &SyscallRequest{
-        Namespace: NamespaceXxx,     // ✅ 使用 SyscallNamespace 常量
-        Operation: "some_operation", // ✅ snake_case 操作名
+        Namespace: NamespaceXxx,     // 使用 SyscallNamespace 常量
+        Operation: "some_operation", // snake_case 操作名
         Params:    map[string]any{"param": param},
     })
 }

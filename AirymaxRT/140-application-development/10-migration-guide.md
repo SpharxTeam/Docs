@@ -225,7 +225,7 @@ endif()
 target_link_libraries(my_agent PRIVATE
     airy_corekern
     airy_coreloopthree
-    airy_memoryrovol
+    airy_mrol
     airy_syscall
 )
 ```

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # Agent 应用生命周期管理
 
 > **文档定位**：agentrt-linux Agent 应用的完整生命周期管理\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **父文档**：[Agent 应用开发 README](README.md)\
 > **同源映射**：agentrt Agent 生命周期 + Linux 6.6 进程模型 + seL4 TCB 生命周期\
@@ -175,7 +175,7 @@ struct airy_sched_class {
         __section("__" #name_ "_agent_sched_class")
 ```
 
-**设计决策**：直接借鉴 Linux `sched_class` 的虚表 + linker section 注册模式（见 openEuler OLK-6.6 `kernel/sched/sched.h: L2573-L2693`）。优先级顺序：`token_aware > realtime > fair > batch > idle`，通过 linker script 的内存增长方向实现天然排序。
+**设计决策**：直接借鉴 Linux `sched_class` 的虚表 + linker section 注册模式（见 主流 Linux 发行版 Linux 6.6 内核基线 `kernel/sched/sched.h: L2573-L2693`）。优先级顺序：`token_aware > realtime > fair > batch > idle`，通过 linker script 的内存增长方向实现天然排序。
 
 ### 3.3 Token 预算管理
 
@@ -338,7 +338,7 @@ int airy_cap_revoke(u32 agent_id);
 
 ```c
 /*
- * 借鉴 openEuler OLK-6.6 security/lsm_hook_defs.h 的 X-Macro 模式
+ * 借鉴 主流 Linux 发行版 Linux 6.6 内核基线 security/lsm_hook_defs.h 的 X-Macro 模式
  *
  * AGENT_HOOK 宏定义所有生命周期钩子点。
  * 每次#include将展开为不同的视图：
@@ -393,7 +393,7 @@ int airy_cap_revoke(u32 agent_id);
 
 ### 7.1 分级错误响应
 
-借鉴 openEuler sched_ext watchdog 的分级退出设计：
+借鉴 主流 Linux 发行版 sched_ext watchdog 的分级退出设计：
 
 | 错误级别 | 处理方式 | 触发条件 |
 |---------|---------|---------|

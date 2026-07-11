@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）工程基线
 
 > **文档定位**：agentrt-linux（AirymaxOS）工程基线（Engineering Baseline）的完整定义与落地规范\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **父文档**：[架构设计](README.md)
 
@@ -491,8 +491,8 @@ agentrt-linux 设计文档采用 19 模块三层体系，与根 [README.md](../R
 
 | 层级 | 目录范围 | 模块数 | 0.1.1 状态 | 内容 |
 |------|---------|--------|-----------|------|
-| **核心设计层** | `00-requirements/` ~ `40-dataflows/` | 5 模块 | 28 文档 ✅ 完成 | 需求 + 架构 + 模块 + 接口 + 数据流 |
-| **工程标准与实施层** | `50-engineering-standards/` ~ `130-roadmap/` | 9 模块 | 36 文档 ✅ 完成 | 工程标准 + 驱动 + 构建 + 测试 + 可观测 + 运维 + 安全 + 流程 + 路线图 |
+| **核心设计层** | `00-requirements/` ~ `40-dataflows/` | 5 模块 | 28 文档 完成 | 需求 + 架构 + 模块 + 接口 + 数据流 |
+| **工程标准与实施层** | `50-engineering-standards/` ~ `130-roadmap/` | 9 模块 | 36 文档 完成 | 工程标准 + 驱动 + 构建 + 测试 + 可观测 + 运维 + 安全 + 流程 + 路线图 |
 | **延伸层** | `140-application-development/` ~ `190-distribution/` | 5 模块 | 6 README 占位 | 应用开发 + 云原生 + 兼容性 + 性能 + 国际化 + 发行版 |
 
 **0.1.1 合计 ~64 文档**（核心 28 + 实施层 36 + 延伸层 6 README 占位 + 根 README 等），**1.0.1 扩展到 ~140 文档**。
@@ -514,14 +514,14 @@ agentrt-linux 设计文档采用 19 模块三层体系，与根 [README.md](../R
 
 agentrt-linux 工程基线声明以下兼容性：
 
-- ✅ 兼容企业级 Linux 生态的 RPM 包格式
-- ✅ 兼容企业级 Linux 生态的 dnf 包管理器
-- ✅ 兼容企业级 Linux 生态的 systemd 服务管理
-- ✅ 兼容企业级 Linux 生态的安全模块（SELinux）
-- ✅ 兼容企业级 Linux 生态的国密算法（SM2/SM3/SM4）
-- ✅ 兼容企业级 Linux 生态的架构支持（x86 / ARM / RISC-V / LoongArch）
-- ✅ 基于 Linux 6.6 内核基线，与企业级 Linux 内核同源
-- ✅ 兼容 agentrt-linux 超节点 OS 设计（大规模容器低时延通信）
+- 兼容企业级 Linux 生态的 RPM 包格式
+- 兼容企业级 Linux 生态的 dnf 包管理器
+- 兼容企业级 Linux 生态的 systemd 服务管理
+- 兼容企业级 Linux 生态的安全模块（SELinux）
+- 兼容企业级 Linux 生态的国密算法（SM2/SM3/SM4）
+- 兼容企业级 Linux 生态的架构支持（x86 / ARM / RISC-V / LoongArch）
+- 基于 Linux 6.6 内核基线，与企业级 Linux 内核同源
+- 兼容 agentrt-linux 超节点 OS 设计（大规模容器低时延通信）
 
 ---
 
@@ -569,7 +569,7 @@ agentrt-linux 工程基线声明以下兼容性：
 
 | 层次 | 共享程度 | 工程基线映射 |
 |------|---------|-------------|
-| **[SC] 共享契约层** | 完全共享代码 | 6 头文件编码契约（OLK-6.6：Tab 8 / snake_case / 最小 typedef / K&R / 80 列 / errno+goto / kernel-doc），物理宿主 `kernel/include/airymax/`，`-I` 引用 |
+| **[SC] 共享契约层** | 完全共享代码 | 6 头文件编码契约（Linux 6.6 内核基线：Tab 8 / snake_case / 最小 typedef / K&R / 80 列 / errno+goto / kernel-doc），物理宿主 `kernel/include/airymax/`，`-I` 引用 |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | agentrt CMake 模块 ↔ agentrt-linux 8 子仓 Kbuild 的工程规范同源 |
 | **[IND] 完全独立层** | 完全独立 | 构建系统（CMake vs Kbuild + Kconfig）+ 平台适配（libc / POSIX vs Linux 6.6 内核 API） |
 
@@ -579,7 +579,7 @@ agentrt-linux 工程基线声明以下兼容性：
 |--------|-------------|---------|--------|
 | `sched.h` | magic 0x41475453 'AGTS' + SCHED_EXT=7 + MAC_MAX_AGENTS=1024 | kernel-doc + snake_case | kernel / cognition |
 | `ipc.h` | magic 0x41524531 'ARE1' + 128B 消息头 | kernel-doc + errno | kernel / services |
-| `bpf_struct_ops.h` | struct_ops 4 状态机 + common_value 16B | kernel-doc + K&R | kernel / cognition |
+| `syscalls.h` | 12 核心 syscall 编号 + 12 预留槽位| kernel-doc + K&R | kernel / cognition |
 | `security_types.h` | 41 cap + 252 LSM + Cupolas blob | kernel-doc + minimal typedef | kernel / security |
 | `memory_types.h` | MemoryRovol L1-L4 + GFP 掩码 | kernel-doc + 80 列 | kernel / memory |
 | `cognition_types.h` | 三阶段枚举 + Thinkdual 模式 | kernel-doc + snake_case | kernel / cognition |
@@ -588,7 +588,7 @@ agentrt-linux 工程基线声明以下兼容性：
 
 | 工程维度 | agentrt 实现（用户态） | agentrt-linux 实现（内核态） | 同源点 |
 |---------|----------------------|---------------------------|--------|
-| 构建规范 | CMake + libc / POSIX | Kbuild + Kconfig + Linux 6.6 | OLK-6.6 编码风格 |
+| 构建规范 | CMake + libc / POSIX | Kbuild + Kconfig + Linux 6.6 | Linux 6.6 内核基线 编码风格 |
 | 子仓治理 | 7 大模块（CMake target） | 8 子仓（Kconfig menu） | 模块边界同源 |
 | 版本基线 | 跨平台独立演进 | 1.x.x 锁定 Linux 6.6 / 2.x.x 升级 7.1 | ADR-013 双基线 |
 | 文档体系 | Markdown + kernel-doc | Markdown + kernel-doc | 文档规范同源 |
@@ -620,7 +620,7 @@ graph TB
     end
 
     subgraph "[SC] 共享契约层（6 头文件）"
-        SC[OLK-6.6 编码契约<br/>Tab 8 / snake_case / K&R / 80 列]
+        SC[Linux 6.6 内核基线 编码契约<br/>Tab 8 / snake_case / K&R / 80 列]
     end
 
     RT_CMAKE -.->|"风格同源 [SS]"| OS_KBUILD

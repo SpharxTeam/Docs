@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux 集成标准总览
 
 > **文档定位**： agentrt-linux（AirymaxOS）集成标准的顶层入口，定义内核层→服务层→应用层的集成层次、与 agentrt 的集成规范、与 主流 Linux 发行版标准的兼容性集成、生态合作规范与第三方模块集成标准\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [工程标准规范手册](../00-engineering-standards-handbook.md)\
 > **关联规范**： IRON-9 v2 工程铁律（内部工程标准规范） / [工程基线](../../10-architecture/04-engineering-baseline.md) / [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md)
@@ -209,7 +209,7 @@ graph TD
 
 | 集成点 | 所属层级 | 说明 |
 |--------|----------|------|
-| 6 个共享头文件 | [SC] | `bpf_struct_ops.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h` |
+| 6 个共享头文件 | [SC] | `syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h` |
 | 调度语义集成 | [SS] | MicroCoreRT ↔ SCHED_AGENT 调度语义 |
 | IPC 语义集成 | [SS] | AgentsIPC ↔ io_uring IPC 128B 消息头 |
 | 安全语义集成 | [SS] | Cupolas ↔ capability + LSM 安全模型 |
@@ -477,7 +477,7 @@ graph TD
 - [五维正交原则](../../10-architecture/02-five-dimensional-principles.md)：五维正交 24 原则
 - [工程基线](../../10-architecture/04-engineering-baseline.md)：工程基线定义
 - [接口设计](../../30-interfaces/README.md)：系统调用与 IPC 接口
-- IRON-9 v2 工程铁律（闭源内部参考）
+- IRON-9 v2 工程铁律
 
 ---
 

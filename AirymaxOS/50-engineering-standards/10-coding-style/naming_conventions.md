@@ -93,7 +93,7 @@ Cognition（认知）→ Planning（规划）→ Action（执行）
 
 ### 1.10 ARE 标准接口前缀（`are_*`）
 
-> **SSoT 声明（v0.3.1）**：本节补充 ARE（Airymax Runtime Environment）标准接口的命名契约，消除 `are_*` 前缀在命名规范中的缺失（P1-05/P1-06 修复）。
+> **SSoT 声明**：本节补充 ARE（Airymax Runtime Environment）标准接口的命名契约，消除 `are_*` 前缀在命名规范中的缺失。
 
 **ARE** = **A**irymax **R**untime **E**nvironment，是 Airymax 对外公开的**标准化运行时接口层**。`are_*` 前缀用于 L1/L2/L3 标准接口（见 `50-engineering-standards/30-runtime-interfaces/`），确保第三方可在任意 POSIX/Windows 平台上实现本接口集，无源码改动接入 ARE 生态。
 
@@ -247,6 +247,248 @@ int airy_core_register_cupola(const char *name, cupola_entry_t entry);
 | `count` | 计数 | `config_context_count` |
 | `lock` | 加锁 | `config_context_lock` |
 | `unlock` | 解锁 | `config_context_unlock` |
+
+### 4.4 函数前缀体系
+
+> **SSoT 声明**：本节是 Airymax 函数前缀体系的**语义层权威来源**。三层 API 前缀架构（`are_*`/`airy_*`/`airy_core_*`）的契约定义见 §1.10；本节聚焦于模块前缀清单、项目隔离规则与选择决策。
+
+#### 4.4.1 三层 API 前缀架构（回顾 §1.10）
+
+Airymax 函数 API 分为三个层次，层次关系与 ABI 稳定性约定如下（完整定义见 §1.10）：
+
+| 层次 | 前缀 | 用途 | ABI 稳定性 |
+|------|------|------|-----------|
+| 标准接口层 | `are_*` | L1/L2/L3 对外公开的可移植 API | 同一 MAJOR 版本内 ABI 兼容 |
+| 原生实现层（通用） | `airy_*` | Airymax atoms 层原生符号 | 内部 API，不保证稳定 |
+| 原生实现层（CoreKern） | `airy_core_*` | CoreKern 模块专属函数 | 内部 API，不保证稳定 |
+
+**桥接契约**：`are_*` 标准接口与 `airy_*`/`airy_core_*` 原生实现之间通过**适配层**桥接。适配层负责符号映射（`are_ipc_send()` → `airy_ipc_send()`）、类型转换（`are_error_t` ↔ `airy_err_t`）与 ABI 隔离。
+
+#### 4.4.2 项目隔离前缀规则
+
+agentrt（用户态运行底座）与 agentrt-linux（智能体操作系统）共享 IRON-9 v2 三层模型，前缀按 IRON-9 v2 层次隔离：
+
+| 前缀 | IRON-9 v2 层次 | 适用项目 | 用途 | 示例 |
+|------|---------------|---------|------|------|
+| `airy_*` | [SC] / [SS] | agentrt + agentrt-linux 共享 | 同源 API 与共享契约层符号 | `airy_ipc_send()`、`airy_log_write()` |
+| `airymaxos_*` | [IND] | agentrt-linux 专属 | 内核态/发行版专属 API | `airymaxos_kthread_create()`、`airymaxos_ipc_recv()` |
+| `AIRY_*` | [SC] | agentrt + agentrt-linux 共享 | 共享宏与常量 | `AIRY_API`、`AIRY_SYS_CALL` |
+| `AIRYMAXOS_*` | [IND] | agentrt-linux 专属 | 内核态/发行版专属宏与常量 | `AIRYMAXOS_CONFIG_*` |
+
+**选择规则**：
+
+1. **同源符号**（[SC]/[SS] 层）使用 `airy_*` 前缀——两端代码 byte-identical 或语义同源
+2. **agentrt-linux 专属符号**（[IND] 层）使用 `airymaxos_*` 前缀——内核驱动、Kbuild、发行版工具链专属
+3. **禁止混用**——`airy_*` 前缀不得用于 agentrt-linux 专属功能；`airymaxos_*` 前缀不得用于 agentrt 用户态
+
+#### 4.4.3 模块前缀清单总表
+
+> **SSoT 声明**：本节为 Airymax 项目**模块前缀注册表**的唯一权威来源（SSoT）。所有模块前缀必须在本节注册后方可使用（注册流程见 §4.4.6）。其他文档（包括 `01-coding-standards.md`、`07-maintainers-and-governance.md`）仅可引用本节编号，**禁止重新定义**模块前缀。
+
+`airy_*` 通用前缀通过 **2-4 字符模块子前缀**区分子系统。模块子前缀遵循 `airy_<module>_` 格式，其中 `<module>` 标识所属子系统。下表按功能域分组列出全部已注册模块前缀：
+
+**A. 核心运行时层（Core Runtime）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_core_*` | CoreKern / MicroCoreRT | [SS] | `airy_core_start()`、`airy_core_register_cupola()` |
+| `airy_sys_*` | 系统调用路由层 | [SS] | `airy_sys_task_submit()`、`airy_sys_memory_write()` |
+| `airy_ipc_*` | AgentsIPC 进程间通信 | [SS] | `airy_ipc_send()`、`airy_ipc_recv()` |
+| `airy_sched_*` | 调度器通用接口 | [SS] | `airy_sched_enqueue()`、`airy_sched_yield()` |
+| `airy_sched_agent_*` | Agent 调度策略（SCHED_EXT） | [SS] | `airy_sched_agent_compute_weight()` |
+| `airy_task_*` | 任务管理 | [SS] | `airy_task_create()`、`airy_task_destroy()` |
+| `airy_taskflow_*` | TaskFlow 任务编排 | [SS] | `taskflow_graph_build()`、`taskflow_execute()` |
+
+**B. 认知与智能层（Cognition & Intelligence）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_cognition_*` | 认知引擎 | [SS] | `airy_cognition_perceive()`、`airy_cognition_act()` |
+| `airy_loop_*` | CoreLoopThree 三层认知循环 | [SS] | `airy_loop_run()`、`airy_loop_next_phase()` |
+| `airy_thinking_*` | 思考引擎 | [SS] | `airy_thinking_fast()`、`airy_thinking_slow()` |
+| `airy_intent_*` | 意图识别 | [SS] | `airy_intent_extract()`、`airy_intent_classify()` |
+| `airy_plan_*` | 规划引擎 | [SS] | `airy_plan_create()`、`airy_plan_execute()` |
+| `airy_llm_*` | LLM 推理 | [SS] | `airy_llm_infer()`、`airy_llm_route()` |
+| `airy_prompt_*` | Prompt 模板加载 | [SS] | `airy_prompt_loader_init()`、`airy_prompt_render()` |
+| `airy_token_*` | Token 管理 | [SS] | `airy_token_count()`、`airy_token_budget()` |
+
+**C. 双思考系统（Thinkdual）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `tc_*` | Thinkdual Core | [SS] | `tc_select_mode()`、`tc_switch()` |
+| `mc_*` | Multi-agent Cognition | [SS] | `mc_coordinate()`、`mc_dispatch()` |
+| `sc_*` | Slow Cognition（System 2） | [SS] | `sc_deliberate()`、`sc_analyze()` |
+
+**D. 安全与隔离层（Security & Isolation）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_cap_*` | Capability 令牌系统 | [SS] | `airy_cap_mint()`、`airy_cap_revoke()` |
+| `airy_sandbox_*` | 沙箱隔离 | [SS] | `airy_sandbox_create()`、`airy_sandbox_enter()` |
+| `airy_security_*` | 安全策略 | [SS] | `airy_security_check()`、`airy_security_enforce()` |
+| `cupolas_*` | Cupolas 安全穹顶服务 | [SS] | `cupolas_init()`、`cupolas_config_load()` |
+| `cupolas_sig_*` | Cupolas 签名验证 | [SS] | `cupolas_sig_verify()`、`cupolas_sig_generate()` |
+| `cupolas_net_*` | Cupolas 网络安全 | [SS] | `cupolas_net_check()`、`cupolas_net_block()` |
+| `cupolas_ent_*` | Cupolas 权限授权 | [SS] | `cupolas_ent_check()`、`cupolas_ent_grant()` |
+
+**E. 记忆与存储层（Memory & Storage）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_mem_*` | 内存管理通用 | [SS] | `airy_mem_alloc()`、`airy_mem_free()` |
+| `airy_mempool_*` | 内存池 | [SS] | `airy_mempool_create()`、`airy_mempool_alloc()` |
+| `airy_slab_*` | Slab 分配器 | [SS] | `airy_slab_create()`、`airy_slab_alloc()` |
+| `airy_arena_*` | Arena 分配器 | [SS] | `airy_arena_create()`、`airy_arena_reset()` |
+| `airy_tcache_*` | 线程本地缓存 | [SS] | `airy_tcache_get()`、`airy_tcache_put()` |
+| `airy_mr_*` | MemoryRovol 记忆卷载 | [SS] | `airy_mr_init()`、`airy_mr_query()` |
+| `airy_checkpoint_*` | 检查点与快照 | [SS] | `airy_checkpoint_save()`、`airy_checkpoint_restore()` |
+| `airy_oom_*` | OOM 处理 | [SS] | `airy_oom_handle()`、`airy_oom_register_cb()` |
+| `heapstore_*` | HeapStore 堆式持久化存储 | [SS] | `heapstore_init()`、`heapstore_put()` |
+| `memoryrovol_*` | MemoryRovol（模块直称） | [SS] | `memoryrovol_init()`、`memoryrovol_query()` |
+
+**F. 平台与运行时基础设施（Platform & Runtime Infrastructure）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_platform_*` | 平台抽象层 | [SS] | `airy_platform_thread_create()`、`airy_platform_thread_join()` |
+| `airy_thread_*` | 线程管理 | [SS] | `airy_thread_id()`、`airy_thread_sleep()` |
+| `airy_mtx_*` | 互斥锁 | [SS] | `airy_mtx_init()`、`airy_mtx_lock()` |
+| `airy_cond_*` | 条件变量 | [SS] | `airy_cond_init()`、`airy_cond_wait()` |
+| `airy_rwlock_*` | 读写锁 | [SS] | `airy_rwlock_rdlock()`、`airy_rwlock_wrlock()` |
+| `airy_sem_*` | 信号量 | [SS] | `airy_sem_init()`、`airy_sem_post()` |
+| `airy_atomic_*` | 原子操作 | [SS] | `airy_atomic_load()`、`airy_atomic_store()` |
+| `airy_time_*` | 时间工具 | [SS] | `airy_time_now()`、`airy_time_diff()` |
+| `airy_timer_*` | 定时器 | [SS] | `airy_timer_create()`、`airy_timer_start()` |
+| `airy_uuid_*` | UUID 生成 | [SS] | `airy_uuid_generate()`、`airy_uuid_parse()` |
+
+**G. 网络与通信层（Network & Communication）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_sock_*` | Socket 抽象 | [SS] | `airy_sock_create()`、`airy_sock_connect()` |
+| `airy_net_*` | 网络管理 | [SS] | `airy_net_init()`、`airy_net_cleanup()` |
+| `airy_http_*` | HTTP 客户端/服务端 | [SS] | `airy_http_get()`、`airy_http_post()` |
+| `airy_conn_*` | 连接管理 | [SS] | `airy_conn_create()`、`airy_conn_close()` |
+
+**H. 可观测性与运维（Observability & Operations）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_log_*` | 日志系统 | [SS] | `airy_log_write()`、`airy_log_set_trace_id()` |
+| `airy_trace_*` | 链路追踪 | [SS] | `airy_trace_start()`、`airy_trace_span()` |
+| `airy_metrics_*` | 指标采集 | [SS] | `airy_metrics_inc()`、`airy_metrics_set()` |
+| `airy_observability_*` | 可观测性聚合 | [SS] | `airy_observability_init()`、`airy_observability_export()` |
+| `airy_telemetry_*` | 遥测数据 | [SS] | `airy_telemetry_metrics()`、`airy_telemetry_traces()` |
+| `airy_event_*` | 事件系统 | [SS] | `airy_event_publish()`、`airy_event_subscribe()` |
+| `airy_hook_*` | Hook 系统 | [SS] | `airy_hook_register()`、`airy_hook_unregister()` |
+
+**I. 配置与工具（Configuration & Tools）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_config_*` | Airymax 配置框架 | [SS] | `airy_config_load()`、`airy_config_get()` |
+| `config_*` | Config 模块（历史保留） | [SS] | `config_value_create()`、`config_context_get()` |
+| `airy_yaml_*` | YAML 解析 | [SS] | `airy_yaml_parse()`、`airy_yaml_dump()` |
+| `airy_cjson_*` | cJSON 封装 | [SS] | `airy_cjson_parse()`、`airy_cjson_print()` |
+| `airy_validate_*` | 验证工具 | [SS] | `airy_validate_string()`、`validate_schema()` |
+| `airy_version_*` | 版本管理 | [SS] | `airy_version_get()`、`airy_version_check()` |
+
+**J. 网关与协议（Gateway & Protocol）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_gw_*` | Gateway 网关（短前缀） | [SS] | `airy_gw_route()`、`airy_gw_authenticate()` |
+| `airy_gateway_*` | Gateway 网关（全称） | [SS] | `airy_gateway_init()`、`airy_gateway_start()` |
+| `airy_proto_*` | 协议适配 | [SS] | `airy_proto_init()`、`airy_proto_handle_request()` |
+| `airy_protocol_*` | 协议扩展框架 | [SS] | `airy_protocol_register()`、`airy_protocol_invoke()` |
+| `airy_router_*` | 路由引擎 | [SS] | `airy_router_select_provider()` |
+| `airy_provider_*` | Provider 管理 | [SS] | `airy_provider_register()`、`airy_provider_list()` |
+
+**K. Agent 管理与执行（Agent Management & Execution）**
+
+| 模块前缀 | 所属模块 | IRON-9 v2 | 示例 |
+|---------|---------|-----------|------|
+| `airy_agent_*` | Agent 生命周期 | [SS] | `airy_agent_spawn()`、`airy_agent_terminate()` |
+| `airy_session_*` | 会话管理 | [SS] | `airy_session_create()`、`airy_session_close()` |
+| `airy_daemon_*` | Daemon 管理 | [SS] | `airy_daemon_start()`、`airy_daemon_stop()` |
+| `airy_browser_*` | 浏览器自动化 | [SS] | `airy_browser_launch()`、`airy_browser_close()` |
+| `airy_execution_*` | 执行单元 | [SS] | `airy_execution_unit_create()` |
+| `airy_dispatcher_*` | 任务分发 | [SS] | `airy_dispatcher_select()`、`airy_dispatcher_dispatch()` |
+| `airy_coordinator_*` | 多智能体协调 | [SS] | `airy_coordinator_register()`、`airy_coordinator_dispatch()` |
+| `airy_delegate_*` | 委托执行 | [SS] | `airy_delegate_create()`、`airy_delegate_invoke()` |
+| `airy_compensation_*` | 补偿事务 | [SS] | `airy_compensation_register()`、`airy_compensation_rollback()` |
+| `airy_resource_*` | 资源管理 | [SS] | `airy_resource_alloc()`、`airy_resource_free()` |
+| `airy_context_*` | 上下文管理 | [SS] | `airy_context_create()`、`airy_context_switch()` |
+| `airy_error_*` / `airy_err_*` | 错误处理 | [SS] | `airy_error_to_string()`、`airy_err_t` |
+
+#### 4.4.4 函数名长度约束
+
+| 约束项 | 上限 | 说明 |
+|--------|------|------|
+| 模块子前缀 | ≤ 12 字符 | `airy_` (5) + 模块名 (≤ 7) = ≤ 12；如 `airy_sched_agent_` 属例外（长前缀仅用于 sched_ext BPF 策略） |
+| 函数动作部分 | ≤ 15 字符 | `<action>_<object>` 组合长度 ≤ 15 字符 |
+| 完整函数名总长 | ≤ 30 字符 | 模块前缀 + 动作部分 ≤ 30 字符 |
+| 超长处理 | 缩写或分层 | 超过 30 字符时拆分为辅助函数或使用约定缩写 |
+
+**长度计算示例**：
+
+```
+airy_ipc_send                  → 5 + 3 + 4  = 12 字符 ✓
+airy_core_register_cupola      → 5 + 4 + 14 = 23 字符 ✓
+airy_sched_agent_compute_weight → 5 + 11 + 14 = 30 字符 ✓（边界）
+airy_mr_checkpoint_restore    → 5 + 3 + 18 = 26 字符 ✓
+```
+
+**超长函数名修正策略**：
+
+1. **拆分**：将复合动作拆分为两个函数（如 `airy_mr_restore_checkpoint()` → `airy_mr_restore()`）
+2. **缩写**：使用约定缩写（如 `init` 代替 `initialize`、`cfg` 代替 `config`、`ctx` 代替 `context`）
+3. **分层**：引入中间层函数（如 `airy_mem_ckpt_save()` 代替 `airy_memory_checkpoint_save()`）
+
+#### 4.4.5 前缀选择决策规则
+
+新增函数时，按以下顺序确定前缀：
+
+1. **是否为对外公开标准接口？**
+   - 是 → 使用 `are_*` 前缀（§1.10），并通过适配层桥接至 `airy_*` 实现
+   - 否 → 进入下一步
+
+2. **是否为 agentrt-linux 内核态/发行版专属功能？**
+   - 是 → 使用 `airymaxos_*` 前缀（[IND] 层）
+   - 否 → 进入下一步
+
+3. **是否为 CoreKern 模块专属函数？**
+   - 是 → 使用 `airy_core_*` 前缀
+   - 否 → 进入下一步
+
+4. **选择模块子前缀**
+   - 从 §4.4.3 模块前缀清单总表中选择对应功能域的前缀
+   - 若功能域跨多个模块，选择最贴近的主模块前缀
+   - 若无对应前缀，向工程规范委员会申请注册新前缀（流程见 §4.4.6）
+
+5. **验证长度约束**
+   - 按 §4.4.4 规则验证完整函数名 ≤ 30 字符
+   - 超长时按修正策略调整
+
+#### 4.4.6 新前缀注册流程
+
+新增模块前缀须经过以下流程注册：
+
+1. **RFC**：在 GitHub Discussions 发起 RFC，说明前缀字符串、所属模块、IRON-9 v2 层次、适用范围
+2. **评审**：经至少一名顶级子系统维护者审查，公示 14 天接受异议
+3. **注册**：通过评审后，由工程规范委员会将前缀写入本节 §4.4.3 模块前缀清单总表，并同步更新 [TERMINOLOGY.md 标准化名称映射总表](../../TERMINOLOGY.md#四标准化名称映射总表)
+
+#### 4.4.7 前缀使用禁忌
+
+| 禁忌 | 说明 | 正确做法 |
+|------|------|---------|
+| 混用 `airy_` 与 `airymaxos_` | 同一功能在两端使用不同前缀导致符号冲突 | [SC]/[SS] 层用 `airy_`，[IND] 层用 `airymaxos_` |
+| 省略模块子前缀 | `airy_send()` 无法识别所属模块 | 必须带模块子前缀：`airy_ipc_send()` |
+| 使用未注册前缀 | `airy_foo_*` 未在清单中注册 | 先按 §4.4.6 注册，再使用 |
+| 模块前缀过长 | `airy_internationalization_*` 超长 | 缩写为 `airy_i18n_*` 并注册 |
+| `are_*` 与 `airy_*` 混淆 | 将内部实现函数标记为 `are_*` | `are_*` 仅用于对外公开标准接口 |
+| Thinkdual 前缀误用 | `tc_`/`mc_`/`sc_` 用于非 Thinkdual 模块 | Thinkdual 前缀仅限双思考系统使用 |
 
 ---
 
@@ -507,8 +749,10 @@ int airy_tls_set(const char *key, void *value);
 | 顶层目录 | PascalCase | `Docs/`、`Tests/`、`Scripts/` |
 | 配置文件 | kebab-case | `.editorconfig`、`.env.example` |
 | 函数 | `module_action_object()` | `heapstore_init`、`config_value_create` |
-| ARE 标准接口 | `are_*` 前缀 | `are_ipc_send`、`are_mem_alloc`（§1.10） |
-| CoreKern 原生 | `airy_core_*` 前缀 | `airy_core_start`、`airy_core_stop`（§1.4） |
+| 三层 API 前缀 | `are_*` / `airy_*` / `airy_core_*` | `are_ipc_send` / `airy_ipc_send` / `airy_core_start`（§1.10、§4.4） |
+| 项目隔离前缀 | `airy_*`（[SC]/[SS]） / `airymaxos_*`（[IND]） | `airy_ipc_send` / `airymaxos_kthread_create`（§4.4.2） |
+| 模块子前缀 | `airy_<module>_*` | `airy_ipc_*`、`airy_log_*`、`airy_mem_*`（§4.4.3） |
+| 函数名长度 | ≤ 30 字符 | `airy_ipc_send`（12 字符）、`airy_sched_agent_compute_weight`（30 字符，边界）（§4.4.4） |
 | 类型 | `module_type_t` | `airy_err_t`、`config_value_t` |
 | 枚举 | `MODULE_UPPER` | `CONFIG_TYPE_INT`、`AIRY_MEM_LAYER1_RAW` |
 | 宏 | `UPPER_SNAKE_CASE` | `AIRY_LOG_LEVEL_DEBUG`、`AIRY_CHECK_NULL` |

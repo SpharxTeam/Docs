@@ -3,10 +3,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux 统一术语表
 
-> **最新**：2026-07-07\
-> **状态**：草案（文档体系完成）\
-> **路径**：OpenAirymax/docs/AirymaxOS/terminology.md\
-> **作者**：开源极境工程与规范委员会 OpenAirymax Engineering and Standardization Committee
+> **最新**：2026-07-11\
+> **状态**：正式发布\
+> **路径**：OpenAirymax/docs/AirymaxOS/TERMINOLOGY.md\
+> **作者**：开源极境工程与规范委员会（OpenAirymax Engineering and Standardization Committee）
 
 ---
 
@@ -322,7 +322,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **旧称/禁止使用**: "记忆漩涡引擎"
 
-**系统内代码**: `airy_memoryrov_*`
+**系统内代码**: `airy_mr_*`
 
 **代码目录**: `airymaxos-memory/`
 
@@ -404,13 +404,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### IRON-9 v2 / 同源且部分代码共享
 
-**定义**: agentrt-linux（AirymaxOS）与 agentrt（AirymaxAgentRT）之间的代码共享与语义同源原则。IRON-9 v2 是 IRON-9 的升级版本（2026-07-07 用户决策变更），从"仅语义同源、实现独立"升级为"同源且部分代码共享"。
+**定义**: agentrt-linux（AirymaxOS）与 agentrt（AirymaxAgentRT）之间的代码共享与语义同源原则。IRON-9 v2 是 IRON-9 的升级版本（开源极境工程与规范委员会决策变更），从"仅语义同源、实现独立"升级为"同源且部分代码共享"。
 
 **三层共享模型**:
 
 | 层次        | 标注     | 共享程度               | 内容                                                                                                                                                                                |
 | --------- | ------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **共享契约层** | \[SC]  | 完全共享代码             | `include/airymax/` 6 个头文件：`bpf_struct_ops.h`、`memory_types.h`、`security_types.h`、`cognition_types.h`、`sched.h`、`ipc.h`。含 IPC 消息头结构、syscall 编号、capability 令牌格式、错误码、规则编号体系、五维正交24原则 |
+| **共享契约层** | \[SC]  | 完全共享代码             | `include/airymax/` 6 个头文件：`syscalls.h`（12 核心 syscall 编号）、`ipc.h`（IPC magic + 128B 消息头）、`sched.h`（任务描述符 + 调度类）、`security_types.h`（capability + LSM）、`memory_types.h`（MemoryRovol L1-L4）、`cognition_types.h`（CoreLoopThree 阶段）。另含错误码、规则编号体系、五维正交24原则 |
 | **语义同源层** | \[SS]  | 高层 API 语义同源，签名独立演进 | 调度语义（MicroCoreRT）、安全模型（Cupolas）、IPC 传输（AgentsIPC）、记忆模型（MemoryRovol）、认知模型（CoreLoopThree）                                                                                           |
 | **完全独立层** | \[IND] | 完全独立               | agentrt-linux 专属：内核驱动框架、Kbuild、systemd 集成、内核内部 API；agentrt 专属：跨平台用户态运行时、SDK 四语言、CLI/TUI                                                                                           |
 
@@ -442,6 +442,34 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 4. \[IND] 层各自独立演进，无需同步
 
 **参见**: IRON-9 v2、agentrt-linux（AirymaxOS）
+
+***
+
+### SSoT / 单一权威来源
+
+**定义**: Single Source of Truth，单一权威来源。agentrt-linux（AirymaxOS）规范体系中，每一类技术决策（syscall 编号、IPC magic、任务描述符 magic、错误码、规则编号等）有且仅有一个权威定义源。所有其他文档引用该源时必须标注"SSoT 声明"，不得重新定义或产生冲突值。
+
+**当前 SSoT 清单**:
+
+| SSoT 对象         | 权威源文件                                                                  | 所在章节  |
+| --------------- | ---------------------------------------------------------------------- | ----- |
+| 12 核心 syscall 编号 | `50-engineering-standards/120-cross-project-code-sharing.md`           | §2.8  |
+| IPC magic（0x41524531 'ARE1'） | `50-engineering-standards/120-cross-project-code-sharing.md`           | §3.1  |
+| 任务描述符 magic（0x41475453 'AGTS'） | `50-engineering-standards/120-cross-project-code-sharing.md`           | §3.2  |
+| 错误码（`AIRY_E*`）   | `include/airymax/error.h`（\[SC] 共享契约层）                                  | —     |
+| 语义层代码规则         | `50-engineering-standards/01-coding-standards.md`                      | 全卷    |
+| 规则编号注册表         | `50-engineering-standards/07-maintainers-and-governance.md`            | 规则编号注册表 |
+
+**使用规则**:
+
+1. 任何文档定义技术常量时必须标注其 SSoT 源
+2. 当文档间存在值冲突时，以 SSoT 源为准
+3. SSoT 源变更时必须同步更新所有引用文档
+4. 新增 SSoT 对象需经开源极境工程与规范委员会审核后注册
+
+**标准名称**: 单一权威来源 (SSoT)
+
+**参见**: IRON-9 v2、\[SC] 共享契约层
 
 ***
 
@@ -586,7 +614,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **旧称/禁止使用**: "时间切片推理"
 
-**系统内代码**: `ts_inference_session_t`（设计中）
+**系统内代码**: `ts_inference_session_t`
 
 **参见**: MemoryRovol（记忆卷载）、MemorySwap（记忆交换算法）
 
@@ -669,7 +697,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 微核心运行时                   | MicroCoreRT                               | `airy_core_*`         | \[SS]              | 微内核（不加限定词时）          |
 | Agent 进程间通信              | AgentsIPC                                 | `airy_ipc_*`          | \[SS]              | —                    |
 | 安全穹顶                     | Cupolas                                   | `cupolas_*`              | \[SS]              | Cupolas安全模块          |
-| 记忆卷载                     | MemoryRovol                               | `airy_memoryrov_*`    | \[SS]              | 记忆漩涡引擎               |
+| 记忆卷载                     | MemoryRovol                               | `airy_mr_*`    | \[SS]              | 记忆漩涡引擎               |
 | 认知三阶段循环                  | CoreLoopThree                             | `airy_loop_*`         | \[SS]              | 三层循环运行时、三层一体架构       |
 | 双思考系统                    | Thinkdual                                 | `tc_*` / `mc_*` / `sc_*` | \[SS]              | 认知双思系统、双系统认知模型       |
 | Agent 调度类                | SCHED\_AGENT                              | `airy_sched_agent_*`  | \[SS]              | —                    |
@@ -677,6 +705,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 共享契约层                    | \[SC] Shared-Contract                     | —                        | \[SC]              | —                    |
 | 语义同源层                    | \[SS] Shared-Semantics                    | —                        | \[SS]              | —                    |
 | 完全独立层                    | \[IND] Independent                        | —                        | \[IND]             | —                    |
+| 单一权威来源                   | SSoT (Single Source of Truth)              | —                        | —                  | —                    |
 | 五维正交24原则                 | Five-Dimensional Orthogonal 24 Principles | —                        | \[SC]              | —                    |
 | 体系并行论                    | Multibody Cybernetic Intelligent System   | —                        | \[SC]              | —                    |
 | 统一错误码体系                  | ErrorCodeSystem                           | `AIRY_E*` / `AIRY_ERROR_*` | \[SC]              | —                    |
@@ -815,22 +844,22 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 参考文献
 
-\[1] 体系并行论 — `docs/AirymaxRT/00-basic-theories/01-mcis-cn.md`
-\[2] 认知层理论 — `docs/AirymaxRT/00-basic-theories/02-cognition-design-cn.md`
-\[3] 记忆层理论 — `docs/AirymaxRT/00-basic-theories/03-memory-design-cn.md`
-\[4] 设计原则 — `docs/AirymaxRT/00-basic-theories/04-design-principles-cn.md`
-\[5] 五维正交24原则与 agentrt-linux（AirymaxOS）落地映射 — `docs/AirymaxOS/10-architecture/02-five-dimensional-principles.md`
-\[6] agentrt-linux 架构设计 — `docs/AirymaxOS/10-architecture/01-system-architecture.md`
-\[7] 微内核设计思想详解 — `docs/AirymaxOS/10-architecture/03-microkernel-strategy.md`
-\[8] agentrt-linux（AirymaxOS）工程基线 — `docs/AirymaxOS/10-architecture/04-engineering-baseline.md`
-\[9] agentrt-linux 工程标准规范 — `docs/AirymaxOS/50-engineering-standards/README.md`
-\[10] agentrt 统一术语表 — `docs/AirymaxOS/TERMINOLOGY.md`
-\[11] agentrt 技术规范 — `docs/AirymaxOS/50-engineering-standards/README.md`
+\[1] 体系并行论 — `docs/AirymaxRT/00-basic-theories/01-mcis-cn.md`\
+\[2] 认知层理论 — `docs/AirymaxRT/00-basic-theories/02-cognition-design-cn.md`\
+\[3] 记忆层理论 — `docs/AirymaxRT/00-basic-theories/03-memory-design-cn.md`\
+\[4] 设计原则 — `docs/AirymaxRT/00-basic-theories/04-design-principles-cn.md`\
+\[5] 五维正交24原则与 agentrt-linux（AirymaxOS）落地映射 — `docs/AirymaxOS/10-architecture/02-five-dimensional-principles.md`\
+\[6] agentrt-linux 架构设计 — `docs/AirymaxOS/10-architecture/01-system-architecture.md`\
+\[7] 微内核设计思想详解 — `docs/AirymaxOS/10-architecture/03-microkernel-strategy.md`\
+\[8] agentrt-linux（AirymaxOS）工程基线 — `docs/AirymaxOS/10-architecture/04-engineering-baseline.md`\
+\[9] agentrt-linux 工程标准规范 — `docs/AirymaxOS/50-engineering-standards/README.md`\
+\[10] agentrt 统一术语表 — `docs/AirymaxOS/TERMINOLOGY.md`\
+\[11] agentrt 技术规范 — `docs/AirymaxOS/50-engineering-standards/README.md`\
 
 ***
 
-**最后更新**: 2026-07-07
-**维护者**: SPHARX Ltd.
+**最后更新**: 2026-07-11
+**维护者**: 开源极境工程与规范委员会（OpenAirymax Engineering and Standardization Committee）
 
 ***
 

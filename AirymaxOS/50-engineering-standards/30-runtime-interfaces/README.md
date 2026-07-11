@@ -4,7 +4,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux ARE Standards 总览
 
 > **最新**： 2026-07-07\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **状态**： 草案\
 > **路径**： OpenAirymax/docs/AirymaxOS/50-engineering-standards/30-runtime-interfaces/README.md\
 > **父文档**： [工程标准规范手册](../00-engineering-standards-handbook.md)\
@@ -195,7 +195,7 @@ ARE Standards 遵循渐进式标准化路线图，从草案到正式发布分四
 | **候选** | v0.3.0 | 2027 Q1 | 根据反馈修订，进入稳定期 | 所有已知 issue 解决，测试覆盖率达到 90% 以上 |
 | **正式** | v1.0.0 | 2027 Q2 | 最终审定，正式发布 | 经过 6 个月稳定期，无破坏性变更需求 |
 
-当前阶段为 **草案（v0.1.1）**，文档体系已完成，正在进行核心接口的参考实现验证。
+当前版本为 **v0.1.1**，定义文档体系结构与三层架构边界，核心接口规范由本目录 L1/L2/L3 文档完整描述。
 
 ### 3.1 版本命名规则
 
@@ -502,7 +502,7 @@ ARE Standards 的设计全程遵循五维正交24原则，关键映射如下：
 2. [agentrt-linux（AirymaxOS）工程思想](../../50-engineering-standards/04-engineering-philosophy.md)
 3. [体系并行论](../../../AirymaxRT/00-basic-theories/01-mcis-cn.md)
 4. [系统设计原则](../../../AirymaxRT/00-basic-theories/04-design-principles-cn.md)
-5. IRON-9 v2 工程铁律（闭源内部参考）
+5. IRON-9 v2 工程铁律
 6. seL4 微内核项目文档：https://sel4.systems/
 
 ---

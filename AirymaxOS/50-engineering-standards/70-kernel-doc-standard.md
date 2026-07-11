@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）kernel-doc 注释规范
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）内核态 C 代码的 kernel-doc 注释强制规范。定义 `/** */` 注释格式、`@arg:`/`Return:`/`Context:` 等字段模板，以及 `struct`/`enum`/`function`/`typedef` 等结构的文档模板。\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-09\
 > **理论根基**： Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**： AGPL-3.0-or-later OR Apache-2.0
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本规范定义 agentrt-linux 内核态 C 代码的 kernel-doc 注释强制标准，源自由 OLK-6.6 `scripts/kernel-doc`（68KB Perl 脚本）所解析的内核文档注释语法。所有导出函数、公共结构体、枚举、typedef 必须有 kernel-doc 注释，CI 通过 `scripts/kernel-doc` 提取并校验。
+本规范定义 agentrt-linux 内核态 C 代码的 kernel-doc 注释强制标准，源自由 Linux 6.6 内核基线 `scripts/kernel-doc`（68KB Perl 脚本）所解析的内核文档注释语法。所有导出函数、公共结构体、枚举、typedef 必须有 kernel-doc 注释，CI 通过 `scripts/kernel-doc` 提取并校验。
 
 ### 0.2 术语约束
 
@@ -22,7 +22,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - 共享原语称"微核心原语"（不称"微内核原语"）
 - 禁止使用特定上游发行版名称，统一用"主流 Linux 发行版"
 
-### 0.3 OLK-6.6 源码路径
+### 0.3 Linux 6.6 内核基线 源码路径
 
 - `scripts/kernel-doc`（68969 字节，Perl 脚本，第 1-50 行头部说明）
 - `scripts/kernel-doc:45-50` —— "Read C language source or header FILEs, extract embedded documentation comments"
@@ -37,7 +37,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 kernel-doc 注释**必须**以 `/**` 起始（双星号），以 `*/` 结尾。普通注释 `/* */`（单星号）不被 kernel-doc 脚本识别。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:48`
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:48`
 
 **正确示例**：
 
@@ -68,7 +68,7 @@ int airy_ipc_send(struct airy_ipc_chan *chan, ...);
 
 每个 kernel-doc 注释第一行**必须**包含 `<符号名>() - <短描述>` 形式的短描述。短描述应在一行内完成，描述符号的核心用途。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc` 短描述解析逻辑（`-Wshort-description` 警告）
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc` 短描述解析逻辑（`-Wshort-description` 警告）
 
 **正确示例**：
 
@@ -107,7 +107,7 @@ int airy_ipc_send(struct airy_ipc_chan *chan, ...);
 5. `Context:` 上下文约束（进程上下文/原子上下文/可睡眠/持锁要求）
 6. `Return:` 返回值描述（含错误码语义）
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:66` (`$type_param` 正则 `\@(\w*((\.\w+)|(->\w+))*(\.\.\.)?)`)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:66` (`$type_param` 正则 `\@(\w*((\.\w+)|(->\w+))*(\.\.\.)?)`)
 
 **完整模板**：
 
@@ -143,7 +143,7 @@ int airy_ipc_send_batch(struct airy_ipc_chan *chan,
 
 所有函数参数（含 `void`/`struct` 指针）**必须**有 `@arg:` 描述行。`...` 可变参数用 `@...:` 描述。参数描述应包含取值范围、单位、是否可空（NULL）、是否被修改。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:66` (`$type_param`)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:66` (`$type_param`)
 
 **正确示例**：
 
@@ -161,7 +161,7 @@ int airy_ipc_send_batch(struct airy_ipc_chan *chan,
 
 所有非 `void` 函数**必须**有 `Return:` 字段，描述成功值与所有错误码（含负 errno）。错误码以 `-EXXX` 形式列出，并解释触发条件。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:26` (`-Wreturn` 警告开关)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:26` (`-Wreturn` 警告开关)
 
 **正确示例**：
 
@@ -180,7 +180,7 @@ int airy_ipc_send_batch(struct airy_ipc_chan *chan,
 
 所有可能涉及并发安全的函数**必须**有 `Context:` 字段，说明：(1) 进程上下文 vs 原子上下文；(2) 是否可睡眠；(3) 持锁要求（持何种锁、释放何种锁）。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc` `Context:` 解析逻辑
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc` `Context:` 解析逻辑
 
 **正确示例**：
 
@@ -201,7 +201,7 @@ int airy_ipc_send_batch(struct airy_ipc_chan *chan,
 2. 长描述（可选）
 3. 每个成员的 `@member:` 描述行
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:72` (`$type_struct` 正则 `\&(struct\s*([_\w]+))`)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:72` (`$type_struct` 正则 `\&(struct\s*([_\w]+))`)
 
 **完整模板**：
 
@@ -234,7 +234,7 @@ struct airy_task {
 
 结构体成员若为嵌套结构体，kernel-doc 中用 `@parent.child:` 或 `@parent->child:` 形式描述子成员。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:66` (`$type_param` 含 `(\.\w+)|(->\w+)`)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:66` (`$type_param` 含 `(\.\w+)|(->\w+)`)
 
 **正确示例**：
 
@@ -267,7 +267,7 @@ struct airy_ipc_ctx {
 2. 长描述（可选）
 3. 每个枚举值的 `@value:` 描述行
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:71` (`$type_enum` 正则 `\&(enum\s*([_\w]+))`)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:71` (`$type_enum` 正则 `\&(enum\s*([_\w]+))`)
 
 **完整模板**：
 
@@ -301,7 +301,7 @@ enum airy_task_state {
 
 结构体中函数指针成员的 kernel-doc **必须**用 `@member():` 形式（带括号）描述，并说明回调契约（何时调用、参数语义、返回值约定）。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:68-69` (`$type_fp_param`/`$type_fp_param2`)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:68-69` (`$type_fp_param`/`$type_fp_param2`)
 
 **完整模板**：
 
@@ -334,7 +334,7 @@ struct airy_sched_ops {
 
 agentrt-linux 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 typedef（如 `airy_q16_t`）。这些允许的 typedef **必须**有 kernel-doc 注释，描述其底层类型与语义。
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:73` (`$type_typedef` 正则)
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:73` (`$type_typedef` 正则)
 
 **完整模板**：
 
@@ -363,7 +363,7 @@ typedef int32_t airy_q16_t;
 
 kernel-doc 注释中引用其他符号时**必须**使用以下标记：
 
-| 标记 | 含义 | OLK-6.6 正则 |
+| 标记 | 含义 | Linux 6.6 内核基线 正则 |
 |------|------|------------|
 | `%CONST` | 宏常量 | `$type_constant2` (`\%([-_\w]+)`) |
 | `func()` | 函数引用 | `$type_func` (`(\w+)\(\)`) |
@@ -373,7 +373,7 @@ kernel-doc 注释中引用其他符号时**必须**使用以下标记：
 | `&union foo` | 联合体引用 | `$type_union` |
 | `&foo.bar` | 成员引用 | `$type_member` |
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc:63-77`（高亮正则定义）
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:63-77`（高亮正则定义）
 
 **正确示例**：
 
@@ -415,7 +415,7 @@ kernel-doc 注释中引用其他符号时**必须**使用以下标记：
  */
 ```
 
-**OLK-6.6 源码路径**: `scripts/kernel-doc` `DOC:` 段解析逻辑
+**Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc` `DOC:` 段解析逻辑
 
 ---
 

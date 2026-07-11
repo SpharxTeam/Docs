@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # 编码规范遵循
 
 > **文档定位**： agentrt-linux（AirymaxOS） 编码规范的遵循声明、命名规范、C/Rust 风格、日志标准、Doxygen 与安全编码\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **父文档**： [接口设计](README.md)
 
@@ -492,7 +492,7 @@ AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
 |------|---------|---------------|
 | **[SC] 共享契约层** | 完全共享代码 | 6 个头文件的命名风格、类型定义、Doxygen 注释、`AIRY_E*` 错误码前缀在两侧完全一致 |
 | **[SS] 语义同源层** | 规范同源，实现独立 | agentrt（CMake 管理）↔ agentrt-linux（Kbuild + Kconfig 管理）的命名规范、daemon 命名（`_d` 后缀）、函数命名（`module_action_object()`）同源 |
-| **[IND] 完全独立层** | 完全独立 | agentrt 用户态编码风格（4 空格 + 1TBS + 100 列）↔ agentrt-linux 内核态编码风格（OLK-6.6：Tab 8 + K&R + 80 列 + errno+goto） |
+| **[IND] 完全独立层** | 完全独立 | agentrt 用户态编码风格（4 空格 + 1TBS + 100 列）↔ agentrt-linux 内核态编码风格（Linux 6.6 内核基线：Tab 8 + K&R + 80 列 + errno+goto） |
 
 ### 10.2 [SC] 共享契约层——头文件编码风格在两侧的角色
 
@@ -500,7 +500,7 @@ AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
 |--------|-------------------|--------|
 | `sched.h` | `struct airy_task_desc` 类型命名 + magic 宏 UPPER_SNAKE + kernel-doc | kernel / cognition |
 | `ipc.h` | `struct airy_ipc_msg_hdr` 类型命名 + `AIRY_IPC_*` 宏前缀 + Doxygen | kernel / services |
-| `bpf_struct_ops.h` | 4 状态枚举命名 + `common_value` 结构 + kernel-doc | kernel / cognition |
+| `syscalls.h` | `AIRY_SYS_*` 宏命名 + 24 槽位编号 + kernel-doc | kernel / cognition |
 | `security_types.h` | 41 cap ID 枚举 + 252 LSM 钩子枚举 + `snake_case_t` | kernel / security |
 | `memory_types.h` | L1-L4 结构命名 + GFP 掩码宏 + Doxygen | kernel / memory |
 | `cognition_types.h` | 三阶段枚举 + Thinkdual 模式 + kernel-doc | kernel / cognition |
@@ -520,12 +520,12 @@ AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
 
 | 独立项 | agentrt 实现 | agentrt-linux 实现 | 独立原因 |
 |--------|-------------|-------------------|---------|
-| 缩进风格 | 4 空格（禁止 Tab） | OLK-6.6 Tab 8（内核态强制） | 内核编码传统 |
-| 括号风格 | 1TBS（K&R 变体） | K&R（OLK-6.6 标准） | 内核风格统一 |
-| 行宽限制 | 100 字符 | 80 列（OLK-6.6 强制） | 内核传统 |
-| 错误处理 | 异常 / Result / error | errno + goto（OLK-6.6 单出口） | 内核 goto 惯例 |
+| 缩进风格 | 4 空格（禁止 Tab） | Linux 6.6 内核基线 Tab 8（内核态强制） | 内核编码传统 |
+| 括号风格 | 1TBS（K&R 变体） | K&R（Linux 6.6 内核基线 标准） | 内核风格统一 |
+| 行宽限制 | 100 字符 | 80 列（Linux 6.6 内核基线 强制） | 内核传统 |
+| 错误处理 | 异常 / Result / error | errno + goto（Linux 6.6 内核基线 单出口） | 内核 goto 惯例 |
 | 构建系统 | CMake（跨三平台） | Kbuild + Kconfig（Linux 6.6） | 工具链差异 |
-| Lint 工具 | clang-format / rustfmt / gofmt | checkpatch.pl（OLK-6.6） | 内核审查工具 |
+| Lint 工具 | clang-format / rustfmt / gofmt | checkpatch.pl（Linux 6.6 内核基线） | 内核审查工具 |
 
 ### 10.5 跨态协作流
 
@@ -552,7 +552,7 @@ graph TB
     style OS_CODE fill:#fff3e0,stroke:#e65100
 ```
 
-> **OS-IFACE-008**： 编码规范在 agentrt（用户态，4 空格 + 1TBS + 100 列）与 agentrt-linux 内核态（OLK-6.6 Tab 8 + K&R + 80 列 + errno+goto）间保持命名同源而风格独立——6 个 [SC] 共享头文件统一采用 `airy_` 前缀 + `snake_case_t` + Doxygen + `AIRY_E*`，在两侧编译期通过 `-I` 引用同一份源码，禁止生成风格转换中间文件。
+> **OS-IFACE-008**： 编码规范在 agentrt（用户态，4 空格 + 1TBS + 100 列）与 agentrt-linux 内核态（Linux 6.6 内核基线 Tab 8 + K&R + 80 列 + errno+goto）间保持命名同源而风格独立——6 个 [SC] 共享头文件统一采用 `airy_` 前缀 + `snake_case_t` + Doxygen + `AIRY_E*`，在两侧编译期通过 `-I` 引用同一份源码，禁止生成风格转换中间文件。
 
 ---
 

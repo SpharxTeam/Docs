@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）测试体系设计
 
 > **文档定位**： agentrt-linux（AirymaxOS）测试工程体系主索引
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt 7 层自动化验证 + Linux 6.6 测试框架（KUnit/kselftest/动态分析）
 > **理论根基**： Linux 内核测试体系 + Airymax E-8 可测试性 + A-4 完美主义
@@ -137,7 +137,7 @@ int __init ftrace_startup(struct tracer *tracer, int command) {
 
 ### 3.1 0.1.1 版本范围
 
-0.1.1 完成 README + 01 + 02 文档（3 文档奠基），确立测试体系设计框架与 KUnit/kselftest 核心机制。其余 8 文档（03-kernel-selftests 至 10-formal-verification）在 1.0.1 版本完成。
+README + 01 + 02 文档（3 文档奠基），确立测试体系设计框架与 KUnit/kselftest 核心机制。其余 8 文档（03-kernel-selftests 至 10-formal-verification）在 1.0.1 版本完成。
 
 ### 3.2 1.0.1 版本范围
 
@@ -220,4 +220,4 @@ static void test_agent_cognition_contract(struct kunit *test) {
 
 ---
 
-> **文档结束** | 0.1.1 P0 优先完成 README + 01 + 02
+> **文档结束** | README + 01 + 02

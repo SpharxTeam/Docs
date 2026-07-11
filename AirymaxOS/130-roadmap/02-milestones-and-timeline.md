@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）里程碑与时间线
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）里程碑定义、时间线与关键路径\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
 > **同源映射**：agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，36 天路线图）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则（S-4 涌现性管理 / E-6 错误可追溯 / A-4 完美主义）
@@ -418,7 +418,7 @@ graph LR
 ### 11.2 同源 Airymax 文档
 
 - `docs/AirymaxRT/00-architectural-principles.md` — 五维正交 24 原则（S-4 / E-6 / A-4）
-- 内部工程改进方案（闭源） — agentrt 36 天路线图（v4.2，对照参考）
+- agentrt 工程改进方案 — agentrt 36 天路线图（v4.2，对照参考）
 
 ### 11.3 agentrt-linux 设计文档
 

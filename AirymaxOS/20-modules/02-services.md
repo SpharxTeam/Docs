@@ -493,29 +493,29 @@ graph TD
 
 | 维度 | agentrt | agentrt-linux services | 一致性 |
 |------|---------|----------------------|--------|
-| daemon 名称 | gateway_d/llm_d/tool_d/... | gateway_d/llm_d/tool_d/... | ✅ [SS] 同源语义 |
-| IPC magic | 0x41524531 'ARE1' | 0x41524531 'ARE1' | ✅ [SC] 共享契约 |
-| IPC 消息头 | `struct airy_ipc_msg_hdr`（128B） | `struct airy_ipc_msg_hdr`（128B） | ✅ [SC] 共享契约 |
-| 通信原语 | channel/socket/fifo/eventpair | channel/socket/fifo/eventpair | ✅ [SS] 同源语义 |
-| capability 令牌 | 用户态 capability | 内核态 capability | ✅ [SS] 同源语义 |
+| daemon 名称 | gateway_d/llm_d/tool_d/... | gateway_d/llm_d/tool_d/... | [SS] 同源语义 |
+| IPC magic | 0x41524531 'ARE1' | 0x41524531 'ARE1' | [SC] 共享契约 |
+| IPC 消息头 | `struct airy_ipc_msg_hdr`（128B） | `struct airy_ipc_msg_hdr`（128B） | [SC] 共享契约 |
+| 通信原语 | channel/socket/fifo/eventpair | channel/socket/fifo/eventpair | [SS] 同源语义 |
+| capability 令牌 | 用户态 capability | 内核态 capability | [SS] 同源语义 |
 
 ### 11.2 语义一致性
 
 | 语义 | agentrt daemons | agentrt-linux services | 一致 |
 |------|----------------|----------------------|------|
-| 服务数量 | 12 daemons | 12 daemons + VFS/Net/Drivers | ✅ [SS] 同源 + 扩展 |
-| 通信方式 | 进程间消息队列 | io_uring 零拷贝 IPC | ✅ [SS] AirymaxOS 增强 |
-| 零拷贝 | 用户态 mmap | io_uring registered buffer | ✅ [SS] AirymaxOS 加速 |
-| 服务管理 | 自研 supervisor | systemd 集成 | ✅ [IND] AirymaxOS 专属 |
-| 部署形态 | 用户态进程 | systemd unit + capability | ✅ [IND] AirymaxOS 专属 |
+| 服务数量 | 12 daemons | 12 daemons + VFS/Net/Drivers | [SS] 同源 + 扩展 |
+| 通信方式 | 进程间消息队列 | io_uring 零拷贝 IPC | [SS] AirymaxOS 增强 |
+| 零拷贝 | 用户态 mmap | io_uring registered buffer | [SS] AirymaxOS 加速 |
+| 服务管理 | 自研 supervisor | systemd 集成 | [IND] AirymaxOS 专属 |
+| 部署形态 | 用户态进程 | systemd unit + capability | [IND] AirymaxOS 专属 |
 
 ### 11.3 IRON-9 v2 合规性
 
 | IRON-9 v2 三层 | 本文档覆盖 | 合规 |
 |---------------|-----------|------|
-| 共享契约层 [SC] | §6.1 `include/airymax/ipc.h` 完整定义 | ✅ |
-| 语义同源层 [SS] | §6.2 12 daemons + 8 项 IPC 原语同源（20 项） | ✅ |
-| 完全独立层 [IND] | §6.3 10 项独立实现明确划分 | ✅ |
+| 共享契约层 [SC] | §6.1 `include/airymax/ipc.h` 完整定义 | |
+| 语义同源层 [SS] | §6.2 12 daemons + 8 项 IPC 原语同源（20 项） | |
+| 完全独立层 [IND] | §6.3 10 项独立实现明确划分 | |
 
 ---
 

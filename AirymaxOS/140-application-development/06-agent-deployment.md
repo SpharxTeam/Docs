@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # Agent 部署与运行契约
 
 > **文档定位**：agentrt-linux（AirymaxOS）Agent 应用的完整部署与运行工程契约，定义 Agent 包格式、清单规范、部署状态机、运行时沙箱、健康检查、滚动更新、回滚机制与资源配额\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **父文档**：[Agent 应用开发 README](README.md)\
 > **文档性质**：实现方案文档（非设计文档）。本契约在 [01-agent-lifecycle.md](01-agent-lifecycle.md) Agent 生命周期管理与 [190-distribution/README.md](../190-distribution/README.md) Agent 应用商店设计的基础上，补充完整的部署、打包、分发与运行模型\
@@ -1416,13 +1416,6 @@ class TestAgentDeploy:
 - [05-memory-rovol-api.md](05-memory-rovol-api.md)——记忆卷载 API（资源配额维度 2 + 回滚基础）
 - [110-security/03-capability-model.md](../110-security/03-capability-model.md)——Capability 安全模型（沙箱维度 4）
 - [07-syscall-registry.md](07-syscall-registry.md)——系统调用编号 SSoT 注册表
-
-### 17.3 闭源参考文档
-
-以下文档为闭源内部参考，不公开（位于 `docs-closed/agentrt-linux/`）：
-
-- 部署安全审查报告
-- 包签名验证实现规范
 
 ---
 

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）Rust 安全编码规范
 
 > **文档定位**： agentrt-linux（AirymaxOS）内核模块 Rust 语言安全编码规范\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [编码规范总览](README.md)\
 > **同源参考**： Rust Secure Code Guidelines + seL4 形式化验证方法论\

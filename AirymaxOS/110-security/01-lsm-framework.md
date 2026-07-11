@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # LSM 框架详解
 
 > **文档定位**： agentrt-linux（AirymaxOS）安全工程体系第 1 主题文档——Linux 安全模块（LSM）框架深度剖析\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **同源映射**： agentrt Cupolas（安全穹顶）+ Linux 6.6 LSM/Landlock/capability\
 > **理论根基**： Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + E-1 安全内生\
@@ -676,7 +676,7 @@ struct airy_cupolas_audit_event {
 | 字段 | 值 |
 |------|------|
 | 文档定位 | LSM 框架详解 |
-| 当前版本 | 0.1.1（文档体系完成）/ 1.0.1（开发） |
+| 当前版本 | 0.1.1 |
 | 最后更新 | 2026-07-06 |
 | 维护者 | agentrt-linux 安全工程组 |
 | 同源映射 | agentrt Cupolas + Linux 6.6 LSM/Landlock/capability |
@@ -694,7 +694,7 @@ struct airy_cupolas_audit_event {
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 LSM 框架与 Cupolas 集成所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `security/security.c`、`include/linux/lsm_hooks.h`、`include/linux/lsm_hook_defs.h` 及 `include/airymax/security_types.h`（[SC] 共享契约层）。
+> **附录定位**： 本附录汇集 LSM 框架与 Cupolas 集成所需的完整 C 接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `security/security.c`、`include/linux/lsm_hooks.h`、`include/linux/lsm_hook_defs.h` 及 `include/airymax/security_types.h`（[SC] 共享契约层）。
 
 ### A.1 核心数据结构
 
@@ -917,7 +917,7 @@ int __init security_init(void);
  *
  * 返回: 0 成功，<0 失败（panic）
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  */
 static int __init cupolas_init(void);
 ```
@@ -1127,4 +1127,4 @@ DEFINE_LSM(cupolas, {
 
 ---
 
-> **文档结束** | 0.1.1 P0 优先完成 LSM 框架核心机制
+> **文档结束** |  LSM 框架核心机制

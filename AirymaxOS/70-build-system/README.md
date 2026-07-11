@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）构建系统设计
 
 > **文档定位**： agentrt-linux（AirymaxOS）构建系统工程设计主索引
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt `cmake/`（伞仓直属 5 模块）+ Linux 6.6 Kbuild 系统
 > **理论根基**： Linux Kbuild 递归构建 + Airymax E-7 文档即代码
@@ -110,7 +110,7 @@ make modules_install  # 安装到 /lib/modules/$(uname -r)
 
 ### 3.1 0.1.1 版本范围
 
-0.1.1 完成 README + 01 + 02 文档（3 文档奠基），确立构建系统设计框架与 Kbuild/Kconfig 核心机制。其余 6 文档（03-makefile-patterns 至 08-build-reproducibility）在 1.0.1 版本完成。
+README + 01 + 02 文档（3 文档奠基），确立构建系统设计框架与 Kbuild/Kconfig 核心机制。其余 6 文档（03-makefile-patterns 至 08-build-reproducibility）在 1.0.1 版本完成。
 
 ### 3.2 1.0.1 版本范围
 
@@ -186,4 +186,4 @@ AIRYMAXOS_RELEASE = ""
 
 ---
 
-> **文档结束** | 0.1.1 P0 优先完成 README + 01 + 02
+> **文档结束** | README + 01 + 02

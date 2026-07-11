@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux 软件物料清单（SBOM）规范
 
 > **文档定位**： agentrt-linux（AirymaxOS）软件物料清单（SBOM）的完整规范，定义 SBOM 标准选择、组件清单、许可证合规矩阵、漏洞扫描策略与自动生成流程\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [项目管理规范总览](README.md)\
 > **关联规范**： IRON-9 v2 工程铁律（内部工程标准规范） / [安全加固规范](../../110-security/README.md) / [工程基线](../../10-architecture/04-engineering-baseline.md)
@@ -228,14 +228,14 @@ agentrt-linux（AirymaxOS）SBOM 覆盖以下组件类别：
 
 | 组件许可证 | 可与 GPL-2.0 链接 | 可与 Apache-2.0 链接 | 可与 MIT 链接 |
 |------------|-------------------|----------------------|---------------|
-| GPL-2.0-only | ✅ | ❌ | ❌ |
-| GPL-3.0-or-later | ✅ (GPL-3.0 兼容) | ❌ | ❌ |
-| LGPL-2.1-only | ✅ | ✅ | ✅ |
-| Apache-2.0 | ❌ | ✅ | ✅ |
-| MIT | ✅ | ✅ | ✅ |
-| BSD-3-Clause | ✅ | ✅ | ✅ |
-| curl | ✅ | ✅ | ✅ |
-| Zlib | ✅ | ✅ | ✅ |
+| GPL-2.0-only | | ❌ | ❌ |
+| GPL-3.0-or-later | (GPL-3.0 兼容) | ❌ | ❌ |
+| LGPL-2.1-only | | | |
+| Apache-2.0 | ❌ | | |
+| MIT | | | |
+| BSD-3-Clause | | | |
+| curl | | | |
+| Zlib | | | |
 
 ### 4.3 合规要求
 
@@ -469,7 +469,7 @@ relationships:
 - [安全加固规范](../../110-security/README.md)：安全加固体系
 - [工程基线](../../10-architecture/04-engineering-baseline.md)：工程基线定义
 - [五维正交原则](../../10-architecture/02-five-dimensional-principles.md)：五维正交 24 原则
-- IRON-9 v2 工程铁律（闭源内部参考）
+- IRON-9 v2 工程铁律
 
 ---
 

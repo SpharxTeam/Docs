@@ -984,14 +984,14 @@ describe('TaskScheduler', () => {
 // ❌ BAN-300: 使用 any
 function process(data: any) { ... }  // 禁止！
 
-// ✅ 正确：使用具体类型或泛型
+// 正确：使用具体类型或泛型
 function process<T>(data: T): Result<T> { ... }
 
 // ❌ BAN-301: 使用 @ts-ignore
 // @ts-ignore
 const result = someFunction();  // 禁止！
 
-// ✅ 正确：修复类型或使用类型守卫
+// 正确：修复类型或使用类型守卫
 if (isValidData(data)) {
     const result = someFunction(data);
 }
@@ -999,14 +999,14 @@ if (isValidData(data)) {
 // ❌ BAN-302: 使用 console.log
 console.log('Task completed');  // 禁止！
 
-// ✅ 正确：使用 logger
+// 正确：使用 logger
 import { logger } from '../utils/logger';
 logger.info('Task completed', { taskId });
 
 // ❌ BAN-303: 空 catch 块
 try { ... } catch (e) { }  // 禁止！
 
-// ✅ 正确：记录异常
+// 正确：记录异常
 try { ... } catch (e) {
     logger.error('Operation failed', { error: e });
 }
@@ -1014,7 +1014,7 @@ try { ... } catch (e) {
 // ❌ BAN-304: 硬编码 URL
 const API_URL = 'http://localhost:8080/api';  // 禁止！
 
-// ✅ 正确：使用配置
+// 正确：使用配置
 const API_URL = config.get('api.url');
 ```
 

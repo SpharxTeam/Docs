@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）驱动模型 — platform 总线与 SoC 设备
 
 > **文档定位**： agentrt-linux（AirymaxOS）驱动子系统 60 模块第二篇——platform 总线实例与 SoC 设备资源管理\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **同源映射**： agentrt `daemons`（用户态 SoC 适配器）+ Linux 6.6 `drivers/base/platform.c`（platform_bus_type 实现）\
 > **理论根基**： Linux 6.6 内核基线 + Airymax 五维正交 24 原则\
@@ -627,7 +627,7 @@ SoC 设备的完整资源托管链跨越内核/用户态：内核 `devm_` 资源
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 platform 总线与 SoC 设备资源管理所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `include/linux/platform_device.h`、`drivers/base/platform.c`、`include/linux/of.h`、`include/linux/ioport.h` 及 `include/airymax/sched.h`（[SC] 间接依赖层）。
+> **附录定位**： 本附录汇集 platform 总线与 SoC 设备资源管理所需的完整 C 接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `include/linux/platform_device.h`、`drivers/base/platform.c`、`include/linux/of.h`、`include/linux/ioport.h` 及 `include/airymax/sched.h`（[SC] 间接依赖层）。
 
 ### A.1 核心数据结构
 
@@ -821,7 +821,7 @@ struct resource {
  *
  * 返回: 0 成功，<0 失败（-EINVAL/-EBUSY/-ENOMEM）
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/platform.c
  */
@@ -862,7 +862,7 @@ int __platform_driver_register(struct platform_driver *drv,
  *
  * 返回: 0 成功，<0 失败（-EINVAL/-ENOMEM）
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/platform.c
  */
@@ -920,7 +920,7 @@ int platform_device_add(struct platform_device *pdev);
  *
  * 返回: __iomem 映射基地址；失败返回 IOMEM_ERR_PTR(-ENOMEM/-EBUSY/-ENOENT)
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/platform.c
  */
@@ -976,7 +976,7 @@ struct resource *platform_get_resource(struct platform_device *pdev,
  *
  * 返回: 中断号（>=0）；失败返回 -ENXIO/-EPROBE_DEFER
  *
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 drivers/base/platform.c（第 171 行起）
  */

@@ -2,12 +2,12 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）C 语言编码规范强化补充
 
-> **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）内核态 C 语言编码规范的强化补充规则，与 `C_coding_style_standard.md` 配套使用。本文件聚焦 12 条强化规则，每条规则附 OLK-6.6 源码路径，并以"正确示例 / 错误示例"成对呈现。\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）内核态 C 语言编码规范的强化补充规则，与 `C_coding_style_standard.md` 配套使用。本文件聚焦 12 条强化规则，每条规则附 Linux 6.6 内核基线 源码路径，并以"正确示例 / 错误示例"成对呈现。\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-09\
 > **理论根基**： Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**： AGPL-3.0-or-later OR Apache-2.0\
-> **SSoT 声明（C-2.6 D-03，2026-07-09）**： 本文件的核心独特价值是 **OLK-6.6 源码行号索引**（每条规则附 `文件名:行号` 出处）。规则编号的权威来源为 [01-coding-standards.md](../01-coding-standards.md)（语义层）与 [02-code-format.md](../02-code-format.md)（格式层）；本文件中的 3 段编号（OS-KER-007~015）与 SSoT 存在冲突，请使用 [C_coding_style_standard.md §0 映射表](C_coding_style_standard.md#0-ssot-对齐声明与编号映射)进行交叉引用。4 段编号（OS-STD-CODE-010/012/014/015）已与目标编号体系对齐。
+> **SSoT 声明**： 本文件的核心独特价值是 **Linux 6.6 内核基线 源码行号索引**（每条规则附 `文件名:行号` 出处）。规则编号的权威来源为 [01-coding-standards.md](../01-coding-standards.md)（语义层）与 [02-code-format.md](../02-code-format.md)（格式层）；本文件中的 3 段编号（OS-KER-007~015）与 SSoT 存在冲突，请使用 [C_coding_style_standard.md §0 映射表](C_coding_style_standard.md#0-ssot-对齐声明与编号映射)进行交叉引用。4 段编号（OS-STD-CODE-010/012/014/015）已与目标编号体系对齐。
 
 ---
 
@@ -15,7 +15,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 与基线文档的关系
 
-本规范是 `10-coding-style/C_coding_style_standard.md`（基线）的强化补充，**不重复**基线中已涵盖的命名约定、函数长度、注释格式等通用规则，仅就以下 12 条"高违规率 / 高风险"强化规则给出可执行的强制约束。基线文档已于 2026-07-09 完成 C-2.6 D-03 SSoT 对齐（见基线 §0 映射表），本文件中引用的规则编号请以基线 §0 映射表为准：
+本规范是 `10-coding-style/C_coding_style_standard.md`（基线）的强化补充，**不重复**基线中已涵盖的命名约定、函数长度、注释格式等通用规则，仅就以下 12 条"高违规率 / 高风险"强化规则给出可执行的强制约束。基线文档已完成 SSoT 对齐（见基线 §0 映射表），本文件中引用的规则编号请以基线 §0 映射表为准：
 
 1. Tab-8 缩进强制（OS-KER-011）
 2. `goto` 集中错误处理（OS-KER-009）
@@ -32,9 +32,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **术语约束**：agentrt（用户态）= 微核心（micro-core）；agentrt-linux（OS 发行版）= 微内核（micro-kernel）。本规范描述 agentrt-linux 时使用"微内核"上下文，描述 agentrt 共享原语时使用"微核心原语"。
 
-### 0.2 OLK-6.6 源码路径标注规范
+### 0.2 Linux 6.6 内核基线 源码路径标注规范
 
-本规范每条规则均以 `文件名:行号` 格式标注 OLK-6.6 源码出处（基准路径 `/home/spharx/SpharxWorks/01Reference/kernel-OLK-6.6/`），便于审查者复核与对齐。
+本规范每条规则均以 `文件名:行号` 格式标注 Linux 6.6 内核基线 源码出处（基准路径 `/home/spharx/SpharxWorks/01Reference/kernel-Linux 6.6 内核基线/`），便于审查者复核与对齐。
 
 ---
 
@@ -44,7 +44,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 agentrt-linux 内核态 C 代码**必须**使用 Tab 字符缩进，Tab 宽度固定为 8 个字符。禁止使用空格缩进（Kconfig 例外）。8 字符缩进是"代码复杂度的自然惩罚"：嵌套超过 3 层即提示应重构。
 
-### 1.2 OLK-6.6 源码路径
+### 1.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst:21` —— "Tabs are 8 characters, and thus indentations are also 8 characters."
 - `Documentation/process/coding-style.rst:31-39` —— "if you need more than 3 levels of indentation, you're screwed anyway"
@@ -92,7 +92,7 @@ static int airy_sched_pick_next(struct airy_sched *sched)
 
 函数存在多个出口且需要公共清理工作时，**必须**使用 `goto` 跳转到集中错误处理标签。标签名必须描述其行为（如 `out_free_buffer`），禁止 `err1:`/`err2:` 编号式命名。错误标签必须按资源申请的逆序排列，避免 "one err bugs"（释放未分配资源）。
 
-### 2.2 OLK-6.6 源码路径
+### 2.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst:526-572` —— §7 "Centralized exiting of functions"
 - `Documentation/process/coding-style.rst:574-595` —— "one err bugs" 反模式与拆分标签
@@ -155,7 +155,7 @@ static int airy_ipc_setup_channel(struct airy_ipc_ctx *ctx)
 
 `bool` 类型**仅允许**用于：函数返回值、栈局部变量。禁止将 `bool` 用于结构体成员、函数参数（应使用 `flags` 位域）。当缓存行布局或大小敏感时禁止 `bool`（其大小与对齐随架构变化）。多真/假值应合并为位域或 `u8`。
 
-### 3.2 OLK-6.6 源码路径
+### 3.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst:1021-1049` —— §17 "Using bool"
 - `Documentation/process/coding-style.rst:1032-1034` —— "bool function return types and stack variables are always fine"
@@ -198,7 +198,7 @@ static int airy_ipc_send(struct airy_ipc_chan *chan,
 
 agentrt-linux 内核态代码**禁止**使用 `float`/`double` 浮点类型。x86 编译强制 `-mno-80387` 禁止 x87 指令生成。所有需要小数运算的场景**必须**使用 `airy_q16_t`（`int32_t`）Q16.16 定点数：高 16 位为整数部分，低 16 位为小数部分。定点运算辅助宏定义于 `include/airymax/cognition_types.h`。
 
-### 4.2 OLK-6.6 源码路径
+### 4.2 Linux 6.6 内核基线 源码路径
 
 - `arch/x86/Makefile:137` —— `KBUILD_CFLAGS += -mno-80387`
 - `arch/x86/Makefile:138` —— `KBUILD_CFLAGS += $(call cc-option,-mno-fp-ret-in-387)`
@@ -239,7 +239,7 @@ static double airy_token_throughput(u64 tokens, u64 elapsed_ms)
 
 源代码单行**不得超过 80 列**。注释单行**不得超过 72 列**（注释缩进占 8 列，留 8 列右边界）。超出时必须按"对齐到开括号"风格折行。**禁止**折断用户可见字符串（如 `printk` 消息），以保证可 grep。续行必须显著短于父行并向右偏移。
 
-### 5.2 OLK-6.6 源码路径
+### 5.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst:104` —— "The preferred limit on the length of a single line is 80 columns."
 - `Documentation/process/coding-style.rst:106-108` —— "Statements longer than 80 columns should be broken into sensible chunks"
@@ -278,7 +278,7 @@ static int airy_ipc_send_batch(struct airy_ipc_channel *chan, const struct airy_
 
 结构体初始化**必须**使用 C99 指定初始化器（`= { .field = value }`），禁止位置初始化器（`= { value1, value2, ... }`）。指定初始化器对字段顺序变化、新增字段具有天然免疫力，且可读性远高于位置式。
 
-### 6.2 OLK-6.6 源码路径
+### 6.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst`（贯穿示例，如 §3 switch 示例、§5 初始化示例）
 - `scripts/checkpatch.pl:4662` —— `GLOBAL_INITIALISERS` 规则检查
@@ -321,7 +321,7 @@ static const struct airy_ipc_ops airy_ipc_default_ops = {
 
 `switch` 语句中所有 `case` 分支**必须**以下列之一结尾：`break;`、`fallthrough;`、`continue;`、`goto <label>;`、`return [expr];`。禁止隐式 fall-through。`fallthrough` 是伪关键字宏（展开为 `__attribute__((__fallthrough__))`），用于显式标记有意穿透。
 
-### 7.2 OLK-6.6 源码路径
+### 7.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/deprecated.rst:200-227` —— "Implicit switch case fall-through"
 - `Documentation/process/deprecated.rst:229-235` —— "All switch/case blocks must end in one of: break; fallthrough; continue; goto; return"
@@ -367,7 +367,7 @@ case AIRY_COG_THINK:			/* WRONG: 隐式穿透，无 fallthrough; */
 
 **禁止**为结构体和指针定义新 `typedef`（如 `typedef struct { ... } foo_t;`）。结构体必须以 `struct foo` 形式声明与使用。`typedef` 仅允许用于：(a) 完全不透明对象（如 `pte_t`）；(b) 明确整数类型（如 `u8`/`u16`/`u32`/`u64`）；(c) sparse 类型检查；(d) 与 C99 标准类型相同的特殊情况；(e) 用户空间安全类型。`airy_q16_t`（= `int32_t`）属 (b) 类，允许。
 
-### 8.2 OLK-6.6 源码路径
+### 8.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst:359-440` —— §5 "Typedefs"
 - `Documentation/process/coding-style.rst:362-378` —— "It's a mistake to use typedef for structures and pointers"
@@ -409,7 +409,7 @@ static int airy_task_enqueue(airy_task_t *task);	/* WRONG: 用 typedef 名 */
 
 agentrt-linux 内核构建**必须**零警告通过。`Makefile` 必须启用 `-Wall -Werror`，`scripts/checkpatch.pl` 必须以 0 ERROR / 0 WARNING 通过。CI 门禁中任何警告即视为构建失败，禁止以注释抑制（`// NOLINT` 等）掩盖警告。`__deprecated` 属性不再产生构建警告，因此废弃接口必须从代码中彻底移除或登记到 `100-deprecated-api-registry.md`。
 
-### 9.2 OLK-6.6 源码路径
+### 9.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/deprecated.rst:20-30` —— "__deprecated ... does not produce warnings during builds any more ... the standing goals of the kernel is to build without warnings"
 - `scripts/checkpatch.pl:2444-2447` —— `ERROR` 与 `WARNING` 计数逻辑（非零即失败）
@@ -452,7 +452,7 @@ static int airy_sched_idle(struct airy_sched *sched)
 
 agentrt-linux 内核态**禁止**新增 `strcpy`、`strncpy`、`strlcpy` 调用。所有以 NUL 结尾的字符串复制**必须**使用 `strscpy`；需要 NUL 填充的使用 `strscpy_pad`；非 NUL 结尾的使用 `strtomem`/`strtomem_pad`。`strscpy` 返回已复制的非 NUL 字节数（截断时返回负 errno），调用方必须据此处理截断。
 
-### 10.2 OLK-6.6 源码路径
+### 10.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/deprecated.rst:122-132` —— "strcpy() ... The safe replacement is strscpy()"
 - `Documentation/process/deprecated.rst:134-154` —— "strncpy() on NUL-terminated strings ... the replacement is strscpy()"
@@ -506,7 +506,7 @@ static int airy_chan_set_name2(struct airy_ipc_chan *chan,
 
 agentrt-linux 内核态**禁止**新增 `BUG()`、`BUG_ON()`、`VM_BUG_ON()`。必须改用 `WARN_ON_ONCE()`（首选）或 `WARN()`，并尽可能提供恢复代码。"我懒得做错误处理"不是使用 `BUG()` 的借口。`WARN*()` 仅用于"预期不可达"场景；"可达但 undesirable"场景使用 `pr_warn()`。`BUILD_BUG_ON()` 是编译期断言，无运行时影响，允许且鼓励使用。
 
-### 11.2 OLK-6.6 源码路径
+### 11.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst:1189-1249` —— §22 "Do not crash the kernel"
 - `Documentation/process/coding-style.rst:1202-1212` —— "Use WARN() rather than BUG() ... Do not add new code that uses any of the BUG() variants"
@@ -554,7 +554,7 @@ static int airy_ipc_validate_hdr(const struct airy_ipc_msg_hdr *hdr)
 
 向内存分配器传递结构体大小时**必须**使用 `sizeof(*p)` 形式（p 为目标指针变量），禁止 `sizeof(struct xxx)`。理由：(1) 当指针变量类型变更时，`sizeof(*p)` 自动跟随，避免"改了类型忘改 sizeof"的隐蔽 bug；(2) 可读性更佳。数组分配使用 `kmalloc_array(n, sizeof(*p), ...)` 或 `kcalloc(n, sizeof(*p), ...)`，禁止 `kmalloc(n * sizeof(...), ...)` 形式（无溢出检查）。`void *` 返回值**禁止**强制转换（C 语言自动转换）。
 
-### 12.2 OLK-6.6 源码路径
+### 12.2 Linux 6.6 内核基线 源码路径
 
 - `Documentation/process/coding-style.rst:925-933` —— "The preferred form for passing a size of a struct is: p = kmalloc(sizeof(*p), ...);"
 - `Documentation/process/coding-style.rst:935-937` —— "Casting the return value which is a void pointer is redundant"
@@ -595,7 +595,7 @@ task->cmds = kmalloc(cmd_count * sizeof(struct airy_cmd), GFP_KERNEL);	/* WRONG:
 
 ## 13. 强化规则速查表
 
-| 编号 | 规则 | OLK-6.6 主源码路径 | 严重度 |
+| 编号 | 规则 | Linux 6.6 内核基线 主源码路径 | 严重度 |
 |------|------|-------------------|--------|
 | OS-KER-011 | Tab-8 缩进强制 | `coding-style.rst:21` / `.clang-format:645,687,688` | ERROR |
 | OS-KER-009 | goto 集中错误处理 | `coding-style.rst:526-595` | ERROR |
@@ -631,7 +631,7 @@ task->cmds = kmalloc(cmd_count * sizeof(struct airy_cmd), GFP_KERNEL);	/* WRONG:
 
 ### 14.3 与 .clang-format 强制的关系
 
-规则 OS-KER-011（Tab-8）、OS-KER-012（行宽 80）由 `.clang-format` 自动强制（详见 [02-code-format.md](../02-code-format.md) §9 clang-format 关键配置项表；原 `80-clang-format-enforcement.md` 已按 D-02 决策合并）。`make format-check` 在 CI 中验证所有 C 文件符合 `.clang-format`，违反即构建失败。
+规则 OS-KER-011（Tab-8）、OS-KER-012（行宽 80）由 `.clang-format` 自动强制（详见 [02-code-format.md](../02-code-format.md) §9 clang-format 关键配置项表；原 `80-clang-format-enforcement.md` 已合并）。`make format-check` 在 CI 中验证所有 C 文件符合 `.clang-format`，违反即构建失败。
 
 ---
 

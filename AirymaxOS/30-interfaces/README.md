@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # 接口设计
 
 > **文档定位**： agentrt-linux（AirymaxOS） 接口设计层的总览与索引\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **父文档**： [agentrt-linux 总览](../README.md)
 

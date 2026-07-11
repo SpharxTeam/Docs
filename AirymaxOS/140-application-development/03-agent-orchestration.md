@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # Agent 编排设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）Agent 应用开发体系核心子文档，定义多 Agent 协作模型、DAG 工作流编排与 TaskFlow 引擎在 OS 层的应用\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
@@ -398,7 +398,7 @@ int airy_taskflow_checkpoint(struct airy_dag_workflow *wf)
 		rec.node_statuses[i] = wf->nodes[i].status;
 
 	/* 写入 MemoryRovol L1（append-only，SHA-256 哈希） */
-	ret = airy_memoryrov_l1_append(wf->workflow_id,
+	ret = airy_mr_l1_append(wf->workflow_id,
 					  &rec, sizeof(rec));
 	if (ret)
 		pr_err("taskflow: checkpoint failed for wf %u: %d\n",
@@ -418,7 +418,7 @@ int airy_taskflow_rollback(struct airy_dag_workflow *wf)
 	struct airy_checkpoint_record rec;
 	int ret, i;
 
-	ret = airy_memoryrov_l1_read_last(wf->workflow_id,
+	ret = airy_mr_l1_read_last(wf->workflow_id,
 					      &rec, sizeof(rec));
 	if (ret)
 		return ret;

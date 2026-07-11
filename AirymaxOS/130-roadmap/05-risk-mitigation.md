@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）风险识别与缓解
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）开发详细方案（路线图）模块第 5 文档\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
 > **同源映射**：agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，§37 风险登记册）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则（体系并行论）\
@@ -441,8 +441,8 @@ graph LR
 ### 8.2 同源 Airymax 文档
 
 - `docs/AirymaxRT/00-architectural-principles.md` — 五维正交 24 原则
-- IRON-9 v2 工程铁律（闭源内部参考） — 17 类规则编号体系（v28.0，含 IRON-9）
-- 内部工程改进方案（闭源） — agentrt 三大支柱方案（v4.2，§37 风险登记册）
+- IRON-9 v2 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
+- agentrt 工程改进方案 — agentrt 三大支柱方案（v4.2，§37 风险登记册）
 
 ### 8.3 agentrt-linux 工程标准
 

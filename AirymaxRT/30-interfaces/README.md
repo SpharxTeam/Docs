@@ -178,11 +178,11 @@ int main() {
 #include "memoryrovol.h"
 
 // 创建四层记忆系统
-airy_memoryrov_handle_t* memory = airy_memoryrov_create();
+airy_mr_handle_t* memory = airy_mr_create();
 
 // 写入记忆
 const char* content = "用户偏好：喜欢简洁的回复风格";
-airy_err_t err = airy_memoryrov_add_memory(memory, content, strlen(content));
+airy_err_t err = airy_mr_add_memory(memory, content, strlen(content));
 
 // 相似性检索
 airy_memory_query_t query = {
@@ -192,7 +192,7 @@ airy_memory_query_t query = {
 };
 
 airy_memory_result_ext_t* result = NULL;
-err = airy_memoryrov_query(memory, &query, &result);
+err = airy_mr_query(memory, &query, &result);
 
 if (result && result->memory_result_count > 0) {
     for (size_t i = 0; i < result->memory_result_count; i++) {
@@ -203,7 +203,7 @@ if (result && result->memory_result_count > 0) {
 
 // 清理
 airy_memory_result_free(result);
-airy_memoryrov_destroy(memory);
+airy_mr_destroy(memory);
 ```
 
 ### 使用协议栈发送消息

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）规范符合性检查机制
 
 > **文档定位**： agentrt-linux（AirymaxOS）工程标准规范符合性检查清单与自动化验证机制\
-> **版本**： 0.1.1（文档体系完成）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [工程标准规范 README](README.md)\
 > **核心约束**： IRON-9 v2 同源且部分代码共享——[SC] 共享契约层 6 个头文件落地于 `include/airymax/`
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 目的
 
-建立系统化的规范符合性检查机制，对所有设计文档和代码实现进行标准化审查，减少因不规范导致的潜在技术风险。本检查机制是用户决策指南第 4 点的直接落地：
+建立系统化的规范符合性检查机制，对所有设计文档和代码实现进行标准化审查，减少因不规范导致的潜在技术风险。本检查机制是开源极境工程与规范委员会决策指南第 4 点的直接落地：
 
 > "制定并严格执行 agentrt-linux 工程标准规范；对所有设计文档和代码实现进行标准化审查；建立规范符合性检查机制，减少因不规范导致的潜在技术风险"
 
@@ -23,7 +23,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 范围 | 路径 | 检查类型 | 优先级 |
 |------|------|----------|--------|
 | 开源设计文档 | `docs/AirymaxOS/` | 文档标准化 | P0 |
-| 闭源参考文档 | 内部闭源文档路径 | 文档标准化（放宽禁词） | P1 |
+| 内部参考文档 | 内部文档路径 | 文档标准化（放宽禁词） | P1 |
 | C 源码 | `atoms/` `daemons/` `commons/` `memoryrovol/` | 代码标准化 | P0 |
 | CMake 构建系统 | `cmake/` `CMakeLists.txt` | 构建标准化 | P1 |
 | 头文件 | `include/airymax/` | [SC] 契约层一致性 | P0 |
@@ -32,8 +32,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 级别 | 含义 | 阻断 CI | 处理时限 |
 |------|------|---------|----------|
-| **P0-CRITICAL** | 阻断性违规（禁词/缺失 Copyright/IRON-9 v2 不一致） | ✅ 是 | 立即修复 |
-| **P1-MAJOR** | 重大违规（链接断裂/行数超标/缺少 Mermaid） | ✅ 是 | 24h 内修复 |
+| **P0-CRITICAL** | 阻断性违规（禁词/缺失 Copyright/IRON-9 v2 不一致） | 是 | 立即修复 |
+| **P1-MAJOR** | 重大违规（链接断裂/行数超标/缺少 Mermaid） | 是 | 24h 内修复 |
 | **P2-MINOR** | 轻微违规（格式不规范/注释缺失） | ❌ 否 | 下次迭代修复 |
 
 ---
@@ -57,7 +57,7 @@ find docs/AirymaxOS/ -name "*.md" -exec grep -L "^Copyright (c) 2025-2026 SPHARX
 ```
 
 **适用范围**：`docs/AirymaxOS/` 全部 `.md` 文件（含 README.md）。
-**例外**：内部闭源文档可选 Copyright（建议有但不阻断）。
+**例外**：内部参考文档可选 Copyright（建议有但不阻断）。
 
 ### 2.2 禁词检查（开源文档）
 
@@ -76,8 +76,8 @@ find docs/AirymaxOS/ -name "*.md" -exec grep -L "^Copyright (c) 2025-2026 SPHARX
 ```bash
 #!/bin/bash
 # check-forbidden-words.sh
-# 禁词清单从闭源配置文件读取
-FORBIDDEN_FILE="内部配置文件路径"  # 闭源禁词清单配置（仅授权人员访问实际路径）
+# 禁词清单从内部配置文件读取
+FORBIDDEN_FILE="内部配置文件路径"  # 内部禁词清单配置（仅授权人员访问实际路径）
 if [ ! -f "$FORBIDDEN_FILE" ]; then
     echo "FATAL: Forbidden words config not found: $FORBIDDEN_FILE"
     exit 2
@@ -93,7 +93,7 @@ echo "OK: 0 forbidden words in open-source docs"
 ```
 
 **适用范围**：`docs/AirymaxOS/` 全部 `.md` 文件。
-**例外**：内部闭源文档允许引用（但路径引用不应泄露到开源文档）。
+**例外**：内部参考文档允许引用（但路径引用不应泄露到开源文档）。
 
 ### 2.3 IRON-9 v2 三层标注检查
 
@@ -134,7 +134,7 @@ done
 
 | # | 头文件 | 子系统 | 内容摘要 |
 |---|--------|--------|----------|
-| 1 | `include/airymax/bpf_struct_ops.h` | eBPF | struct_ops 状态机 + common_value |
+| 1 | `include/airymax/syscalls.h` | SYS | 12 核心 syscall 编号 + 12 预留槽位 |
 | 2 | `include/airymax/memory_types.h` | 记忆 | MemoryRovol L1-L4 + GFP 掩码 + PMEM 接口 |
 | 3 | `include/airymax/security_types.h` | 安全 | capability 41 ID + LSM 252 ID + Cupolas blob + 派生模型 + Vault + 裁决 4 值 |
 | 4 | `include/airymax/cognition_types.h` | 认知 | CoreLoopThree 阶段 + Thinkdual 模式 + LLM 推理阶段 + 上下文 + 能效 + GPU/NPU |
@@ -173,8 +173,8 @@ find docs/AirymaxOS/ -name "*.md" -exec grep -oP '\[.*?\]\((?!http|#|mailto)([^)
 | 数据流文档（40-dataflows/） | 500-800 | 900 | 400 |
 | 测试文档（80-testing/） | 400-500 | 550 | 350 |
 | 工程标准文档（50-engineering-standards/） | 500-1000 | 1200 | 400 |
-| 闭源源码映射（02-olk66-source-mapping/） | 600-1200 | 1500 | 500 |
-| 闭源技术规范（01-tech-reference/） | 700-1000 | 1200 | 600 |
+| 内部源码映射 | 600-1200 | 1500 | 500 |
+| 内部技术规范 | 700-1000 | 1200 | 600 |
 
 ### 2.7 Mermaid 图表检查
 
@@ -350,7 +350,7 @@ out_free_a:
 #!/bin/bash
 # check-sc-consistency.sh
 SC_HEADERS="
-    include/airymax/bpf_struct_ops.h
+    include/airymax/syscalls.h
     include/airymax/memory_types.h
     include/airymax/security_types.h
     include/airymax/cognition_types.h

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）SPDX 许可证策略与合规规范
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）的 SPDX 许可证策略矩阵与合规强制规范。本卷合并原 09-license-strategy.md（策略矩阵）与 110-spdx-license-compliance.md（合规执行），消解两文档间许可证字符串不一致的合规风险，建立统一的 5 类文件许可证分类体系。\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-09\
 > **父文档**： [工程标准规范 README](README.md)\
 > **配套文档**： [00-engineering-standards-handbook.md](./00-engineering-standards-handbook.md)（SSoT 索引）、[08-compliance-checklist.md](./08-compliance-checklist.md)（合规检查 STD-CODE-01）\
@@ -16,7 +16,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 背景：历史三套策略并存
 
-审查报告 TS-P0-15 发现 agentrt-linux 文档与代码中存在三套 SPDX 许可证策略，且各类文件的适用边界未声明：
+经审查发现 agentrt-linux 文档与代码中存在三套 SPDX 许可证策略，且各类文件的适用边界未声明：
 
 | 历史策略 | 出现位置 | 适用范围（隐含） |
 |---------|---------|----------------|
@@ -28,16 +28,16 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.2 合并决策
 
-本卷合并 09-license-strategy.md（策略矩阵）与 110-spdx-license-compliance.md（合规执行），以 09 的 5 类分类策略为权威源，参考 OLK-6.6 `COPYING`（GPL-2.0 WITH Linux-syscall-note）建立统一的许可证体系。原 09-license-strategy.md 已废弃，所有引用重定向至本卷。
+本卷合并 09-license-strategy.md（策略矩阵）与 110-spdx-license-compliance.md（合规执行），以 09 的 5 类分类策略为权威源，参考 Linux 6.6 内核基线 `COPYING`（GPL-2.0 WITH Linux-syscall-note）建立统一的许可证体系。原 09-license-strategy.md 已废弃，所有引用重定向至本卷。
 
-### 0.3 OLK-6.6 源码路径
+### 0.3 Linux 6.6 内核基线 源码路径
 
-- `COPYING`（OLK-6.6 顶层）：GPL-2.0 WITH Linux-syscall-note 许可证全文
+- `COPYING`（Linux 6.6 内核基线 顶层）：GPL-2.0 WITH Linux-syscall-note 许可证全文
 - `scripts/checkpatch.pl:3772-3807`：`SPDX_LICENSE_TAG` 规则检查
 - `scripts/checkpatch.pl:3773-3777`：SPDX 注释样式检查（`.[chsS]` 文件需用对应注释符）
 - `scripts/checkpatch.pl:3780-3783`：缺失或格式错误的 SPDX 标识检查
 - `scripts/checkpatch.pl:3784-3789`：SPDX 许可证合法性校验（在 `LICENSES/` 中查询）
-- `LICENSES/`（OLK-6.6 顶层目录）：许可证文本存放目录
+- `LICENSES/`（Linux 6.6 内核基线 顶层目录）：许可证文本存放目录
 
 ### 0.4 术语约束
 
@@ -150,7 +150,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 SPDX 标识**必须**使用与文件类型匹配的注释样式：
 
-**OLK-6.6 源码路径**: `scripts/checkpatch.pl:3772-3778`
+**Linux 6.6 内核基线 源码路径**: `scripts/checkpatch.pl:3772-3778`
 
 | 文件类型 | 正确注释样式 | 错误注释样式 |
 |---------|------------|------------|
@@ -209,7 +209,7 @@ agentrt-linux CI 使用以下脚本按 5 类许可证分类校验所有文件：
 # SPDX-License-Identifier: Apache-2.0
 #
 # spdx-check-classified.sh: 按 110-spdx-license-compliance.md §1.1 五类许可证分类校验 SPDX 标签
-# 参考 OLK-6.6 COPYING（GPL-2.0 WITH Linux-syscall-note）
+# 参考 Linux 6.6 内核基线 COPYING（GPL-2.0 WITH Linux-syscall-note）
 # Exits non-zero if any file is missing or has incorrect SPDX tag.
 
 set -euo pipefail
@@ -406,7 +406,7 @@ include/airymax/generated/version.h 由 gen_version.py 生成
 
 ### 7.1 checkpatch 校验范围
 
-OLK-6.6 `scripts/checkpatch.pl:3772-3807` 的 `SPDX_LICENSE_TAG` 规则校验：
+Linux 6.6 内核基线 `scripts/checkpatch.pl:3772-3807` 的 `SPDX_LICENSE_TAG` 规则校验：
 
 1. SPDX 注释样式与文件类型匹配（`.c`/`.h`/`.S` 用 `/* */`）
 2. SPDX 标识存在且格式正确
@@ -433,7 +433,7 @@ LICENSES/
 agentrt-linux CI 同时运行：
 
 1. `spdx-check-classified.sh`（本规范定义）—— 按 5 类分类校验许可证字符串
-2. `checkpatch.pl`（OLK-6.6）—— 校验注释样式与许可证合法性
+2. `checkpatch.pl`（Linux 6.6 内核基线）—— 校验注释样式与许可证合法性
 
 两者皆通过方可合并。
 
@@ -441,7 +441,7 @@ agentrt-linux CI 同时运行：
 
 ## 8. 速查表：SPDX 标识速查
 
-| 文件类型 | 类别 | SPDX 标识 | OLK-6.6 checkpatch 行号 |
+| 文件类型 | 类别 | SPDX 标识 | Linux 6.6 内核基线 checkpatch 行号 |
 |---------|------|-----------|------------------------|
 | 内核态 `.c` | A | `/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */` | `checkpatch.pl:3773` |
 | 内核态 `.h` | A | `/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */` | `checkpatch.pl:3773` |

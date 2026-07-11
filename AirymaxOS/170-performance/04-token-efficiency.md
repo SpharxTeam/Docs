@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # Token 能效工程实现方案
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）性能工程体系核心子文档，定义 Token 能效的测量、优化与保障机制\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **理论根基**：Linux 6.6 perf 功耗剖析 + seL4 时间隔离（MCS）思想 + Airymax S-1 反馈闭环 + A-4 完美主义\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\

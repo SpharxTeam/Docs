@@ -2,7 +2,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）模块需求手册
 
-> **版本**： 1.0.1（开发）\
+> **版本**： 1.0.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [项目管理规范总览](README.md)
 

@@ -517,21 +517,21 @@ graph TD
 
 | 检查项 | 验证内容 | 结果 |
 |--------|----------|------|
-| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | ✅ PASS |
-| 语义同源标注 | gateway/sdk/Agent 生命周期/资源声明等标注 [SS] | ✅ PASS |
-| IRON-9 v2 三层合规 | [SC] 3 头文件 + [SS] 10 API + [IND] 12 项独立实现 | ✅ PASS |
-| [SC] 头文件引用 | ipc.h + security_types.h + cognition_types.h 均在 §1.3/§6.1 引用 | ✅ PASS |
-| 不移植特性声明 | 无 KABI_RESERVE/BPF_SCHED/KMSAN/etmem/dynamic_pool/numa_remote | ✅ PASS |
-| 横切关注点声明 | §1.1 声明云原生贯穿 4 大数据流 | ✅ PASS |
-| Mermaid 图 | §6.4 sequenceDiagram + §6.5 graph TD（≥2） | ✅ PASS |
-| 行数范围 | 558 行（300-700 范围内） | ✅ PASS |
-| 禁词检查 | 无'中枢'等禁词 | ✅ PASS |
+| 命名一致性 | 核心表述使用 `agentrt-linux（AirymaxOS）` 全角括号配对 | PASS |
+| 语义同源标注 | gateway/sdk/Agent 生命周期/资源声明等标注 [SS] | PASS |
+| IRON-9 v2 三层合规 | [SC] 3 头文件 + [SS] 10 API + [IND] 12 项独立实现 | PASS |
+| [SC] 头文件引用 | ipc.h + security_types.h + cognition_types.h 均在 §1.3/§6.1 引用 | PASS |
+| 不移植特性声明 | 无 KABI_RESERVE/BPF_SCHED/KMSAN/etmem/dynamic_pool/numa_remote | PASS |
+| 横切关注点声明 | §1.1 声明云原生贯穿 4 大数据流 | PASS |
+| Mermaid 图 | §6.4 sequenceDiagram + §6.5 graph TD（≥2） | PASS |
+| 行数范围 | 558 行（300-700 范围内） | PASS |
+| 禁词检查 | 无'中枢'等禁词 | PASS |
 
 ---
 
 ## 12. 相关文档
 
-- [01-kernel.md](01-kernel.md)——内核模块（[SC] sched.h + ipc.h + bpf_struct_ops.h）
+- [01-kernel.md](01-kernel.md)——内核模块（[SC] sched.h + ipc.h + syscalls.h）
 - [02-services.md](02-services.md)——服务模块（[SC] ipc.h，gateway_d 同源）
 - [03-security.md](03-security.md)——安全模块（[SC] security_types.h，容器沙箱 capability）
 - [05-cognition.md](05-cognition.md)——认知模块（[SC] cognition_types.h，CRD cognition 引用）

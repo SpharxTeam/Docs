@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # POSIX 兼容性设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）兼容性体系核心子文档，定义 agentrt-linux 对 POSIX 标准的兼容层次、syscall 兼容性分类与语义扩展\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
@@ -251,7 +251,7 @@ void *addr = mmap(NULL, size, PROT_READ | PROT_WRITE,
 /*
  * 复用内核 SCHED_EXT=7 调度类编号，禁止定义 SCHED_AGENT 宏。
  * SCHED_AGENT 仅作为 sched_ext BPF 策略名称（字符串），非调度类编号。
- * 参见 include/uapi/linux/sched.h:121（OLK-6.6 已定义 SCHED_EXT=7）。
+ * 参见 include/uapi/linux/sched.h:121（Linux 6.6 内核基线 已定义 SCHED_EXT=7）。
  */
 #define SCHED_AGENT_NAME  "sched_agent"  /* BPF 策略名称，非调度类编号 */
 

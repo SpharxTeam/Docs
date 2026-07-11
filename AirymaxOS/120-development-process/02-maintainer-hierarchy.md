@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）维护者层级制度
 
 > **文档定位**： agentrt-linux（AirymaxOS）120-development-process 模块第 2 卷——维护者层级制度（Lieutenant System）。本文档详述从普通贡献者到总维护者的信任链、MAINTAINERS 文件格式、8 子仓维护者分配、DCO 签名链条、6 级贡献者成熟度模型与维护者接班机制，是补丁生命周期（01 卷）在治理维度的展开。
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt 维护者层级 + Linux 6.6 内核 MAINTAINERS 文件与 Lieutenant System
 > **理论根基**： Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + S-3 总体设计部 + A-3 人文关怀
@@ -533,7 +533,7 @@ graph LR
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集维护者层级制度所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核 `MAINTAINERS` 文件格式（14 字段）、Lieutenant System 信任链模型、DCO 1.1 标准，以及 agentrt-linux 8 子仓维护者分配专属契约（`include/airymax/maintainer_types.h`）。
+> **附录定位**： 本附录汇集维护者层级制度所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核 `MAINTAINERS` 文件格式（14 字段）、Lieutenant System 信任链模型、DCO 1.1 标准，以及 agentrt-linux 8 子仓维护者分配专属契约（`include/airymax/maintainer_types.h`）。
 
 ### A.1 核心数据结构
 
@@ -782,7 +782,7 @@ struct subrepo_maintainer {
  * F: 与 X: 模式必须可被 get_maintainer.pl 等价脚本解析（OS-DEV-212）。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核 MAINTAINERS 文件格式
  */
@@ -809,7 +809,7 @@ int maintainers_parse(const char *file_path,
  * 无匹配时返回 NULL，调用方应路由到 airymax-mm 分支（§4.1）。
  *
  * @return: 0 找到匹配（out_entry 填充），1 无匹配，<0 错误
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核 get_maintainer.pl 工具语义
  */
@@ -839,7 +839,7 @@ int maintainers_lookup(const struct maintainer_entry *entries,
  *   - Level 4 → 5: 需总维护者提名 + 3 名 Level 5 ACK + 社区公示 2 周（OS-DEV-254）。
  *
  * @return: 0 晋升成功，<0 晋升失败（见 MAINTAINERS_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * agentrt-linux 专属（对齐 §7 6 级成熟度模型）
  */
@@ -869,7 +869,7 @@ int level_promote(const char *contributor_name,
  * 验证失败由 DCO bot 自动阻塞 PR 合并。
  *
  * @return: 0 验证通过，<0 验证失败（见 DCO_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核 DCO 1.1 + GitHub DCO bot
  */
@@ -898,7 +898,7 @@ int dco_validate(const char *commit_sha,
  * 无匹配时路由到 airymax-mm 分支（§4.1）。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 agentrt-linux CODEOWNERS + MAINTAINERS 自动路由
  */
@@ -929,7 +929,7 @@ int reviewer_assign(const char *patch_sha,
  *   (5) emeritus 不得阻塞继任者合并决策（OS-DEV-271）。
  *
  * @return: 0 成功，<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 agentrt-linux §8 维护者接班机制
  */
@@ -1070,4 +1070,4 @@ int emeritus_mark(const char *maintainer_name,
 
 ---
 
-> **文档结束** | 120-development-process/02-maintainer-hierarchy.md | 版本 0.1.1（文档体系完成）
+> **文档结束** | 120-development-process/02-maintainer-hierarchy.md | 版本 0.1.1

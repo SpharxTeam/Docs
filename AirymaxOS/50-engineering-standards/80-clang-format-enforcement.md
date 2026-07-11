@@ -2,12 +2,12 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）.clang-format 配置与 CI 门禁规范
 
-> **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）的 `.clang-format` 定制配置与 CI 自动格式化门禁规范。基于 OLK-6.6 `.clang-format`（689 行）提取关键配置项，制定 agentrt-linux 专属版本，并通过 `make format-check` 在 CI 中强制执行。\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）的 `.clang-format` 定制配置与 CI 自动格式化门禁规范。基于 Linux 6.6 内核基线 `.clang-format`（689 行）提取关键配置项，制定 agentrt-linux 专属版本，并通过 `make format-check` 在 CI 中强制执行。\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-09\
 > **理论根基**： Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**： AGPL-3.0-or-later OR Apache-2.0\
-> **SSoT 声明（C-2.6 D-02，2026-07-09）**： 本文件为 `.clang-format` 工具配置层与 CI 门禁流程层。**格式规则定义**（OS-KER-004~021 / OS-STD-047 / OS-STD-202~211）的唯一权威来源（SSoT）为 [02-code-format.md](02-code-format.md) §1-§8；**clang-format 关键配置项速查表**的 SSoT 为 02-code-format.md §9。本文件 §1（关键配置项详解）、§2（完整 .clang-format YAML）、§6（速查表）为 02 §9 的**补充详述**（每项配置附 OLK-6.6 源码行号 + 详细理由 + 完整 YAML），不重新定义规则；§3（CI 门禁 make format-check）、§4（常见格式问题与修复）、§5（与 checkpatch 的协作）为本文件**独立权威内容**。本文件与 SSoT 的任何冲突，以 SSoT 为准。
+> **SSoT 声明**： 本文件为 `.clang-format` 工具配置层与 CI 门禁流程层。**格式规则定义**（OS-KER-004~021 / OS-STD-047 / OS-STD-202~211）的唯一权威来源（SSoT）为 [02-code-format.md](02-code-format.md) §1-§8；**clang-format 关键配置项速查表**的 SSoT 为 02-code-format.md §9。本文件 §1（关键配置项详解）、§2（完整 .clang-format YAML）、§6（速查表）为 02 §9 的**补充详述**（每项配置附 Linux 6.6 内核基线 源码行号 + 详细理由 + 完整 YAML），不重新定义规则；§3（CI 门禁 make format-check）、§4（常见格式问题与修复）、§5（与 checkpatch 的协作）为本文件**独立权威内容**。本文件与 SSoT 的任何冲突，以 SSoT 为准。
 
 ---
 
@@ -15,11 +15,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本文件研究 OLK-6.6 `.clang-format`（689 行配置），提取关键格式化选项，制定 agentrt-linux 定制版 `.clang-format`，并定义 CI 中的 `make format-check` 门禁流程。所有 agentrt-linux 内核态 C 文件必须通过 `clang-format` 校验。
+本文件研究 Linux 6.6 内核基线 `.clang-format`（689 行配置），提取关键格式化选项，制定 agentrt-linux 定制版 `.clang-format`，并定义 CI 中的 `make format-check` 门禁流程。所有 agentrt-linux 内核态 C 文件必须通过 `clang-format` 校验。
 
-> **交叉引用**：本文件是 `.clang-format` 的工具配置层（完整 YAML + OLK-6.6 源码行号 + CI 门禁流程）。`.clang-format` 在 7 层验证体系中的框架定位（第 3 层预提交 + 第 4 层 CI 门禁）、7 层验证流水线全图、CI/CD 矩阵配置与其他工具链（sparse / Smatch / Coccinelle / KUnit / kselftest）的协同关系，详见 [06-toolchain-and-automation.md](06-toolchain-and-automation.md) §5（格式化与风格检查）与 §1（7 层自动化验证体系）。格式规则定义（OS-KER-004~021）与规则到配置项的速查映射表，详见 [02-code-format.md](02-code-format.md) §1-§7（格式规则）与 §9（clang-format 关键配置项表）。checkpatch 规则到 agentrt-linux 规则编号的逐条映射表，详见 [60-checkpatch-rule-map.md](60-checkpatch-rule-map.md) §1-§8（55 条规则映射）。
+> **交叉引用**：本文件是 `.clang-format` 的工具配置层（完整 YAML + Linux 6.6 内核基线 源码行号 + CI 门禁流程）。`.clang-format` 在 7 层验证体系中的框架定位（第 3 层预提交 + 第 4 层 CI 门禁）、7 层验证流水线全图、CI/CD 矩阵配置与其他工具链（sparse / Smatch / Coccinelle / KUnit / kselftest）的协同关系，详见 [06-toolchain-and-automation.md](06-toolchain-and-automation.md) §5（格式化与风格检查）与 §1（7 层自动化验证体系）。格式规则定义（OS-KER-004~021）与规则到配置项的速查映射表，详见 [02-code-format.md](02-code-format.md) §1-§7（格式规则）与 §9（clang-format 关键配置项表）。checkpatch 规则到 agentrt-linux 规则编号的逐条映射表，详见 [60-checkpatch-rule-map.md](60-checkpatch-rule-map.md) §1-§8（55 条规则映射）。
 
-### 0.2 OLK-6.6 源码路径
+### 0.2 Linux 6.6 内核基线 源码路径
 
 - `.clang-format`（689 行，文件首行 `# SPDX-License-Identifier: GPL-2.0`）
 - `.clang-format:2-9` —— 头部说明（要求 clang-format >= 11）
@@ -41,11 +41,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 关键配置项详解
 
-> **交叉引用**：本节是每个配置项的 OLK-6.6 源码行号与详细理由。格式规则定义（OS-KER-004~021）与规则到配置项的速查映射表，详见 [02-code-format.md](02-code-format.md) §1-§7（格式规则）与 §9（clang-format 关键配置项表）。
+> **交叉引用**：本节是每个配置项的 Linux 6.6 内核基线 源码行号与详细理由。格式规则定义（OS-KER-004~021）与规则到配置项的速查映射表，详见 [02-code-format.md](02-code-format.md) §1-§7（格式规则）与 §9（clang-format 关键配置项表）。
 
 ### 1.1 缩进配置（OS-KER-011 强制）
 
-**OLK-6.6 源码路径**: `.clang-format:645,687,688`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:645,687,688`
 
 ```yaml
 IndentWidth: 8			# 缩进宽度 8 字符
@@ -59,7 +59,7 @@ ConstructorInitializerIndentWidth: 8
 
 ### 1.2 行宽配置（OS-KER-012 强制）
 
-**OLK-6.6 源码路径**: `.clang-format:55`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:55`
 
 ```yaml
 ColumnLimit: 80			# 行宽 80 列硬上限
@@ -69,7 +69,7 @@ ColumnLimit: 80			# 行宽 80 列硬上限
 
 ### 1.3 大括号配置（K&R 风格）
 
-**OLK-6.6 源码路径**: `.clang-format:31-46,48`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:31-46,48`
 
 ```yaml
 BreakBeforeBraces: Custom	# 自定义大括号放置
@@ -92,7 +92,7 @@ BraceWrapping:
 
 ### 1.4 指针对齐配置
 
-**OLK-6.6 源码路径**: `.clang-format:62,668`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:62,668`
 
 ```yaml
 DerivePointerAlignment: false	# 不从现有代码推导
@@ -103,7 +103,7 @@ PointerAlignment: Right		# * 贴变量名（char *p 而非 char* p）
 
 ### 1.5 空格配置
 
-**OLK-6.6 源码路径**: `.clang-format:672-685`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:672-685`
 
 ```yaml
 SpaceAfterCStyleCast: false			# (cast) 后无空格
@@ -124,7 +124,7 @@ SpacesInSquareBrackets: false		# [ 内无空格
 
 ### 1.6 列对齐与折行配置
 
-**OLK-6.6 源码路径**: `.clang-format:12-30,47-66,559-666`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:12-30,47-66,559-666`
 
 ```yaml
 AlignAfterOpenBracket: Align		# 开括号后对齐续行
@@ -143,7 +143,7 @@ ReflowComments: false			# 不重排注释
 
 ### 1.7 Include 排序配置
 
-**OLK-6.6 源码路径**: `.clang-format:637-642`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:637-642`
 
 ```yaml
 IncludeBlocks: Preserve		# 保留现有 include 块结构
@@ -159,7 +159,7 @@ SortUsingDeclarations: false
 
 ### 1.8 短语句配置
 
-**OLK-6.6 源码路径**: `.clang-format:20-24`
+**Linux 6.6 内核基线 源码路径**: `.clang-format:20-24`
 
 ```yaml
 AllowShortBlocksOnASingleLine: false		# 不允许单行块
@@ -171,13 +171,13 @@ AllowShortLoopsOnASingleLine: false		# 不允许单行循环
 
 ### 1.9 ForEachMacros 配置
 
-**OLK-6.6 源码路径**: `.clang-format:71-635`（约 565 个宏）
+**Linux 6.6 内核基线 源码路径**: `.clang-format:71-635`（约 565 个宏）
 
 `ForEachMacros` 列表告知 `clang-format` 哪些宏是 `for_each` 风格的循环宏（如 `list_for_each_entry`），使其在格式化时正确处理。agentrt-linux 在此基础上需追加自定义宏：
 
 ```yaml
 ForEachMacros:
-  # ... 保留 OLK-6.6 全部 565 个宏 ...
+  # ... 保留 Linux 6.6 内核基线 全部 565 个宏 ...
   - 'airy_for_each_task'		# agentrt-linux 自定义
   - 'airy_for_each_chan'
   - 'airy_for_each_token'
@@ -189,13 +189,13 @@ ForEachMacros:
 
 ### 2.1 完整配置文件
 
-以下是 agentrt-linux 仓库根目录 `.clang-format` 的完整内容（基于 OLK-6.6 定制）：
+以下是 agentrt-linux 仓库根目录 `.clang-format` 的完整内容（基于 Linux 6.6 内核基线 定制）：
 
 ```yaml
 # SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 #
 # clang-format configuration for agentrt-linux (AirymaxOS).
-# Based on Linux 6.6 .clang-format (OLK-6.6) with agent-specific macros.
+# Based on Linux 6.6 .clang-format (Linux 6.6 内核基线) with agent-specific macros.
 # Intended for clang-format >= 11.
 #
 # See: Documentation/process/clang-format.rst (upstream)
@@ -255,14 +255,14 @@ DisableFormat: false
 ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments: false
 ForEachMacros:
-  # ----- OLK-6.6 inherited (565 macros, abbreviated here) -----
+  # ----- Linux 6.6 内核基线 inherited (565 macros, abbreviated here) -----
   - 'list_for_each_entry'
   - 'list_for_each_entry_safe'
   - 'hlist_for_each_entry'
   - 'for_each_cpu'
   - 'for_each_online_cpu'
   - 'xa_for_each'
-  # ... (full list inherited from OLK-6.6 .clang-format:71-635) ...
+  # ... (full list inherited from Linux 6.6 内核 .clang-format:71-635) ...
   # ----- agentrt-linux custom -----
   - 'airy_for_each_task'
   - 'airy_for_each_chan'
@@ -321,9 +321,9 @@ UseTab: Always
 ...
 ```
 
-### 2.2 与 OLK-6.6 的差异
+### 2.2 与 Linux 6.6 内核基线的差异
 
-| 配置项 | OLK-6.6 值 | agentrt-linux 值 | 差异说明 |
+| 配置项 | Linux 6.6 内核基线 值 | agentrt-linux 值 | 差异说明 |
 |--------|-----------|-----------------|---------|
 | `ForEachMacros` | 565 个上游宏 | 565 + 5 个 agent 自定义 | 追加 agentrt 自定义宏 |
 | SPDX 标识 | `GPL-2.0` | `AGPL-3.0-or-later OR Apache-2.0` | 许可证变更 |
@@ -559,9 +559,9 @@ merge allowed
 
 ## 6. 速查表：关键配置项速查
 
-> **C-2.6 D-02 SSoT 注（2026-07-09）**：本表与 [02-code-format.md §9](02-code-format.md#9-clang-format-关键配置项) 内容重叠，但本表附"OLK-6.6 行号"列为独特价值（02 §9 无此列）。规则编号以 02-code-format.md §1-§8 为 SSoT；本表中若出现编号不一致（如本表 `OS-KER-012` 行宽 vs 02 §2.1 `OS-KER-004` 行宽），以 02 为准，本表编号仅作历史导航。
+> **SSoT 注**：本表与 [02-code-format.md §9](02-code-format.md#9-clang-format-关键配置项) 内容重叠，但本表附"Linux 6.6 内核基线 行号"列为独特价值（02 §9 无此列）。规则编号以 02-code-format.md §1-§8 为 SSoT；本表中若出现编号不一致（如本表 `OS-KER-012` 行宽 vs 02 §2.1 `OS-KER-004` 行宽），以 02 为准，本表编号仅作历史导航。
 
-| 配置项 | 值 | OLK-6.6 行号 | 对应规则 |
+| 配置项 | 值 | Linux 6.6 内核基线 行号 | 对应规则 |
 |--------|-----|------------|---------|
 | `ColumnLimit` | 80 | `.clang-format:55` | OS-KER-012 |
 | `IndentWidth` | 8 | `.clang-format:645` | OS-KER-011 |

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # SDK API
 
 > **文档定位**： agentrt-linux（AirymaxOS） SDK 的 4 语言矩阵、4 嵌套客户端、代码示例与错误处理策略\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **父文档**： [接口设计](README.md)
 
@@ -530,7 +530,7 @@ client = AirymaxClient(
 | `cognition_types.h` | 三阶段枚举 + Thinkdual 模式 + Token 能效 | CognitionClient / ChatClient |
 | `memory_types.h` | MemoryRovol L1-L4 快照结构 | ToolClient（记忆上下文） |
 
-> **补充**：`bpf_struct_ops.h`（struct_ops 4 状态机 INIT/INUSE/TOBEFREE/READY）是 SDK 网关状态管理的共享结构，由 SDK 消费，但不属于上述 6 个核心 [SC] 共享契约层头文件（SSoT: `20-contracts/README.md`）。
+> **补充**：`bpf_struct_ops.h`（struct_ops 4 状态机 INIT/REGISTERED/ACTIVE/DRAINING）是 SDK 网关状态管理的共享结构，由 SDK 消费，但不属于上述 6 个核心 [SC] 共享契约层头文件（SSoT: `20-contracts/README.md`）。
 
 ### 9.3 [SS] 语义同源层——agentrt ↔ agentrt-linux SDK API 映射
 

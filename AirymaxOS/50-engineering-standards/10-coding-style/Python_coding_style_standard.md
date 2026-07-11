@@ -1001,7 +1001,7 @@ try:
 except:  # 禁止！
     pass
 
-# ✅ 正确：指定异常类型并记录
+# 正确：指定异常类型并记录
 try:
     result = do_something()
 except ValueError as e:
@@ -1013,7 +1013,7 @@ try:
 except Exception:
     pass  # 禁止！吞掉异常且无记录
 
-# ✅ 正确：记录异常
+# 正确：记录异常
 try:
     result = do_something()
 except Exception as e:
@@ -1023,7 +1023,7 @@ except Exception as e:
 # ❌ BAN-187: 生产代码中使用 print()
 print(f"Task {task_id} completed")  # 禁止！
 
-# ✅ 正确：使用 logging
+# 正确：使用 logging
 logger.info("Task %s completed", task_id)
 ```
 

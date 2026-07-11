@@ -262,7 +262,7 @@ gcc -o hello_agent hello_agent.c \
     -I/usr/local/include/agentrt \
     -L/usr/local/lib \
     -lairy_coreloopthree -lairy_cognition -lairy_execution \
-    -lairy_memoryrovol -lairy_common -lpthread
+    -lairy_mrol -lairy_common -lpthread
 
 # 运行
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
@@ -313,7 +313,7 @@ int main() {
 
     // 1. 创建记忆系统
     printf("[1] 创建四层记忆系统...\n");
-    airy_memoryrov_handle_t* memory = airy_memoryrov_create();
+    airy_mr_handle_t* memory = airy_mr_create();
     if (!memory) {
         fprintf(stderr, "❌ 创建记忆系统失败\n");
         return 1;
@@ -331,7 +331,7 @@ int main() {
 
     printf("[2] 写入 %zu 条记忆...\n", sizeof(memories)/sizeof(memories[0]));
     for (size_t i = 0; i < sizeof(memories)/sizeof(memories[0]); i++) {
-        airy_err_t err = airy_memoryrov_add_memory(
+        airy_err_t err = airy_mr_add_memory(
             memory, 
             memories[i], 
             strlen(memories[i])
@@ -364,7 +364,7 @@ int main() {
         };
         
         airy_memory_result_ext_t* result = NULL;
-        airy_err_t err = airy_memoryrov_query(memory, &query, &result);
+        airy_err_t err = airy_mr_query(memory, &query, &result);
         
         if (err == AIRY_EOK && result && result->memory_result_count > 0) {
             printf("   📝 找到 %zu 条相关记忆:\n", result->memory_result_count);
@@ -391,7 +391,7 @@ int main() {
     
     // 5. 销毁
     printf("\n[5] 销毁记忆系统...\n");
-    airy_memoryrov_destroy(memory);
+    airy_mr_destroy(memory);
     printf("   ✅ 完成\n");
 
     printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");

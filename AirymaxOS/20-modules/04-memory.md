@@ -219,36 +219,36 @@ graph TD
 
 ```c
 /* L1: 实时记忆层——高频读写，DRAM 存储 */
-typedef struct airy_memoryrovol_l1_record {
+typedef struct airy_mr_l1_record {
     uint64_t trace_id;          /* 追踪 ID */
     uint64_t timestamp;         /* 时间戳 */
     uint32_t priority;          /* 优先级 */
     uint32_t data_len;          /* 数据长度 */
     uint8_t  data[];            /* 柔性数组 */
-} airy_memoryrovol_l1_record_t;
+} airy_mr_l1_record_t;
 
 /* L2: 短期记忆层——中频读写，MGLRU aging 管理 */
-typedef struct airy_memoryrovol_l2_block {
+typedef struct airy_mr_l2_block {
     uint64_t block_id;
     uint64_t generation;        /* MGLRU 代序号 [SS] */
     uint32_t ref_count;
     uint32_t compressed_size;
-} airy_memoryrovol_l2_block_t;
+} airy_mr_l2_block_t;
 
 /* L3: 长期记忆层——低频读写，CXL tier 存储 */
-typedef struct airy_memoryrovol_l3_entry {
+typedef struct airy_mr_l3_entry {
     uint64_t entry_id;
     uint64_t last_access;       /* 最后访问时间 */
     uint32_t access_count;      /* 访问计数 */
     uint8_t  tier;              /* 存储层级（CXL/PMEM/SSD）*/
-} airy_memoryrovol_l3_entry_t;
+} airy_mr_l3_entry_t;
 
 /* L4: 持久记忆层——PMEM 持久化 */
-typedef struct airy_memoryrovol_l4_persistent {
+typedef struct airy_mr_l4_persistent {
     uint64_t persistent_id;
     uint64_t checksum;          /* 完整性校验 */
     uint32_t flags;              /* GFP 掩码 [SC] */
-} airy_memoryrovol_l4_persistent_t;
+} airy_mr_l4_persistent_t;
 ```
 
 **实现机制** [IND]：
@@ -411,10 +411,10 @@ echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 
 | 内容 | 说明 |
 |------|------|
-| `airy_memoryrovol_l1_record_t` 结构 | L1 实时记忆层（trace_id/timestamp/priority/data_len/data） |
-| `airy_memoryrovol_l2_block_t` 结构 | L2 短期记忆层（block_id/generation/ref_count/compressed_size） |
-| `airy_memoryrovol_l3_entry_t` 结构 | L3 长期记忆层（entry_id/last_access/access_count/tier） |
-| `airy_memoryrovol_l4_persistent_t` 结构 | L4 持久记忆层（persistent_id/checksum/flags） |
+| `airy_mr_l1_record_t` 结构 | L1 实时记忆层（trace_id/timestamp/priority/data_len/data） |
+| `airy_mr_l2_block_t` 结构 | L2 短期记忆层（block_id/generation/ref_count/compressed_size） |
+| `airy_mr_l3_entry_t` 结构 | L3 长期记忆层（entry_id/last_access/access_count/tier） |
+| `airy_mr_l4_persistent_t` 结构 | L4 持久记忆层（persistent_id/checksum/flags） |
 | `AIRY_GFP_*` 宏 | GFP 掩码语义（IO/FS/RECLAIM/KSWAPD/HIGH/NOWARN/ZERO） |
 | `airy_pmem_ops_t` 结构 | PMEM 持久化接口（persist/flush/map/unmap） |
 
@@ -548,21 +548,21 @@ sequenceDiagram
 
 | 序号 | 检查项 | agentrt 状态 | agentrt-linux 状态 | 结论 |
 |------|--------|-------------|---------------|------|
-| 1 | L1 实时记忆数据结构一致性 | l1_record_t | l1_record_t（同） | ✅ PASS [SC] |
-| 2 | L2 短期记忆数据结构一致性 | l2_block_t（含 generation） | l2_block_t（同） | ✅ PASS [SC] |
-| 3 | L3 长期记忆数据结构一致性 | l3_entry_t（含 tier） | l3_entry_t（同） | ✅ PASS [SC] |
-| 4 | L4 持久记忆数据结构一致性 | l4_persistent_t（含 checksum） | l4_persistent_t（同） | ✅ PASS [SC] |
-| 5 | GFP 掩码语义一致性 | 7 个 AIRY_GFP_* 宏 | 7 个（同） | ✅ PASS [SC] |
-| 6 | PMEM 持久化接口一致性 | 4 函数（persist/flush/map/unmap） | 4 函数（同） | ✅ PASS [SC] |
-| 7 | `rovol_snapshot()` 语义等价性 | 用户态 fork+COW | 内核 fork+userfaultfd | ✅ PASS [SS] |
-| 8 | `rovol_restore()` 语义等价性 | 用户态 mmap | 内核 mmap+userfaultfd | ✅ PASS [SS] |
-| 9 | `rovol_migrate()` 语义等价性 | 用户态迁移 | 内核 userfaultfd post-copy | ✅ PASS [SS] |
-| 10 | `rovol_compress()` 语义等价性 | 用户态 zstd | 内核 zswap/zram | ✅ PASS [SS] |
-| 11 | MGLRU aging/eviction 语义一致性 | 用户态模拟 | 内核 `lru_gen_folio` | ✅ PASS [SS] |
-| 12 | userfaultfd 处理语义等价性 | 用户态 handler | 内核 uffd 框架 | ✅ PASS [SS] |
-| 13 | CXL/PMEM/VFS 独立性 | 不实现 | 内核态实现 | ✅ PASS [IND] |
-| 14 | THP/zswap 独立性 | 不实现 | 内核态实现 | ✅ PASS [IND] |
-| 15 | MGLRU Bloom 过滤器独立性 | 不使用 | 内核态使用（可选优化） | ✅ PASS [IND] |
+| 1 | L1 实时记忆数据结构一致性 | l1_record_t | l1_record_t（同） | PASS [SC] |
+| 2 | L2 短期记忆数据结构一致性 | l2_block_t（含 generation） | l2_block_t（同） | PASS [SC] |
+| 3 | L3 长期记忆数据结构一致性 | l3_entry_t（含 tier） | l3_entry_t（同） | PASS [SC] |
+| 4 | L4 持久记忆数据结构一致性 | l4_persistent_t（含 checksum） | l4_persistent_t（同） | PASS [SC] |
+| 5 | GFP 掩码语义一致性 | 7 个 AIRY_GFP_* 宏 | 7 个（同） | PASS [SC] |
+| 6 | PMEM 持久化接口一致性 | 4 函数（persist/flush/map/unmap） | 4 函数（同） | PASS [SC] |
+| 7 | `rovol_snapshot()` 语义等价性 | 用户态 fork+COW | 内核 fork+userfaultfd | PASS [SS] |
+| 8 | `rovol_restore()` 语义等价性 | 用户态 mmap | 内核 mmap+userfaultfd | PASS [SS] |
+| 9 | `rovol_migrate()` 语义等价性 | 用户态迁移 | 内核 userfaultfd post-copy | PASS [SS] |
+| 10 | `rovol_compress()` 语义等价性 | 用户态 zstd | 内核 zswap/zram | PASS [SS] |
+| 11 | MGLRU aging/eviction 语义一致性 | 用户态模拟 | 内核 `lru_gen_folio` | PASS [SS] |
+| 12 | userfaultfd 处理语义等价性 | 用户态 handler | 内核 uffd 框架 | PASS [SS] |
+| 13 | CXL/PMEM/VFS 独立性 | 不实现 | 内核态实现 | PASS [IND] |
+| 14 | THP/zswap 独立性 | 不实现 | 内核态实现 | PASS [IND] |
+| 15 | MGLRU Bloom 过滤器独立性 | 不使用 | 内核态使用（可选优化） | PASS [IND] |
 
 **结论**：agentrt heapstore + memoryrovol 设计无需修改。15 项检查全部 PASS，两端在 [SC]/[SS]/[IND] 三层共享模型下完全一致。
 
@@ -575,13 +575,6 @@ sequenceDiagram
 - `80-testing/` 内存测试文档
 - `90-observability/README.md`（内存监控）
 - agentrt heapstore + memoryrovol 设计文档（同源 [SC]/[SS]）
-
-### 12.1 闭源参考文档
-
-以下文档为闭源内部参考，不公开：
-
-- 闭源源码映射文档（OLK-6.6 mm/ 源码 → agentrt-linux MemoryRovol 映射）
-- 闭源内存技术规范参考文档（内核发行版内存工程规范全面参考）
 
 ---
 

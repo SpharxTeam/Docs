@@ -5,8 +5,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**：agentrt-linux（AirymaxOS）的全部设计思想、架构设计、子仓设计草案\
 > **正式全称**：agentrt-linux（极境智能体操作系统，正式英文名：AirymaxAgentOS，简称 AirymaxOS）\
 > **仓库别名**：agentrt-linux（仓库名）\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
-> **最后更新**：2026-07-07
+> **版本**：0.1.1\
+> **最后更新**：2026-07-11\
+> **维护者**：开源极境工程与规范委员会（OpenAirymax Engineering and Standardization Committee）
 
 ---
 
@@ -53,37 +54,37 @@ docs/AirymaxOS/
 ├── 20-modules/                      # 模块设计层（9 文档，8 子仓设计）
 ├── 30-interfaces/                   # 接口设计层（6 文档）
 ├── 40-dataflows/                    # 数据流程设计层（5 文档）
-├── 50-engineering-standards/        # 工程标准规范（8 文档）✅ 0.1.1 完成
-├── 60-driver-model/                 # 驱动模型（README + 01 + 02）✅
-├── 70-build-system/                 # 构建系统（README + 01 + 02）✅
-├── 80-testing/                      # 测试体系（README + 01 + 02）✅
-├── 90-observability/                # 可观测性（README + 01 + 02）✅
-├── 100-operations/                  # 运维体系（README + 01 + 02）✅
-├── 110-security/                    # 安全加固（README + 01 + 02）✅
-├── 120-development-process/         # 开发流程（README + 01 + 02）✅
-├── 130-roadmap/                     # 开发路线图（7 文档）✅ 0.1.1 完成
-├── 140-application-development/     # Agent 应用开发（0.1.1 完成 8 文档）1.0.1 实施
-├── 150-cloudnative/                # 云原生部署（0.1.1 完成 6 文档）1.0.1 实施
-├── 160-compatibility/               # 兼容性（0.1.1 完成 6 文档）1.0.1 实施
-├── 170-performance/                 # 性能工程（0.1.1 完成 7 文档）1.0.1 实施
-├── 180-i18n/                        # 国际化（0.1.1 完成 6 文档）1.0.1 实施
-└── 190-distribution/                # 发行版管理（0.1.1 完成 6 文档）1.0.1 实施
+├── 50-engineering-standards/        # 工程标准规范（52 文档）
+├── 60-driver-model/                 # 驱动模型（README + 01 + 02）
+├── 70-build-system/                 # 构建系统（README + 01 + 02）
+├── 80-testing/                      # 测试体系（README + 01 + 02）
+├── 90-observability/                # 可观测性（README + 01 + 02）
+├── 100-operations/                  # 运维体系（README + 01 + 02）
+├── 110-security/                    # 安全加固（README + 01 + 02 + 03）
+├── 120-development-process/         # 开发流程（README + 01 + 02）
+├── 130-roadmap/                     # 开发路线图（7 文档）
+├── 140-application-development/     # Agent 应用开发（8 文档）
+├── 150-cloudnative/                # 云原生部署（6 文档）
+├── 160-compatibility/               # 兼容性（6 文档）
+├── 170-performance/                 # 性能工程（7 文档）
+├── 180-i18n/                        # 国际化（6 文档）
+└── 190-distribution/                # 发行版管理（6 文档）
 ```
 
 ### 4.1 文档分层说明
 
-| 层级        | 模块                       | 0.1.1 范围           | 1.0.1 范围 |
-| --------- | ------------------------ | ------------------ | -------- |
-| **需求层**   | 00-requirements          | 4 文档 ✅             | 持续完善     |
-| **架构层**   | 10-architecture          | 6 文档 ✅             | 持续完善     |
-| **模块层**   | 20-modules               | 9 文档 ✅             | 持续完善     |
-| **接口层**   | 30-interfaces            | 6 文档 ✅             | 持续完善     |
-| **数据流层**  | 40-dataflows             | 5 文档 ✅             | 持续完善     |
-| **工程标准**  | 50-engineering-standards | 38 文档 ✅            | 持续完善     |
-| **P0 模块** | 60-120（7 模块）             | README + 01 + 02 ✅ | 全部文档     |
-| **路线图**   | 130-roadmap              | 7 文档 ✅             | 持续完善     |
-| **P1 模块** | 140-170（4 模块）            | ✅ 文档完成          | 实施验证     |
-| **P2 模块** | 180-190（2 模块）            | ✅ 文档完成          | 实施验证     |
+| 层级        | 模块                       | 文档数          |
+| --------- | ------------------------ | -------------- |
+| **需求层**   | 00-requirements          | 4 文档          |
+| **架构层**   | 10-architecture          | 6 文档          |
+| **模块层**   | 20-modules               | 9 文档          |
+| **接口层**   | 30-interfaces            | 6 文档          |
+| **数据流层**  | 40-dataflows             | 5 文档          |
+| **工程标准**  | 50-engineering-standards | 52 文档         |
+| **P0 模块** | 60-120（7 模块）             | README + 01-03 |
+| **路线图**   | 130-roadmap              | 7 文档          |
+| **P1 模块** | 140-170（4 模块）            | 6-8 文档/模块     |
+| **P2 模块** | 180-190（2 模块）            | 6 文档/模块       |
 
 ### 4.2 模块导航
 
@@ -99,28 +100,28 @@ docs/AirymaxOS/
 
 #### 工程标准与实施层（50-130）
 
-| 模块                                                             | 描述                                                 | 0.1.1 状态 |
-| -------------------------------------------------------------- | -------------------------------------------------- | -------- |
-| [50-engineering-standards](50-engineering-standards/README.md) | 工程标准规范（编码 + 错误处理 + 内存 + 并发 + 开发流程 + 工具链 + 治理 + 验收） | ✅ 38 文档（含 5 子目录） |
-| [60-driver-model](60-driver-model/README.md)                   | 驱动模型（设备模型 + 平台驱动）                                  | ✅ 01+02  |
-| [70-build-system](70-build-system/README.md)                   | 构建系统（Kbuild + Kconfig）                             | ✅ 01+02  |
-| [80-testing](80-testing/README.md)                             | 测试体系（KUnit + kselftest）                            | ✅ 01+02  |
-| [90-observability](90-observability/README.md)                 | 可观测性（ftrace + eBPF 探针）                             | ✅ 01+02  |
-| [100-operations](100-operations/README.md)                     | 运维体系（部署 + 配置管理）                                    | ✅ 01+02  |
-| [110-security](110-security/README.md)                         | 安全加固（LSM 框架 + Landlock 沙箱）                         | ✅ 01+02+03（含 capability 模型） |
-| [120-development-process](120-development-process/README.md)   | 开发流程（补丁生命周期 + 维护者层级）                               | ✅ 01+02  |
-| [130-roadmap](130-roadmap/README.md)                           | 开发路线图（9 Part + M0-M8 里程碑 + 110 项 OS-ACC）           | ✅ 7 文档   |
+| 模块                                                             | 描述                                                 |
+| -------------------------------------------------------------- | -------------------------------------------------- |
+| [50-engineering-standards](50-engineering-standards/README.md) | 工程标准规范（编码 + 错误处理 + 内存 + 并发 + 开发流程 + 工具链 + 治理 + 验收，52 文档含 5 子目录） |
+| [60-driver-model](60-driver-model/README.md)                   | 驱动模型（设备模型 + 平台驱动）                                  |
+| [70-build-system](70-build-system/README.md)                   | 构建系统（Kbuild + Kconfig）                             |
+| [80-testing](80-testing/README.md)                             | 测试体系（KUnit + kselftest）                            |
+| [90-observability](90-observability/README.md)                 | 可观测性（ftrace + eBPF 探针）                             |
+| [100-operations](100-operations/README.md)                     | 运维体系（部署 + 配置管理）                                    |
+| [110-security](110-security/README.md)                         | 安全加固（LSM 框架 + Landlock 沙箱 + capability 模型）         |
+| [120-development-process](120-development-process/README.md)   | 开发流程（补丁生命周期 + 维护者层级）                               |
+| [130-roadmap](130-roadmap/README.md)                           | 开发路线图（9 Part + M0-M8 里程碑 + 110 项 OS-ACC）           |
 
-#### 应用与生态层（140-190，1.0.1 规划）
+#### 应用与生态层（140-190）
 
-| 模块                                                                   | 描述                                     | 0.1.1 状态  |
-| -------------------------------------------------------------------- | -------------------------------------- | --------- |
-| [140-application-development](140-application-development/README.md) | Agent 应用开发（4 语言 16 嵌套客户端 + Token 预算契约） | ✅ 8 文档 |
-| [150-cloudnative](150-cloudnative/README.md)                         | 云原生部署（containerd + K8s CRD + 超节点 OS）   | ✅ 6 文档 |
-| [160-compatibility](160-compatibility/README.md)                     | 兼容性（4 层接口稳定性 + KABI + 跨发行版）            | ✅ 6 文档 |
-| [170-performance](170-performance/README.md)                         | 性能工程（Token 能效 + Agent 延迟 SLO）          | ✅ 7 文档 |
-| [180-i18n](180-i18n/README.md)                                       | 国际化（多语言 + 国密合规）                        | ✅ 6 文档 |
-| [190-distribution](190-distribution/README.md)                       | 发行版管理（RPM + ISO + Agent 应用商店）          | ✅ 6 文档 |
+| 模块                                                                   | 描述                                     |
+| -------------------------------------------------------------------- | -------------------------------------- |
+| [140-application-development](140-application-development/README.md) | Agent 应用开发（4 语言 16 嵌套客户端 + Token 预算契约） |
+| [150-cloudnative](150-cloudnative/README.md)                         | 云原生部署（containerd + K8s CRD + 超节点 OS）   |
+| [160-compatibility](160-compatibility/README.md)                     | 兼容性（4 层接口稳定性 + KABI + 跨发行版）            |
+| [170-performance](170-performance/README.md)                         | 性能工程（Token 能效 + Agent 延迟 SLO）          |
+| [180-i18n](180-i18n/README.md)                                       | 国际化（多语言 + 国密合规）                        |
+| [190-distribution](190-distribution/README.md)                       | 发行版管理（RPM + ISO + Agent 应用商店）          |
 
 ## 5. 仓库地址
 
@@ -140,12 +141,12 @@ docs/AirymaxOS/
 
 ## 6. 版本规划
 
-| 版本        | agentrt-linux 范围                  | agentrt 范围                 |
-| --------- | --------------------------------- | -------------------------- |
-| **0.1.1** | 文档体系完成（README + 完整的设计草案 + 工程基线声明） | 全部三大支柱（奠基 + 29 仓拆分 + 生产就绪） |
-| **1.0.1** | 内核和 OS 实际开发                       | 与 agentrt-linux 协同验证       |
+| 版本    | agentrt-linux 范围                                   | agentrt 范围                   |
+| ----- | ------------------------------------------------- | ---------------------------- |
+| 0.1.1 | 设计文档体系（README + 完整的设计草案 + 工程标准规范 + 工程基线声明） | 全部三大支柱（奠基 + 29 仓拆分 + 生产就绪） |
+| 1.0.1 | 内核和 OS 实现                                        | 与 agentrt-linux 协同验证       |
 
-## 7. 前沿理论参考（2026-07-07 最新）
+## 7. 前沿理论参考
 
 | 前沿理论                                                    | 应用到子仓                                                      |
 | ------------------------------------------------------- | ---------------------------------------------------------- |
@@ -153,12 +154,14 @@ docs/AirymaxOS/
 | LionsOS（seL4 Microkit 生态，2026）                          | airymaxos-kernel + airymaxos-system                        |
 | sDDF（seL4 设备驱动框架，2026）                                  | airymaxos-kernel + airymaxos-services                      |
 | Linux 6.6 内核基线（EEVDF + MGLRU + eBPF kfunc + Rust 实验性支持） | airymaxos-kernel                                           |
-| sched\_ext（eBPF 用户态调度器、sub-scheduler）                   | airymaxos-kernel（SCHED\_AGENT）                             |
+| sched\_ext（eBPF 用户态调度器、sub-scheduler）                   | airymaxos-kernel（Agent 调度策略）                               |
 | io\_uring（零 syscall 高性能 I/O）                            | airymaxos-kernel + airymaxos-services                      |
 | eBPF 签名验证 + 机密计算                                        | airymaxos-security                                         |
 | MGLRU 多代 LRU（Linux 6.6 原生）                              | airymaxos-memory                                           |
 | Wasm 3.0（安全沙箱运行时）                                       | airymaxos-cognition                                        |
 | CXL（内存分层与池化）                                            | airymaxos-memory                                           |
+
+> **参考声明**：agentrt-linux 的微内核设计思想**唯一来源为 seL4**（参考 `01Reference/seL4-master`），工程实现标准完全对齐 Linux 6.6 内核基线（参考 `01Reference/kernel-OLK-6.6`，即 openEuler OLK-6.6 内核源代码）。agentrt-linux 不移植 openEuler 特有特性，与 openEuler 的关系仅限于技术参考，不共享代码。
 
 ## 8. 与 agentrt 的关系
 
@@ -167,7 +170,7 @@ agentrt（AirymaxAgentRT，跨平台用户态运行时）
    │
    └── 运行在 agentrt-linux 上: 天然更稳健和适配（同源）
        │
-       ├── agentrt 的 MicroCoreRT 调度 ←→ agentrt-linux 的 SCHED_AGENT 策略（语义同源）
+       ├── agentrt 的 MicroCoreRT 调度 ←→ agentrt-linux 的 Agent 调度策略（语义同源）
        ├── agentrt 的 AgentsIPC 协议 ←→ agentrt-linux 的 IPC 子系统（128B 消息头同源）
        ├── agentrt 的 Cupolas 安全 ←→ agentrt-linux 的 capability + LSM（模型同源）
        ├── agentrt 的 MemoryRovol ←→ agentrt-linux 的 记忆子系统（记忆模型同源）
@@ -178,12 +181,11 @@ agentrt（AirymaxAgentRT，跨平台用户态运行时）
 
 ## 9. 相关文档
 
-- RT 设计文档: 内部参考文档（闭源，仅授权人员访问）
+- RT 设计文档: 内部参考文档（仅授权人员访问）
 - OS 设计文档: `docs/AirymaxOS/`（本目录，开源）
-- 工程规范: IRON-9 v2 工程铁律（闭源内部参考，含同源代码共享）
-- 微内核参考: 内部参考文档（闭源，仅授权人员访问）
+- 工程规范: IRON-9 v2 工程铁律（含同源代码共享）
+- 微内核参考: 内部参考文档（仅授权人员访问）
 
 ***
 
-> **文档结束** | agentrt-linux 0.1.1 P0 文档体系
-
+> **文档结束** | agentrt-linux 0.1.1 设计文档体系 | 维护者：开源极境工程与规范委员会

@@ -2,7 +2,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）架构设计
 
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
 > **设计原则**：微内核设计思想 + agentrt-linux 工程基线 + Airymax 同源性
 
@@ -255,7 +255,7 @@ agentrt-linux 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
 |--------|-------------------|--------|
 | `sched.h` | 任务描述符 magic（0x41475453 'AGTS'）+ SCHED_EXT=7 调度类编号 + vtime 衰减公式 + 优先级范围 0-139 | kernel / cognition |
 | `ipc.h` | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码 | kernel / services |
-| `bpf_struct_ops.h` | struct_ops 状态机 4 状态枚举（INIT/INUSE/TOBEFREE/READY）+ common_value 16B 布局 | kernel / cognition |
+| `syscalls.h` | 12 核心 syscall 编号 + 12 预留槽位| kernel / cognition |
 | `security_types.h` | POSIX capability 41 ID 枚举 + LSM 钩子 252 ID 枚举 + Cupolas blob 布局 + capability 派生模型 | kernel / security |
 | `memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口 | kernel / memory |
 | `cognition_types.h` | CoreLoopThree 阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual 模式 + Token 能效指标 | kernel / cognition |
@@ -304,7 +304,7 @@ graph TB
     end
 
     subgraph "[SC] 共享契约层（6 头文件）"
-        SC[sched.h / ipc.h / bpf_struct_ops.h<br/>security_types.h / memory_types.h / cognition_types.h]
+        SC[sched.h / ipc.h / syscalls.h<br/>security_types.h / memory_types.h / cognition_types.h]
     end
 
     RT_CORE -.->|"API 同源 [SS]"| OS_KERN

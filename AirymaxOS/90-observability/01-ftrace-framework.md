@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）ftrace 框架详解
 
 > **文档定位**： agentrt-linux（AirymaxOS）可观测性体系 L1 层——内核函数级跟踪框架 ftrace 的工程规范\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-06\
 > **同源映射**： agentrt E-2 可观测性 + Linux 6.6 ftrace/tracefs/ring buffer\
 > **理论根基**： Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + E-2 可观测性\
@@ -616,7 +616,7 @@ graph LR
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 ftrace 框架与 agentrt-linux Agent 行为追踪扩展所需的完整 C 接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `kernel/trace/trace.c`、`kernel/trace/ring_buffer.c`、`kernel/trace/ftrace.c`、`include/linux/trace.h`、`include/linux/ftrace.h`、`include/linux/ring_buffer.h` 及 `include/airymax/trace_types.h`（[SC] 共享契约层）。ftrace 与上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立 instance 与独立 tracepoint 形式注入。
+> **附录定位**： 本附录汇集 ftrace 框架与 agentrt-linux Agent 行为追踪扩展所需的完整 C 接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `kernel/trace/trace.c`、`kernel/trace/ring_buffer.c`、`kernel/trace/ftrace.c`、`include/linux/trace.h`、`include/linux/ftrace.h`、`include/linux/ring_buffer.h` 及 `include/airymax/trace_types.h`（[SC] 共享契约层）。ftrace 与上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立 instance 与独立 tracepoint 形式注入。
 
 ### A.1 核心数据结构
 
@@ -880,7 +880,7 @@ int __init register_tracer(struct tracer *type);
  * 返回: 写入字符数；<0 失败（-EBUSY 缓冲已禁用）
  *
  * 对齐 Linux 6.6 kernel/trace/trace.c
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  */
 int trace_array_printk(struct trace_array *tr, unsigned long ip,
                        const char *fmt, ...);

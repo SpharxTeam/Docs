@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）CJK 支持详细设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）中文/日文/韩文（CJK）显示与输入支持详细设计\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0
@@ -30,7 +30,7 @@ agentrt-linux（AirymaxOS）CJK 支持设计旨在为中文、日文、韩文用
 
 ### 1.3 术语规范
 
-本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 openEuler/Euler 字样。CJK 编码契约在 agentrt 与 agentrt-linux 之间属于 IRON-9 v2 [SC] 共享契约层。
+本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 主流 Linux 发行版/主流 Linux 发行版 字样。CJK 编码契约在 agentrt 与 agentrt-linux 之间属于 IRON-9 v2 [SC] 共享契约层。
 
 ### 1.4 CJK 字符范围矩阵
 
@@ -679,4 +679,4 @@ CJK 子系统错误码纳入 agentrt-linux 统一错误码体系：
 
 ---
 
-> **文档结束** | agentrt-linux（AirymaxOS）CJK 支持详细设计 | 1.0.1 开发版本
+> **文档结束** | agentrt-linux（AirymaxOS）CJK 支持详细设计 

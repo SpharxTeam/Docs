@@ -867,7 +867,7 @@ void* forgetting_thread(void* arg) {
 ```c
 #include "memoryrovol.h"
 
-airy_memoryrov_config_t manager = {0};
+airy_mr_config_t manager = {0};
 manager.raw_storage_path = "/path/to/memory/raw";
 manager.index_path = "/path/to/memory/index";
 manager.index_type = 2;  // HNSW
@@ -875,8 +875,8 @@ manager.hnsw_m = 32;
 manager.forget_strategy = AIRY_FORGET_EBBINGHAUS;
 manager.forget_lambda = 0.5;
 
-airy_memoryrov_handle_t* handle;
-airy_err_t err = airy_memoryrov_init(&manager, &handle);
+airy_mr_handle_t* handle;
+airy_err_t err = airy_mr_init(&manager, &handle);
 if (err != AIRY_EOK) {
     fprintf(stderr, "Error: %s\n", airy_strerror(err));
     return err;
@@ -957,7 +957,7 @@ airy_layer2_feature_config_t manager = {
 ### 11.2 调试技巧
 
 - 启用 Debug 日志级别
-- 使用 `airy_memoryrov_stats()` 查看统计信息
+- 使用 `airy_mr_stats()` 查看统计信息
 - 监控 LRU 缓存命中率
 
 ---

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux 统一错误码参考
 
 > **文档定位**： agentrt-linux（AirymaxOS）全系统统一错误码的权威参考，定义内核态与用户态双错误码体系、分段规划、与 agentrt 的映射关系、使用规范与维护流程\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [项目管理规范总览](README.md)\
 > **关联规范**： IRON-9 v2 工程铁律（内部工程标准规范） / [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md) / [接口设计规范](../../30-interfaces/README.md)
@@ -412,7 +412,7 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
 | `security_types.h` | capability 错误码 | capability 相关错误码（令牌无效、权限不足、撤销失败） |
 | `memory_types.h` | 记忆错误码 | MemoryRovol 相关错误码（快照失败、层级越界、迁移超时） |
 | `sched.h` | 调度错误码 | 调度相关错误码（策略无效、优先级越界、vtime 溢出） |
-| `bpf_struct_ops.h` | BPF 调度器错误码 | sched_ext 注册相关错误码 |
+| `syscalls.h` | 12 核心 syscall 编号 + 12 预留槽位| sched_ext 注册相关错误码 |
 | `cognition_types.h` | 认知错误码 | CoreLoopThree 相关错误码（阶段无效、kthread 注册失败） |
 
 通用错误码（`AIRY_E*`）属于 [SS] 语义同源层，agentrt 和 agentrt-linux 使用相同的错误码前缀和语义，但具体数值实现各自独立（详见 3.1.2 节）。
@@ -694,7 +694,7 @@ graph TD
 - [agentrt 集成规范](../40-integration/airy_integration.md)：与 agentrt 的集成规范
 - [接口设计](../../30-interfaces/README.md)：系统调用与 IPC 接口
 - [五维正交原则](../../10-architecture/02-five-dimensional-principles.md)：E-6 错误可追溯原则
-- IRON-9 v2 工程铁律（闭源内部参考）
+- IRON-9 v2 工程铁律
 
 ---
 

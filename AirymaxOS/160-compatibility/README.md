@@ -3,9 +3,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）兼容性设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）兼容性工程体系主索引\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-06\
-> **优先级**：P1（0.1.1 完成 5 文档，1.0.1 实施验证）\
+> **优先级**：P1（5 文档）\
 > **同源映射**：agentrt ABI 稳定性 + Linux 6.6 KABI / ABI 兼容性体系\
 > **理论根基**：Linux 内核兼容性哲学 + Airymax K-2 接口契约化 + C-2 增量演化
 
@@ -93,16 +93,16 @@ if (header.version > SUPPORTED_VERSION) {
 ```
 160-compatibility/
 ├── README.md                       # 本文件
-├── 01-abi-stability.md             # 用户空间 ABI 稳定性 ✅
-├── 02-posix-compat.md              # POSIX 兼容性 ✅
-├── 03-upstream-tracking.md         # 上游跟踪策略 ✅
-├── 04-ipc-versioning.md            # AgentsIPC 版本协商 ✅
-└── 05-cross-distro.md             # 跨发行版兼容性 ✅
+├── 01-abi-stability.md             # 用户空间 ABI 稳定性 
+├── 02-posix-compat.md              # POSIX 兼容性 
+├── 03-upstream-tracking.md         # 上游跟踪策略 
+├── 04-ipc-versioning.md            # AgentsIPC 版本协商 
+└── 05-cross-distro.md             # 跨发行版兼容性 
 ```
 
 ### 3.1 0.1.1 版本范围
 
-完成 README + 01-abi-stability.md（UAPI 稳定性 + KABI 保留域）+ 02-posix-compat.md（POSIX 兼容性 + SCHED_EXT 约束）+ 03-upstream-tracking.md（Linux 6.6 上游跟踪策略 + backport 规范）+ 04-ipc-versioning.md（协议版本演进 + 运行时协商 + 降级策略 + 操作码版本化）+ 05-cross-distro.md（发行版支持矩阵 + glibc 兼容 + 内核模块兼容 + FHS 适配 + openEuler 标准兼容）。
+完成 README + 01-abi-stability.md（UAPI 稳定性 + KABI 保留域）+ 02-posix-compat.md（POSIX 兼容性 + SCHED_EXT 约束）+ 03-upstream-tracking.md（Linux 6.6 上游跟踪策略 + backport 规范）+ 04-ipc-versioning.md（协议版本演进 + 运行时协商 + 降级策略 + 操作码版本化）+ 05-cross-distro.md（发行版支持矩阵 + glibc 兼容 + 内核模块兼容 + FHS 适配 + 主流 Linux 发行版标准兼容）。
 
 ### 3.2 1.0.1 版本范围
 
@@ -185,4 +185,4 @@ agentrt 的 ABI 稳定性与 agentrt-linux 同源：
 
 ---
 
-> **文档结束** | 0.1.1 P1 占位，1.0.1 完成 5 文档
+> **文档结束** | 5 文档

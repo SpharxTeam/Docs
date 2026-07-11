@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）配置管理
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）运维体系第 2 卷——配置工程。本文档规定从内核运行时参数到 Agent 级配置的完整配置栈：sysctl 内核运行时参数、`/etc/sysctl.d/` 组织、`/etc/agentrt/` 配置目录、systemd 单元配置、12 daemons 配置文件、环境变量、配置验证、配置版本控制、agentrt-linux 三级配置分层（系统级 / 用户级 / Agent 级）。
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt daemons（12 个用户态服务配置）+ Linux 6.6 sysctl + systemd 单元配置
 > **理论根基**： Linux 6.6 内核基线工程思想 + Airymax 五维正交 24 原则 + S-1 反馈闭环
@@ -641,7 +641,7 @@ graph LR
 
 ## 第 14 章 文档版本与维护
 
-- **当前版本**: 0.1.1（文档体系完成）/ 1.0.1（开发）
+- **当前版本**: 0.1.1
 - **最后更新**: 2026-07-06
 - **维护者**: 工程规范委员会（待成立，详见 50-engineering-standards/07-maintainers-and-governance.md）
 - **变更流程**: 任何配置规则变更必须经 RFC → 评审 → ACC 验收流程，涉及 AgentsIPC 协议参数或 MicroCoreRT 契约的 sysctl 变更需额外经工程规范委员会签字
@@ -651,7 +651,7 @@ graph LR
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集配置管理所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核基线 sysctl 接口、systemd（v254+）单元配置、主流 Linux 发行版配置管理工程实践，以及 agentrt-linux 三级配置分层专属契约（`include/airymax/config_types.h`）。
+> **附录定位**： 本附录汇集配置管理所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核基线 sysctl 接口、systemd（v254+）单元配置、主流 Linux 发行版配置管理工程实践，以及 agentrt-linux 三级配置分层专属契约（`include/airymax/config_types.h`）。
 
 ### A.1 核心数据结构
 
@@ -852,7 +852,7 @@ struct config_validation_result {
  *         (5) 系统级强制参数未被下层覆盖（OS-OPS-119）。
  *
  * @return: 校验结果结构指针（调用方负责释放），NULL 表示内存不足
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 agentrt-linux OS-OPS-114 / OS-STD-213
  */
@@ -879,7 +879,7 @@ config_validate(const struct airy_config *config,
  *           (5) 执行健康检查（OS-OPS-117）。
  *
  * @return: 0 成功，<0 失败（见 CONFIG_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 agentrt-linux OS-OPS-117 / S-1 反馈闭环
  */
@@ -901,7 +901,7 @@ int config_apply(const struct airy_config *config,
  * 适用场景：日志等级调整、IPC 超时调整等非破坏性参数。
  *
  * @return: 0 成功，<0 失败（见 CONFIG_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 systemd ExecReload= 机制 + agentrt-linux OS-OPS-108
  */
@@ -922,7 +922,7 @@ int config_reload(const struct airy_config *config);
  * 影响 MicroCoreRT 的参数需额外校验（OS-KER-201）。
  *
  * @return: 0 成功，<0 失败（见 SYSCTL_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * 对齐 Linux 6.6 内核 sysctl 接口（/proc/sys/）
  */
@@ -937,7 +937,7 @@ int sysctl_set(const char *key, const char *value, bool persist);
  * 通过 /proc/sys/ 文件接口读取（OS-STD-201）。
  *
  * @return: 0 成功（buf 填充值），<0 失败
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  */
 int sysctl_get(const char *key, char *buf, int buf_size);
 ```
@@ -958,7 +958,7 @@ int sysctl_get(const char *key, char *buf, int buf_size);
  * 合并后自动触发 config_validate() 校验合并结果。
  *
  * @return: 0 成功，<0 失败（见 CONFIG_* 错误码）
- * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+ * @since 0.1.1
  *
  * agentrt-linux 专属（对齐 §10 三级配置分层）
  */
@@ -1107,4 +1107,4 @@ int config_layer_merge(const struct config_layer *layers,
 
 ---
 
-> **文档结束** | 100-operations 第 2 卷 | 0.1.1 P0 优先完成
+> **文档结束** | 100-operations 第 2 卷 | 

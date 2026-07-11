@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）IRON-9 v2 三层共享模型落地规范
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）与 agentrt（微核心用户态运行时）之间的 IRON-9 v2 三层代码共享模型落地规范。详细说明 \[SC] 共享契约层（6 个头文件）、\[SS] 语义同源层、\[IND] 完全独立层的实施细节，含双向 CI 校验机制与 magic 设计原理。\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-09\
 > **理论根基**： Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**： AGPL-3.0-or-later OR Apache-2.0
@@ -25,11 +25,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.3 Linux 6.6 基线约束
 
-- **SCHED\_EXT=7**（参考OLK-6.6 内置，`include/uapi/linux/sched.h:121`）。agentrt-linux 复用 SCHED\_EXT=7，**禁止**定义 `SCHED_AGENT` 宏（避免与内核调度类编号冲突）。
+- **SCHED\_EXT=7**（参考Linux 6.6 内核基线 内置，`include/uapi/linux/sched.h:121`）。agentrt-linux 复用 SCHED\_EXT=7，**禁止**定义 `SCHED_AGENT` 宏（避免与内核调度类编号冲突）。
 - 内核态禁 float（`arch/x86/Makefile:137` `-mno-80387`），用 Q16.16 定点数 `airy_q16_t`（= `int32_t`）。
 - kthread 间通信用 `kfifo` + `wait_event_interruptible`。
 
-### 0.4 OLK-6.6 源码路径
+### 0.4 Linux 6.6 内核基线 源码路径
 
 - `include/uapi/linux/sched.h:114-123` —— SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_EXT=7
 - `arch/x86/Makefile:137-138` —— `-mno-80387` 禁浮点
@@ -61,26 +61,25 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 6 个 \[SC] 头文件清单
 
-\[SC] 层包含**统一为 7 个**共享头文件，存放于 `include/airymax/` 目录，两端（agentrt 与 agentrt-linux）共同依赖，**逐字节相同**：
+\[SC] 层包含**6 个**共享头文件，存放于 `include/airymax/` 目录，两端（agentrt 与 agentrt-linux）共同依赖，**逐字节相同**：
 
 | 序号 | 文件                  | 共享内容                                                                                                    | magic 值               | 落地路径                                |
 | -- | ------------------- | ------------------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------- |
-| 1  | `bpf_struct_ops.h`  | struct\_ops 状态机 + common\_value                                                                         | —                     | `include/airymax/bpf_struct_ops.h`  |
-| 2  | `memory_types.h`    | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口                                                          | —                     | `include/airymax/memory_types.h`    |
-| 3  | `security_types.h`  | POSIX capability 41 ID + LSM 钩子 252 ID + Cupolas blob 布局 + capability 派生模型 + Vault backend + 策略裁决 4 值枚举 | —                     | `include/airymax/security_types.h`  |
-| 4  | `cognition_types.h` | CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 + LLM 推理阶段枚举 + 上下文结构 + Token 能效指标 + GPU/NPU 描述符                     | —                     | `include/airymax/cognition_types.h` |
-| 5  | `sched.h`           | SCHED\_EXT 约束（复用 7）+ 任务描述符（magic 0x41475453 'AGTS'）+ vtime 类型与衰减公式 + 优先级范围 + SLICE\_DFL                 | `0x41475453` ('AGTS') | `include/airymax/sched.h`           |
-| 6  | `ipc.h`             | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码与标志位                 | `0x41524531` ('ARE1') | `include/airymax/ipc.h`             |
-| 7  | `syscalls.h`        | Syscall 编号体系（12 核心 + 12 预留 = 24 槽位）                                                                     | —                     | `include/airymax/syscalls.h`        |
+| 1  | `memory_types.h`    | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口                                                          | —                     | `include/airymax/memory_types.h`    |
+| 2  | `security_types.h`  | POSIX capability 41 ID + LSM 钩子 252 ID + Cupolas blob 布局 + capability 派生模型 + Vault backend + 策略裁决 4 值枚举 | —                     | `include/airymax/security_types.h`  |
+| 3  | `cognition_types.h` | CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 + LLM 推理阶段枚举 + 上下文结构 + Token 能效指标 + GPU/NPU 描述符                     | —                     | `include/airymax/cognition_types.h` |
+| 4  | `sched.h`           | SCHED\_EXT 约束（复用 7）+ 任务描述符（magic 0x41475453 'AGTS'）+ vtime 类型与衰减公式 + 优先级范围 + SLICE\_DFL                 | `0x41475453` ('AGTS') | `include/airymax/sched.h`           |
+| 5  | `ipc.h`             | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码与标志位                 | `0x41524531` ('ARE1') | `include/airymax/ipc.h`             |
+| 6  | `syscalls.h`        | Syscall 编号体系（12 核心 + 12 预留 = 24 槽位）                                                                     | —                     | `include/airymax/syscalls.h`        |
 
-**补充内容**（不属于上述 7 个头文件，但两端共享语义）：
+**补充内容**（不属于上述 6 个头文件，但两端共享语义）：
 
 - capability 令牌格式
 - 错误码（`airy_err_t`）
 - 规则编号体系（IRON/BAN/STD/ACC）
 - 五维正交 24 原则
 
-### 2.2 头文件 1：bpf\_struct\_ops.h
+### 2.2 补充共享文件：bpf\_struct\_ops.h（非 [SC] 核心头文件）
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
@@ -110,7 +109,9 @@ enum airy_struct_ops_state {
 #endif /* _AIRY_BPF_STRUCT_OPS_H */
 ```
 
-### 2.3 头文件 2：memory\_types.h
+> **定位说明**：`bpf_struct_ops.h` 是 agentrt 与 agentrt-linux 之间的**补充共享文件**（SDK 网关状态管理共享结构），两端共享代码但**不属于 6 个 [SC] 核心头文件**。其 `struct airy_struct_ops_value` 和 `enum airy_struct_ops_state` 用于 agentrt 用户态 BPF loader 与 agentrt-linux 内核 struct_ops 框架之间的状态同步。
+
+### 2.3 头文件 1：memory\_types.h
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
@@ -136,7 +137,7 @@ enum airy_mem_level {
 #endif /* _AIRY_MEMORY_TYPES_H */
 ```
 
-### 2.4 头文件 3：security\_types.h
+### 2.4 头文件 2：security\_types.h
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
@@ -205,7 +206,7 @@ enum airy_think_mode {
 #endif /* _AIRY_COGNITION_TYPES_H */
 ```
 
-### 2.6 头文件 5：sched.h
+### 2.6 头文件 4：sched.h
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
@@ -214,7 +215,7 @@ enum airy_think_mode {
 
 #include <linux/types.h>
 
-/* SCHED_EXT=7 (OLK-6.6 内置, include/uapi/linux/sched.h:121)
+/* SCHED_EXT=7 (Linux 6.6 内核基线 内置, include/uapi/linux/sched.h:121)
  * 禁止定义 SCHED_AGENT 宏, 复用 SCHED_EXT 调度类编号。 */
 
 /* Task descriptor magic: 0x41475453 = 'AGTS' (Agent Task) */
@@ -332,7 +333,7 @@ struct airy_ipc_msg_hdr {
 #endif /* _AIRY_IPC_H */
 ```
 
-### 2.8 头文件 7：syscalls.h
+### 2.8 头文件 6：syscalls.h
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
@@ -551,7 +552,7 @@ sc-contract-bidirectional:
 
 ## 7. kthread 间通信约束
 
-### 7.1 OLK-6.6 基线约束
+### 7.1 Linux 6.6 内核基线 基线约束
 
 agentrt-linux 内核态 kthread 间通信**必须**使用 `kfifo` + `wait_event_interruptible`，禁止使用浮点（用 `airy_q16_t`）：
 
@@ -603,11 +604,11 @@ static int airy_kthread_recv(struct airy_kthread_chan *chan,
 
 ### 8.2 调度编号速查
 
-| 常量            | 值 | OLK-6.6 行号    | 约束                                 |
+| 常量            | 值 | Linux 6.6 内核基线 行号    | 约束                                 |
 | ------------- | - | ------------- | ---------------------------------- |
 | SCHED\_NORMAL | 0 | `sched.h:114` | —                                  |
 | SCHED\_FIFO   | 1 | `sched.h:115` | —                                  |
-| SCHED\_EXT    | 7 | `sched.h:121` | **OLK-6.6 内置，禁止定义 SCHED\_AGENT 宏** |
+| SCHED\_EXT    | 7 | `sched.h:121` | **Linux 6.6 内核基线 内置，禁止定义 SCHED\_AGENT 宏** |
 
 ***
 

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）架构决策记录（ADR）
 
 > **文档定位**：agentrt-linux（AirymaxOS）架构决策记录（Architecture Decision Records）\
-> **文档版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **文档版本**：0.1.1\
 > **最后更新**：2026-07-06\
 > **父文档**：[架构设计](README.md)\
 > **决策者**：OpenAirymax 工程规范委员会
@@ -754,7 +754,7 @@ agentrt-linux 与 agentrt 是 **同源且部分代码共享** 的关系（IRON-9
 2. **天然契合**：因为设计假设和实现假设一致，agentrt 在 agentrt-linux 上运行**无适配层**，天然更稳健
 3. **独立性**：agentrt 是跨平台用户态运行时，必须独立于任何特定 OS；agentrt-linux 是 Linux 发行版，专注于 Linux 6.6 优化
 4. **演进协同**：两者通过共享设计理念（00-architectural-principles.md）与共享契约层代码（`include/airymax/`）协同演进，契约层变更须经 agentrt + agentrt-linux 两端 CI 双向校验
-5. **IRON-9 v2 约束**：工程标准规范手册 IRON-9 v2（2026-07-07 决策变更）明确规定"agentrt 和 agentrt-linux 同源且部分代码共享"——共享契约层代码完全共享（`include/airymax/`），语义同源层高层 API 语义同源（概念操作一致）、签名因抽象层级不同而独立演进，完全独立层各自独立
+5. **IRON-9 v2 约束**：工程标准规范手册 IRON-9 v2 明确规定"agentrt 和 agentrt-linux 同源且部分代码共享"——共享契约层代码完全共享（`include/airymax/`），语义同源层高层 API 语义同源（概念操作一致）、签名因抽象层级不同而独立演进，完全独立层各自独立
 6. **边界清晰**：agentrt 是用户态库 + 守护进程，agentrt-linux 是 Linux 内核 + 用户态服务，边界清晰
 
 ### 影响
@@ -860,11 +860,11 @@ agentrt 与 agentrt-linux 的关系是"平台—应用"关系，而非"内核—
 
 ### 理由
 
-1. **硬约束：agentrt 必须保持跨平台**（用户决策 2026-07-04）：atoms 核心路径保持用户态跨 Linux/macOS/Windows 三平台。若 agentrt 成为 agentrt-linux 的专属用户态，将丧失跨平台能力，违反此硬约束。
+1. **硬约束：agentrt 必须保持跨平台**（开源极境工程与规范委员会决策 2026-07-04）：atoms 核心路径保持用户态跨 Linux/macOS/Windows 三平台。若 agentrt 成为 agentrt-linux 的专属用户态，将丧失跨平台能力，违反此硬约束。
 2. **架构正交性**：7 层架构是 agentrt-linux 的内部依赖管理工具。agentrt 是外部独立项目，将其纳入 agentrt-linux 内部架构会破坏架构正交性——agentrt 的演进不应受 agentrt-linux 内部层次变化制约。
 3. **IRON-9 v2 已是最优实现**：IRON-9 v2 的三层共享模型（\[SC] 共享契约层 + \[SS] 语义同源层 + \[IND] 完全独立层）已实现"天然契合零适配层"的目标，无需将 agentrt 纳入 agentrt-linux 内部架构即可获得同源红利。
 4. **seL4 root task 模型验证**：seL4 微内核架构中，root task（用户态初始进程）是独立于内核的外部组件，通过 capability 与内核交互。agentrt 与 agentrt-linux 的关系类比于此——agentrt 是 agentrt-linux 上的"root task 级"用户态运行时，但并非内核的一部分。
-5. **"微核心"与"微内核"的区分**（用户决策 2026-07-09）：agentrt 是"微核心"（MicroCoreRT，用户态微核心运行时），agentrt-linux 是"微内核"（基于 Linux 改造的微内核化 OS）。两者是不同层级的概念，不应混为一谈。
+5. **"微核心"与"微内核"的区分**（开源极境工程与规范委员会决策 2026-07-09）：agentrt 是"微核心"（MicroCoreRT，用户态微核心运行时），agentrt-linux 是"微内核"（基于 Linux 改造的微内核化 OS）。两者是不同层级的概念，不应混为一谈。
 
 ### 替代方案
 
@@ -980,7 +980,7 @@ agentrt-linux 实施版本基线锁定战略：
 
 | 版本系列      | 内核基线               | 锁定状态            | 预期周期        |
 | --------- | ------------------ | --------------- | ----------- |
-| **1.x.x** | Linux 6.6（OLK-6.6） | 长期锁定            | 1.x.x 全系列版本 |
+| **1.x.x** | Linux 6.6（Linux 6.6 内核基线） | 长期锁定            | 1.x.x 全系列版本 |
 | **2.x.x** | Linux 7.1          | 长期锁定（2.x.x 启动时） | 2.x.x 全系列版本 |
 
 **迁移路径**：1.x.x → 2.x.x 遵循「兼容层先行 → 渐进式迁移 → 旧基线 EOL」三阶段：
@@ -1086,7 +1086,7 @@ agentrt-linux 的微内核设计思想**唯一来源：seL4**。不引入 Zircon
 | ------------------- | ------- | -------------------------------------------------------------------------------- | ------------------ |
 | `sched.h`           | ADR-010 | magic 0x41475453 'AGTS' + SCHED\_EXT=7（禁用 SCHED\_AGENT 宏）+ MAC\_MAX\_AGENTS=1024 | kernel / cognition |
 | `ipc.h`             | ADR-005 | magic 0x41524531 'ARE1' + 128B 消息头（`struct airy_ipc_msg_hdr`）                      | kernel / services  |
-| `bpf_struct_ops.h`  | ADR-010 | struct\_ops 4 状态机（INIT/INUSE/TOBEFREE/READY）+ common\_value 16B                  | kernel / cognition |
+| `syscalls.h`  | ADR-010 | Syscall 编号体系（12 核心 + 12 预留 = 24 槽位）                                          | kernel / cognition |
 | `security_types.h`  | ADR-004 | 41 cap + 252 LSM + Cupolas blob + capability 派生                                  | kernel / security  |
 | `memory_types.h`    | ADR-007 | MemoryRovol L1-L4 + GFP 掩码 + PMEM 接口                                             | kernel / memory    |
 | `cognition_types.h` | ADR-006 | 三阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual                                     | kernel / cognition |
@@ -1131,7 +1131,7 @@ graph TB
     end
 
     subgraph "[SC] 共享契约层（6 头文件）"
-        SC[security_types.h + ipc.h + cognition_types.h<br/>memory_types.h + sched.h + bpf_struct_ops.h]
+        SC[security_types.h + ipc.h + cognition_types.h<br/>memory_types.h + sched.h + syscalls.h]
     end
 
     RT_004 -.->|"ADR-004 [SS]"| OS_004
@@ -1205,7 +1205,7 @@ graph LR
 - [微内核策略](03-microkernel-strategy.md)：微内核化改造策略
 - [工程基线](04-engineering-baseline.md)：agentrt-linux 工程基线
 - [架构原则](../../AirymaxRT/00-architectural-principles.md)：五维正交 24 原则的完整定义
-- 工程标准规范手册（闭源内部参考）：IRON-9 / IRON-10 / BAN-361 等工程铁律
+- 工程标准规范手册：IRON-9 / IRON-10 / BAN-361 等工程铁律
 
 ***
 

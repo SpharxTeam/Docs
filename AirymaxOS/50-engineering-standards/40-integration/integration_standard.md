@@ -590,11 +590,11 @@ export AIRY_DEBUG=1
 ## 十、参考文档
 
 - [00-architectural-principles.md](../../00-architectural-principles.md)
-- [config_unified README.md](../../../AgentRT/agentrt/commons/utils/config_unified/README.md) ✅
-- [CONFIG_CHANGE_PROCESS.md](../../../AgentRT/agentrt/manager/CONFIG_CHANGE_PROCESS.md) ✅
-- [error_code_reference.md](../70-project-erp/02-error-code-reference.md) ✅
-- [error.h (C 内核错误码定义)](../../../AgentRT/agentrt/commons/utils/error/include/error.h) ✅
-- [Integration Standards README](./README.md) ✅
+- [config_unified README.md](../../../AgentRT/agentrt/commons/utils/config_unified/README.md) 
+- [CONFIG_CHANGE_PROCESS.md](../../../AgentRT/agentrt/manager/CONFIG_CHANGE_PROCESS.md) 
+- [error_code_reference.md](../70-project-erp/02-error-code-reference.md) 
+- [error.h (C 内核错误码定义)](../../../AgentRT/agentrt/commons/utils/error/include/error.h) 
+- [Integration Standards README](./README.md) 
 
 ---
 

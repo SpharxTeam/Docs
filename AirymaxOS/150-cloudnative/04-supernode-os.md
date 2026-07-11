@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # 超节点 OS 实现方案
 
 > **文档定位**：agentrt-linux（AirymaxOS）超节点 OS 的完整实现方案，定义超节点拓扑模型、NUMA 感知调度、跨 die 迁移协议、CXL 内存分层、超节点级 Token 预算池与整机快照恢复\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **父文档**：[云原生 Agent 部署 README](README.md)\
 > **文档性质**：实现方案文档（非设计文档）。本方案在 [20-modules/06-cloudnative.md](../20-modules/06-cloudnative.md) §3.8/§4.8 超节点 OS 设计与 [40-dataflows/02-memory-flow.md](../40-dataflows/02-memory-flow.md) 记忆卷载数据流的基础上，补充完整的超节点拓扑、调度、迁移、分层与预算实现\
@@ -825,15 +825,15 @@ KUNIT_DEFINE_TEST(test_supernode_topology_discovery) {
 
 ## 18. 合规声明
 
-### 18.1 不移植的 openEuler 特有特性
+### 18.1 不移植的 主流 Linux 发行版 特有特性
 
-根据项目合规约束（[50-engineering-standards/08-compliance-checklist.md](../50-engineering-standards/08-compliance-checklist.md)），超节点 OS **不移植**以下 openEuler 特有特性，改用替代方案：
+根据项目合规约束（[50-engineering-standards/08-compliance-checklist.md](../50-engineering-standards/08-compliance-checklist.md)），超节点 OS **不移植**以下 主流 Linux 发行版 特有特性，改用替代方案：
 
 | 不移植特性 | 原因 | 替代方案 |
 |-----------|------|---------|
-| `etmem`（`mm/etmem.c`） | openEuler 特有，与 IRON-1 冲突 | `memory.reclaim` + memory-tiers |
-| `dynamic_pool` | openEuler 特有 | memcg（cgroup v2） |
-| `numa_remote` | openEuler 特有 | CXL 3.0 池化 |
+| `etmem`（`mm/etmem.c`） | 主流 Linux 发行版 特有，与 IRON-1 冲突 | `memory.reclaim` + memory-tiers |
+| `dynamic_pool` | 主流 Linux 发行版 特有 | memcg（cgroup v2） |
+| `numa_remote` | 主流 Linux 发行版 特有 | CXL 3.0 池化 |
 | KABI_RESERVE | 与 IRON-1 冲突 | 不使用保留域 |
 
 ### 18.2 微内核思想来源

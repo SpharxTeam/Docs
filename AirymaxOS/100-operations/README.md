@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）运维体系设计
 
 > **文档定位**： agentrt-linux（AirymaxOS）运维工程体系主索引
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt daemons（12 个用户态服务）+ Linux 6.6 systemd 集成
 > **理论根基**： Linux 发行版运维哲学 + Airymax S-1 反馈闭环 + E-2 可观测性
@@ -101,7 +101,7 @@ agentrt-linux 采用 RPM 包格式 + dnf 包管理器：
 
 ### 3.1 0.1.1 版本范围
 
-0.1.1 完成 README + 01 + 02 文档（3 文档奠基），确立运维体系设计框架与部署/配置核心机制。其余 8 文档（03-monitoring 至 10-devstation）在 1.0.1 版本完成。
+README + 01 + 02 文档（3 文档奠基），确立运维体系设计框架与部署/配置核心机制。其余 8 文档（03-monitoring 至 10-devstation）在 1.0.1 版本完成。
 
 ### 3.2 1.0.1 版本范围
 
@@ -164,4 +164,4 @@ agentrt 的 12 个 daemons（gateway_d/llm_d/tool_d/sched_d/market_d/monit_d/cha
 
 ---
 
-> **文档结束** | 0.1.1 P0 优先完成 README + 01 + 02
+> **文档结束** | README + 01 + 02

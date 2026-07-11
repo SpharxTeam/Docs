@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux 与 agentrt 的集成规范
 
 > **文档定位**： agentrt-linux（AirymaxOS）与 agentrt（AirymaxAgentRT）的详细集成规范，定义集成架构、IRON-9 v2 三层集成点、ABI 兼容性、版本对齐、集成测试与性能基准\
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**： 0.1.1\
 > **最后更新**： 2026-07-07\
 > **父文档**： [集成标准总览](README.md)\
 > **关联规范**： IRON-9 v2 工程铁律（内部工程标准规范） / [架构设计](../../10-architecture/01-system-architecture.md) / [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md) / [工程基线](../../10-architecture/04-engineering-baseline.md)
@@ -51,7 +51,7 @@ graph TB
     end
 
     subgraph "IRON-9 v2 三层"
-        SC["[SC] 共享契约层<br/>━━━━━━━━━━━━━<br/>include/airymax/<br/>bpf_struct_ops.h<br/>memory_types.h<br/>security_types.h<br/>cognition_types.h<br/>sched.h<br/>ipc.h<br/>━━━━━━━━━━━━━<br/>完全共享代码"]
+        SC["[SC] 共享契约层<br/>━━━━━━━━━━━━━<br/>include/airymax/<br/>syscalls.h<br/>memory_types.h<br/>security_types.h<br/>cognition_types.h<br/>sched.h<br/>ipc.h<br/>━━━━━━━━━━━━━<br/>完全共享代码"]
         SS["[SS] 语义同源层<br/>━━━━━━━━━━━━━<br/>调度语义同源<br/>IPC 语义同源<br/>安全语义同源<br/>记忆语义同源<br/>认知语义同源<br/>━━━━━━━━━━━━━<br/>高层 API 语义同源，签名独立演进"]
         IND["[IND] 完全独立层<br/>━━━━━━━━━━━━━<br/>平台适配层<br/>构建系统<br/>跨平台兼容层<br/>各自独立演进"]
     end
@@ -148,7 +148,7 @@ agentrt 在 agentrt-linux 上的运行示意：
 
 ### 2.2 六个共享头文件
 
-#### 2.2.1 bpf_struct_ops.h — sched_ext BPF 调度器结构体操作头文件
+#### 2.2.1 syscalls.h — sched_ext BPF 调度器结构体操作头文件
 
 | 字段 | 说明 |
 |------|------|
@@ -543,11 +543,11 @@ agentrt-linux（AirymaxOS）对 agentrt 提供以下 ABI 兼容性保证：
 
 | agentrt 版本 | agentrt-linux 版本 | 标准模式 | 增强模式 | [SC] 层版本 |
 |--------------|-------------------|----------|----------|------------|
-| 0.1.1 | 0.1.1 | ✅ 兼容 | N/A（文档阶段） | 0.1.1 |
-| 1.0.1 | 1.0.1 | ✅ 兼容 | ✅ 全部特性 | 1.0.1 |
-| 1.0.2 | 1.0.1 | ✅ 兼容 | ✅ 部分特性 | 1.0.1 |
-| 1.0.1 | 1.0.2 | ✅ 兼容 | ✅ 全部特性 | 1.0.1 |
-| 2.0.0 | 1.0.1 | ✅ 兼容 | ❌ 需 agentrt-linux 2.0.0 | 2.0.0 |
+| 0.1.1 | 0.1.1 | 兼容 | N/A（文档阶段） | 0.1.1 |
+| 1.0.1 | 1.0.1 | 兼容 | 全部特性 | 1.0.1 |
+| 1.0.2 | 1.0.1 | 兼容 | 部分特性 | 1.0.1 |
+| 1.0.1 | 1.0.2 | 兼容 | 全部特性 | 1.0.1 |
+| 2.0.0 | 1.0.1 | 兼容 | ❌ 需 agentrt-linux 2.0.0 | 2.0.0 |
 
 ### 5.3 版本对齐流程
 
@@ -685,12 +685,12 @@ agentrt 在 agentrt-linux 上运行的性能基准，以 agentrt 在普通 Linux
 
 | 测试项 | 基线 | 标准模式 | 增强模式 | 达标 |
 |--------|------|----------|----------|------|
-| IPC 吞吐量 | 50K/s | 50K/s | 105K/s | ✅ |
-| IPC 延迟 P99 | 100us | 100us | 45us | ✅ |
-| 调度延迟 P99 | 100us | 100us | 48us | ✅ |
-| 认知循环延迟 | 100ms | 100ms | 48ms | ✅ |
-| 记忆检索延迟 | 10ms | 10ms | 4.5ms | ✅ |
-| 安全令牌验证 | 1us | 1us | 0.4us | ✅ |
+| IPC 吞吐量 | 50K/s | 50K/s | 105K/s | |
+| IPC 延迟 P99 | 100us | 100us | 45us | |
+| 调度延迟 P99 | 100us | 100us | 48us | |
+| 认知循环延迟 | 100ms | 100ms | 48ms | |
+| 记忆检索延迟 | 10ms | 10ms | 4.5ms | |
+| 安全令牌验证 | 1us | 1us | 0.4us | |
 ```
 
 ---
@@ -814,7 +814,7 @@ graph LR
 - [工程基线](../../10-architecture/04-engineering-baseline.md)：工程基线定义
 - [架构决策记录](../../10-architecture/05-adrs.md)：ADR-010 同源关系
 - [接口设计](../../30-interfaces/README.md)：系统调用与 IPC 接口
-- IRON-9 v2 工程铁律（闭源内部参考）
+- IRON-9 v2 工程铁律
 
 ---
 

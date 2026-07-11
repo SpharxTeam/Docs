@@ -3,9 +3,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）Agent 应用开发设计
 
 > **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）Agent 应用开发工程体系主索引\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
+> **版本**：0.1.1\
 > **最后更新**：2026-07-09\
-> **优先级**：P1（0.1.1 完成 7 文档，1.0.1 实施验证）\
+> **优先级**：P1（7 文档）\
 > **同源映射**：agentrt SDK（Python/Rust/Go/TypeScript 四语言）+ Linux 6.6 用户态开发模型 + seL4 TCB 生命周期\
 > **理论根基**：Linux 应用开发哲学 + Airymax K-2 接口契约化 + E-7 文档即代码
 
@@ -73,13 +73,13 @@ Agent 间通信基于 128B 定长消息头 + 5 种 payload 类型。
 ```
 140-application-development/
 ├── README.md                       # 本文件
-├── 01-agent-lifecycle.md          # Agent 应用生命周期 ✅
-├── 02-sdk-integration.md          # 四语言 SDK 集成设计 ✅
-├── 03-agent-orchestration.md      # Agent 编排设计 ✅
-├── 04-token-budget.md             # Token 预算契约 ✅
-├── 05-memory-rovol-api.md         # 记忆卷载 API ✅
-├── 06-agent-deployment.md         # Agent 部署与运行契约 ✅
-└── 07-syscall-registry.md         # Agent 系统调用编号注册表 ✅
+├── 01-agent-lifecycle.md          # Agent 应用生命周期 
+├── 02-sdk-integration.md          # 四语言 SDK 集成设计 
+├── 03-agent-orchestration.md      # Agent 编排设计 
+├── 04-token-budget.md             # Token 预算契约 
+├── 05-memory-rovol-api.md         # 记忆卷载 API 
+├── 06-agent-deployment.md         # Agent 部署与运行契约 
+└── 07-syscall-registry.md         # Agent 系统调用编号注册表 
 ```
 
 ### 3.1 0.1.1 版本范围
@@ -88,7 +88,7 @@ Agent 间通信基于 128B 定长消息头 + 5 种 payload 类型。
 
 ### 3.2 1.0.1 版本范围
 
-140 模块 0.1.1 已完成全部 7 文档。1.0.1 阶段聚焦工程标准实施与 SDK 实现验证，包括：SDK 实现的契约合规性验证、Agent 包构建工具链（agentpkg/agentctl）落地、部署状态机的集成测试、滚动更新与回滚的端到端验证。
+140 模块 覆盖工程标准实施与 SDK 实现验证，包括：SDK 实现的契约合规性验证、Agent 包构建工具链（agentpkg/agentctl）、部署状态机的集成测试、滚动更新与回滚的端到端验证。
 
 ---
 
@@ -142,10 +142,10 @@ Agent 间通信基于 128B 定长消息头 + 5 种 payload 类型。
 ## 7. 参考材料
 
 - Linux 6.6 `Documentation/userspace-api/`（用户态接口文档）
-- openEuler OLK-6.6 `kernel/sched/sched.h`（sched_class 虚表注册模式）
+- 主流 Linux 发行版 Linux 6.6 内核基线 `kernel/sched/sched.h`（sched_class 虚表注册模式）
 - seL4 `src/object/tcb.c`（TCB 线程生命周期）
 - seL4 `src/object/cnode.c`（Capability 撤销算法）
 - seL4 `src/fastpath/fastpath.c`（Point of No Return 原子状态转换）
 
 ---
-> **文档结束** | 0.1.1 P1 README + 01 完成
+> **文档结束** | README + 01

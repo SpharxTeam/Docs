@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux（AirymaxOS）kselftest 系统级测试
 
 > **文档定位**： agentrt-linux（AirymaxOS）测试工程体系第 2 卷——kselftest 用户态系统级测试。本卷规定 kselftest 框架结构、`tools/testing/selftests/` 目录组织、`make kselftest` 入口、各子系统测试集（sched/mm/fs/net/...）、kselftest 与 KUnit 区别、运行环境要求，以及 agentrt-linux Agent 契约测试的系统级扩展。
-> **版本**： 0.1.1（文档体系完成）/ 1.0.1（开发）
+> **版本**： 0.1.1
 > **最后更新**： 2026-07-06
 > **同源映射**： agentrt 7 层验证 L2（系统级测试）+ Linux 6.6 内核基线 `tools/testing/selftests/`
 > **理论根基**： Linux 6.6 内核基线测试思想 + Airymax 五维正交 24 原则（E-8 可测试性 / S-1 反馈闭环 / IRON-9 v2 同源且部分代码共享）
@@ -457,7 +457,7 @@ TEST_HARNESS_MAIN
 
 **无直接 [SC] 共享头文件**。
 
-测试集层不属于 IRON-9 v2 的 6 个 [SC] 共享头文件清单（`bpf_struct_ops.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。测试集是验证基础设施，两端运行目标截然不同（agentrt 用户态集成测试 vs agentrt-linux 内核态系统级测试），其 Makefile 模式与运行器各自定义，源码层无共享头文件依赖。这一约束确保 agentrt 用户态集成测试演进时不会被动牵连 agentrt-linux kselftest，反之亦然——测试集层的演进由各自的 **OS-TEST 评审** 独立裁决。两端仅通过 **TAP 13 格式** 与 **AgentsIPC** 实现跨态协作而非代码共享。
+测试集层不属于 IRON-9 v2 的 6 个 [SC] 共享头文件清单（`syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。测试集是验证基础设施，两端运行目标截然不同（agentrt 用户态集成测试 vs agentrt-linux 内核态系统级测试），其 Makefile 模式与运行器各自定义，源码层无共享头文件依赖。这一约束确保 agentrt 用户态集成测试演进时不会被动牵连 agentrt-linux kselftest，反之亦然——测试集层的演进由各自的 **OS-TEST 评审** 独立裁决。两端仅通过 **TAP 13 格式** 与 **AgentsIPC** 实现跨态协作而非代码共享。
 
 #### 9.2.3 [SS] 语义同源层
 
@@ -629,7 +629,7 @@ kselftest 输出 TAP（version 13），形如 `ok <num> <suite>:<case>` / `not o
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 kselftest 系统级测试框架所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `tools/testing/selftests/kselftest.h`、`tools/testing/selftests/kselftest_harness.h`、`tools/testing/selftests/lib.mk`、`run_kselftest.sh` 及 `include/airymax/selftest_types.h`（[SC] 共享契约层）。kselftest 框架与 Linux 6.6 上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立 `airy_*` 子目录形式注入，禁止改写上游框架代码。
+> **附录定位**： 本附录汇集 kselftest 系统级测试框架所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `tools/testing/selftests/kselftest.h`、`tools/testing/selftests/kselftest_harness.h`、`tools/testing/selftests/lib.mk`、`run_kselftest.sh` 及 `include/airymax/selftest_types.h`（[SC] 共享契约层）。kselftest 框架与 Linux 6.6 上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立 `airy_*` 子目录形式注入，禁止改写上游框架代码。
 
 ### A.1 核心数据结构
 
@@ -755,7 +755,7 @@ struct kselftest_harness {
  * 返回: 0 全部通过；非零存在失败/错误（聚合 KSFT_FAIL）
  *
  * 对齐 Linux 6.6 tools/testing/selftests/run_kselftest.sh 调度逻辑
- * @since 1.0.1（代码实施）
+ * @since 1.0.1
  */
 int kselftest_run(struct kselftest_module *module,
                   const char *filter, bool is_root);
@@ -784,7 +784,7 @@ CFLAGS += -I../../../../include/uapi/airymaxos
 
 # 必须在变量声明后 include 公共构建规则
 include ../lib.mk
-# @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+# @since 0.1.1
 ```
 
 #### A.2.3 run_kselftest.sh 入口
@@ -960,7 +960,7 @@ void ksft_exit_skip(const char *fmt, ...) __attribute__((noreturn));
 #   典型: CFLAGS += -I../../../../include/uapi/airymaxos
 
 # include ../lib.mk: 必须在所有变量声明之后 include 公共构建规则
-# @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+# @since 0.1.1
 ```
 
 #### A.3.4 settings 文件字段
@@ -978,7 +978,7 @@ timeout=45
 
 # fragment: 测试子集分组（CI 按分组调度）
 #   典型: fragment=non_root
-# @since 0.1.1（文档体系）/ 1.0.1（代码实施）
+# @since 0.1.1
 ```
 
 #### A.3.5 错误码
@@ -999,4 +999,4 @@ timeout=45
 
 ---
 
-> **文档结束** | agentrt-linux 测试工程第 2 卷（kselftest 系统级测试）| 0.1.1 P0 优先完成 | 同源 Linux 6.6 内核基线 kselftest
+> **文档结束** | agentrt-linux 测试工程第 2 卷（kselftest 系统级测试）|  | 同源 Linux 6.6 内核基线 kselftest

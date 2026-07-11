@@ -57,7 +57,7 @@ manifest := &plugin.PluginManifest{
 }
 ```
 
-✅ **正确**：所有资源限制字段必须显式设置
+**正确**：所有资源限制字段必须显式设置
 
 ```go
 manifest := &plugin.PluginManifest{
@@ -86,7 +86,7 @@ func (p *MyPlugin) OnActivate(ctx map[string]interface{}) error {
 }
 ```
 
-✅ **正确**：通过系统调用接口发起请求，由仲裁层决定是否放行
+**正确**：通过系统调用接口发起请求，由仲裁层决定是否放行
 
 ```go
 func (p *MyPlugin) OnActivate(ctx map[string]interface{}) error {
@@ -115,7 +115,7 @@ func (sm *SessionManager) Get(ctx context.Context, sessionID string) (*types.Ses
 }
 ```
 
-✅ **正确**：先验证再使用
+**正确**：先验证再使用
 
 ```go
 func (sm *SessionManager) Get(ctx context.Context, sessionID string) (*types.Session, error) {
@@ -142,7 +142,7 @@ func (tm *TaskManager) Cancel(ctx context.Context, taskID string) error {
 }
 ```
 
-✅ **正确**：操作前后记录遥测
+**正确**：操作前后记录遥测
 
 ```go
 func (tm *TaskManager) Cancel(ctx context.Context, taskID string) error {
@@ -183,7 +183,7 @@ func (tm *TaskManager) Submit(ctx context.Context, description string) (*types.T
 }
 ```
 
-✅ **正确**：使用 SDK 校验工具
+**正确**：使用 SDK 校验工具
 
 ```go
 func (tm *TaskManager) Submit(ctx context.Context, description string) (*types.Task, error) {
@@ -233,7 +233,7 @@ func NewClient(opts ...agentrt.ConfigOption) (*Client, error) {
 }
 ```
 
-✅ **正确**：构造后立即验证
+**正确**：构造后立即验证
 
 ```go
 func NewClient(opts ...agentrt.ConfigOption) (*Client, error) {
@@ -263,7 +263,7 @@ json.Unmarshal(body, &result)
 taskID := result["task_id"].(string) // 若 key 不存在或类型不匹配将 panic
 ```
 
-✅ **正确**：使用类型安全提取
+**正确**：使用类型安全提取
 
 ```go
 var result map[string]interface{}
@@ -286,7 +286,7 @@ json.Unmarshal(respBody, &apiResp)
 return &apiResp, nil // 可能返回 Success=false 的响应
 ```
 
-✅ **正确**：验证后提取
+**正确**：验证后提取
 
 ```go
 var apiResp types.APIResponse
@@ -316,7 +316,7 @@ path := fmt.Sprintf("/api/v1/tasks?page=%d&page_size=%d", page, pageSize)
 // 未对参数进行 URL 编码，特殊字符可能导致注入
 ```
 
-✅ **正确**：使用 `BuildURL` 或 `url.Values`
+**正确**：使用 `BuildURL` 或 `url.Values`
 
 ```go
 path := utils.BuildURL("/api/v1/tasks", map[string]string{
@@ -338,7 +338,7 @@ resp, err := sm.api.Get(ctx, fmt.Sprintf("/api/v1/sessions/%s/context/%s", sessi
 // 若 key 包含 "/" 或 ".." 可导致路径遍历
 ```
 
-✅ **正确**：净化后再嵌入
+**正确**：净化后再嵌入
 
 ```go
 safeKey := utils.SanitizeString(key)
@@ -368,7 +368,7 @@ func generateToken() string {
 }
 ```
 
-✅ **正确**：使用 `crypto/rand`
+**正确**：使用 `crypto/rand`
 
 ```go
 import (
@@ -396,7 +396,7 @@ b := make([]byte, 16)
 rand.Read(b) // 忽略了错误返回值
 ```
 
-✅ **正确**：检查错误
+**正确**：检查错误
 
 ```go
 b := make([]byte, 16)
@@ -425,7 +425,7 @@ transport := &http.Transport{
 }
 ```
 
-✅ **正确**：强制 TLS 1.2+
+**正确**：强制 TLS 1.2+
 
 ```go
 transport := &http.Transport{
@@ -458,7 +458,7 @@ transport := &http.Transport{
 }
 ```
 
-✅ **正确**：仅在测试中使用自定义 CA，且必须通过配置控制
+**正确**：仅在测试中使用自定义 CA，且必须通过配置控制
 
 ```go
 if config.Debug {
@@ -490,7 +490,7 @@ config := agentrt.NewConfig(
 )
 ```
 
-✅ **正确**：从环境变量读取
+**正确**：从环境变量读取
 
 ```go
 config, err := agentrt.NewConfigFromEnv()
@@ -514,7 +514,7 @@ func (c *Client) String() string {
 }
 ```
 
-✅ **正确**：脱敏处理
+**正确**：脱敏处理
 
 ```go
 func (c *Client) String() string {
@@ -546,7 +546,7 @@ func (c *Cache) Get(key string) string {
 }
 ```
 
-✅ **正确**：使用 `sync.RWMutex`
+**正确**：使用 `sync.RWMutex`
 
 ```go
 type Cache struct {
@@ -589,7 +589,7 @@ func (r *PluginRegistry) Unregister(pluginID string) bool {
 }
 ```
 
-✅ **正确**：释放锁后执行回调
+**正确**：释放锁后执行回调
 
 ```go
 func (r *PluginRegistry) Unregister(pluginID string) bool {
@@ -634,7 +634,7 @@ go func() {
 }()
 ```
 
-✅ **正确**：通过 context 控制退出
+**正确**：通过 context 控制退出
 
 ```go
 go func() {
@@ -664,7 +664,7 @@ go func() {
 }()
 ```
 
-✅ **正确**：recover 并通过 channel 传递错误
+**正确**：recover 并通过 channel 传递错误
 
 ```go
 go func() {
@@ -707,7 +707,7 @@ for i, id := range taskIDs {
 }
 ```
 
-✅ **正确**：单一 goroutine 负责关闭
+**正确**：单一 goroutine 负责关闭
 
 ```go
 resultCh := make(chan indexedResult, len(taskIDs))
@@ -747,7 +747,7 @@ func (tm *TaskManager) Submit(description string) (*types.Task, error) {
 }
 ```
 
-✅ **正确**：接受并传播 context
+**正确**：接受并传播 context
 
 ```go
 func (tm *TaskManager) Submit(ctx context.Context, description string) (*types.Task, error) {
@@ -776,7 +776,7 @@ type TaskManager struct {
 }
 ```
 
-✅ **正确**：context 作为方法参数传递
+**正确**：context 作为方法参数传递
 
 ```go
 type TaskManager struct {
@@ -804,7 +804,7 @@ func (tm *TaskManager) Submit(ctx context.Context, description string) (*types.T
 return nil, fmt.Errorf("database query failed: SELECT * FROM users WHERE id='%s': connection refused at 10.0.1.5:5432", userID)
 ```
 
-✅ **正确**：使用 SDK 错误码分类，仅返回通用描述
+**正确**：使用 SDK 错误码分类，仅返回通用描述
 
 ```go
 return nil, agentrt.NewError(agentrt.CodeServerError, "服务端错误", nil)
@@ -837,7 +837,7 @@ SDK 定义的错误码分类：
 return nil, fmt.Errorf("plugin '%s' not found", pluginID)
 ```
 
-✅ **正确**：使用 `AgentRTError` 体系
+**正确**：使用 `AgentRTError` 体系
 
 ```go
 return nil, agentrt.NewErrorf(agentrt.CodeNotFound, "插件 '%s' 未找到", pluginID)
@@ -861,7 +861,7 @@ if err.Error() == "not found" {
 }
 ```
 
-✅ **正确**：使用 `errors.Is` 匹配哨兵错误
+**正确**：使用 `errors.Is` 匹配哨兵错误
 
 ```go
 if errors.Is(err, agentrt.ErrNotFound) {
@@ -879,7 +879,7 @@ if errors.Is(err, agentrt.ErrNotFound) {
 return nil, agentrt.NewError(agentrt.CodeNetworkError, "请求失败", nil) // Cause 丢失
 ```
 
-✅ **正确**：包装原始错误
+**正确**：包装原始错误
 
 ```go
 return nil, agentrt.WrapError(agentrt.CodeNetworkError, "请求执行失败", err) // 保留 Cause
@@ -901,7 +901,7 @@ if resp.StatusCode >= 400 {
 }
 ```
 
-✅ **正确**：使用映射函数
+**正确**：使用映射函数
 
 ```go
 if resp.StatusCode >= 400 {
@@ -942,7 +942,7 @@ import (
 )
 ```
 
-✅ **正确**：仅使用标准库
+**正确**：仅使用标准库
 
 ```go
 import (
@@ -973,7 +973,7 @@ replace (
 )
 ```
 
-✅ **正确**：无 replace 指令
+**正确**：无 replace 指令
 
 ```
 module github.com/spharx/agentrt/toolkit/go
@@ -995,7 +995,7 @@ go 1.22
 go 1.18
 ```
 
-✅ **正确**：
+**正确**：
 
 ```
 go 1.22
@@ -1039,7 +1039,7 @@ httpClient: &http.Client{
 client := &http.Client{} // Timeout 为零，无限等待
 ```
 
-✅ **正确**：显式设置超时
+**正确**：显式设置超时
 
 ```go
 client := &http.Client{
@@ -1063,7 +1063,7 @@ client := &http.Client{
 req, err := http.NewRequest(http.MethodGet, url, nil)
 ```
 
-✅ **正确**：传播 context
+**正确**：传播 context
 
 ```go
 req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -1091,7 +1091,7 @@ respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, MaxResponseBodySize))
 body, _ := io.ReadAll(resp.Body) // 恶意服务器可返回无限大响应
 ```
 
-✅ **正确**：限制读取大小
+**正确**：限制读取大小
 
 ```go
 body, err := io.ReadAll(io.LimitReader(resp.Body, MaxResponseBodySize))
@@ -1126,7 +1126,7 @@ case <-time.After(delay):
 time.Sleep(delay) // 无法通过 context 取消
 ```
 
-✅ **正确**：使用 select 监听 context
+**正确**：使用 select 监听 context
 
 ```go
 select {
@@ -1164,7 +1164,7 @@ for attempt := 0; attempt < maxRetries; attempt++ {
 }
 ```
 
-✅ **正确**：指数退避 + 随机抖动
+**正确**：指数退避 + 随机抖动
 
 ```go
 delay := calculateBackoff(baseDelay, attempt)
@@ -1200,7 +1200,7 @@ for attempt := 0; attempt <= c.config.MaxRetries; attempt++ {
 }
 ```
 
-✅ **正确**：仅重试可重试错误
+**正确**：仅重试可重试错误
 
 ```go
 if resp.StatusCode >= 400 {
@@ -1236,7 +1236,7 @@ req, _ := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(jsonData)
 // 第二次重试时发送空 Body
 ```
 
-✅ **正确**：重试前重置 Body
+**正确**：重试前重置 Body
 
 ```go
 if seeker, ok := req.Body.(io.Seeker); ok && req.Body != nil {
@@ -1261,7 +1261,7 @@ url := fmt.Sprintf("/api/v1/tasks?api_key=%s", c.config.APIKey)
 // URL 参数会被记录到访问日志、浏览器历史、Referer 头中
 ```
 
-✅ **正确**：通过 Header 传递
+**正确**：通过 Header 传递
 
 ```go
 if c.config.APIKey != "" {
@@ -1290,7 +1290,7 @@ body, _ := io.ReadAll(resp.Body)
 // 忘记关闭 resp.Body
 ```
 
-✅ **正确**：defer 关闭
+**正确**：defer 关闭
 
 ```go
 resp, err := c.httpClient.Do(req)
@@ -1327,7 +1327,7 @@ type Client struct {
 }
 ```
 
-✅ **正确**：实现 `Close()` 方法
+**正确**：实现 `Close()` 方法
 
 ```go
 func (c *Client) Close() error {
@@ -1360,7 +1360,7 @@ for _, id := range taskIDs {
 // 函数返回后 goroutine 仍在运行
 ```
 
-✅ **正确**：使用 WaitGroup + done channel
+**正确**：使用 WaitGroup + done channel
 
 ```go
 var wg sync.WaitGroup
@@ -1416,7 +1416,7 @@ client := &http.Client{
 }
 ```
 
-✅ **正确**：设置连接上限
+**正确**：设置连接上限
 
 ```go
 client := &http.Client{
@@ -1456,7 +1456,7 @@ type Meter struct {
 }
 ```
 
-✅ **正确**：设置上限并淘汰旧数据
+**正确**：设置上限并淘汰旧数据
 
 ```go
 type Meter struct {
@@ -1508,7 +1508,7 @@ req, _ := http.NewRequestWithContext(ctx, method, url, body)
 // 缺少 X-Request-ID
 ```
 
-✅ **正确**：携带追踪标识
+**正确**：携带追踪标识
 
 ```go
 req.Header.Set("X-Request-ID", generateRequestID())
@@ -1531,7 +1531,7 @@ m.Meter.Record("api.request", 1, map[string]string{
 })
 ```
 
-✅ **正确**：仅记录非敏感元数据
+**正确**：仅记录非敏感元数据
 
 ```go
 m.Meter.Record("api.request", 1, map[string]string{
@@ -1557,7 +1557,7 @@ SDK 使用 `Config.Debug` 和 `Config.LogLevel` 控制日志详细程度。
 log.Printf("Request: endpoint=%s, apiKey=%s, body=%v", endpoint, apiKey, body)
 ```
 
-✅ **正确**：分级日志，敏感信息仅在 Debug 模式下输出
+**正确**：分级日志，敏感信息仅在 Debug 模式下输出
 
 ```go
 if c.config.Debug {
@@ -1580,7 +1580,7 @@ log.Printf("[INFO] Request completed: method=%s, status=%d", method, statusCode)
 log.Printf("Task cancelled")
 ```
 
-✅ **正确**：完整的审计记录
+**正确**：完整的审计记录
 
 ```go
 agentrt.GetLogger().Printf("[AUDIT] operation=task.cancel, task_id=%s, result=%v, timestamp=%s",
