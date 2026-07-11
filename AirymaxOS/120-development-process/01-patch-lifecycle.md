@@ -817,7 +817,7 @@ struct pr_template {
     bool        develop_nightly_pass;/* @field: develop nightly build 通过（OS-DEV-121） */
     bool        ci_all_green;    /* @field: GitHub Actions 全绿（OS-DEV-134） */
     bool        protocol_signed; /* @field: 工程规范委员会签字（仅 ABI 改动需要，OS-DEV-132） */
-    bool        agentrt_compat_test; /* @field: agentrt 兼容性测试通过（OS-DEV-133） */
+    bool        airy_compat_test; /* @field: agentrt 兼容性测试通过（OS-DEV-133） */
 
     /* 跨仓依赖 */
     const char **dependent_prs;   /* @field: 依赖的下游仓 PR 列表（OS-DEV-171） */
@@ -893,7 +893,7 @@ struct stage_transition {
     const char *failure_fallback;/* @field: 失败回退目标阶段 */
     uint32_t    max_retries;    /* @field: 最大重试次数（超过则回退到 Design，OS-DEV-162） */
     bool        requires_protocol_sign; /* @field: 是否需要工程规范委员会签字（ABI 改动） */
-    bool        requires_agentrt_compat; /* @field: 是否需要 agentrt 兼容性测试 */
+    bool        requires_airy_compat; /* @field: 是否需要 agentrt 兼容性测试 */
 };
 ```
 
@@ -957,7 +957,7 @@ int pr_create(const struct pr_template *template,
  *
  * 执行流程：(1) 检查所有转换条件是否满足；
  *           (2) 若 requires_protocol_sign 且未签字，拒绝转换（OS-DEV-132）；
- *           (3) 若 requires_agentrt_compat 且测试未通过，拒绝转换（OS-DEV-133）；
+ *           (3) 若 requires_airy_compat 且测试未通过，拒绝转换（OS-DEV-133）；
  *           (4) 条件满足后更新补丁阶段标签；
  *           (5) 若失败且超过 max_retries，回退到 Design（OS-DEV-162）。
  *

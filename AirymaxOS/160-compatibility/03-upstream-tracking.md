@@ -310,7 +310,7 @@ echo "$CONFLICTS"
 # 3. 自动解决简单冲突（仅上下文偏移）
 for file in $CONFLICTS; do
     # 检查是否仅为上下文偏移
-    if git diff "$file" | grep -qE "^[+-].*AGENTRT_"; then
+    if git diff "$file" | grep -qE "^[+-].*AIRY_"; then
         echo "Agentrt-specific conflict in $file, manual resolve required"
         exit 1
     fi
@@ -581,7 +581,7 @@ done
 agentrt-linux 采用以下版本号格式：
 
 ```
-<kernel_version>-airymax.<airymax_release>[.<patch>]
+<kernel_version>-airymax.<airy_release>[.<patch>]
 
 示例：
 6.6.45-airymax.1          # 基于 Linux 6.6.45 的第 1 次发布

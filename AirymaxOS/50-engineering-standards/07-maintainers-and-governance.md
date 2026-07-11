@@ -58,10 +58,10 @@ agentrt-linux 维护者制度建立在三个不可拆分的支柱之上：
 agentrt-linux 工程标准与 agentrt 工程标准是 **IRON-9 v2 同源且部分代码共享** 的关系：
 
 - **同源**：两端共享五维正交 24 原则作为顶层设计哲学；共享 17 类规则编号体系骨架（IRON/BAN/STD/ACC）；共享 MicroCoreRT 微核心运行时理念（agentrt-linux 在内核态实现 MicroCoreRT，agentrt 在用户态实现同源语义）。
-- **独立**：agentrt-linux 承担内核态严肃性责任——内核 ABI 稳定性、内核内部 API 不稳定性、补丁生命周期、维护者层级制度是 agentrt 不涉及的领域；agentrt-linux 的治理规则（OS-IRON-5~10、OS-STD-GOV-*）独立于 agentrt 的 IRON 规则。
-- **互操作**：agentrt 在 agentrt-linux 上运行时，两端的治理边界清晰——agentrt 遵循用户态运行时治理（其自身的 IRON-1~10），agentrt-linux 遵循内核发行版治理（本文档的 OS-IRON-5~10）。两端通过同源语义（AgentsIPC 128B 消息头）实现无适配层互操作，但治理上互不越权。
+- **独立**：agentrt-linux 承担内核态严肃性责任——内核 ABI 稳定性、内核内部 API 不稳定性、补丁生命周期、维护者层级制度是 agentrt 不涉及的领域；agentrt-linux 的治理规则（OS-IRON-005/007/009、OS-STD-GOV-*）独立于 agentrt 的 IRON 规则。
+- **互操作**：agentrt 在 agentrt-linux 上运行时，两端的治理边界清晰——agentrt 遵循用户态运行时治理（其自身的 IRON-1~10），agentrt-linux 遵循内核发行版治理（本文档的 OS-IRON-005/007/009）。两端通过同源语义（AgentsIPC 128B 消息头）实现无适配层互操作，但治理上互不越权。
 
-> **OS-IRON-9**：agentrt-linux 治理与 agentrt 治理 IRON-9 v2 同源且部分代码共享——共享原则骨架，独立行使内核态/用户态各自的治理权责，互不否决对方的工程决策。
+> **OS-IRON-009**：agentrt-linux 治理与 agentrt 治理 IRON-9 v2 同源且部分代码共享——共享原则骨架，独立行使内核态/用户态各自的治理权责，互不否决对方的工程决策。
 
 ---
 
@@ -451,7 +451,7 @@ agentrt-linux 保留 Linux 内核的全部审查标签，语义不变：
 | `Closes:` | 关闭的 bug 链接 | 关联 bug tracker 链接 |
 | `Link:` | 相关讨论链接 | 关联邮件列表/Discussions 链接 |
 
-> **OS-IRON-5**：DCO Signed-off-by 链强制——每份补丁必须包含反映真实传播路径的完整 SoB 链，DCO bot 验证失败即拒绝合并。
+> **OS-IRON-007**：DCO 强制——每份补丁必须包含反映真实传播路径的完整 Signed-off-by 链，DCO bot 验证失败即拒绝合并。
 
 > **OS-STD-GOV-4**：`Co-developed-by:` 必须紧跟对应共同作者的 `Signed-off-by:`，否则视为格式错误。
 
@@ -482,7 +482,7 @@ agentrt-linux 的 `Reviewed-by:` 标签语义与 Linux 完全一致。在 PR 场
 - 来自已知理解该领域、执行彻底审查的审查者的 `Reviewed-by:` 会显著提高补丁被合并的概率。
 - 补丁在后续版本中若发生实质性变更，原 `Reviewed-by:` 标签须移除（在 `---` 分隔符后的 changelog 中说明）。
 
-> **OS-IRON-7**：`Reviewed-by:` 不可替代 `Signed-off-by:`——前者是审查声明，后者是 DCO 声明，二者语义不同，不可互替。
+> **OS-IRON-005 + OS-IRON-007 联合约束**：`Reviewed-by:` 不可替代 `Signed-off-by:`——前者是审查声明（由 OS-IRON-005 审查优先文化涵盖），后者是 DCO 声明（由 OS-IRON-007 强制），二者语义不同，不可互替。
 
 ---
 
@@ -515,7 +515,7 @@ agentrt-linux 在 Linux 模型基础上增加两条适配：
 1. **"上游"在 agentrt-linux 语境下双指**：既指 agentrt-linux 自身的 main 主线，也指 Linux 6.6 内核基线上游。工程师投入 Linux 上游的贡献（如 sched_ext、MGLRU 改进）同样计入 agentrt-linux 成熟度评估。
 2. **Level 2 为组织合作底线**：与 agentrt-linux 建立商业合作或深度技术合作的组织，其工程团队须达到 Level 2。这是 IRON-9 v2 同源且部分代码共享原则在组织治理上的延伸——agentrt-linux 不与压榨工程师上游贡献时间的组织深度合作。
 
-> **OS-IRON-10**：组织 6 级成熟度 Level 2 为底线目标——与 agentrt-linux 深度合作的组织工程团队须达到 Level 2（期望贡献作为工作职责）。
+> **OS-STD-GOV-009**：组织 6 级成熟度 Level 2 为底线目标——与 agentrt-linux 深度合作的组织工程团队须达到 Level 2（期望贡献作为工作职责）。（v0.3.1 重分类：原 OS-IRON-010 属治理标准而非工程铁律，已迁移至 OS-STD-GOV-009。）
 
 ---
 
@@ -619,18 +619,24 @@ agentrt-linux 总维护者承担 BDFL（Benevolent Dictator For Life）角色。
 
 ### 10.1 OS-IRON 编号汇总（工程铁律，不可妥协）
 
+> **SSoT 声明（v0.3.1，2026-07-10）**：OS-IRON 铁律编号的唯一权威来源（SSoT）为闭源《agentrt-linux 基本工程标准规范》附录 A（14 条铁律）。本表为附录 A 的公开镜像，必须与之一一对应，并与 [00-engineering-standards-handbook.md §2.1](./00-engineering-standards-handbook.md) 保持完全一致。此前版本（v0.3.0 及更早）本表仅有 10 条且 IRON-003~010 与 SSoT 语义冲突，现已全部对齐。原表中不属于 IRON 层级的治理规则已重分类：①"信任链分层不可越级提交"→ OS-STD-GOV-008；②"Reviewed-by 不可替代 Signed-off-by"→ 由 OS-IRON-005（审查优先）+ OS-IRON-007（DCO）共同涵盖；③"组织 6 级成熟度 Level 2 为底线"→ OS-STD-GOV-009。
+
 | 编号 | 规则 | 来源文档 |
 |------|------|---------|
-| OS-IRON-001 | 不破坏用户空间 ABI | 04 工程思想 |
-| OS-IRON-002 | 内核内部 API 不保证稳定，"you broke it, you fix it" | 04 工程思想 |
-| OS-IRON-003 | 补丁序列中点可编译可运行，git bisect 友好 | 05 开发流程 |
-| OS-IRON-004 | 7 层自动化验证强制 | 06 工具链 |
-| OS-IRON-005 | DCO Signed-off-by 链强制，反映真实传播路径 | 07 治理（本文） |
-| OS-IRON-006 | 信任链分层不可越级提交 | 07 治理（本文） |
-| OS-IRON-007 | Reviewed-by 不可替代 Signed-off-by | 07 治理（本文） |
-| OS-IRON-008 | regression 不可接受，须立即修复或回退 | 04/05 |
-| OS-IRON-009 | IRON-9 v2 同源且部分代码共享：与 agentrt 治理并行 | 07 治理（本文） |
-| OS-IRON-010 | 组织 6 级成熟度 Level 2 为底线目标 | 07 治理（本文） |
+| **OS-IRON-001** | 用户空间 ABI 永不破坏——一旦接口导出至用户空间，必须永久支持 | 04 工程思想 §2.1 |
+| **OS-IRON-002** | 内核内部 API 不保证稳定；API 改动者必须同时修复所有受影响代码（"you broke it, you fix it"） | 04 工程思想 §2.2 |
+| **OS-IRON-003** | 策略与机制分离——机制留在内核（提供能力），策略外移至用户空间或可插拔模块 | 04 工程思想 §3 |
+| **OS-IRON-004** | 渐进式开发，补丁自包含——每个补丁是逻辑上自包含的最小变更单元，中点可编译运行，支持 git bisect | 04 工程思想 §4 / 05 开发流程 |
+| **OS-IRON-005** | 审查优先文化——所有代码进入主线前必须通过至少一名维护者审查并获得 Reviewed-by 标签 | 04 工程思想 §6 / 07 治理 §6（本文） |
+| **OS-IRON-006** | 不破坏用户空间原则——任何补丁不得导致用户空间程序行为改变，除非该行为被明确标记为 bug（regression 零容忍） | 04 工程思想 §9 / 05 开发流程 |
+| **OS-IRON-007** | DCO 强制——所有补丁必须包含 Signed-off-by 标签，CI 中 DCO bot 自动验证链条完整性 | 07 治理 §5（本文） |
+| **OS-IRON-008** | 共享契约层 6 个头文件双向 CI 验证——[SC] 头文件变更必须通过 agentrt + AirymaxOS CI 同时通过 | 120 跨项目代码共享 |
+| **OS-IRON-009** | 代码共享边界：仅 agentrt ↔ AirymaxOS——与 Euler 项目仅技术参考，不共享代码 | 120 跨项目代码共享 / 07 治理 §1.4（本文） |
+| **OS-IRON-010** | "Linux 6.6 为基、seL4 为鉴"工程取向——以 OLK-6.6 工程思想为基线，以 seL4 微内核思想为架构层借鉴 | 04 工程思想 §12 |
+| **OS-IRON-011** | 双源边界声明——OLK-6.6 与 seL4 源码仅为本地参考路径研究对象，关系是"技术参考"非"代码共享" | 04 工程思想 §12 |
+| **OS-IRON-012** | seL4 借鉴仅限架构层（ES-SEL4-1~5）——不包括编码风格层（4 空格 / camelCase / 重度 typedef） | 04 工程思想 §12 |
+| **OS-IRON-013** | 8 子仓独立 git 仓库 + submodule 管理——拆分为 8 个独立 leaf 仓，由管理仓通过 submodule 统一管理 | 04 工程思想 §13 |
+| **OS-IRON-014** | [SC] 共享契约层 6 头文件单一数据源（禁止物理副本）——6 个头文件物理宿主在 kernel/include/airymax/，其他子仓通过 -I 引用 | 120 跨项目代码共享 |
 
 ### 10.2 OS-STD 编号汇总（标准规则）
 
@@ -668,6 +674,8 @@ agentrt-linux 总维护者承担 BDFL（Benevolent Dictator For Life）角色。
 | OS-STD-GOV-005 | 审查意见必须逐条响应 | 07 治理（本文） |
 | OS-STD-GOV-006 | 不响应审查是致命错误，重发应直接拒绝 | 07 治理（本文） |
 | OS-STD-GOV-007 | Andrew Morton 规则：未导致改动的审查意见转化为代码注释 | 07 治理（本文） |
+| OS-STD-GOV-008 | 信任链分层不可越级提交——补丁沿信任链逐层背书，上级不得绕过下级直接审查底层补丁 | 07 治理（本文）（v0.3.1 重分类：原 OS-IRON-006 属治理标准而非工程铁律） |
+| OS-STD-GOV-009 | 组织 6 级成熟度 Level 2 为底线目标——与 agentrt-linux 深度合作的组织工程团队须达到 Level 2 | 07 治理（本文）（v0.3.1 重分类：原 OS-IRON-010 属治理标准而非工程铁律） |
 
 #### 10.2.5 OS-STD 通用标准规则（无子域）
 
@@ -775,9 +783,9 @@ agentrt-linux 总维护者承担 BDFL（Benevolent Dictator For Life）角色。
 |---------|---------|---------------|
 | **S-3 总体设计部** | 统筹系统整体设计，协调各子系统接口与演进方向的顶层设计机构 | 维护者层级制度（Lieutenant System）——总维护者 + 顶级子系统维护者构成总体设计部，协调 8 子仓接口与演进（第 3 章） |
 | **A-3 人文关怀** | 敏感术语禁用 + 审查礼仪 + 不烧桥管理哲学 | 审查礼仪七条（第 8 章）+ 管理哲学四原则（第 9 章），OS-BAN-6 禁止以雇主利益打压他人 |
-| **A-4 完美主义** | 7 层验证 + 24 项提交检查清单 + Reviewed-by Statement | 6 级成熟度模型（第 7 章），OS-IRON-10 设 Level 2 为底线，逐级提升至 Level 5 终极目标 |
-| **E-6 错误可追溯** | Fixes/Closes/Link 标签 + Signed-off-by DCO 链 + 12 字符 SHA | DCO + Signed-off-by 链条（第 5 章），OS-IRON-5 强制 SoB 链真实，OS-IRON-7 区分 Reviewed-by 与 SoB |
-| **IRON-9 v2 同源且部分代码共享** | 与 agentrt 治理并行——共享原则骨架，独立行使各自治理权责 | 第 1.4 节 + MAINTAINERS `H:` 字段（第 2.2 节）+ 8 子仓同源映射（第 4 章），OS-IRON-9 元规则 |
+| **A-4 完美主义** | 7 层验证 + 24 项提交检查清单 + Reviewed-by Statement | 6 级成熟度模型（第 7 章），OS-STD-GOV-009 设 Level 2 为底线，逐级提升至 Level 5 终极目标 |
+| **E-6 错误可追溯** | Fixes/Closes/Link 标签 + Signed-off-by DCO 链 + 12 字符 SHA | DCO + Signed-off-by 链条（第 5 章），OS-IRON-007 强制 SoB 链真实，OS-IRON-005 涵盖 Reviewed-by 审查声明 |
+| **IRON-9 v2 同源且部分代码共享** | 与 agentrt 治理并行——共享原则骨架，独立行使各自治理权责 | 第 1.4 节 + MAINTAINERS `H:` 字段（第 2.2 节）+ 8 子仓同源映射（第 4 章），OS-IRON-009 元规则 |
 
 ### 11.1 治理层原则的独立性
 

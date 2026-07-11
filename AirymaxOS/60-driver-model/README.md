@@ -112,9 +112,9 @@ agentrt-linux 将 Agent 行为契约建模为虚拟设备：
 ### 4.2 资源托管扩展
 
 `devm_` 扩展至智能体资源：
-- `devm_agentrt_token_budget_alloc()`：Token 预算托管
-- `devm_agentrt_memory_arena_create()`：记忆卷载托管
-- `devm_agentrt_ipc_channel_open()`：AgentsIPC 通道托管
+- `devm_airy_token_budget_alloc()`：Token 预算托管
+- `devm_airy_memory_arena_create()`：记忆卷载托管
+- `devm_airy_ipc_channel_open()`：AgentsIPC 通道托管
 
 ### 4.3 同源 agentrt 映射
 
@@ -122,7 +122,7 @@ agentrt-linux 将 Agent 行为契约建模为虚拟设备：
 |-----------|--------------|
 | `agent_bus_type` | daemons 适配器 |
 | `agent_driver_register()` | daemon 注册机制 |
-| `devm_agentrt_*` | 用户态资源管理 |
+| `devm_airy_*` | 用户态资源管理 |
 
 ---
 

@@ -380,7 +380,7 @@ shim 通过 syscall 向内核注册 Agent：
 ```go
 /* registerAgentToKernel 通过 syscall 注册 Agent 至内核 */
 func registerAgentToKernel(meta *AgentMeta) (uint32, error) {
-	/* 构造 agentrt_agent_config 结构（与 [SC] 层头文件一致） */
+	/* 构造 airy_agent_config 结构（与 [SC] 层头文件一致） */
 	config := agentrtAgentConfig{
 		Budget: agentrtTokenBudgetContract{
 			TotalBudget:    meta.TokenBudget.Total,
@@ -395,9 +395,9 @@ func registerAgentToKernel(meta *AgentMeta) (uint32, error) {
 		},
 	}
 
-	/* syscall(AGENTRT_SYS_AGENT_CREATE) */
+	/* syscall(AIRY_SYS_AGENT_CREATE) */
 	ret, _, errno := syscall.Syscall(
-		SYS_AGENTRT_AGENT_CREATE,
+		SYS_AIRY_AGENT_CREATE,
 		uintptr(unsafe.Pointer(&config)),
 		uintptr(meta.TraceID), 0)
 
@@ -449,7 +449,7 @@ func mountMemoryRovol(agentID uint32,
 		Capacity: config.Capacity,
 	}
 	ret, _, errno := syscall.Syscall(
-		SYS_AGENTRT_MEMORYROVOL_MOUNT,
+		SYS_AIRY_MEMORYROVOL_MOUNT,
 		uintptr(unsafe.Pointer(&mountSpec)),
 		uintptr(unsafe.Pointer(&hostPath[0])), 0)
 	if errno != 0 {
@@ -509,16 +509,16 @@ func injectCupolasSecurity(agentID uint32,
 ```go
 /* capabilityMap: capability 名称到位的映射 */
 var capabilityMap = map[string]uint8{
-	"AGENTRT_CAP_MEMORY_READ":   0,
-	"AGENTRT_CAP_MEMORY_WRITE":  1,
-	"AGENTRT_CAP_IPC_SEND":      2,
-	"AGENTRT_CAP_IPC_RECV":      3,
-	"AGENTRT_CAP_SCHED_SUBMIT":  4,
-	"AGENTRT_CAP_NET_ACCESS":    5,
-	"AGENTRT_CAP_FILE_READ":     6,
-	"AGENTRT_CAP_FILE_WRITE":    7,
-	"AGENTRT_CAP_TOOL_EXEC":     8,
-	"AGENTRT_CAP_ADMIN":         63,
+	"AIRY_CAP_MEMORY_READ":   0,
+	"AIRY_CAP_MEMORY_WRITE":  1,
+	"AIRY_CAP_IPC_SEND":      2,
+	"AIRY_CAP_IPC_RECV":      3,
+	"AIRY_CAP_SCHED_SUBMIT":  4,
+	"AIRY_CAP_NET_ACCESS":    5,
+	"AIRY_CAP_FILE_READ":     6,
+	"AIRY_CAP_FILE_WRITE":    7,
+	"AIRY_CAP_TOOL_EXEC":     8,
+	"AIRY_CAP_ADMIN":         63,
 }
 ```
 
@@ -595,11 +595,11 @@ func cleanupRovolMount(m *RovolMount) {
 }
 
 func cleanupAgentBudget(agentID uint32) {
-	syscall.Syscall(SYS_AGENTRT_BUDGET_REVOKE, uintptr(agentID), 0, 0)
+	syscall.Syscall(SYS_AIRY_BUDGET_REVOKE, uintptr(agentID), 0, 0)
 }
 
 func cleanupAgentRegistration(agentID uint32) {
-	syscall.Syscall(SYS_AGENTRT_AGENT_DESTROY, uintptr(agentID), 0, 0)
+	syscall.Syscall(SYS_AIRY_AGENT_DESTROY, uintptr(agentID), 0, 0)
 }
 ```
 

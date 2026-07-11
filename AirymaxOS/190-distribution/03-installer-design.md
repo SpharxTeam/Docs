@@ -862,16 +862,16 @@ echo "OK: 安装测试通过"
 安装器子系统错误码遵循 ErrorCodeSystem，定义于 [SC] 共享契约层：
 
 ```c
-#define AGENTRT_INST_EDISK      (-940)  /* 磁盘错误 */
-#define AGENTRT_INST_EPART      (-941)  /* 分区错误 */
-#define AGENTRT_INST_EBOOT      (-942)  /* 引导加载器错误 */
-#define AGENTRT_INST_ENET       (-943)  /* 网络错误 */
-#define AGENTRT_INST_EPKG      (-944)  /* 包安装错误 */
-#define AGENTRT_INST_ESIGN     (-945)  /* 签名校验失败 */
-#define AGENTRT_INST_ESECURE   (-946)  /* Secure Boot 错误 */
-#define AGENTRT_INST_ETPM      (-947)  /* TPM 错误 */
-#define AGENTRT_INST_EPMEM     (-948)  /* PMEM 配置错误 */
-#define AGENTRT_INST_EKICKSTART (-949) /* kickstart 解析错误 */
+#define AIRY_INST_EDISK      (-940)  /* 磁盘错误 */
+#define AIRY_INST_EPART      (-941)  /* 分区错误 */
+#define AIRY_INST_EBOOT      (-942)  /* 引导加载器错误 */
+#define AIRY_INST_ENET       (-943)  /* 网络错误 */
+#define AIRY_INST_EPKG      (-944)  /* 包安装错误 */
+#define AIRY_INST_ESIGN     (-945)  /* 签名校验失败 */
+#define AIRY_INST_ESECURE   (-946)  /* Secure Boot 错误 */
+#define AIRY_INST_ETPM      (-947)  /* TPM 错误 */
+#define AIRY_INST_EPMEM     (-948)  /* PMEM 配置错误 */
+#define AIRY_INST_EKICKSTART (-949) /* kickstart 解析错误 */
 ```
 
 ### 10.3 集中错误处理

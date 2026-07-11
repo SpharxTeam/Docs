@@ -372,7 +372,7 @@ agentrt-linux 在 airymaxos-kernel + airymaxos-services 实现 **基于 io\_urin
 | magic      | 0x41524531（"ARE1"，同源）                          |
 | 版本         | 0x0100（同源）                                     |
 | payload 协议 | 5 种（JSON-RPC / MCP / A2A / OpenAI / Custom，同源） |
-| 字段对齐       | 64 字节对齐（cache line）                            |
+| 字段对齐       | packed 紧凑布局（Layout C SSoT，`__attribute__((packed))`）  |
 | 链路追踪       | trace\_id（OpenTelemetry 兼容，同源）                 |
 
 ### 理由
@@ -1076,7 +1076,7 @@ agentrt-linux 的微内核设计思想**唯一来源：seL4**。不引入 Zircon
 
 | 层次               | 共享程度                               | ADR 分布                                                                                                                                                                                |
 | ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **\[SC] 共享契约层**  | 完全共享代码                             | ADR-004 capability（`security_types.h` 38 cap + 254 LSM）+ ADR-005 IPC（`ipc.h` magic 0x41524531 'ARE1' + 128B）+ ADR-006 认知（`cognition_types.h` 三阶段）+ ADR-007 记忆（`memory_types.h` L1-L4） |
+| **\[SC] 共享契约层**  | 完全共享代码                             | ADR-004 capability（`security_types.h` 41 cap + 252 LSM）+ ADR-005 IPC（`ipc.h` magic 0x41524531 'ARE1' + 128B）+ ADR-006 认知（`cognition_types.h` 三阶段）+ ADR-007 记忆（`memory_types.h` L1-L4） |
 | **\[SS] 语义同源层**  | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | ADR-003 8 子仓 ↔ agentrt 7 模块同源映射 + ADR-010 同源且部分代码共享                                                                                                                                   |
 | **\[IND] 完全独立层** | 完全独立                               | 构建系统（CMake vs Kbuild）+ 平台适配（libc / POSIX vs Linux 6.6）+ 形式化验证                                                                                                                         |
 
@@ -1085,9 +1085,9 @@ agentrt-linux 的微内核设计思想**唯一来源：seL4**。不引入 Zircon
 | 头文件                 | 关联 ADR  | 契约内容                                                                             | 消费方                |
 | ------------------- | ------- | -------------------------------------------------------------------------------- | ------------------ |
 | `sched.h`           | ADR-010 | magic 0x41475453 'AGTS' + SCHED\_EXT=7（禁用 SCHED\_AGENT 宏）+ MAC\_MAX\_AGENTS=1024 | kernel / cognition |
-| `ipc.h`             | ADR-005 | magic 0x41524531 'ARE1' + 128B 消息头（`agentrt_ipc_msg_hdr_t`）                      | kernel / services  |
+| `ipc.h`             | ADR-005 | magic 0x41524531 'ARE1' + 128B 消息头（`struct airy_ipc_msg_hdr`）                      | kernel / services  |
 | `bpf_struct_ops.h`  | ADR-010 | struct\_ops 4 状态机（INIT/INUSE/TOBEFREE/READY）+ common\_value 16B                  | kernel / cognition |
-| `security_types.h`  | ADR-004 | 38 cap + 254 LSM + Cupolas blob + capability 派生                                  | kernel / security  |
+| `security_types.h`  | ADR-004 | 41 cap + 252 LSM + Cupolas blob + capability 派生                                  | kernel / security  |
 | `memory_types.h`    | ADR-007 | MemoryRovol L1-L4 + GFP 掩码 + PMEM 接口                                             | kernel / memory    |
 | `cognition_types.h` | ADR-006 | 三阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual                                     | kernel / cognition |
 

@@ -139,15 +139,15 @@ airymaxos-base (虚拟组)
 # SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 # Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-%global agentrt_version 1.0.1
-%global agentrt_release 1
+%global airy_version 1.0.1
+%global airy_release 1
 %global kernel_version 6.6.0
 %global kernel_patchlevel 0
 %global sched_ext_version 7
 
 Name:           airymaxos-kernel
-Version:        %{agentrt_version}
-Release:        %{agentrt_release}%{?dist}
+Version:        %{airy_version}
+Release:        %{airy_release}%{?dist}
 Summary:        agentrt-linux (AirymaxOS) Linux 6.6 kernel with sched_ext
 License:        GPL-2.0-only OR AGPL-3.0-or-later
 URL:            https://github.com/spharx/agentrt-linux
@@ -303,12 +303,12 @@ install -m 644 airymaxos-kernel-load-bpf.service \
 
 ```spec
 # airymaxos-services-llm.spec —— llm_d daemon 包
-%global agentrt_version 1.0.1
-%global agentrt_release 1
+%global airy_version 1.0.1
+%global airy_release 1
 
 Name:           airymaxos-services-llm
-Version:        %{agentrt_version}
-Release:        %{agentrt_release}%{?dist}
+Version:        %{airy_version}
+Release:        %{airy_release}%{?dist}
 Summary:        agentrt-linux LLM Inference Daemon (llm_d)
 License:        AGPL-3.0-or-later
 URL:            https://github.com/spharx/agentrt-linux
@@ -340,7 +340,7 @@ cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/lib/airymaxos/services \
     -DCMAKE_C_FLAGS="-Wall -Werror -Wmissing-prototypes" \
-    -DAIRYMAX_LOCALE_DEFAULT=zh_CN.UTF-8
+    -DAIRY_LOCALE_DEFAULT=zh_CN.UTF-8
 make -j$(nproc)
 
 %install
@@ -620,17 +620,17 @@ done
 
 | 错误码 | 数值 | 含义 |
 |--------|------|------|
-| AGENTRT_E_PKG_BUILD | -301 | 包构建失败 |
-| AGENTRT_E_PKG_INSTALL | -302 | 包安装失败 |
-| AGENTRT_E_PKG_DEP | -303 | 依赖冲突 |
-| AGENTRT_E_PKG_VERIFY | -304 | GPG 验证失败 |
-| AGENTRT_E_PKG_REPRODUCIBLE | -305 | 可重现构建失败 |
-| AGENTRT_E_PKG_ARCH | -306 | 架构不匹配 |
+| AIRY_E_PKG_BUILD | -301 | 包构建失败 |
+| AIRY_E_PKG_INSTALL | -302 | 包安装失败 |
+| AIRY_E_PKG_DEP | -303 | 依赖冲突 |
+| AIRY_E_PKG_VERIFY | -304 | GPG 验证失败 |
+| AIRY_E_PKG_REPRODUCIBLE | -305 | 可重现构建失败 |
+| AIRY_E_PKG_ARCH | -306 | 架构不匹配 |
 
 集中错误处理示例：
 
 ```c
-int airymax_pkg_install(const char *package_name)
+int airy_pkg_install(const char *package_name)
 {
 	int ret;
 
@@ -639,21 +639,21 @@ int airymax_pkg_install(const char *package_name)
 		goto out_err;
 	}
 
-	ret = airymax_pkg_check_dep(package_name);
+	ret = airy_pkg_check_dep(package_name);
 	if (ret < 0) {
-		ret = -AGENTRT_E_PKG_DEP;
+		ret = -AIRY_E_PKG_DEP;
 		goto out_err;
 	}
 
-	ret = airymax_pkg_verify_gpg(package_name);
+	ret = airy_pkg_verify_gpg(package_name);
 	if (ret < 0) {
-		ret = -AGENTRT_E_PKG_VERIFY;
+		ret = -AIRY_E_PKG_VERIFY;
 		goto out_err;
 	}
 
 	ret = system("dnf install -y %s", package_name);
 	if (ret != 0) {
-		ret = -AGENTRT_E_PKG_INSTALL;
+		ret = -AIRY_E_PKG_INSTALL;
 		goto out_err;
 	}
 	return 0;

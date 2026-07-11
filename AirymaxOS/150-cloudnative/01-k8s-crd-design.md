@@ -250,9 +250,9 @@ spec:
 
   security:
     capabilities:
-      - AGENTRT_CAP_MEMORY_READ
-      - AGENTRT_CAP_MEMORY_WRITE
-      - AGENTRT_CAP_IPC_SEND
+      - AIRY_CAP_MEMORY_READ
+      - AIRY_CAP_MEMORY_WRITE
+      - AIRY_CAP_IPC_SEND
     landlockPaths:
       - /var/lib/agentrt/agent-01/data
       - /var/log/agentrt/agent-01
@@ -428,12 +428,12 @@ func (r *AgentReconciler) buildAgentPod(agent *agentv1.Agent,
 					Limits: buildResourceList(agent.Spec.Resources),
 				},
 				Env: []corev1.EnvVar{
-					{Name: "AGENTRT_AGENT_ID",
+					{Name: "AIRY_AGENT_ID",
 					 Value: fmt.Sprintf("%d", agent.Status.AgentId)},
-					{Name: "AGENTRT_TOKEN_BUDGET",
+					{Name: "AIRY_TOKEN_BUDGET",
 					 Value: fmt.Sprintf("%d",
 						agent.Spec.TokenBudget.Total)},
-					{Name: "AGENTRT_SCHED_CLASS",
+					{Name: "AIRY_SCHED_CLASS",
 					 Value: agent.Spec.Cognition.Scheduler},
 				},
 				VolumeMounts: buildMemoryRovolMounts(agent),

@@ -145,7 +145,7 @@ memoryRovol:
 ### 4.4 同源 agentrt 国际化
 
 agentrt 的多语言错误码与 agentrt-linux 同源：
-- agentrt 用户态：`agentrt_strerror()` 多语言错误码
+- agentrt 用户态：`airy_strerror()` 多语言错误码
 - agentrt-linux 内核态：`printk` + gettext 多语言内核消息
 - 两端通过同源错误码保持一致
 

@@ -39,7 +39,7 @@ agentrt-linux（AirymaxOS）作为一个 OS 发行版，其核心价值不仅在
 ```
 50-engineering-standards/40-integration/
 ├── README.md                          # 本文件 — 集成标准总览
-└── agentrt_integration.md             # 与 agentrt 的集成规范
+└── airy_integration.md             # 与 agentrt 的集成规范
 ```
 
 ---
@@ -205,7 +205,7 @@ graph TD
 
 ### 3.3 集成点清单
 
-详细的集成规范见 [agentrt_integration.md](agentrt_integration.md)，主要包括：
+详细的集成规范见 [airy_integration.md](airy_integration.md)，主要包括：
 
 | 集成点 | 所属层级 | 说明 |
 |--------|----------|------|
@@ -469,7 +469,7 @@ graph TD
 
 ## 9. 相关文档
 
-- [agentrt 集成规范](agentrt_integration.md)：与 agentrt 的详细集成规范
+- [agentrt 集成规范](airy_integration.md)：与 agentrt 的详细集成规范
 - [项目管理规范总览](../50-project-erp/README.md)：项目管理规范
 - [统一错误码参考](../50-project-erp/error_code_reference.md)：统一错误码体系
 - [SBOM 规范](../50-project-erp/SBOM.md)：软件物料清单规范

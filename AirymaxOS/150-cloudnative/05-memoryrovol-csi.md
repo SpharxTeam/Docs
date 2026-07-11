@@ -25,7 +25,7 @@ MemoryRovol CSI 驱动解决以下核心问题：
 |------|-------------|------------------------|
 | L1-L4 层级无法表达 | 仅 volumeType=block/filesystem | 扩展 `airymaxos.agent.memory-rovol.layers` 参数 |
 | 只读/读写语义不分 | 全卷统一读写权限 | per-layer 挂载语义（L1 只读、L2 读写等） |
-| 快照无 Agent 感知 | CSI snapshot 仅块级 | 复用 `agentrt_sys_rovol_snapshot`（552）语义 |
+| 快照无 Agent 感知 | CSI snapshot 仅块级 | 复用 `airy_sys_rovol_snapshot`（552）语义 |
 | 跨节点迁移无记忆 | CSI 仅支持 detach/attach | 集成超节点 OS 跨 die 迁移协议（[04-supernode-os.md](04-supernode-os.md) §4） |
 
 ### 1.2 与设计文档的关系
@@ -43,7 +43,7 @@ MemoryRovol CSI 驱动解决以下核心问题：
 1. **CSI v1.9 合规**：完全实现 CSI v1.9 规范的 Identity/Controller/Node 三阶段 gRPC 接口
 2. **L1-L4 层级表达**：通过 CSI 卷参数表达 MemoryRovol 四层结构与挂载语义
 3. **零拷贝挂载**：L1/L4 通过 CXL 池零拷贝挂载，避免数据复制
-4. **快照集成**：CSI VolumeSnapshot 复用 `agentrt_sys_rovol_snapshot`（552）系统调用
+4. **快照集成**：CSI VolumeSnapshot 复用 `airy_sys_rovol_snapshot`（552）系统调用
 5. **跨节点迁移**：CSI 卷 detach/attach 集成超节点 OS 跨 die 迁移
 
 ---
@@ -164,7 +164,7 @@ rpc GetPluginInfo(GetPluginInfoRequest)
 
 ```proto
 // 检查驱动就绪状态
-//   ready: true  (当 agentrt_sys_rovol_list 557 可调用时)
+//   ready: true  (当 airy_sys_rovol_list 557 可调用时)
 //   ready: false (内核 MemoryRovol 子系统未就绪)
 ```
 
@@ -204,7 +204,7 @@ parameters:
 
 1. 解析 `layers` 参数，确定 L1-L4 启用层级
 2. 分配各层存储（L1/L4 → CXL/PMEM，L2/L3 → 本地 DRAM）
-3. 初始化 L1-L4 数据结构（[SC] `agentrt_l1_record_t` 等）
+3. 初始化 L1-L4 数据结构（[SC] `airy_l1_record_t` 等）
 4. 返回 `volume_id`
 
 ### 4.2 DeleteVolume
@@ -214,8 +214,8 @@ rpc DeleteVolume(DeleteVolumeRequest)
     returns (DeleteVolumeResponse) {}
 ```
 
-底层调用 `agentrt_sys_rovol_delete`（558）两阶段删除：
-1. 第一阶段：标记为 `AGENTRT_ROVOL_STATE_DELETING`，拒绝新访问
+底层调用 `airy_sys_rovol_delete`（558）两阶段删除：
+1. 第一阶段：标记为 `AIRY_ROVOL_STATE_DELETING`，拒绝新访问
 2. 第二阶段：实际释放存储资源
 
 ### 4.3 ControllerPublishVolume
@@ -249,12 +249,12 @@ rpc CreateSnapshot(CreateSnapshotRequest)
 
 | CSI Snapshot 概念 | MemoryRovol 对应 |
 |-------------------|------------------|
-| `snapshot_id` | `agentrt_sys_rovol_snapshot`（552）返回的 `snapshot_id` |
+| `snapshot_id` | `airy_sys_rovol_snapshot`（552）返回的 `snapshot_id` |
 | `source_volume_id` | MemoryRovol 卷 ID |
-| `creation_time` | `agentrt_rovol_snapshot_info_t.created_ns` |
-| `size_bytes` | `agentrt_rovol_snapshot_info_t.total_size` |
+| `creation_time` | `airy_rovol_snapshot_info_t.created_ns` |
+| `size_bytes` | `airy_rovol_snapshot_info_t.total_size` |
 
-CreateSnapshot 底层调用 `agentrt_sys_rovol_snapshot`（552），返回 CSI snapshot。
+CreateSnapshot 底层调用 `airy_sys_rovol_snapshot`（552），返回 CSI snapshot。
 
 ---
 
@@ -328,13 +328,13 @@ stateDiagram-v2
  * @brief MemoryRovol CSI 卷参数
  * @since 1.0.1
  */
-typedef struct agentrt_csi_volume_params {
-    uint32_t layer_mask;       /* AGENTRT_ROVOL_LAYER_* 位掩码 */
+typedef struct airy_csi_volume_params {
+    uint32_t layer_mask;       /* AIRY_ROVOL_LAYER_* 位掩码 */
     uint32_t cxl_pool_id;      /* CXL 池 ID（0xFFFF = 不使用） */
     uint8_t  pmem_persist;     /* PMEM 持久化标志 */
     uint8_t  encrypt;          /* 加密标志 */
     uint8_t  reserved[2];      /* 8 字节对齐 */
-} agentrt_csi_volume_params_t;
+} airy_csi_volume_params_t;
 ```
 
 ---
@@ -425,14 +425,14 @@ spec:
 
 ### 8.2 快照与 MemoryRovol 快照的关系
 
-CSI VolumeSnapshot 底层调用 `agentrt_sys_rovol_snapshot`（552），返回的 `snapshot_id` 作为 CSI `snapshot_id`。恢复时调用 `agentrt_sys_rovol_restore`（553）。
+CSI VolumeSnapshot 底层调用 `airy_sys_rovol_snapshot`（552），返回的 `snapshot_id` 作为 CSI `snapshot_id`。恢复时调用 `airy_sys_rovol_restore`（553）。
 
 | CSI 操作 | 系统调用 | 说明 |
 |---------|---------|------|
-| CreateSnapshot | `agentrt_sys_rovol_snapshot`（552） | 创建快照 |
-| DeleteSnapshot | `agentrt_sys_rovol_delete`（558） | 删除快照 |
-| CreateVolume from snapshot | `agentrt_sys_rovol_restore`（553） | 从快照恢复 |
-| ListSnapshots | `agentrt_sys_rovol_list`（557） | 列出快照 |
+| CreateSnapshot | `airy_sys_rovol_snapshot`（552） | 创建快照 |
+| DeleteSnapshot | `airy_sys_rovol_delete`（558） | 删除快照 |
+| CreateVolume from snapshot | `airy_sys_rovol_restore`（553） | 从快照恢复 |
+| ListSnapshots | `airy_sys_rovol_list`（557） | 列出快照 |
 
 ---
 
@@ -450,7 +450,7 @@ sequenceDiagram
     participant CXL as CXL 池
 
     CO->>CSI: 1. ControllerUnpublishVolume (node A)
-    CSI->>KERN: 2. agentrt_sys_rovol_migrate (554, HOT)
+    CSI->>KERN: 2. airy_sys_rovol_migrate (554, HOT)
     KERN->>CXL: 3. L1/L4 写入 CXL 池
     KERN->>KERN: 4. L2/L3 页迁移 (migrate_pages)
     CO->>CSI: 5. ControllerPublishVolume (node B)
@@ -461,7 +461,7 @@ sequenceDiagram
 
 ### 9.2 迁移数据流
 
-跨节点迁移复用 [04-supernode-os.md](04-supernode-os.md) §4.3 的 8 步迁移协议。CSI 驱动在迁移期间返回 `AGENTRT_EBUSY`（-9），CO 重试。
+跨节点迁移复用 [04-supernode-os.md](04-supernode-os.md) §4.3 的 8 步迁移协议。CSI 驱动在迁移期间返回 `AIRY_EBUSY`（-9），CO 重试。
 
 ---
 
@@ -488,7 +488,7 @@ flowchart TB
     L2 --> DRAM[本地 DRAM]
     L3 --> DRAM
     
-    SNAP[CreateSnapshot] --> KERN2[agentrt_sys_rovol_snapshot 552]
+    SNAP[CreateSnapshot] --> KERN2[airy_sys_rovol_snapshot 552]
     SNAP --> SNAPSTORE[快照存储<br/>CXL/PMEM]
     
     style CXL fill:#fff3e0
@@ -504,11 +504,11 @@ flowchart TB
 | CSI 错误码 | 内核错误码 | 场景 |
 |-----------|-----------|------|
 | `FAILED_PRECONDITION` | - | 卷未发布就尝试挂载 |
-| `NOT_FOUND` | `AGENTRT_ENOENT`（-5） | 卷/snapshot ID 不存在 |
-| `OUT_OF_RANGE` | `AGENTRT_EMSGSIZE`（-7） | 容量超出限制 |
-| `RESOURCE_EXHAUSTED` | `AGENTRT_ENOMEM`（-2） | CXL 池/DRAM 不足 |
-| `UNAVAILABLE` | `AGENTRT_EBUSY`（-9） | 正在迁移，重试 |
-| `ABORTED` | `AGENTRT_ECONFLICT`（-12） | 卷状态冲突 |
+| `NOT_FOUND` | `AIRY_ENOENT`（-5） | 卷/snapshot ID 不存在 |
+| `OUT_OF_RANGE` | `AIRY_EMSGSIZE`（-7） | 容量超出限制 |
+| `RESOURCE_EXHAUSTED` | `AIRY_ENOMEM`（-2） | CXL 池/DRAM 不足 |
+| `UNAVAILABLE` | `AIRY_EBUSY`（-9） | 正在迁移，重试 |
+| `ABORTED` | `AIRY_ECONFLICT`（-12） | 卷状态冲突 |
 
 ### 11.2 重试策略
 
@@ -543,7 +543,7 @@ func retryCreateVolume(req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse,
 | CreateVolume 延迟 | < 100 ms（P99） | gRPC 调用全程 |
 | NodePublishVolume 延迟 | < 50 ms（P99） | gRPC 调用全程 |
 | L1/L4 CXL 零拷贝挂载延迟 | < 10 μs（P99） | CXL 3.0 单次读 |
-| CreateSnapshot 延迟 | < 500 ms（P99） | `agentrt_sys_rovol_snapshot` 全程 |
+| CreateSnapshot 延迟 | < 500 ms（P99） | `airy_sys_rovol_snapshot` 全程 |
 | 跨节点卷迁移停顿 | < 10 ms（P99） | Agent 不可用窗口 |
 
 ---
@@ -553,7 +553,7 @@ func retryCreateVolume(req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse,
 | 层次 | 共享内容 | CSI 驱动使用方式 |
 |------|---------|-----------------|
 | **[SC] 共享契约层** | `include/airymax/memory_types.h` L1-L4 数据结构 | 卷存储使用 [SC] 数据结构 |
-| **[SC] 共享契约层** | `include/airymax/security_types.h` capability 38 ID | 卷操作的 capability 守卫 |
+| **[SC] 共享契约层** | `include/airymax/security_types.h` capability 41 ID | 卷操作的 capability 守卫 |
 | **[IND] 完全独立层** | CSI gRPC 实现、卷生命周期、挂载协议 | agentrt-linux 专属 |
 
 ---

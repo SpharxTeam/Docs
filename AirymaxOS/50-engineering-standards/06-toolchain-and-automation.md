@@ -319,7 +319,7 @@ flowchart TD
 - 命令：`clang-format -i <file>`
 - **OS-STD-103**：所有 C/C++ 文件必须通过 `clang-format` 格式化。
 
-> **交叉引用**：本节是 `.clang-format` 在 7 层验证体系中的框架定位。完整 `.clang-format` YAML 文件、每个配置项的 OLK-6.6 源码行号标注与详细理由、Makefile `format-check` / `format-diff` / `format-apply` 目标定义、Git pre-commit 钩子脚本与 GitHub Actions / GitLab CI 流水线集成配置，详见 [80-clang-format-enforcement.md](80-clang-format-enforcement.md) §1（关键配置项详解）+ §2（完整配置文件）+ §3（CI 门禁：make format-check）。格式规则定义与规则到配置项的速查映射表，详见 [02-code-format.md](02-code-format.md) §1-§7（格式规则）与 §9（clang-format 关键配置项表）。
+> **SSoT 对齐（v0.3.1）**：原 `80-clang-format-enforcement.md` 已按 D-02 决策合并入 [02-code-format.md](02-code-format.md) §8/§9。格式规则定义与规则到配置项的速查映射表详见 02-code-format.md §1-§7 与 §9。完整 `.clang-format` YAML 文件、OLK-6.6 源码行号标注、Makefile 目标定义与 CI 集成脚本在 1.0.1 开发阶段随代码实现补全。
 
 ### 5.3 .rustfmt.toml（Rust 格式化）
 
@@ -345,7 +345,7 @@ flowchart TD
 - **OS-STD-107**：CI 流水线必须包含 `make format-check` 步骤；失败即 PR 阻断。
 - `make format-check` 聚合上述所有格式化检查，统一报告。
 
-> **交叉引用**：本节是 `make format-check` 在 7 层验证体系（第 4 层 CI 门禁）中的框架定位。`make format-check` 的 Makefile 目标定义（`format-check` / `format-diff` / `format-apply`）、Git pre-commit 钩子脚本、GitHub Actions / GitLab CI 流水线集成配置、以及与 `checkpatch.pl` 的协作流水线顺序，详见 [80-clang-format-enforcement.md](80-clang-format-enforcement.md) §3（CI 门禁：make format-check）与 §5（与 checkpatch 的协作）。规则定义详见 [02-code-format.md](02-code-format.md) §8.5（OS-STD-211）。
+> **SSoT 对齐（v0.3.1）**：原 `80-clang-format-enforcement.md` 已按 D-02 决策合并入 [02-code-format.md](02-code-format.md) §8/§9。`make format-check` 规则定义详见 02-code-format.md §8.5（OS-STD-211）。Makefile 目标定义、Git pre-commit 钩子脚本、CI 流水线集成与 checkpatch 协作流水线在 1.0.1 开发阶段随代码实现补全。
 
 ---
 

@@ -176,10 +176,10 @@ h = kzalloc(struct_size(h, items, count), GFP_KERNEL);
 
 ```c
 /* 废弃：类型变更时不跟随 */
-struct agentrt_task *task = kmalloc(sizeof(struct agentrt_task), GFP_KERNEL);
+struct airy_task *task = kmalloc(sizeof(struct airy_task), GFP_KERNEL);
 
 /* 替代：sizeof(*p) 自动跟随类型 */
-struct agentrt_task *task = kmalloc(sizeof(*task), GFP_KERNEL);
+struct airy_task *task = kmalloc(sizeof(*task), GFP_KERNEL);
 ```
 
 ### 2.3 memset(p, 0, sizeof(*p)) → kzalloc
@@ -403,10 +403,10 @@ struct payload {
 /* 废弃：结构体 typedef */
 typedef struct {
 	u64 id;
-} agentrt_task_t;
+} airy_task_t;
 
 /* 替代：struct 直接使用 */
-struct agentrt_task {
+struct airy_task {
 	u64 id;
 };
 ```

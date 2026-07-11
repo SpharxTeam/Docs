@@ -65,10 +65,10 @@ L1 层接口遵循「永不破坏」承诺：
 ```c
 /* include/uapi/agentrt/syscall.h（[SC] 共享契约层）
  * 一旦 syscall 编号分配，永久不可复用 */
-#define AGENTRT_SYS_COGNITION_PROCESS  1001  /* 1.0.1 引入，永久支持 */
-#define AGENTRT_SYS_MEMORY_ROVOL_GET   1002  /* 1.0.1 引入，永久支持 */
-#define AGENTRT_SYS_TOKEN_BUDGET_QUERY 1003  /* 1.0.1 引入，永久支持 */
-#define AGENTRT_SYS_AGENT_REGISTER     1004  /* 1.0.1 引入，永久支持 */
+#define AIRY_SYS_COGNITION_PROCESS  1001  /* 1.0.1 引入，永久支持 */
+#define AIRY_SYS_MEMORY_ROVOL_GET   1002  /* 1.0.1 引入，永久支持 */
+#define AIRY_SYS_TOKEN_BUDGET_QUERY 1003  /* 1.0.1 引入，永久支持 */
+#define AIRY_SYS_AGENT_REGISTER     1004  /* 1.0.1 引入，永久支持 */
 /* 编号 1005-1099 已弃用，永不复用（保留占位） */
 ```
 
@@ -83,19 +83,13 @@ L2 层接口允许向后兼容的扩展：
 
 ```c
 /* include/uapi/agentrt/ipc.h（[SC] 共享契约层） */
-struct agentrt_ipc_msg_hdr_t {
-	uint32_t magic;          /* 永久不变 */
-	uint16_t version;        /* 语义版本化 */
-	uint16_t type;
-	uint32_t src_agent_id;
-	uint32_t dst_agent_id;
-	uint64_t payload_len;
-	uint64_t trace_id;
-	uint32_t seq;
-	uint32_t flags;
-	uint64_t reserved[8];    /* 预留字段，未来扩展 */
-};  /* 128 字节永久不变 */
+/* IPC 128B 消息头定义见 [SC] 共享契约层（SSoT），不就地重定义 */
+#include <airymax/ipc.h>
+/* 结构体名称：struct airy_ipc_msg_hdr（Layout C，物理宿主见
+ * 50-engineering-standards/120-cross-project-code-sharing.md §Layout C） */
 ```
+
+> **SSoT 声明**：本节 IPC 128B 消息头不再就地重定义，以 `include/airymax/ipc.h`（物理宿主见 `50-engineering-standards/120-cross-project-code-sharing.md` §Layout C）为单一数据源。结构体名称为 `struct airy_ipc_msg_hdr`（Layout C）。
 
 L2 层变更规则：
 - **禁止**：改变 128B 消息头大小、改变已用字段语义
@@ -108,9 +102,9 @@ L3 层接口允许自由重构，但需修复所有调用点：
 
 ```c
 /* 内核内部 API（非 EXPORT_SYMBOL），可自由重构 */
-static int agentrt_internal_sched_adjust(struct agentrt_agent *agent);
+static int airy_internal_sched_adjust(struct airy_agent *agent);
 /* 重构为： */
-static int agentrt_internal_sched_adjust_v2(struct agentrt_agent *agent,
+static int airy_internal_sched_adjust_v2(struct airy_agent *agent,
 					     uint32_t new_prio);
 /* 必须修复所有调用点，无外部影响 */
 ```
@@ -126,7 +120,7 @@ L4 层是文件内 static 函数、私有数据结构，完全无约束：
 
 ```c
 /* 文件内 static 函数，完全自由 */
-static inline void agentrt_update_timestamp(struct agentrt_agent *a)
+static inline void airy_update_timestamp(struct airy_agent *a)
 {
 	a->last_update = ktime_get();
 }
@@ -211,33 +205,33 @@ ABI 变更 RFC 必须包含以下内容：
 ```c
 /* include/uapi/agentrt/syscall.h */
 /**
- * AGENTRT_SYS_LEGACY_MEMORY_GET - 获取记忆（已弃用）
+ * AIRY_SYS_LEGACY_MEMORY_GET - 获取记忆（已弃用）
  *
- * @deprecated since 1.0.1, use AGENTRT_SYS_MEMORY_ROVOL_GET instead
+ * @deprecated since 1.0.1, use AIRY_SYS_MEMORY_ROVOL_GET instead
  * @scheduled_removal: 2.0.0（6 个月后）
  * @migration_guide: docs/migration/memory-get.md
  *
  * 弃用原因：性能瓶颈，新接口支持 CXL 零拷贝
  */
-#define AGENTRT_SYS_LEGACY_MEMORY_GET  999  /* DEPRECATED, will be removed in 2.0.0 */
+#define AIRY_SYS_LEGACY_MEMORY_GET  999  /* DEPRECATED, will be removed in 2.0.0 */
 
 /* 内核实现侧的弃用标记 */
-__attribute__((deprecated("use agentrt_sys_memory_rovol_get instead")))
-int agentrt_sys_legacy_memory_get(struct agentrt_legacy_mem_req *req);
+__attribute__((deprecated("use airy_sys_memory_rovol_get instead")))
+int airy_sys_legacy_memory_get(struct airy_legacy_mem_req *req);
 ```
 
 ### 4.2 运行时弃用警告
 
 ```c
 /* 内核 syscall 入口检测弃用接口调用 */
-SYSCALL_DEFINE1(agentrt_legacy_memory_get, struct agentrt_legacy_mem_req __user *, req)
+SYSCALL_DEFINE1(airy_legacy_memory_get, struct airy_legacy_mem_req __user *, req)
 {
 	static atomic_t warn_count = ATOMIC_INIT(0);
 
 	/* 限频警告（每 Agent 每小时最多 1 次） */
 	if (atomic_inc_return(&warn_count) % 3600 == 0) {
-		pr_warn("agentrt: AGENTRT_SYS_LEGACY_MEMORY_GET is deprecated "
-			"since 1.0.1, use AGENTRT_SYS_MEMORY_ROVOL_GET. "
+		pr_warn("agentrt: AIRY_SYS_LEGACY_MEMORY_GET is deprecated "
+			"since 1.0.1, use AIRY_SYS_MEMORY_ROVOL_GET. "
 			"Will be removed in 2.0.0. "
 			"Migration: docs/migration/memory-get.md\n");
 	}
@@ -252,8 +246,8 @@ SYSCALL_DEFINE1(agentrt_legacy_memory_get, struct agentrt_legacy_mem_req __user 
 
 | 接口 | 弃用版本 | 移除版本 | 替代接口 | 迁移指南 |
 |------|----------|----------|----------|----------|
-| AGENTRT_SYS_LEGACY_MEMORY_GET | 1.0.1 | 2.0.0 | AGENTRT_SYS_MEMORY_ROVOL_GET | docs/migration/memory-get.md |
-| agentrt_ipc_old_send() | 1.0.1 | 2.0.0 | agentrt_ipc_send() | docs/migration/ipc-send.md |
+| AIRY_SYS_LEGACY_MEMORY_GET | 1.0.1 | 2.0.0 | AIRY_SYS_MEMORY_ROVOL_GET | docs/migration/memory-get.md |
+| airy_ipc_old_send() | 1.0.1 | 2.0.0 | airy_ipc_send() | docs/migration/ipc-send.md |
 
 ---
 
@@ -261,7 +255,7 @@ SYSCALL_DEFINE1(agentrt_legacy_memory_get, struct agentrt_legacy_mem_req __user 
 
 ### 5.1 完整流程示例
 
-以 `AGENTRT_SYS_LEGACY_MEMORY_GET` 为例，展示从弃用到移除的完整 6 个月流程：
+以 `AIRY_SYS_LEGACY_MEMORY_GET` 为例，展示从弃用到移除的完整 6 个月流程：
 
 ```
 月份 0：声明弃用
@@ -312,15 +306,15 @@ SYSCALL_DEFINE1(agentrt_legacy_memory_get, struct agentrt_legacy_mem_req __user 
 /* 用户态头文件中的弃用标记 */
 #include <linux/compiler.h>
 
-#define AGENTRT_DEPRECATED(since, replacement) \
+#define AIRY_DEPRECATED(since, replacement) \
 	__attribute__((deprecated("since " since ", use " replacement " instead")))
 
-AGENTRT_DEPRECATED("1.0.1", "agentrt_sys_memory_rovol_get")
-int agentrt_sys_legacy_memory_get(struct agentrt_legacy_mem_req *req);
+AIRY_DEPRECATED("1.0.1", "airy_sys_memory_rovol_get")
+int airy_sys_legacy_memory_get(struct airy_legacy_mem_req *req);
 
 /* 用户编译时若调用此函数，触发警告：
- * warning: 'agentrt_sys_legacy_memory_get' is deprecated:
- *          since 1.0.1, use agentrt_sys_memory_rovol_get instead
+ * warning: 'airy_sys_legacy_memory_get' is deprecated:
+ *          since 1.0.1, use airy_sys_memory_rovol_get instead
  */
 ```
 
@@ -334,25 +328,25 @@ AgentsIPC 协议通过 `version` 字段支持运行时版本协商：
 
 ```c
 /**
- * agentrt_ipc_negotiate_version - 版本协商
+ * airy_ipc_negotiate_version - 版本协商
  * @client_version: 客户端支持的版本
  *
- * 返回双方共同支持的最高版本，或 -AGENTRT_ENOTSUP
+ * 返回双方共同支持的最高版本，或 -AIRY_ENOTSUP
  */
-uint16_t agentrt_ipc_negotiate_version(uint16_t client_version)
+uint16_t airy_ipc_negotiate_version(uint16_t client_version)
 {
-	uint16_t server_version = AGENTRT_IPC_VERSION_CURRENT;  /* 服务端版本 */
+	uint16_t server_version = AIRY_IPC_VERSION_CURRENT;  /* 服务端版本 */
 
 	/* 客户端版本高于服务端：服务端尝试降级 */
 	if (client_version > server_version) {
-		if (client_version <= AGENTRT_IPC_VERSION_MAX_COMPAT)
+		if (client_version <= AIRY_IPC_VERSION_MAX_COMPAT)
 			return server_version;  /* 服务端版本，客户端降级 */
-		return -AGENTRT_ENOTSUP;
+		return -AIRY_ENOTSUP;
 	}
 
 	/* 客户端版本低于服务端：服务端尝试兼容 */
-	if (client_version < AGENTRT_IPC_VERSION_MIN_COMPAT)
-		return -AGENTRT_ENOTSUP;
+	if (client_version < AIRY_IPC_VERSION_MIN_COMPAT)
+		return -AIRY_ENOTSUP;
 
 	/* 使用客户端版本（向后兼容） */
 	return client_version;
@@ -370,21 +364,21 @@ uint16_t agentrt_ipc_negotiate_version(uint16_t client_version)
 
 ### 6.3 特性探测
 
-客户端可通过 `AGENTRT_SYS_FEATURE_QUERY` 探测服务端特性：
+客户端可通过 `AIRY_SYS_FEATURE_QUERY` 探测服务端特性：
 
 ```c
 /* 特性探测 syscall */
-struct agentrt_feature_query {
+struct airy_feature_query {
 	uint32_t feature_id;
 	uint32_t feature_version;
 };
 
-#define AGENTRT_FEATURE_SCHED_AGENT    1
-#define AGENTRT_FEATURE_MEMORY_ROVOL   2
-#define AGENTRT_FEATURE_CXL_POOL       3
+#define AIRY_FEATURE_SCHED_AGENT    1
+#define AIRY_FEATURE_MEMORY_ROVOL   2
+#define AIRY_FEATURE_CXL_POOL       3
 
-int ret = syscall(AGENTRT_SYS_FEATURE_QUERY,
-	AGENTRT_FEATURE_SCHED_AGENT, &version);
+int ret = syscall(AIRY_SYS_FEATURE_QUERY,
+	AIRY_FEATURE_SCHED_AGENT, &version);
 if (ret == 0) {
 	/* 支持 SCHED_AGENT，启用该特性 */
 } else {

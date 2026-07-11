@@ -185,13 +185,13 @@ agentrt/atoms/corekern/
 #### 数据结构
 
 ```c
-typedef struct agentrt_shared_memory {
+typedef struct airy_shared_memory {
     char* name;                      // 共享内存名称
     size_t size;                     // 内存大小
     void* address;                   // 映射地址
     int fd;                          // 文件描述符
     bool is_owner;                   // 是否创建者
-} agentrt_shared_memory_t;
+} airy_shared_memory_t;
 ```
 
 #### 核心接口
@@ -200,22 +200,22 @@ typedef struct agentrt_shared_memory {
 /**
  * @brief 创建或打开共享内存
  */
-agentrt_error_t agentrt_shm_create(
+airy_err_t airy_shm_create(
     const char* name,
     size_t size,
-    agentrt_shared_memory_t** out_shm);
+    airy_shared_memory_t** out_shm);
 
 /**
  * @brief 销毁共享内存
  */
-agentrt_error_t agentrt_shm_destroy(
-    agentrt_shared_memory_t* shm);
+airy_err_t airy_shm_destroy(
+    airy_shared_memory_t* shm);
 
 /**
  * @brief 获取共享内存地址
  */
-void* agentrt_shm_get_address(
-    agentrt_shared_memory_t* shm);
+void* airy_shm_get_address(
+    airy_shared_memory_t* shm);
 ```
 
 #### 实现细节
@@ -225,15 +225,15 @@ void* agentrt_shm_get_address(
 // 使用 POSIX 共享内存
 #include <sys/mman.h>
 
-agentrt_error_t agentrt_shm_create(
+airy_err_t airy_shm_create(
     const char* name,
     size_t size,
-    agentrt_shared_memory_t** out_shm) {
+    airy_shared_memory_t** out_shm) {
     
     // 创建共享内存对象
     int fd = shm_open(name, O_CREAT | O_RDWR, 0666);
     if (fd == -1) {
-        return AGENTRT_ERR_SHM_CREATE_FAILED;
+        return AIRY_ESHM_CREATE_FAILED;
     }
     
     // 设置大小
@@ -244,14 +244,14 @@ agentrt_error_t agentrt_shm_create(
                       MAP_SHARED, fd, 0);
     
     // 填充结构体
-    agentrt_shared_memory_t* shm = malloc(sizeof(*shm));
+    airy_shared_memory_t* shm = malloc(sizeof(*shm));
     shm->name = strdup(name);
     shm->size = size;
     shm->address = addr;
     shm->fd = fd;
     
     *out_shm = shm;
-    return AGENTRT_OK;
+    return AIRY_EOK;
 }
 ```
 
@@ -295,11 +295,11 @@ posix_fadvise(shm->fd, 0, size, POSIX_FADV_HUGEPAGES);
 #### 数据结构
 
 ```c
-typedef struct agentrt_semaphore {
+typedef struct airy_semaphore {
     char* name;                      // 信号量名称
     sem_t* sem;                      // POSIX 信号量
     bool is_owner;                   // 是否创建者
-} agentrt_semaphore_t;
+} airy_semaphore_t;
 ```
 
 #### 核心接口
@@ -308,28 +308,28 @@ typedef struct agentrt_semaphore {
 /**
  * @brief 创建或打开信号量
  */
-agentrt_error_t agentrt_sem_create(
+airy_err_t airy_sem_create(
     const char* name,
     unsigned int value,
-    agentrt_semaphore_t** out_sem);
+    airy_semaphore_t** out_sem);
 
 /**
  * @brief P 操作（等待）
  */
-agentrt_error_t agentrt_sem_wait(
-    agentrt_semaphore_t* sem);
+airy_err_t airy_sem_wait(
+    airy_semaphore_t* sem);
 
 /**
  * @brief V 操作（发送信号）
  */
-agentrt_error_t agentrt_sem_post(
-    agentrt_semaphore_t* sem);
+airy_err_t airy_sem_post(
+    airy_semaphore_t* sem);
 
 /**
  * @brief 带超时的等待
  */
-agentrt_error_t agentrt_sem_timedwait(
-    agentrt_semaphore_t* sem,
+airy_err_t airy_sem_timedwait(
+    airy_semaphore_t* sem,
     uint32_t timeout_ms);
 ```
 
@@ -337,13 +337,13 @@ agentrt_error_t agentrt_sem_timedwait(
 
 ```c
 // 创建信号量（初始值为 1，用作互斥锁）
-agentrt_semaphore_t* mutex;
-agentrt_sem_create("/my_mutex", 1, &mutex);
+airy_semaphore_t* mutex;
+airy_sem_create("/my_mutex", 1, &mutex);
 
 // 临界区保护
-agentrt_sem_wait(mutex);  // P 操作
+airy_sem_wait(mutex);  // P 操作
 // ... 访问共享资源 ...
-agentrt_sem_post(mutex);  // V 操作
+airy_sem_post(mutex);  // V 操作
 ```
 
 ---
@@ -360,24 +360,24 @@ agentrt_sem_post(mutex);  // V 操作
 #### 数据结构
 
 ```c
-typedef struct agentrt_message {
+typedef struct airy_message {
     char* data;                      // 消息数据
     size_t len;                      // 数据长度
     uint32_t priority;               // 优先级
     uint64_t timestamp;              // 时间戳
-} agentrt_message_t;
+} airy_message_t;
 
-typedef struct agentrt_message_queue {
+typedef struct airy_message_queue {
     char* queue_name;                // 队列名称
     size_t max_size;                 // 最大容量
     size_t current_size;             // 当前大小
-    agentrt_message_t** messages;    // 消息数组
+    airy_message_t** messages;    // 消息数组
     size_t head;                     // 队头索引
     size_t tail;                     // 队尾索引
-    agentrt_semaphore_t* not_empty;  // 非空信号量
-    agentrt_semaphore_t* not_full;   // 非满信号量
-    agentrt_mutex_t* lock;           // 互斥锁
-} agentrt_message_queue_t;
+    airy_semaphore_t* not_empty;  // 非空信号量
+    airy_semaphore_t* not_full;   // 非满信号量
+    airy_mtx_t* lock;           // 互斥锁
+} airy_message_queue_t;
 ```
 
 #### 核心接口
@@ -386,16 +386,16 @@ typedef struct agentrt_message_queue {
 /**
  * @brief 创建消息队列
  */
-agentrt_error_t agentrt_mq_create(
+airy_err_t airy_mq_create(
     const char* name,
     size_t max_size,
-    agentrt_message_queue_t** out_mq);
+    airy_message_queue_t** out_mq);
 
 /**
  * @brief 发送消息
  */
-agentrt_error_t agentrt_mq_send(
-    agentrt_message_queue_t* mq,
+airy_err_t airy_mq_send(
+    airy_message_queue_t* mq,
     const void* data,
     size_t len,
     uint32_t priority);
@@ -403,8 +403,8 @@ agentrt_error_t agentrt_mq_send(
 /**
  * @brief 接收消息
  */
-agentrt_error_t agentrt_mq_recv(
-    agentrt_message_queue_t* mq,
+airy_err_t airy_mq_recv(
+    airy_message_queue_t* mq,
     void** out_data,
     size_t* out_len,
     uint32_t timeout_ms);
@@ -414,20 +414,20 @@ agentrt_error_t agentrt_mq_recv(
 
 **环形缓冲区实现**:
 ```c
-agentrt_error_t agentrt_mq_send(
-    agentrt_message_queue_t* mq,
+airy_err_t airy_mq_send(
+    airy_message_queue_t* mq,
     const void* data,
     size_t len,
     uint32_t priority) {
     
     // 等待有空位
-    agentrt_sem_wait(mq->not_full);
+    airy_sem_wait(mq->not_full);
     
     // 加锁
-    agentrt_mutex_lock(mq->lock);
+    airy_mtx_lock(mq->lock);
     
     // 创建消息
-    agentrt_message_t* msg = malloc(sizeof(*msg));
+    airy_message_t* msg = malloc(sizeof(*msg));
     msg->data = malloc(len);
     memcpy(msg->data, data, len);
     msg->len = len;
@@ -439,12 +439,12 @@ agentrt_error_t agentrt_mq_send(
     mq->current_size++;
     
     // 解锁
-    agentrt_mutex_unlock(mq->lock);
+    airy_mtx_unlock(mq->lock);
     
     // 通知有消息
-    agentrt_sem_post(mq->not_empty);
+    airy_sem_post(mq->not_empty);
     
-    return AGENTRT_OK;
+    return AIRY_EOK;
 }
 ```
 
@@ -462,15 +462,15 @@ agentrt_error_t agentrt_mq_send(
 #### 数据结构
 
 ```c
-typedef struct agentrt_ipc_channel {
+typedef struct airy_ipc_channel {
     char* channel_id;                // 通道唯一标识
-    agentrt_shared_memory_t* shm;    // 共享内存
-    agentrt_semaphore_t* sem_read;   // 读信号量
-    agentrt_semaphore_t* sem_write;  // 写信号量
-    agentrt_message_queue_t* mq;     // 消息队列
+    airy_shared_memory_t* shm;    // 共享内存
+    airy_semaphore_t* sem_read;   // 读信号量
+    airy_semaphore_t* sem_write;  // 写信号量
+    airy_message_queue_t* mq;     // 消息队列
     uint32_t flags;                  // 通道标志
     uint64_t created_time;           // 创建时间
-} agentrt_ipc_channel_t;
+} airy_ipc_channel_t;
 ```
 
 #### 核心接口
@@ -479,16 +479,16 @@ typedef struct agentrt_ipc_channel {
 /**
  * @brief 创建 IPC 通道
  */
-agentrt_error_t agentrt_ipc_channel_create(
+airy_err_t airy_ipc_channel_create(
     const char* channel_id,
     size_t buffer_size,
-    agentrt_ipc_channel_t** out_channel);
+    airy_ipc_channel_t** out_channel);
 
 /**
  * @brief 发送数据
  */
-agentrt_error_t agentrt_ipc_send(
-    agentrt_ipc_channel_t* channel,
+airy_err_t airy_ipc_send(
+    airy_ipc_channel_t* channel,
     const void* data,
     size_t len,
     uint32_t timeout_ms);
@@ -496,8 +496,8 @@ agentrt_error_t agentrt_ipc_send(
 /**
  * @brief 接收数据
  */
-agentrt_error_t agentrt_ipc_recv(
-    agentrt_ipc_channel_t* channel,
+airy_err_t airy_ipc_recv(
+    airy_ipc_channel_t* channel,
     void** out_data,
     size_t* out_len,
     uint32_t timeout_ms);
@@ -505,8 +505,8 @@ agentrt_error_t agentrt_ipc_recv(
 /**
  * @brief 关闭并销毁通道
  */
-agentrt_error_t agentrt_ipc_channel_destroy(
-    agentrt_ipc_channel_t* channel);
+airy_err_t airy_ipc_channel_destroy(
+    airy_ipc_channel_t* channel);
 ```
 
 #### 使用示例
@@ -516,23 +516,23 @@ agentrt_error_t agentrt_ipc_channel_destroy(
 
 int main() {
     // 创建通道
-    agentrt_ipc_channel_t* channel;
-    agentrt_ipc_channel_create("service_a_to_b", 4096, &channel);
+    airy_ipc_channel_t* channel;
+    airy_ipc_channel_create("service_a_to_b", 4096, &channel);
     
     // 发送消息
     const char* msg = "Hello from Service A";
-    agentrt_ipc_send(channel, msg, strlen(msg), 1000);
+    airy_ipc_send(channel, msg, strlen(msg), 1000);
     
     // 接收消息
     char* recv_msg;
     size_t recv_len;
-    agentrt_ipc_recv(channel, (void**)&recv_msg, &recv_len, 1000);
+    airy_ipc_recv(channel, (void**)&recv_msg, &recv_len, 1000);
     
     printf("Received: %.*s\n", (int)recv_len, recv_msg);
     
     // 清理
     free(recv_msg);
-    agentrt_ipc_channel_destroy(channel);
+    airy_ipc_channel_destroy(channel);
     
     return 0;
 }
@@ -553,7 +553,7 @@ int main() {
 #### 数据结构
 
 ```c
-typedef struct agentrt_service_info {
+typedef struct airy_svc_info {
     char* service_name;              // 服务名称
     char* endpoint;                  // 端点地址
     uint32_t port;                   // 端口号
@@ -561,13 +561,13 @@ typedef struct agentrt_service_info {
     uint64_t registered_time;        // 注册时间
     uint64_t last_heartbeat;         // 最后心跳
     uint32_t health_score;           // 健康分数（0-100）
-} agentrt_service_info_t;
+} airy_svc_info_t;
 
-typedef struct agentrt_service_registry {
-    agentrt_hashmap_t* services;     // 服务哈希表
-    agentrt_mutex_t* lock;           // 线程锁
+typedef struct airy_svc_registry {
+    airy_hashmap_t* services;     // 服务哈希表
+    airy_mtx_t* lock;           // 线程锁
     uint32_t heartbeat_interval;     // 心跳间隔（秒）
-} agentrt_service_registry_t;
+} airy_svc_registry_t;
 ```
 
 #### 核心接口
@@ -576,31 +576,31 @@ typedef struct agentrt_service_registry {
 /**
  * @brief 注册服务
  */
-agentrt_error_t agentrt_service_register(
-    agentrt_service_registry_t* registry,
-    const agentrt_service_info_t* info);
+airy_err_t airy_svc_register(
+    airy_svc_registry_t* registry,
+    const airy_svc_info_t* info);
 
 /**
  * @brief 注销服务
  */
-agentrt_error_t agentrt_service_unregister(
-    agentrt_service_registry_t* registry,
+airy_err_t airy_svc_unregister(
+    airy_svc_registry_t* registry,
     const char* service_name);
 
 /**
  * @brief 查询服务
  */
-agentrt_error_t agentrt_service_lookup(
-    agentrt_service_registry_t* registry,
+airy_err_t airy_svc_lookup(
+    airy_svc_registry_t* registry,
     const char* service_name,
-    agentrt_service_info_t** out_info);
+    airy_svc_info_t** out_info);
 
 /**
  * @brief 列出所有服务
  */
-agentrt_error_t agentrt_service_list(
-    agentrt_service_registry_t* registry,
-    agentrt_service_info_t*** out_services,
+airy_err_t airy_svc_list(
+    airy_svc_registry_t* registry,
+    airy_svc_info_t*** out_services,
     size_t* out_count);
 ```
 
@@ -612,27 +612,27 @@ agentrt_error_t agentrt_service_list(
 ```c
 // 后台心跳线程
 void* heartbeat_thread(void* arg) {
-    agentrt_service_registry_t* registry = 
-        (agentrt_service_registry_t*)arg;
+    airy_svc_registry_t* registry = 
+        (airy_svc_registry_t*)arg;
     
     while (!registry->shutdown) {
         sleep(registry->heartbeat_interval);
         
         // 遍历所有服务，检查心跳
-        agentrt_hashmap_iter_t iter;
-        agentrt_hashmap_iter_init(registry->services, &iter);
+        airy_hashmap_iter_t iter;
+        airy_hashmap_iter_init(registry->services, &iter);
         
-        while (agentrt_hashmap_iter_next(&iter)) {
-            agentrt_service_info_t* info = 
-                (agentrt_service_info_t*)iter.value;
+        while (airy_hashmap_iter_next(&iter)) {
+            airy_svc_info_t* info = 
+                (airy_svc_info_t*)iter.value;
             
-            uint64_t now = agentrt_time_now_ns();
+            uint64_t now = airy_time_now_ns();
             uint64_t elapsed = (now - info->last_heartbeat) / 1000000000;
             
             if (elapsed > registry->heartbeat_interval * 3) {
                 // 标记为不健康，触发故障转移
                 info->health_score = 0;
-                AGENTRT_LOG_WARN("Service %s appears dead (elapsed=%lus)", 
+                AIRY_LOG_WARN("Service %s appears dead (elapsed=%lus)", 
                                 info->service_name, elapsed);
                 
                 // 自动从路由表中移除
@@ -653,15 +653,15 @@ void* heartbeat_thread(void* arg) {
 **自愈式服务发现**:
 ```c
 // 客户端查询服务时，自动过滤不健康实例
-agentrt_error_t agentrt_service_lookup(
+airy_err_t airy_svc_lookup(
     const char* service_name,
-    agentrt_service_info_t** out_info) {
+    airy_svc_info_t** out_info) {
     
-    agentrt_service_info_t* candidate = NULL;
+    airy_svc_info_t* candidate = NULL;
     
     // 遍历所有同名服务实例
     for (size_t i = 0; i < instances->count; i++) {
-        agentrt_service_info_t* inst = instances->data[i];
+        airy_svc_info_t* inst = instances->data[i];
         
         // 只返回健康的服务
         if (inst->health_score >= 80) {
@@ -671,11 +671,11 @@ agentrt_error_t agentrt_service_lookup(
     }
     
     if (!candidate) {
-        return AGENTRT_ERR_SERVICE_UNAVAILABLE;  // 无可用实例
+        return AIRY_ESERVICE_UNAVAILABLE;  // 无可用实例
     }
     
     *out_info = candidate;
-    return AGENTRT_OK;
+    return AIRY_EOK;
 }
 ```
 
@@ -697,11 +697,11 @@ Client                    Server
 **示例代码**:
 ```c
 // Client 端
-agentrt_request_t req = {"get_weather", "{\"city\":\"Beijing\"}"};
-agentrt_ipc_send(channel, &req, sizeof(req), 1000);
+airy_request_t req = {"get_weather", "{\"city\":\"Beijing\"}"};
+airy_ipc_send(channel, &req, sizeof(req), 1000);
 
-agentrt_response_t resp;
-agentrt_ipc_recv(channel, &resp, sizeof(resp), 5000);
+airy_response_t resp;
+airy_ipc_recv(channel, &resp, sizeof(resp), 5000);
 printf("Weather: %s\n", resp.data);
 ```
 
@@ -718,7 +718,7 @@ Publisher               Broker                Subscriber
 **实现**:
 ```c
 // 发布消息
-agentrt_error_t agentrt_pubsub_publish(
+airy_err_t airy_pubsub_publish(
     const char* topic,
     const void* data,
     size_t len) {
@@ -728,19 +728,19 @@ agentrt_error_t agentrt_pubsub_publish(
     
     // 广播消息
     for (size_t i = 0; i < subs->count; i++) {
-        agentrt_ipc_send(subs->clients[i], data, len, 1000);
+        airy_ipc_send(subs->clients[i], data, len, 1000);
     }
     
-    return AGENTRT_OK;
+    return AIRY_EOK;
 }
 
 // 订阅主题
-agentrt_error_t agentrt_pubsub_subscribe(
+airy_err_t airy_pubsub_subscribe(
     const char* topic,
-    agentrt_ipc_channel_t* client_channel) {
+    airy_ipc_channel_t* client_channel) {
     
     add_subscriber(topic, client_channel);
-    return AGENTRT_OK;
+    return AIRY_EOK;
 }
 ```
 
@@ -785,9 +785,9 @@ User Buffer (Shared Memory) → Direct Access
 
 ```c
 // 批量发送消息
-agentrt_error_t agentrt_ipc_send_batch(
-    agentrt_ipc_channel_t* channel,
-    const agentrt_iovec_t* iov,
+airy_err_t airy_ipc_send_batch(
+    airy_ipc_channel_t* channel,
+    const airy_iovec_t* iov,
     size_t count,
     uint32_t timeout_ms) {
     
@@ -880,20 +880,20 @@ CoreLoopThree / daemon Services
 **LLM 服务与 Tool 服务通信**:
 ```c
 // agentrt/daemon/llm_d/src/main.c
-agentrt_ipc_channel_t* channel;
-agentrt_ipc_channel_create("llm_to_tool", 8192, &channel);
+airy_ipc_channel_t* channel;
+airy_ipc_channel_create("llm_to_tool", 8192, &channel);
 
 // 发送工具调用请求
 json_t* request = json_object();
 json_object_set(request, "tool", json_string("python"));
 json_object_set(request, "code", json_string("print('hello')"));
 
-agentrt_ipc_send(channel, json_dumps(request), -1, 1000);
+airy_ipc_send(channel, json_dumps(request), -1, 1000);
 
 // 等待响应
 char* response;
 size_t len;
-agentrt_ipc_recv(channel, (void**)&response, &len, 5000);
+airy_ipc_recv(channel, (void**)&response, &len, 5000);
 ```
 
 ---
@@ -981,24 +981,24 @@ agentrt_ipc_recv(channel, (void**)&response, &len, 5000);
 
 int main() {
     // 初始化 IPC
-    agentrt_ipc_init();
+    airy_ipc_init();
     
     // 创建通道
-    agentrt_ipc_channel_t* channel;
-    agentrt_ipc_channel_create("my_channel", 4096, &channel);
+    airy_ipc_channel_t* channel;
+    airy_ipc_channel_create("my_channel", 4096, &channel);
     
     // 发送消息
     const char* msg = "Hello IPC";
-    agentrt_ipc_send(channel, msg, strlen(msg), 1000);
+    airy_ipc_send(channel, msg, strlen(msg), 1000);
     
     // 接收消息
     char* recv_msg;
     size_t len;
-    agentrt_ipc_recv(channel, (void**)&recv_msg, &len, 1000);
+    airy_ipc_recv(channel, (void**)&recv_msg, &len, 1000);
     
     // 清理
     free(recv_msg);
-    agentrt_ipc_channel_destroy(channel);
+    airy_ipc_channel_destroy(channel);
     
     return 0;
 }
@@ -1010,15 +1010,15 @@ int main() {
 
 ```c
 // 1. 总是设置超时
-agentrt_ipc_send(channel, data, len, 1000);  // 1 秒超时
+airy_ipc_send(channel, data, len, 1000);  // 1 秒超时
 
 // 2. 及时释放资源
 free(recv_msg);
-agentrt_ipc_channel_destroy(channel);
+airy_ipc_channel_destroy(channel);
 
 // 3. 错误处理
-agentrt_error_t err = agentrt_ipc_send(...);
-if (err != AGENTRT_OK) {
+airy_err_t err = airy_ipc_send(...);
+if (err != AIRY_EOK) {
     // 重试或报错
 }
 ```
@@ -1027,10 +1027,10 @@ if (err != AGENTRT_OK) {
 
 ```c
 // 1. 无限等待
-agentrt_ipc_recv(channel, &msg, &len, 0);  // 无超时！
+airy_ipc_recv(channel, &msg, &len, 0);  // 无超时！
 
 // 2. 不检查返回值
-agentrt_ipc_send(channel, data, len, 1000);  // 可能失败！
+airy_ipc_send(channel, data, len, 1000);  // 可能失败！
 
 // 3. 内存泄漏
 // 忘记 free(recv_msg)
@@ -1058,7 +1058,7 @@ agentrt_ipc_send(channel, data, len, 1000);  // 可能失败！
 
 ### 9.2 调试技巧
 
-- 启用 Debug 日志：`export AGENTRT_IPC_DEBUG=1`
+- 启用 Debug 日志：`export AIRY_IPC_DEBUG=1`
 - 使用 `strace -e ipc` 跟踪 IPC 调用
 - 监控 `/proc/sys/agentrt/ipc_stats`
 

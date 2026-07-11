@@ -104,6 +104,8 @@ typedef struct __attribute__((aligned(128))) {
 } are_ipc_msg_header_t;
 ```
 
+> **SSoT 声明**：`are_ipc_msg_header_t` 是 L2 服务协议层的**扩展布局**（含 source_namespace/target_namespace/correlation_id 等 L2 语义字段），与 [SC] 共享契约层的基础消息头 `struct airy_ipc_msg_hdr`（Layout C，物理宿主见 `50-engineering-standards/120-cross-project-code-sharing.md` §Layout C）不同。基础 128B 消息头以 `include/airymax/ipc.h` 为单一数据源；本 L2 扩展布局在 magic（`0x41524531` 'ARE1'）与 trace_id 语义上与 Layout C 保持同源，其余字段为 L2 服务协议专属。
+
 ### 2.2 字段详细说明
 
 #### magic（4 字节）
@@ -239,7 +241,7 @@ kernel.get_stats
     "code": -1002,
     "message": "Permission denied",
     "data": {
-      "error_name": "EAGENTRT_PERM",
+      "error_name": "AIRY_EPERM",
       "task_id": 42,
       "required_cap": "sched.admin"
     }
@@ -291,7 +293,7 @@ agentrt-linux（AirymaxOS）的 OS 层定义了 12 个 daemon 守护进程，每
 1. **精确匹配优先**：如果消息的 `target_namespace` 精确匹配某个 daemon 的命名空间，直接路由
 2. **前缀匹配**：如果 `target_namespace` 以某 daemon 命名空间为前缀，路由到该 daemon
 3. **通配符**：`target_namespace` 为 `*` 或 `broadcast.` 时，广播到所有 daemon
-4. **未知命名空间**：返回 `EAGENTRT_NOTSUP` 错误
+4. **未知命名空间**：返回 `AIRY_ENOTSUP` 错误
 
 ### 4.3 命名空间注册
 
@@ -299,18 +301,18 @@ agentrt-linux（AirymaxOS）的 OS 层定义了 12 个 daemon 守护进程，每
 
 ```c
 /**
- * agentrt_svc_register - 注册服务到发现后端
+ * airy_svc_register - 注册服务到发现后端
  * @namespace: 命名空间（如 "sched."）
  * @endpoint: IPC 端点名称
  * @metadata: 额外的元数据（JSON 格式）
  *
  * 返回值:
  *   0: 成功注册
- *   -EAGENTRT_INVAL: 参数无效
- *   -EAGENTRT_BUSY: 命名空间已被注册
- *   -EAGENTRT_NOMEM: 内存不足
+ *   -AIRY_EINVAL: 参数无效
+ *   -AIRY_EBUSY: 命名空间已被注册
+ *   -AIRY_ENOMEM: 内存不足
  */
-int agentrt_svc_register(const char *namespace, const char *endpoint,
+int airy_svc_register(const char *namespace, const char *endpoint,
                          const char *metadata);
 ```
 
@@ -395,12 +397,12 @@ trace_id 是 agentrt-linux（AirymaxOS）可观测性体系的核心，贯穿整
 
 ```c
 /**
- * agentrt_trace_id_gen - 生成新的 trace_id
+ * airy_trace_id_gen - 生成新的 trace_id
  * @trace_id_out: 输出缓冲区（16 字节）
  *
  * 生成 UUID v4 格式的 trace_id，使用内核随机数源确保唯一性。
  */
-void agentrt_trace_id_gen(uint8_t trace_id_out[16]);
+void airy_trace_id_gen(uint8_t trace_id_out[16]);
 ```
 
 ### 6.2 贯穿规则
@@ -480,7 +482,7 @@ sequenceDiagram
     Client->>SD: 查询目标服务端点
     SD-->>Client: 返回端点地址
 
-    Client->>Router: agentrt_ipc_send(msg)
+    Client->>Router: airy_ipc_send(msg)
     Router->>Router: magic 校验 (0x41524531)
     Router->>Router: 版本兼容性检查
     Router->>Router: 权限校验 (source -> target_namespace)
@@ -549,16 +551,18 @@ sequenceDiagram
 
 ### 9.1 [SC] 层共享消息头布局
 
-agentrt 和 agentrt-linux 在 [SC] 层完全共享 `are_ipc_msg_header_t` 的定义。这意味着：
+agentrt 和 agentrt-linux 在 [SC] 层完全共享基础 128B 消息头 `struct airy_ipc_msg_hdr`（Layout C，SSoT 物理宿主见 `120-cross-project-code-sharing.md` §Layout C）的定义。这意味着：
 - 在 agentrt 用户态运行时构造的消息，可以在 agentrt-linux 内核中直接解析
 - 消息头字段顺序、偏移量、大小完全一致
 - magic 编号 `0x41524531` 在两端具有相同的语义
+
+> **注意**：本文档 2.1 节的 `are_ipc_msg_header_t` 是 L2 服务协议层的扩展布局，属于 [SS] 语义同源层，非 [SC] 共享契约层的基础消息头。基础消息头以 `struct airy_ipc_msg_hdr`（Layout C）为 SSoT。
 
 ### 9.2 [SS] 层语义同源
 
 在 [SS] 层，以下内容语义一致但实现独立：
 - JSON-RPC 2.0 方法签名格式（`namespace.method`）
-- 错误码格式（`EAGENTRT_*` 前缀，负值）
+- 错误码格式（`AIRY_E*` 前缀，负值）
 - trace_id 贯穿语义（UUID v4，不可篡改）
 - 服务发现接口抽象（注册、发现、健康检查）
 

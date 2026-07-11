@@ -170,7 +170,7 @@ SPDX 标识**必须**使用与文件类型匹配的注释样式：
 
 ```c
 /*
- * agentrt_ipc.c - agentrt-linux IPC channel implementation
+ * airy_ipc.c - agentrt-linux IPC channel implementation
  * WRONG: 缺 SPDX-License-Identifier 行
  */
 ```

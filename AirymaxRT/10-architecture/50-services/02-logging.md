@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     svc_config_load("agentrt/manager/llm.yaml", &manager);
     
     // 日志会自动带上服务名
-    AGENTRT_LOG_INFO("Starting LLM service: %s", manager->service_name);
+    AIRY_LOG_INFO("Starting LLM service: %s", manager->service_name);
     
     // ... 服务逻辑
     
@@ -194,16 +194,16 @@ int main(int argc, char* argv[]) {
 
 ```c
 // 日志级别定义
-#define AGENTRT_LOG_LEVEL_ERROR 1
-#define AGENTRT_LOG_LEVEL_WARN  2
-#define AGENTRT_LOG_LEVEL_INFO  3
-#define AGENTRT_LOG_LEVEL_DEBUG 4
+#define AIRY_LOG_LEVEL_ERROR 1
+#define AIRY_LOG_LEVEL_WARN  2
+#define AIRY_LOG_LEVEL_INFO  3
+#define AIRY_LOG_LEVEL_DEBUG 4
 
 // 宏封装（自动捕获文件、行号）
-#define AGENTRT_LOG_ERROR(fmt, ...) agentrt_log_write(AGENTRT_LOG_LEVEL_ERROR, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define AGENTRT_LOG_WARN(fmt, ...)  agentrt_log_write(AGENTRT_LOG_LEVEL_WARN, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define AGENTRT_LOG_INFO(fmt, ...)  agentrt_log_write(AGENTRT_LOG_LEVEL_INFO, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define AGENTRT_LOG_DEBUG(fmt, ...) agentrt_log_write(AGENTRT_LOG_LEVEL_DEBUG, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define AIRY_LOG_ERROR(fmt, ...) airy_log_write(AIRY_LOG_LEVEL_ERROR, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define AIRY_LOG_WARN(fmt, ...)  airy_log_write(AIRY_LOG_LEVEL_WARN, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define AIRY_LOG_INFO(fmt, ...)  airy_log_write(AIRY_LOG_LEVEL_INFO, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define AIRY_LOG_DEBUG(fmt, ...) airy_log_write(AIRY_LOG_LEVEL_DEBUG, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 ```
 
 #### 实现要点
@@ -317,7 +317,7 @@ func (l *Logger) Info(msg string) {
 
 ```c
 // C 语言服务端 (agentrt/daemon/tool_d/src/main.c)
-const char* trace_id = agentrt_log_get_trace_id();
+const char* trace_id = airy_log_get_trace_id();
 
 // 通过 JSON-RPC 传递给 Python
 json_object_set_new(params, "trace_id", json_string(trace_id));
@@ -447,10 +447,10 @@ void* log_adaptive_thread(void* arg) {
         
         // 负反馈调节：负载高时降低日志级别
         if (load > 0.8 && log_rate > 10000) {
-            agentrt_log_set_level(AGENTRT_LOG_LEVEL_WARN);
-            AGENTRT_LOG_WARN("High load detected (%.2f), reducing log verbosity", load);
+            airy_log_set_level(AIRY_LOG_LEVEL_WARN);
+            AIRY_LOG_WARN("High load detected (%.2f), reducing log verbosity", load);
         } else if (load < 0.5 && log_rate < 1000) {
-            agentrt_log_set_level(AGENTRT_LOG_LEVEL_DEBUG);
+            airy_log_set_level(AIRY_LOG_LEVEL_DEBUG);
         }
     }
 }
@@ -487,7 +487,7 @@ typedef struct {
 
 bool should_sample(token_bucket_t* bucket) {
     // 补充令牌
-    uint64_t now = agentrt_time_now_ns();
+    uint64_t now = airy_time_now_ns();
     uint64_t elapsed = now - bucket->last_refill;
     uint64_t new_tokens = (elapsed * bucket->refill_rate) / 1000000000;
     bucket->tokens = min(bucket->tokens + new_tokens, bucket->max_tokens);
@@ -577,12 +577,12 @@ bool should_sample(token_bucket_t* bucket) {
 
 ```c
 // ✅ 推荐：条件编译减少开销
-#if AGENTRT_LOG_LEVEL >= AGENTRT_LOG_LEVEL_DEBUG
-    AGENTRT_LOG_DEBUG("Expensive debug info: %s", compute_expensive_string());
+#if AIRY_LOG_LEVEL >= AIRY_LOG_LEVEL_DEBUG
+    AIRY_LOG_DEBUG("Expensive debug info: %s", compute_expensive_string());
 #endif
 
 // ❌ 不推荐：无条件执行
-AGENTRT_LOG_DEBUG("Expensive debug info: %s", compute_expensive_string());
+AIRY_LOG_DEBUG("Expensive debug info: %s", compute_expensive_string());
 // 即使日志级别是 ERROR，compute_expensive_string() 仍会被调用
 ```
 
@@ -590,12 +590,12 @@ AGENTRT_LOG_DEBUG("Expensive debug info: %s", compute_expensive_string());
 
 ```c
 // ❌ 禁止：记录敏感信息
-AGENTRT_LOG_INFO("User password: %s", password);
+AIRY_LOG_INFO("User password: %s", password);
 
 // ✅ 推荐：脱敏处理
 char masked[64];
 mask_sensitive_data(password, masked);
-AGENTRT_LOG_INFO("User password: %s", masked);  // 输出：***sword
+AIRY_LOG_INFO("User password: %s", masked);  // 输出：***sword
 ```
 
 ---
@@ -731,7 +731,7 @@ Airymax 日志系统作为整个系统的可观测性核心，与其他关键模
 ```c
 // C 语言模块（agentrt/daemon/atoms）
 #include "svc_common.h"
-AGENTRT_LOG_INFO("Hello from %s", "my_service");
+AIRY_LOG_INFO("Hello from %s", "my_service");
 
 // Python 模块
 from agentrt import AgentRTLogger

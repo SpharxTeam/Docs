@@ -503,12 +503,12 @@ failovermethod=priority
 仓库管理子系统错误码遵循 ErrorCodeSystem，定义于 [SC] 共享契约层：
 
 ```c
-#define AGENTRT_REPO_EMETADATA  (-930)  /* metadata 生成失败 */
-#define AGENTRT_REPO_ESIGN     (-931)  /* 签名失败 */
-#define AGENTRT_REPO_ESYNC     (-932)  /* 镜像同步失败 */
-#define AGENTRT_REPO_EDEPS     (-933)  /* 依赖闭合性失败 */
-#define AGENTRT_REPO_EARCH     (-934)  /* 架构不匹配 */
-#define AGENTRT_REPO_EGPG      (-935)  /* GPG 校验失败 */
+#define AIRY_REPO_EMETADATA  (-930)  /* metadata 生成失败 */
+#define AIRY_REPO_ESIGN     (-931)  /* 签名失败 */
+#define AIRY_REPO_ESYNC     (-932)  /* 镜像同步失败 */
+#define AIRY_REPO_EDEPS     (-933)  /* 依赖闭合性失败 */
+#define AIRY_REPO_EARCH     (-934)  /* 架构不匹配 */
+#define AIRY_REPO_EGPG      (-935)  /* GPG 校验失败 */
 ```
 
 ### 8.3 集中错误处理

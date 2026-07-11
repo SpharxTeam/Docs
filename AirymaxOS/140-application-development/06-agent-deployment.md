@@ -565,11 +565,11 @@ Agent 的 seccomp 过滤器从清单的 `security.sandbox.seccomp.profile` 加�
         "mmap", "munmap", "mprotect", "brk",
         "rt_sigaction", "rt_sigprocmask", "rt_sigreturn",
         "futex", "sched_yield",
-        "agentrt_sys_task_submit", "agentrt_sys_task_status",
-        "agentrt_sys_ipc_send", "agentrt_sys_ipc_recv",
-        "agentrt_sys_rovol_snapshot", "agentrt_sys_rovol_restore",
-        "agentrt_sys_capability_request",
-        "agentrt_sys_clt_phase_notify"
+        "airy_sys_task_submit", "airy_sys_task_status",
+        "airy_sys_ipc_send", "airy_sys_ipc_recv",
+        "airy_sys_rovol_snapshot", "airy_sys_rovol_restore",
+        "airy_sys_capability_request",
+        "airy_sys_clt_phase_notify"
       ],
       "action": "SCMP_ACT_ALLOW"
     }
@@ -584,14 +584,14 @@ Agent 的 seccomp 过滤器从清单的 `security.sandbox.seccomp.profile` 加�
 ```c
 /* agentdeploy 在 Agent 启动前申请 capability */
 for (const char *cap_name : manifest.security.capabilities.request) {
-    uint32_t cap_id = agentrt_cap_name_to_id(cap_name);
-    int ret = agentrt_sys_capability_request(cap_id, resource, &cap_handle);
+    uint32_t cap_id = airy_cap_name_to_id(cap_name);
+    int ret = airy_sys_capability_request(cap_id, resource, &cap_handle);
     if (ret < 0) {
         log_error("capability request failed: %s", cap_name);
         goto failed;
     }
     /* 将 cap_handle 注入 Agent 的 CSpace */
-    agentrt_cspace_insert(agent_id, cap_handle);
+    airy_cspace_insert(agent_id, cap_handle);
 }
 ```
 
@@ -617,18 +617,18 @@ Agent 健康检查借鉴 Kubernetes liveness/readiness/startup probe 模式：
  * @since 1.0.1
  */
 typedef enum {
-    AGENTRT_PROBE_EXEC   = 0,   /* 执行命令检查退出码 */
-    AGENTRT_PROBE_HTTP   = 1,   /* HTTP GET 检查状态码 */
-    AGENTRT_PROBE_IPC    = 2,   /* AgentsIPC 消息检查响应 */
-    AGENTRT_PROBE_WASM   = 3,   /* Wasm 函数调用检查返回值 */
-} agentrt_probe_type_t;
+    AIRY_PROBE_EXEC   = 0,   /* 执行命令检查退出码 */
+    AIRY_PROBE_HTTP   = 1,   /* HTTP GET 检查状态码 */
+    AIRY_PROBE_IPC    = 2,   /* AgentsIPC 消息检查响应 */
+    AIRY_PROBE_WASM   = 3,   /* Wasm 函数调用检查返回值 */
+} airy_probe_type_t;
 
 /**
  * @brief 健康检查探针配置
  * @since 1.0.1
  */
-typedef struct agentrt_probe_config {
-    agentrt_probe_type_t type;
+typedef struct airy_probe_config {
+    airy_probe_type_t type;
     union {
         struct {
             char command[256];     /* 执行命令 */
@@ -654,7 +654,7 @@ typedef struct agentrt_probe_config {
     uint32_t timeout_seconds;       /* 超时（秒） */
     uint32_t failure_threshold;     /* 连续失败阈值 */
     uint32_t success_threshold;      /* 连续成功阈值（readiness 用） */
-} agentrt_probe_config_t;
+} airy_probe_config_t;
 ```
 
 ### 6.3 健康检查状态机
@@ -848,7 +848,7 @@ Agent 的资源配额分为 4 个维度，借鉴 Kubernetes Resource Requests/Li
 | **MemoryRovol** | 层级 + TTL | 4 层 + 1h TTL | 遗忘（[05-memory-rovol-api.md](05-memory-rovol-api.md)） |
 | **CPU** | CFS 配额 + cpuset | 100ms / 100ms | 限流 |
 | **Memory** | 上限 + swap | 4Gi / 1Gi | OOM Kill |
-| **IPC** | 通道数 + 消息大小 | 32 / 64KB | `-AGENTRT_EAGAIN` |
+| **IPC** | 通道数 + 消息大小 | 32 / 64KB | `-AIRY_EAGAIN` |
 
 ### 9.2 配额声明与执行
 
@@ -857,7 +857,7 @@ Agent 的资源配额分为 4 个维度，借鉴 Kubernetes Resource Requests/Li
  * @brief Agent 资源配额——从清单 spec.resources 解析
  * @since 1.0.1
  */
-typedef struct agentrt_resource_quota {
+typedef struct airy_resource_quota {
     /* Token 预算 */
     struct {
         uint32_t budget;
@@ -869,7 +869,7 @@ typedef struct agentrt_resource_quota {
     /* MemoryRovol */
     struct {
         bool enabled;
-        uint32_t layer_mask;       /* AGENTRT_ROVOL_LAYER_* */
+        uint32_t layer_mask;       /* AIRY_ROVOL_LAYER_* */
         uint32_t l1_ttl_ms;
         uint32_t l2_promotion_threshold;
         uint32_t l3_consolidation_interval;
@@ -894,13 +894,13 @@ typedef struct agentrt_resource_quota {
         uint32_t max_channels;
         uint32_t max_message_size;
     } ipc;
-} agentrt_resource_quota_t;
+} airy_resource_quota_t;
 
 /**
  * @brief 应用资源配额到 cgroup v2
  * @param agent_id  Agent ID
  * @param quota     资源配额
- * @return 0 成功，<0 AGENTRT_E* 错误码
+ * @return 0 成功，<0 AIRY_E* 错误码
  *
  * @par 借鉴来源:
  * - Linux 6.6 cgroup-v2 统一层级
@@ -912,8 +912,8 @@ typedef struct agentrt_resource_quota {
  * 3. 写入 agentrt.token_budget（agentrt 专属）
  * 4. 创建 MemoryRovol L1-L4 数据结构
  */
-AGENTRT_API int agentrt_deploy_apply_quota(uint32_t agent_id,
-                                           const agentrt_resource_quota_t *quota);
+AIRY_API int airy_deploy_apply_quota(uint32_t agent_id,
+                                           const airy_resource_quota_t *quota);
 ```
 
 ---
@@ -1018,7 +1018,7 @@ class AgentDeployClient:
         """
         flags = 0x01 if wait else 0x00
         name_buf = ctypes.create_string_buffer(256)
-        ret = _libagentrt.agentrt_deploy_apply(
+        ret = _libagentrt.airy_deploy_apply(
             manifest_path.encode(), flags, timeout, name_buf, 256)
         if ret < 0:
             raise AgentrtError(ret, f"apply failed: {manifest_path}")
@@ -1028,7 +1028,7 @@ class AgentDeployClient:
                strategy: str = "rolling") -> None:
         """滚动更新 Agent。"""
         strategy_map = {"rolling": 0, "blue-green": 1, "canary": 2}
-        ret = _libagentrt.agentrt_deploy_update(
+        ret = _libagentrt.airy_deploy_update(
             name.encode(), image.encode(),
             strategy_map.get(strategy, 0))
         if ret < 0:
@@ -1037,14 +1037,14 @@ class AgentDeployClient:
     def rollback(self, name: str, to_version: str = None) -> None:
         """回滚 Agent。"""
         version = to_version.encode() if to_version else b""
-        ret = _libagentrt.agentrt_deploy_rollback(name.encode(), version)
+        ret = _libagentrt.airy_deploy_rollback(name.encode(), version)
         if ret < 0:
             raise AgentrtError(ret, f"rollback failed: {name}")
 
     def status(self, name: str) -> dict:
         """查询 Agent 部署状态。"""
         status_buf = ctypes.create_string_buffer(4096)
-        ret = _libagentrt.agentrt_deploy_status(
+        ret = _libagentrt.airy_deploy_status(
             name.encode(), status_buf, 4096)
         if ret < 0:
             raise AgentrtError(ret, f"status failed: {name}")
@@ -1053,7 +1053,7 @@ class AgentDeployClient:
 
     def delete(self, name: str) -> None:
         """删除 Agent。"""
-        ret = _libagentrt.agentrt_deploy_delete(name.encode())
+        ret = _libagentrt.airy_deploy_delete(name.encode())
         if ret < 0:
             raise AgentrtError(ret, f"delete failed: {name}")
 ```
@@ -1075,7 +1075,7 @@ impl AgentDeployClient {
         let flags = if wait { 0x01u32 } else { 0x00 };
         let mut name_buf = [0i8; 256];
         let ret = unsafe {
-            agentrt_deploy_apply(
+            airy_deploy_apply(
                 manifest_path.as_ptr(),
                 flags, timeout,
                 name_buf.as_mut_ptr(), 256,
@@ -1090,7 +1090,7 @@ impl AgentDeployClient {
     /// 滚动更新 Agent
     pub fn update(name: &str, image: &str, strategy: UpdateStrategy) -> Result<()> {
         let ret = unsafe {
-            agentrt_deploy_update(name.as_ptr(), image.as_ptr(), strategy as u32)
+            airy_deploy_update(name.as_ptr(), image.as_ptr(), strategy as u32)
         };
         if ret < 0 {
             return Err(AgentrtError::from_errno(ret));
@@ -1102,7 +1102,7 @@ impl AgentDeployClient {
     pub fn rollback(name: &str, to_version: Option<&str>) -> Result<()> {
         let version = to_version.unwrap_or("");
         let ret = unsafe {
-            agentrt_deploy_rollback(name.as_ptr(), version.as_ptr())
+            airy_deploy_rollback(name.as_ptr(), version.as_ptr())
         };
         if ret < 0 {
             return Err(AgentrtError::from_errno(ret));

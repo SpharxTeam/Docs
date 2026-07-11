@@ -777,7 +777,7 @@ graph TD
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集部署体系所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核基线 RPM/systemd 工程实践、openEuler 发行版工具链（rpmbuild/dnf/lorax/dractu），以及 agentrt-linux 12 daemons 部署专属契约（`include/airymax/deploy_types.h`）。
+> **附录定位**： 本附录汇集部署体系所需的完整接口契约，供 1.0.1 开发阶段直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核基线 RPM/systemd 工程实践、主流 Linux 发行版工具链（rpmbuild/dnf/lorax/dractu），以及 agentrt-linux 12 daemons 部署专属契约（`include/airymax/deploy_types.h`）。
 
 ### A.1 核心数据结构
 
@@ -790,7 +790,7 @@ graph TD
  * 对应 spec 文件解析后的内存表示，由 rpmbuild 工具消费。
  * 每个字段映射 spec 文件的一个段（Name/Version/Release/...）。
  *
- * 对齐 Linux 6.6 内核基线 rpmbuild + openEuler 打包规范
+ * 对齐 Linux 6.6 内核基线 rpmbuild + 主流 Linux 发行版打包规范
  * 对齐 agentrt-linux OS-STD-101 ~ OS-STD-104
  */
 struct rpm_spec {
@@ -888,19 +888,19 @@ struct daemon_config {
  * agentrt 12 daemons 名称常量（agentrt-linux 专属）
  * 对齐表 8.1 daemon 到 systemd unit 映射
  */
-#define AGENTRT_DAEMON_COUNT     12
-#define AGENTRT_DAEMON_GATEWAY   "gateway_d"
-#define AGENTRT_DAEMON_LLM       "llm_d"
-#define AGENTRT_DAEMON_TOOL      "tool_d"
-#define AGENTRT_DAEMON_SCHED     "sched_d"
-#define AGENTRT_DAEMON_MARKET    "market_d"
-#define AGENTRT_DAEMON_MONIT     "monit_d"
-#define AGENTRT_DAEMON_CHANNEL   "channel_d"
-#define AGENTRT_DAEMON_INFO      "info_d"
-#define AGENTRT_DAEMON_NOTIFY    "notify_d"
-#define AGENTRT_DAEMON_OBSERVE   "observe_d"
-#define AGENTRT_DAEMON_HOOK      "hook_d"
-#define AGENTRT_DAEMON_PLUGIN    "plugin_d"
+#define AIRY_DAEMON_COUNT     12
+#define AIRY_DAEMON_GATEWAY   "gateway_d"
+#define AIRY_DAEMON_LLM       "llm_d"
+#define AIRY_DAEMON_TOOL      "tool_d"
+#define AIRY_DAEMON_SCHED     "sched_d"
+#define AIRY_DAEMON_MARKET    "market_d"
+#define AIRY_DAEMON_MONIT     "monit_d"
+#define AIRY_DAEMON_CHANNEL   "channel_d"
+#define AIRY_DAEMON_INFO      "info_d"
+#define AIRY_DAEMON_NOTIFY    "notify_d"
+#define AIRY_DAEMON_OBSERVE   "observe_d"
+#define AIRY_DAEMON_HOOK      "hook_d"
+#define AIRY_DAEMON_PLUGIN    "plugin_d"
 ```
 
 #### A.1.4 iso_image_spec — ISO 镜像规格
@@ -912,7 +912,7 @@ struct daemon_config {
  * 由 lorax + livemedia-creator 消费，描述 ISO 构建参数。
  * 产物必须含 images/pxeboot/ 与 images/efiboot.img（OS-STD-107）。
  *
- * 对齐 Linux 6.6 内核基线 lorax + openEuler 镜像构建规范
+ * 对齐 Linux 6.6 内核基线 lorax + 主流 Linux 发行版镜像构建规范
  */
 struct iso_image_spec {
     const char *name;              /* @field: ISO 名称（如 "airymaxos-0.1.1-aarch64"） */
@@ -942,7 +942,7 @@ struct iso_image_spec {
  * 描述 Kickstart 文件的命令段、包段、脚本段。
  * rootpw 必须为 SHA-512 哈希（OS-OPS-009）。
  *
- * 对齐 Linux 6.6 内核基线 Anaconda + openEuler 自动化安装规范
+ * 对齐 Linux 6.6 内核基线 Anaconda + 主流 Linux 发行版自动化安装规范
  */
 struct kickstart_config {
     const char *lang;              /* @field: 语言（如 "en_US.UTF-8"） */
@@ -970,7 +970,7 @@ struct kickstart_config {
     /* 脚本段 */
     const char *post_script;      /* @field: %post 脚本内容 */
     const char *post_log_path;    /* @field: %post 日志路径（如 "/var/log/airymaxos-ks-post.log"） */
-    bool        enable_agentrt_target; /* @field: 是否 enable agentrt.target（OS-OPS-010） */
+    bool        enable_airy_target; /* @field: 是否 enable agentrt.target（OS-OPS-010） */
     bool        sysctl_system;     /* @field: 是否执行 sysctl --system */
 
     /* 校验字段 */
@@ -988,7 +988,7 @@ struct kickstart_config {
  * 描述 DHCP/TFTP/HTTP/Repo 四组件配置。
  * 链路必须全程签名校验（OS-OPS-011）。
  *
- * 对齐 Linux 6.6 内核基线 PXE + openEuler 网络部署规范
+ * 对齐 Linux 6.6 内核基线 PXE + 主流 Linux 发行版网络部署规范
  */
 struct pxe_config {
     /* DHCP 组件 */
@@ -1145,7 +1145,7 @@ int iso_create(const struct iso_image_spec *spec,
  *
  * 校验项：(1) rootpw 为 SHA-512 哈希（--iscrypted），禁止明文（OS-OPS-009）；
  *         (2) /var/lib/agentrt 独立分区（OS-STD-108）；
- *         (3) enable_agentrt_target==true（OS-OPS-010）；
+ *         (3) enable_airy_target==true（OS-OPS-010）；
  *         (4) 无明文密钥（OS-OPS-009）；
  *         (5) 包段含 airymaxos-kernel + airymaxos-services-core。
  *
@@ -1173,7 +1173,7 @@ int kickstart_validate(const struct kickstart_config *ks);
  * @return: 0 成功，<0 失败
  * @since 0.1.1（文档体系）/ 1.0.1（代码实施）
  *
- * 对齐 Linux 6.6 内核基线 PXE + openEuler 网络部署规范
+ * 对齐 Linux 6.6 内核基线 PXE + 主流 Linux 发行版网络部署规范
  */
 int pxe_setup(const struct pxe_config *pxe, bool repo_sync);
 ```
@@ -1225,7 +1225,7 @@ int pxe_setup(const struct pxe_config *pxe, bool repo_sync);
 /**
  * RPM_* - RPM 构建与签名错误码
  *
- * 对齐 rpmbuild + openEuler 打包错误语义
+ * 对齐 rpmbuild + 主流 Linux 发行版打包错误语义
  */
 #define RPM_BUILD_OK               0     /* 构建成功 */
 #define RPM_E_SPEC_INVALID      (-101)   /* spec 文件语法错误 */
@@ -1243,12 +1243,12 @@ int pxe_setup(const struct pxe_config *pxe, bool repo_sync);
 /**
  * KS_* - Kickstart 校验错误码
  *
- * 对齐 Anaconda ksvalidator + openEuler 自动化安装规范
+ * 对齐 Anaconda ksvalidator + 主流 Linux 发行版自动化安装规范
  */
 #define KS_OK                      0     /* 校验通过 */
 #define KS_E_ROOTPW_PLAINTEXT   (-201)   /* rootpw 为明文，必须 --iscrypted（OS-OPS-009） */
-#define KS_E_NO_AGENTRT_TARGET  (-202)   /* 未 enable agentrt.target（OS-OPS-010） */
-#define KS_E_AGENTRT_PARTITION  (-203)   /* /var/lib/agentrt 未独立分区（OS-STD-108） */
+#define KS_E_NO_AIRY_TARGET  (-202)   /* 未 enable agentrt.target（OS-OPS-010） */
+#define KS_E_AIRY_PARTITION  (-203)   /* /var/lib/agentrt 未独立分区（OS-STD-108） */
 #define KS_E_PLAINTEXT_KEY      (-204)   /* Kickstart 含明文密钥（OS-OPS-009） */
 #define KS_E_MISSING_KERNEL     (-205)   /* 包段缺少 airymaxos-kernel */
 #define KS_E_MISSING_SERVICES   (-206)   /* 包段缺少 airymaxos-services-core */
@@ -1262,15 +1262,15 @@ int pxe_setup(const struct pxe_config *pxe, bool repo_sync);
  *
  * 对齐 /etc/agentrt/ 与 systemd 标准路径规范
  */
-#define AGENTRT_CONFIG_DIR        "/etc/agentrt"
-#define AGENTRT_DATA_DIR          "/var/lib/agentrt"
-#define AGENTRT_CACHE_DIR         "/var/cache/agentrt"
-#define AGENTRT_BIN_DIR           "/usr/lib/agentrt"
-#define AGENTRT_KEY_DIR           "/etc/agentrt/keys"
+#define AIRY_CONFIG_DIR        "/etc/agentrt"
+#define AIRY_DATA_DIR          "/var/lib/agentrt"
+#define AIRY_CACHE_DIR         "/var/cache/agentrt"
+#define AIRY_BIN_DIR           "/usr/lib/agentrt"
+#define AIRY_KEY_DIR           "/etc/agentrt/keys"
 #define SYSTEMD_UNIT_DIR          "/usr/lib/systemd/system"
 #define SYSTEMD_OVERRIDE_DIR      "/etc/systemd/system"
-#define AGENTRT_TARGET            "agentrt.target"
-#define AGENTRT_GPG_KEY_PATH      "/etc/pki/rpm-gpg/RPM-GPG-KEY-airymaxos"
+#define AIRY_TARGET            "agentrt.target"
+#define AIRY_GPG_KEY_PATH      "/etc/pki/rpm-gpg/RPM-GPG-KEY-airymaxos"
 
 /**
  * 仓库类型常量

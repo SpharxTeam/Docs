@@ -47,7 +47,7 @@ Airymax 项目包含两个核心产品：
 | **关注点**  | 接口契约、语义、兼容性              | 编码规范、代码格式、开发流程、治理                               |
 | **变更频率** | 极慢，遵循语义化版本               | 随工程演进持续迭代                                       |
 | **合规判定** | 兼容性测试套件                  | CI 流水线、CODEOWNERS、DCO                           |
-| **路径**   | `docs/AirymaxStandards/` | `docs/AirymaxAgentOS/50-engineering-standards/` |
+| **路径**   | `docs/OpenStandards/` | `docs/AirymaxOS/50-engineering-standards/` |
 
 简言之：**开放标准是公开的生态接口，工程标准是内部实现规范**。一个第三方实现只要符合开放标准即可纳入 Airymax 生态；其内部如何编码、如何组织代码，由该实现自行决定。
 
@@ -67,17 +67,18 @@ Airymax 项目包含两个核心产品：
 
 ## 三、标准文档清单
 
-本体系由 1 个总索引（本文件）+ 6 个主题标准文档构成：
+本体系由 1 个总索引（本文件）+ 7 个主题标准文档构成：
 
-| 编号  | 文档                                                                               | 主题        | 主要契约                                           |
-| --- | -------------------------------------------------------------------------------- | --------- | ---------------------------------------------- |
-| 总索引 | [README.md](./README.md)                                                         | 总览与导航     | 本体系定位、文档清单、治理                                  |
-| 01  | [01-airymax-agent-runtime-standard.md](./01-airymax-agent-runtime-standard.md)   | Agent 运行时 | 生命周期、元数据、能力声明、Token 预算契约                       |
-| 02  | [02-airymax-ipc-protocol-standard.md](./02-airymax-ipc-protocol-standard.md)     | IPC 协议    | 128B 消息头、5 种 payload 类型、请求-响应/发布-订阅            |
-| 03  | [03-airymax-security-model-standard.md](./03-airymax-security-model-standard.md) | 安全模型      | Cupolas capability 38 ID + 派生、LSM 254 ID、4 值裁决 |
-| 04  | [04-airymax-memory-rovol-standard.md](./04-airymax-memory-rovol-standard.md)     | 记忆卷载      | L1-L4 分级、GFP 掩码、PMEM 接口、遗忘机制                   |
-| 05  | [05-airymax-cognition-loop-standard.md](./05-airymax-cognition-loop-standard.md) | 认知循环      | CoreLoopThree 三阶段、Thinkdual 双模式、LLM 推理阶段       |
-| 06  | [06-airymax-scheduling-standard.md](./06-airymax-scheduling-standard.md)         | 调度        | SCHED\_EXT、任务描述符、vtime Q16.16、1024 并发          |
+| 编号  | 文档                                                                           | 主题        | 主要契约                                           |
+| --- | --------------------------------------------------------------------------- | --------- | ---------------------------------------------- |
+| 总索引 | [README.md](./README.md)                                                   | 总览与导航     | 本体系定位、文档清单、治理                                  |
+| 01  | [01-airy-agent-runtime-standard.md](./01-airy-agent-runtime-standard.md)   | Agent 运行时 | 生命周期、元数据、能力声明、Token 预算契约                       |
+| 02  | [02-airy-ipc-protocol-standard.md](./02-airy-ipc-protocol-standard.md)     | IPC 协议    | 128B 消息头、5 种 payload 类型、请求-响应/发布-订阅            |
+| 03  | [03-airy-security-model-standard.md](./03-airy-security-model-standard.md) | 安全模型      | Cupolas capability 41 ID + 派生、LSM 252 ID、4 值裁决 |
+| 04  | [04-airy-memory-rovol-standard.md](./04-airy-memory-rovol-standard.md)     | 记忆卷载      | L1-L4 分级、GFP 掩码、PMEM 接口、遗忘机制                   |
+| 05  | [05-airy-cognition-loop-standard.md](./05-airy-cognition-loop-standard.md) | 认知循环      | CoreLoopThree 三阶段、Thinkdual 双模式、LLM 推理阶段       |
+| 06  | [06-airy-scheduling-standard.md](./06-airy-scheduling-standard.md)         | 调度        | SCHED\_EXT、任务描述符、vtime Q16.16、1024 并发          |
+| 07  | [07-airy-syscall-standard.md](./07-airy-syscall-standard.md)               | 系统调用      | 12 核心 syscall、capability invocation、24 槽位、双平面架构 |
 
 ***
 
@@ -86,7 +87,7 @@ Airymax 项目包含两个核心产品：
 本体系采用 `AOS-STD-<域>-<NNN>` 三段式编号：
 
 - **AOS**：Airymax Open Standards 前缀
-- **域**：RT（运行时）/ IPC / SEC / MEM / COG / SCHED
+- **域**：RT（运行时）/ IPC / SEC / MEM / COG / SCHED / SYS（系统调用）
 - **NNN**：3 位序号
 
 示例：`AOS-STD-RT-001`（Agent 生命周期标准第 1 条）。
@@ -161,7 +162,7 @@ Airymax 项目包含两个核心产品：
 标准委员会由 SPHARX Ltd. 组织，包含：
 
 - 标准总维护者（最终裁决权）
-- 各主题域维护者（运行时、IPC、安全、记忆、认知、调度）
+- 各主题域维护者（运行时、IPC、安全、记忆、认知、调度、系统调用）
 - 社区代表（每届任期 1 年，可连任）
 
 委员会每季度召开 1 次例会，处理 RFC、异议、弃用提案。会议纪要公开发布。
@@ -200,7 +201,7 @@ Airymax 项目包含两个核心产品：
 
 示例：
 
-> 本实现遵循 Airymax Agent 运行时标准 1.0（AOS-STD-RT-001 \~ AOS-STD-RT-012），见 <https://docs.airymax.org/AirymaxStandards/01-airymax-agent-runtime-standard.md。>
+> 本实现遵循 Airymax Agent 运行时标准 1.0（AOS-STD-RT-001 \~ AOS-STD-RT-012），见 <https://docs.airymax.org/OpenStandards/01-airy-agent-runtime-standard.md。>
 
 ### 8.3 商标
 
@@ -221,17 +222,18 @@ Airymax 项目包含两个核心产品：
 | 认知三阶段循环   | CoreLoopThree             | 见 05 标准                            |
 | 双思考系统     | Thinkdual                 | 见 05 标准                            |
 | Agent 调度类 | SCHED\_AGENT / SCHED\_EXT | 见 06 标准                            |
+| 系统调用      | airy_sys_*              | 见 07 标准                            |
 
 ***
 
 ## 十、参考文献
 
-- agentrt-linux（AirymaxOS）统一术语表：`docs/AirymaxAgentOS/10-terminology.md`
-- agentrt-linux 工程标准规范手册：`docs/AirymaxAgentOS/50-engineering-standards/00-engineering-standards-handbook.md`
-- 五维正交 24 原则：`docs/AirymaxAgentOS/10-architecture/02-five-dimensional-principles.md`
-- IPC 协议契约：`docs/AirymaxAgentOS/50-engineering-standards/20-contracts/ipc_protocol_contract.md`
-- L1 核心运行时接口规范：`docs/AirymaxAgentOS/50-engineering-standards/30-runtime-interfaces/L1_runtime_interface.md`
-- L3 安全与治理规范：`docs/AirymaxAgentOS/50-engineering-standards/30-runtime-interfaces/L3_security_governance.md`
+- agentrt-linux（AirymaxOS）统一术语表：`docs/AirymaxOS/TERMINOLOGY.md`
+- agentrt-linux 工程标准规范手册：`docs/AirymaxOS/50-engineering-standards/00-engineering-standards-handbook.md`
+- 五维正交 24 原则：`docs/AirymaxOS/10-architecture/02-five-dimensional-principles.md`
+- IPC 协议契约：`docs/AirymaxOS/50-engineering-standards/20-contracts/`
+- L1 核心运行时接口规范：`docs/AirymaxOS/50-engineering-standards/30-runtime-interfaces/`
+- L3 安全与治理规范：`docs/AirymaxOS/50-engineering-standards/30-runtime-interfaces/`
 
 ***
 
@@ -240,6 +242,7 @@ Airymax 项目包含两个核心产品：
 | 版本  | 日期         | 变更                          |
 | --- | ---------- | --------------------------- |
 | 1.0 | 2026-07-09 | 初始草案：6 主题标准 + 总索引，奠定开放标准体系基础 |
+| 1.1 | 2026-07-11 | 新增 07 系统调用标准（12 核心 syscall + capability invocation + 24 槽位）；新增 SYS 域编号；全量迁移至 airy_* 命名；修正引用路径 |
 
 ***
 

@@ -110,7 +110,7 @@ void sched_init_numa(int offline_node)
  * @since 1.0.1
  * @location include/airymax/supernode.h
  */
-typedef struct agentrt_supernode_topology {
+typedef struct airy_supernode_topology {
     uint32_t supernode_id;          /* 超节点 ID */
     uint32_t die_count;              /* die 数量 */
     uint32_t chip_count;             /* chip 数量 */
@@ -124,7 +124,7 @@ typedef struct agentrt_supernode_topology {
         uint64_t memory_bytes;       /* 本地内存大小 */
         uint32_t cxl_pool_id;        /* 关联 CXL 池（0xFFFF = 无） */
     } dies[MAC_MAX_DIES];
-} agentrt_supernode_topology_t;
+} airy_supernode_topology_t;
 ```
 
 ### 2.4 拓扑感知的 cgroup
@@ -194,7 +194,7 @@ static void numa_migrate_preferred(struct task_struct *p)
 超节点 OS 在 `numa_migrate_preferred()` 迁移前注入 Agent 级检查（通过 ftrace hook 或 sched_ext 策略）：
 
 1. **Token 预算检查**：目标 die 的 Token 池是否有余量
-2. **MemoryRovol 状态检查**：Agent 是否正在快照/迁移（`AGENTRT_ROVOL_STATE_MIGRATING` 状态禁止跨 die 迁移）
+2. **MemoryRovol 状态检查**：Agent 是否正在快照/迁移（`AIRY_ROVOL_STATE_MIGRATING` 状态禁止跨 die 迁移）
 3. **capability 检查**：Agent 是否有 `CAP_SUPERNODE_MIGRATE` 权限
 
 ### 3.4 Agent NUMA 亲和性调度策略
@@ -265,7 +265,7 @@ sequenceDiagram
     participant CXL as CXL 内存池
     participant DST as 目标 die Agent
 
-    SRC->>KERN: 1. agentrt_sys_rovol_migrate(agent_id, dst_die, HOT)
+    SRC->>KERN: 1. airy_sys_rovol_migrate(agent_id, dst_die, HOT)
     KERN->>SRC: 2. 快照源 MemoryRovol（fork+COW）
     KERN->>CXL: 3. L1/L4 写入 CXL 池（共享零拷贝）
     KERN->>KERN: 4. L2/L3 页迁移（migrate_pages）
@@ -298,7 +298,7 @@ stateDiagram-v2
 
 | 指标 | 阈值 | 测量方法 |
 |------|------|---------|
-| 冷迁移（COLD）总延迟 | < 500 ms（P99） | `agentrt_sys_rovol_migrate` 全程 |
+| 冷迁移（COLD）总延迟 | < 500 ms（P99） | `airy_sys_rovol_migrate` 全程 |
 | 热迁移（HOT）停顿时间 | < 10 ms（P99） | Agent 不可用时间窗口 |
 | 增量迁移（INCREMENT）同步延迟 | < 50 ms（P99） | 增量同步窗口 |
 | CXL 池零拷贝读取延迟 | < 10 μs（P99） | CXL 3.0 单次读 |
@@ -380,12 +380,12 @@ CXL（Compute Express Link）3.0 内存池化是超节点 OS 的核心能力。L
  * @brief 超节点级内存配额
  * @since 1.0.1
  */
-typedef struct agentrt_supernode_mem_quota {
+typedef struct airy_supernode_mem_quota {
     uint64_t local_dram_limit;      /* 本地 DRAM 上限（per die） */
     uint64_t cxl_pool_limit;         /* CXL 池上限（超节点级） */
     uint64_t pmem_limit;            /* PMEM 上限（超节点级） */
     uint32_t tier_policy;            /* 分层策略 */
-} agentrt_supernode_mem_quota_t;
+} airy_supernode_mem_quota_t;
 ```
 
 ---
@@ -427,7 +427,7 @@ flowchart TB
  * @return 0 成功，<0 失败
  * @since 1.0.1
  */
-AGENTRT_API int agentrt_supernode_token_alloc(uint32_t die_id,
+AIRY_API int airy_supernode_token_alloc(uint32_t die_id,
                                               uint64_t amount);
 
 /**
@@ -438,7 +438,7 @@ AGENTRT_API int agentrt_supernode_token_alloc(uint32_t die_id,
  * @return 0 成功，<0 失败
  * @since 1.0.1
  */
-AGENTRT_API int agentrt_supernode_token_borrow(uint32_t src_die,
+AIRY_API int airy_supernode_token_borrow(uint32_t src_die,
                                                 uint32_t dst_die,
                                                 uint64_t amount);
 ```
@@ -465,10 +465,10 @@ AGENTRT_API int agentrt_supernode_token_borrow(uint32_t src_die,
 
 | 快照内容 | 来源 | 机制 |
 |---------|------|------|
-| 全部 Agent 的 MemoryRovol | L1-L4 记忆卷载 | `agentrt_sys_rovol_snapshot`（552） |
+| 全部 Agent 的 MemoryRovol | L1-L4 记忆卷载 | `airy_sys_rovol_snapshot`（552） |
 | 全部 Agent 的 Token 状态 | 令牌桶当前水位 | Token 池快照 |
 | cgroup 层级与配额 | cgroup v2 状态 | cgroup 快照 |
-| 超节点拓扑 | 拓扑描述符 | `agentrt_supernode_topology_t` 序列化 |
+| 超节点拓扑 | 拓扑描述符 | `airy_supernode_topology_t` 序列化 |
 
 ### 7.2 快照数据流
 
@@ -493,7 +493,7 @@ flowchart LR
 1. 恢复超节点拓扑（验证硬件一致性）
 2. 恢复 cgroup 层级与配额
 3. 恢复 Token 池状态
-4. 逐 Agent 恢复 MemoryRovol（`agentrt_sys_rovol_restore` 553）
+4. 逐 Agent 恢复 MemoryRovol（`airy_sys_rovol_restore` 553）
 5. 唤醒 Agent（按延迟预算优先级排序）
 
 **RTO 约束**：整机恢复 RTO < 30s（P99），取决于 Agent 数量与 MemoryRovol 总大小。
@@ -527,7 +527,7 @@ stateDiagram-v2
 | TOPOLOGY_DISCOVER → READY | 拓扑构建完成 | 注册超节点 Token 池 |
 | READY → DEGRADED | die 故障（热插拔/错误） | 故障 die Agent 迁移到其他 die |
 | READY → SNAPSHOTTING | `agentctl supernode snapshot` | 冻结调度 + 快照 |
-| READY → MIGRATING | `agentrt_sys_rovol_migrate` | 跨 die 迁移 |
+| READY → MIGRATING | `airy_sys_rovol_migrate` | 跨 die 迁移 |
 
 ---
 
@@ -562,9 +562,9 @@ agentctl supernode affinity --agent <agent_id>
 
 | 编号 | 调用 | 用途 |
 |------|------|------|
-| 515 | `agentrt_sys_task_migrate` | Agent 任务跨 die 迁移 |
-| 554 | `agentrt_sys_rovol_migrate` | MemoryRovol 跨 die 迁移 |
-| 555 | `agentrt_sys_cxl_tier_set` | CXL 内存分层策略 |
+| 515 | `airy_sys_task_migrate` | Agent 任务跨 die 迁移 |
+| 554 | `airy_sys_rovol_migrate` | MemoryRovol 跨 die 迁移 |
+| 555 | `airy_sys_cxl_tier_set` | CXL 内存分层策略 |
 
 超节点 Token 池 API 通过用户态 daemon（`supernode_d`）提供，不新增系统调用（遵循"机制在内核、策略在用户态"的微内核原则）。
 
@@ -631,22 +631,22 @@ flowchart TB
 
 | 错误码 | 值 | 含义 | 触发场景 |
 |--------|-----|------|---------|
-| `AGENTRT_ENODIE` | -13 | die 不存在 | 指定的 die_id 超出范围 |
-| `AGENTRT_ECXL` | -14 | CXL 操作失败 | CXL 设备不可用或池已满 |
-| `AGENTRT_ESNAPSHOT` | -15 | 快照失败 | 整机快照过程中 Agent 状态冲突 |
+| `AIRY_ENODIE` | -13 | die 不存在 | 指定的 die_id 超出范围 |
+| `AIRY_ECXL` | -14 | CXL 操作失败 | CXL 设备不可用或池已满 |
+| `AIRY_ESNAPSHOT` | -15 | 快照失败 | 整机快照过程中 Agent 状态冲突 |
 
 ### 11.2 错误处理策略
 
 ```c
-int ret = agentrt_sys_rovol_migrate(agent_id, dst_die, AGENTRT_ROVOL_MIGRATE_HOT);
-if (ret == -AGENTRT_EBUSY) {
+int ret = airy_sys_rovol_migrate(agent_id, dst_die, AIRY_ROVOL_MIGRATE_HOT);
+if (ret == -AIRY_EBUSY) {
     /* Agent 正在快照，等待后重试 */
     usleep(10000);
-    ret = agentrt_sys_rovol_migrate(agent_id, dst_die, AGENTRT_ROVOL_MIGRATE_HOT);
-} else if (ret == -AGENTRT_ENODIE) {
+    ret = airy_sys_rovol_migrate(agent_id, dst_die, AIRY_ROVOL_MIGRATE_HOT);
+} else if (ret == -AIRY_ENODIE) {
     log_write(LOG_ERROR, "目标 die %u 不存在", dst_die);
     return ret;
-} else if (ret == -AGENTRT_EPERM) {
+} else if (ret == -AIRY_EPERM) {
     log_write(LOG_ERROR, "缺少 CAP_SUPERNODE_MIGRATE 权限");
     return ret;
 }
@@ -687,11 +687,11 @@ if (ret == -AGENTRT_EBUSY) {
 | 指标 | 阈值 | 测量方法 |
 |------|------|---------|
 | NUMA balancing 迁移延迟 | < 1 ms（P99） | `task_numa_fault` 到迁移完成 |
-| 跨 die Agent 迁移延迟 | < 100 ms（P99） | `agentrt_sys_task_migrate` 全程 |
+| 跨 die Agent 迁移延迟 | < 100 ms（P99） | `airy_sys_task_migrate` 全程 |
 | CXL 池零拷贝读延迟 | < 10 μs（P99） | CXL 3.0 单次读 |
 | 整机快照 RTO | < 30 s（P99） | 快照触发到完成 |
 | 整机恢复 RTO | < 30 s（P99） | 恢复触发到全部 Agent 唤醒 |
-| Token 池借用延迟 | < 1 ms（P99） | `agentrt_supernode_token_borrow` |
+| Token 池借用延迟 | < 1 ms（P99） | `airy_supernode_token_borrow` |
 
 性能基准测试位于 `tests-linux/benchmark/supernode/`（[170-performance](../170-performance/README.md)）。
 
@@ -796,8 +796,8 @@ agentctl supernode restore --input /mnt/pmem/supernode.snap
 ```c
 /* tests-linux/kunit/supernode/topology_test.c */
 KUNIT_DEFINE_TEST(test_supernode_topology_discovery) {
-    struct agentrt_supernode_topology topo;
-    int ret = agentrt_supernode_discover(&topo);
+    struct airy_supernode_topology topo;
+    int ret = airy_supernode_discover(&topo);
     KUNIT_EXPECT_EQ(test, ret, 0);
     KUNIT_EXPECT_GT(test, topo.die_count, 0);
 }

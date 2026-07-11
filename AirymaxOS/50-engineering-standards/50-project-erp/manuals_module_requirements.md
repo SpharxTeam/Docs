@@ -341,7 +341,7 @@ matrix
 ### 5.1 Syscall 接口规范
 
 - agentrt-linux（AirymaxOS）保持对 Linux ABI 的向后兼容
-- 新增系统调用必须遵守 `agentrt_*` 命名前缀
+- 新增系统调用必须遵守 `airy_*` 命名前缀
 - 每个 syscall 必须包含权限检查，集成 security 模块钩子
 - 系统调用编号必须在 upstream 预留范围分配
 

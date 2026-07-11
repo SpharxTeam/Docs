@@ -78,27 +78,27 @@ UTF-8 编码规则（RFC 3629）：
 ### 2.3 内核 UTF-8 原语库
 
 ```c
-/* include/linux/airymax_utf8.h —— 内核态 UTF-8 原语 */
-#ifndef AIRYMAX_UTF8_H
-#define AIRYMAX_UTF8_H
+/* include/linux/airy_utf8.h —— 内核态 UTF-8 原语 */
+#ifndef AIRY_UTF8_H
+#define AIRY_UTF8_H
 
 #include <linux/types.h>
 #include <linux/string.h>
 
 /* UTF-8 字符最大字节数 */
-#define AIRYMAX_UTF8_MAX_BYTES  4
+#define AIRY_UTF8_MAX_BYTES  4
 
 /* UTF-8 码点类型 */
-typedef u32 airymax_unicode_t;
+typedef u32 airy_unicode_t;
 
 /* UTF-8 字符迭代器 */
-struct airymax_utf8_iter {
+struct airy_utf8_iter {
 	const u8 *p;        /* 当前字节指针 */
 	const u8 *end;      /* 末尾指针 */
 };
 
 /* 初始化迭代器 */
-static inline void airymax_utf8_iter_init(struct airymax_utf8_iter *it,
+static inline void airy_utf8_iter_init(struct airy_utf8_iter *it,
 					 const char *s, size_t len)
 {
 	it->p = (const u8 *)s;
@@ -106,7 +106,7 @@ static inline void airymax_utf8_iter_init(struct airymax_utf8_iter *it,
 }
 
 /* 校验单个 UTF-8 字符的首字节，返回该字符的字节数（1-4），0 表示非法 */
-static inline int airymax_utf8_seq_len(u8 c)
+static inline int airy_utf8_seq_len(u8 c)
 {
 	if (c < 0x80)
 		return 1;                          /* 0xxxxxxx */
@@ -120,16 +120,16 @@ static inline int airymax_utf8_seq_len(u8 c)
 }
 
 /* 解码一个 UTF-8 字符，返回字节数（>0）或错误码（<0） */
-static inline int airymax_utf8_decode(const u8 *s, size_t len,
-				     airymax_unicode_t *cp)
+static inline int airy_utf8_decode(const u8 *s, size_t len,
+				     airy_unicode_t *cp)
 {
 	int n;
-	airymax_unicode_t u;
+	airy_unicode_t u;
 
 	if (!s || len == 0)
 		return -EINVAL;
 
-	n = airymax_utf8_seq_len(s[0]);
+	n = airy_utf8_seq_len(s[0]);
 	if (n == 0 || (size_t)n > len)
 		return -EILSEQ;
 
@@ -140,7 +140,7 @@ static inline int airymax_utf8_decode(const u8 *s, size_t len,
 	case 2:
 		if ((s[1] & 0xC0) != 0x80)
 			return -EILSEQ;
-		u = ((airymax_unicode_t)(s[0] & 0x1F) << 6) |
+		u = ((airy_unicode_t)(s[0] & 0x1F) << 6) |
 		    (s[1] & 0x3F);
 		if (u < 0x80)
 			return -EILSEQ;        /* 过长编码 */
@@ -148,8 +148,8 @@ static inline int airymax_utf8_decode(const u8 *s, size_t len,
 	case 3:
 		if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80)
 			return -EILSEQ;
-		u = ((airymax_unicode_t)(s[0] & 0x0F) << 12) |
-		    ((airymax_unicode_t)(s[1] & 0x3F) << 6) |
+		u = ((airy_unicode_t)(s[0] & 0x0F) << 12) |
+		    ((airy_unicode_t)(s[1] & 0x3F) << 6) |
 		    (s[2] & 0x3F);
 		if (u < 0x800)
 			return -EILSEQ;
@@ -160,9 +160,9 @@ static inline int airymax_utf8_decode(const u8 *s, size_t len,
 		if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80 ||
 		    (s[3] & 0xC0) != 0x80)
 			return -EILSEQ;
-		u = ((airymax_unicode_t)(s[0] & 0x07) << 18) |
-		    ((airymax_unicode_t)(s[1] & 0x3F) << 12) |
-		    ((airymax_unicode_t)(s[2] & 0x3F) << 6) |
+		u = ((airy_unicode_t)(s[0] & 0x07) << 18) |
+		    ((airy_unicode_t)(s[1] & 0x3F) << 12) |
+		    ((airy_unicode_t)(s[2] & 0x3F) << 6) |
 		    (s[3] & 0x3F);
 		if (u < 0x10000 || u > 0x10FFFF)
 			return -EILSEQ;
@@ -176,8 +176,8 @@ static inline int airymax_utf8_decode(const u8 *s, size_t len,
 }
 
 /* 编码一个 Unicode 码点到 UTF-8，返回字节数 */
-static inline int airymax_utf8_encode(u8 *out, size_t out_len,
-				     airymax_unicode_t cp)
+static inline int airy_utf8_encode(u8 *out, size_t out_len,
+				     airy_unicode_t cp)
 {
 	if (!out || out_len == 0)
 		return -EINVAL;
@@ -215,13 +215,13 @@ static inline int airymax_utf8_encode(u8 *out, size_t out_len,
 }
 
 /* 计算 UTF-8 字符串的码点数（非字节数） */
-static inline size_t airymax_utf8_strlen(const char *s, size_t byte_len)
+static inline size_t airy_utf8_strlen(const char *s, size_t byte_len)
 {
 	size_t count = 0;
 	size_t i = 0;
 
 	while (i < byte_len) {
-		int n = airymax_utf8_seq_len((u8)s[i]);
+		int n = airy_utf8_seq_len((u8)s[i]);
 		if (n == 0 || i + (size_t)n > byte_len)
 			return (size_t)-1;
 		i += n;
@@ -231,13 +231,13 @@ static inline size_t airymax_utf8_strlen(const char *s, size_t byte_len)
 }
 
 /* 校验 UTF-8 字符串合法性，返回 0 合法或 -EILSEQ 非法 */
-static inline int airymax_utf8_validate(const char *s, size_t len)
+static inline int airy_utf8_validate(const char *s, size_t len)
 {
 	size_t i = 0;
-	airymax_unicode_t cp;
+	airy_unicode_t cp;
 
 	while (i < len) {
-		int n = airymax_utf8_decode((const u8 *)s + i, len - i, &cp);
+		int n = airy_utf8_decode((const u8 *)s + i, len - i, &cp);
 		if (n < 0)
 			return n;
 		i += n;
@@ -246,22 +246,22 @@ static inline int airymax_utf8_validate(const char *s, size_t len)
 }
 
 /* 取下一个 UTF-8 字符，更新迭代器，返回字节数 */
-static inline int airymax_utf8_next(struct airymax_utf8_iter *it,
-				   airymax_unicode_t *cp)
+static inline int airy_utf8_next(struct airy_utf8_iter *it,
+				   airy_unicode_t *cp)
 {
 	int n;
 
 	if (it->p >= it->end)
 		return 0;     /* EOF */
 
-	n = airymax_utf8_decode(it->p, it->end - it->p, cp);
+	n = airy_utf8_decode(it->p, it->end - it->p, cp);
 	if (n < 0)
 		return n;
 	it->p += n;
 	return n;
 }
 
-#endif /* AIRYMAX_UTF8_H */
+#endif /* AIRY_UTF8_H */
 ```
 
 ### 2.4 安全字符串操作规范
@@ -272,7 +272,7 @@ agentrt-linux 内核态严格禁止 `strcpy`、`strcat`、`sprintf`、`gets` 等
 /* 安全字符串操作示例（K&R 风格，Tab=8） */
 #include <linux/string.h>
 #include <linux/slab.h>
-#include <airymax/airymax_utf8.h>
+#include <airymax/airy_utf8.h>
 
 /* 错误示例：禁止使用 strcpy（缓冲区溢出风险） */
 /* int bad_example(char *dst) { strcpy(dst, "agentrt-linux"); } */
@@ -289,7 +289,7 @@ int good_example(char *dst, size_t dst_size)
 }
 
 /* UTF-8 安全的子串截取（按字节边界但保证 UTF-8 完整性） */
-int airymax_utf8_substring(const char *src, size_t src_len,
+int airy_utf8_substring(const char *src, size_t src_len,
 			   size_t start_byte, size_t end_byte,
 			   char *out, size_t out_size)
 {
@@ -305,7 +305,7 @@ int airymax_utf8_substring(const char *src, size_t src_len,
 	/* 调整 end_byte 向前回退到 UTF-8 字符边界 */
 	valid_end = end_byte;
 	for (i = end_byte; i > start_byte; i--) {
-		int n = airymax_utf8_seq_len((u8)src[i - 1]);
+		int n = airy_utf8_seq_len((u8)src[i - 1]);
 		if (n == 1 || n == 0) {
 			valid_end = i;
 			break;
@@ -337,7 +337,7 @@ out_err:
 用户态 daemon 使用 glibc 的 mbsrtowcs / iconv 进行编码转换，所有外源输入必须经过编码校验：
 
 ```c
-/* airymaxos-services/common/airymax_unicode.c */
+/* airymaxos-services/common/airy_unicode.c */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -345,10 +345,10 @@ out_err:
 #include <wchar.h>
 #include <locale.h>
 #include <iconv.h>
-#include <airymax/airymax_utf8.h>
+#include <airymax/airy_utf8.h>
 
 /* 校验输入字符串为合法 UTF-8（用户态版本） */
-int airymax_user_utf8_validate(const char *s, size_t len)
+int airy_user_utf8_validate(const char *s, size_t len)
 {
 	mbstate_t state;
 	wchar_t wc;
@@ -370,7 +370,7 @@ int airymax_user_utf8_validate(const char *s, size_t len)
 }
 
 /* 从其他编码转换为 UTF-8（如 GB18030 → UTF-8） */
-int airymax_user_convert_to_utf8(const char *from_codec,
+int airy_user_convert_to_utf8(const char *from_codec,
 				const char *in, size_t in_len,
 				char *out, size_t out_size)
 {
@@ -419,9 +419,9 @@ int airymax_user_convert_to_utf8(const char *from_codec,
 ```c
 /* JSON-RPC 响应构造（确保 UTF-8） */
 #include <jansson.h>
-#include <airymax/airymax_utf8.h>
+#include <airymax/airy_utf8.h>
 
-int agentrt_jsonrpc_build_response(int code, const char *message,
+int airy_jsonrpc_build_response(int code, const char *message,
 				   const char *locale, char *out, size_t out_size)
 {
 	json_t *root, *error;
@@ -429,7 +429,7 @@ int agentrt_jsonrpc_build_response(int code, const char *message,
 	int ret;
 
 	/* 校验 message 为合法 UTF-8 */
-	if (airymax_user_utf8_validate(message, strlen(message)) < 0)
+	if (airy_user_utf8_validate(message, strlen(message)) < 0)
 		return -EILSEQ;
 
 	root = json_object();
@@ -503,17 +503,17 @@ agentrt-linux 的 Token 计数遵循"按 Unicode 码点计数"原则：
 
 ```c
 /* Token 计数按码点（C SDK 示例） */
-#include <airymax/airymax_utf8.h>
+#include <airymax/airy_utf8.h>
 
-size_t agentrt_token_count(const char *prompt, size_t byte_len)
+size_t airy_token_count(const char *prompt, size_t byte_len)
 {
-	struct airymax_utf8_iter it;
-	airymax_unicode_t cp;
+	struct airy_utf8_iter it;
+	airy_unicode_t cp;
 	size_t count = 0;
 	int n;
 
-	airymax_utf8_iter_init(&it, prompt, byte_len);
-	while ((n = airymax_utf8_next(&it, &cp)) > 0)
+	airy_utf8_iter_init(&it, prompt, byte_len);
+	while ((n = airy_utf8_next(&it, &cp)) > 0)
 		count++;
 	return count;
 }
@@ -529,11 +529,11 @@ size_t agentrt_token_count(const char *prompt, size_t byte_len)
 /* IPC 消息头中 TraceID 字段的 UTF-8 安全处理 */
 #include <linux/string.h>
 #include <linux/slab.h>
-#include <airymax/airymax_utf8.h>
+#include <airymax/airy_utf8.h>
 #include <airymax/ipc_msg_hdr.h>
 
 /* 设置 IPC 消息头的 trace_id（UTF-8 安全复制） */
-int agentrt_ipc_set_trace_id(struct agentrt_ipc_msg_hdr *hdr,
+int airy_ipc_set_trace_id(struct airy_ipc_msg_hdr *hdr,
 			    const char *trace_id)
 {
 	size_t trace_len;
@@ -547,7 +547,7 @@ int agentrt_ipc_set_trace_id(struct agentrt_ipc_msg_hdr *hdr,
 		return -E2BIG;
 
 	/* 校验 UTF-8 合法性 */
-	ret = airymax_utf8_validate(trace_id, trace_len);
+	ret = airy_utf8_validate(trace_id, trace_len);
 	if (ret < 0)
 		return ret;
 
@@ -559,7 +559,7 @@ int agentrt_ipc_set_trace_id(struct agentrt_ipc_msg_hdr *hdr,
 }
 
 /* 从 IPC 消息头提取 trace_id 为 C 字符串 */
-int agentrt_ipc_get_trace_id(const struct agentrt_ipc_msg_hdr *hdr,
+int airy_ipc_get_trace_id(const struct airy_ipc_msg_hdr *hdr,
 			    char *out, size_t out_size)
 {
 	size_t i;
@@ -579,7 +579,7 @@ int agentrt_ipc_get_trace_id(const struct agentrt_ipc_msg_hdr *hdr,
 	}
 
 	/* 校验 UTF-8 */
-	ret = airymax_utf8_validate((const char *)hdr->trace_id, i);
+	ret = airy_utf8_validate((const char *)hdr->trace_id, i);
 	if (ret < 0)
 		return ret;
 
@@ -598,9 +598,9 @@ Linux 6.6 内核 printk 单行最大 1024 字节（`PRINTK_SAFE_LOG_BUF_LEN`）�
 
 ```c
 /* 多语言 printk 长度限制（保证 UTF-8 字符完整性） */
-#define AIRYMAX_PRINTK_MAX_BYTES  1024
+#define AIRY_PRINTK_MAX_BYTES  1024
 
-int airymax_printk_utf8_safe(const char *level, const char *msg, size_t msg_len)
+int airy_printk_utf8_safe(const char *level, const char *msg, size_t msg_len)
 {
 	size_t valid_len;
 	int ret;
@@ -609,17 +609,17 @@ int airymax_printk_utf8_safe(const char *level, const char *msg, size_t msg_len)
 		return -EINVAL;
 
 	/* 校验 UTF-8 */
-	ret = airymax_utf8_validate(msg, msg_len);
+	ret = airy_utf8_validate(msg, msg_len);
 	if (ret < 0)
 		return ret;
 
 	/* 截断到 PRINTK_MAX_BYTES，回退到字符边界 */
 	valid_len = msg_len;
-	if (valid_len > AIRYMAX_PRINTK_MAX_BYTES - 1) {
+	if (valid_len > AIRY_PRINTK_MAX_BYTES - 1) {
 		size_t i;
-		valid_len = AIRYMAX_PRINTK_MAX_BYTES - 1;
+		valid_len = AIRY_PRINTK_MAX_BYTES - 1;
 		for (i = valid_len; i > 0; i--) {
-			int n = airymax_utf8_seq_len((u8)msg[i - 1]);
+			int n = airy_utf8_seq_len((u8)msg[i - 1]);
 			if (n == 1 || n == 0) {
 				valid_len = i;
 				break;
@@ -660,17 +660,17 @@ int airymax_printk_utf8_safe(const char *level, const char *msg, size_t msg_len)
 
 | 错误码 | 数值 | 含义 |
 |--------|------|------|
-| AGENTRT_E_ENCODING_INVALID_UTF8 | -904 | 无效 UTF-8 序列 |
-| AGENTRT_E_ENCODING_OVERLONG | -906 | 过长编码（如 ASCII 用 2 字节） |
-| AGENTRT_E_ENCODING_SURROGATE | -907 | UTF-16 代理对（UTF-8 中非法） |
-| AGENTRT_E_ENCODING_NONCHAR | -908 | 非字符码点（U+FFFE 等） |
-| AGENTRT_E_ENCODING_OUT_OF_RANGE | -909 | 码点超出 U+10FFFF |
-| AGENTRT_E_ENCODING_BOM | -910 | 出现 BOM（禁止） |
+| AIRY_E_ENCODING_INVALID_UTF8 | -904 | 无效 UTF-8 序列 |
+| AIRY_E_ENCODING_OVERLONG | -906 | 过长编码（如 ASCII 用 2 字节） |
+| AIRY_E_ENCODING_SURROGATE | -907 | UTF-16 代理对（UTF-8 中非法） |
+| AIRY_E_ENCODING_NONCHAR | -908 | 非字符码点（U+FFFE 等） |
+| AIRY_E_ENCODING_OUT_OF_RANGE | -909 | 码点超出 U+10FFFF |
+| AIRY_E_ENCODING_BOM | -910 | 出现 BOM（禁止） |
 
 集中错误处理示例：
 
 ```c
-int agentrt_validate_input(const char *input, size_t len)
+int airy_validate_input(const char *input, size_t len)
 {
 	int ret;
 
@@ -680,12 +680,12 @@ int agentrt_validate_input(const char *input, size_t len)
 	/* 检查 BOM */
 	if (len >= 3 && (u8)input[0] == 0xEF && (u8)input[1] == 0xBB &&
 	    (u8)input[2] == 0xBF)
-		return -AGENTRT_E_ENCODING_BOM;
+		return -AIRY_E_ENCODING_BOM;
 
 	/* 校验 UTF-8 */
-	ret = airymax_utf8_validate(input, len);
+	ret = airy_utf8_validate(input, len);
 	if (ret == -EILSEQ)
-		return -AGENTRT_E_ENCODING_INVALID_UTF8;
+		return -AIRY_E_ENCODING_INVALID_UTF8;
 	return ret;
 }
 ```
@@ -699,7 +699,7 @@ int agentrt_validate_input(const char *input, size_t len)
 | **K-2 接口契约化** | UTF-8 编码作为 [SC] 共享契约 |
 | **E-1 安全内生** | 禁止 strcpy/wchar_t，从源头消除安全风险 |
 | **E-4 跨平台一致性** | UTF-8 跨架构一致，无字节序问题 |
-| **E-5 命名语义化** | airymax_utf8_* 函数名即语义 |
+| **E-5 命名语义化** | airy_utf8_* 函数名即语义 |
 | **E-6 错误可追溯** | 详细错误码（-904 ~ -910）覆盖所有编码错误 |
 | **A-3 人文关怀** | CJK 用户与英文用户公平的 Token 计数 |
 
@@ -709,8 +709,8 @@ int agentrt_validate_input(const char *input, size_t len)
 
 | 组件 | agentrt-linux（[SC]） | agentrt（[SC]） | 共享 |
 |------|------------------------|------------------|------|
-| UTF-8 头文件 | `airymax_utf8.h` | `airymax_utf8.h` | 完全共享 |
-| 错误码 | AGENTRT_E_ENCODING_* | AGENTRT_E_ENCODING_* | `error.h` |
+| UTF-8 头文件 | `airy_utf8.h` | `airy_utf8.h` | 完全共享 |
+| 错误码 | AIRY_E_ENCODING_* | AIRY_E_ENCODING_* | `error.h` |
 | Token 计数规则 | 按码点 | 按码点 | 共享契约 |
 | 编码规范文档 | 本文件 | 同源镜像 | [SC] |
 

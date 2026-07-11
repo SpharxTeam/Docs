@@ -219,36 +219,36 @@ graph TD
 
 ```c
 /* L1: 实时记忆层——高频读写，DRAM 存储 */
-typedef struct agentrt_memoryrovol_l1_record {
+typedef struct airy_memoryrovol_l1_record {
     uint64_t trace_id;          /* 追踪 ID */
     uint64_t timestamp;         /* 时间戳 */
     uint32_t priority;          /* 优先级 */
     uint32_t data_len;          /* 数据长度 */
     uint8_t  data[];            /* 柔性数组 */
-} agentrt_memoryrovol_l1_record_t;
+} airy_memoryrovol_l1_record_t;
 
 /* L2: 短期记忆层——中频读写，MGLRU aging 管理 */
-typedef struct agentrt_memoryrovol_l2_block {
+typedef struct airy_memoryrovol_l2_block {
     uint64_t block_id;
     uint64_t generation;        /* MGLRU 代序号 [SS] */
     uint32_t ref_count;
     uint32_t compressed_size;
-} agentrt_memoryrovol_l2_block_t;
+} airy_memoryrovol_l2_block_t;
 
 /* L3: 长期记忆层——低频读写，CXL tier 存储 */
-typedef struct agentrt_memoryrovol_l3_entry {
+typedef struct airy_memoryrovol_l3_entry {
     uint64_t entry_id;
     uint64_t last_access;       /* 最后访问时间 */
     uint32_t access_count;      /* 访问计数 */
     uint8_t  tier;              /* 存储层级（CXL/PMEM/SSD）*/
-} agentrt_memoryrovol_l3_entry_t;
+} airy_memoryrovol_l3_entry_t;
 
 /* L4: 持久记忆层——PMEM 持久化 */
-typedef struct agentrt_memoryrovol_l4_persistent {
+typedef struct airy_memoryrovol_l4_persistent {
     uint64_t persistent_id;
     uint64_t checksum;          /* 完整性校验 */
     uint32_t flags;              /* GFP 掩码 [SC] */
-} agentrt_memoryrovol_l4_persistent_t;
+} airy_memoryrovol_l4_persistent_t;
 ```
 
 **实现机制** [IND]：
@@ -283,12 +283,12 @@ typedef struct agentrt_memoryrovol_l4_persistent {
 
 ```c
 /* PMEM 持久化接口 [SC]——agentrt 与 agentrt-linux 共享 */
-typedef struct agentrt_pmem_ops {
+typedef struct airy_pmem_ops {
     int (*persist)(const void *addr, size_t len);    /* 持久化（clwb + sfence）*/
     int (*flush)(const void *addr, size_t len);       /* 刷新缓存行 */
     void *(*map)(uint64_t offset, size_t len);        /* 映射 PMEM 区域 */
     int (*unmap)(void *addr, size_t len);             /* 解除映射 */
-} agentrt_pmem_ops_t;
+} airy_pmem_ops_t;
 ```
 
 **特性** [IND]：
@@ -307,13 +307,13 @@ typedef struct agentrt_pmem_ops {
 
 ```c
 /* GFP 掩码 [SC]——agentrt 与 agentrt-linux 共享分配语义 */
-#define AGENTRT_GFP_IO         0x40    /* 允许 I/O（写回脏页）*/
-#define AGENTRT_GFP_FS         0x80    /* 允许文件系统操作 */
-#define AGENTRT_GFP_RECLAIM    0x400   /* 允许直接回收（阻塞）*/
-#define AGENTRT_GFP_KSWAPD     0x800   /* 唤醒 kswapd 异步回收 */
-#define AGENTRT_GFP_HIGH       0x20    /* 高优先级 */
-#define AGENTRT_GFP_NOWARN     0x200   /* 抑制分配失败警告 */
-#define AGENTRT_GFP_ZERO        0x100   /* 返回清零页 */
+#define AIRY_GFP_IO         0x40    /* 允许 I/O（写回脏页）*/
+#define AIRY_GFP_FS         0x80    /* 允许文件系统操作 */
+#define AIRY_GFP_RECLAIM    0x400   /* 允许直接回收（阻塞）*/
+#define AIRY_GFP_KSWAPD     0x800   /* 唤醒 kswapd 异步回收 */
+#define AIRY_GFP_HIGH       0x20    /* 高优先级 */
+#define AIRY_GFP_NOWARN     0x200   /* 抑制分配失败警告 */
+#define AIRY_GFP_ZERO        0x100   /* 返回清零页 */
 ```
 
 **改进** [SS]：
@@ -411,12 +411,12 @@ echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 
 | 内容 | 说明 |
 |------|------|
-| `agentrt_memoryrovol_l1_record_t` 结构 | L1 实时记忆层（trace_id/timestamp/priority/data_len/data） |
-| `agentrt_memoryrovol_l2_block_t` 结构 | L2 短期记忆层（block_id/generation/ref_count/compressed_size） |
-| `agentrt_memoryrovol_l3_entry_t` 结构 | L3 长期记忆层（entry_id/last_access/access_count/tier） |
-| `agentrt_memoryrovol_l4_persistent_t` 结构 | L4 持久记忆层（persistent_id/checksum/flags） |
-| `AGENTRT_GFP_*` 宏 | GFP 掩码语义（IO/FS/RECLAIM/KSWAPD/HIGH/NOWARN/ZERO） |
-| `agentrt_pmem_ops_t` 结构 | PMEM 持久化接口（persist/flush/map/unmap） |
+| `airy_memoryrovol_l1_record_t` 结构 | L1 实时记忆层（trace_id/timestamp/priority/data_len/data） |
+| `airy_memoryrovol_l2_block_t` 结构 | L2 短期记忆层（block_id/generation/ref_count/compressed_size） |
+| `airy_memoryrovol_l3_entry_t` 结构 | L3 长期记忆层（entry_id/last_access/access_count/tier） |
+| `airy_memoryrovol_l4_persistent_t` 结构 | L4 持久记忆层（persistent_id/checksum/flags） |
+| `AIRY_GFP_*` 宏 | GFP 掩码语义（IO/FS/RECLAIM/KSWAPD/HIGH/NOWARN/ZERO） |
+| `airy_pmem_ops_t` 结构 | PMEM 持久化接口（persist/flush/map/unmap） |
 
 ### 6.2 [SS] 语义同源层——6 项 API 映射
 
@@ -552,7 +552,7 @@ sequenceDiagram
 | 2 | L2 短期记忆数据结构一致性 | l2_block_t（含 generation） | l2_block_t（同） | ✅ PASS [SC] |
 | 3 | L3 长期记忆数据结构一致性 | l3_entry_t（含 tier） | l3_entry_t（同） | ✅ PASS [SC] |
 | 4 | L4 持久记忆数据结构一致性 | l4_persistent_t（含 checksum） | l4_persistent_t（同） | ✅ PASS [SC] |
-| 5 | GFP 掩码语义一致性 | 7 个 AGENTRT_GFP_* 宏 | 7 个（同） | ✅ PASS [SC] |
+| 5 | GFP 掩码语义一致性 | 7 个 AIRY_GFP_* 宏 | 7 个（同） | ✅ PASS [SC] |
 | 6 | PMEM 持久化接口一致性 | 4 函数（persist/flush/map/unmap） | 4 函数（同） | ✅ PASS [SC] |
 | 7 | `rovol_snapshot()` 语义等价性 | 用户态 fork+COW | 内核 fork+userfaultfd | ✅ PASS [SS] |
 | 8 | `rovol_restore()` 语义等价性 | 用户态 mmap | 内核 mmap+userfaultfd | ✅ PASS [SS] |

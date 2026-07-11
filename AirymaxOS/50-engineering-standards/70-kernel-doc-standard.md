@@ -43,25 +43,25 @@ kernel-doc 注释**必须**以 `/**` 起始（双星号），以 `*/` 结尾。�
 
 ```c
 /**
- * agentrt_ipc_send() - Send a message on an IPC channel
+ * airy_ipc_send() - Send a message on an IPC channel
  * @chan: IPC channel to send on
  * @msg: Message to send
  *
  * Context: Process context. Takes and releases chan->lock.
  * Return: 0 on success, negative errno on failure.
  */
-int agentrt_ipc_send(struct agentrt_ipc_chan *chan,
-		     const struct agentrt_ipc_msg *msg);
+int airy_ipc_send(struct airy_ipc_chan *chan,
+		     const struct airy_ipc_msg *msg);
 ```
 
 **错误示例**：
 
 ```c
 /* WRONG: 单星号，不被 kernel-doc 识别 */
-/* agentrt_ipc_send - Send a message
+/* airy_ipc_send - Send a message
  * @chan: IPC channel
  */
-int agentrt_ipc_send(struct agentrt_ipc_chan *chan, ...);
+int airy_ipc_send(struct airy_ipc_chan *chan, ...);
 ```
 
 ### 1.2 规则 OS-STD-DOC-002：短描述（short description）强制
@@ -74,7 +74,7 @@ int agentrt_ipc_send(struct agentrt_ipc_chan *chan, ...);
 
 ```c
 /**
- * agentrt_sched_pick_next() - Pick the next runnable agent task
+ * airy_sched_pick_next() - Pick the next runnable agent task
  * @sched: Scheduler context
  *
  * Select the highest-priority runnable task from the ready queue.
@@ -87,7 +87,7 @@ int agentrt_ipc_send(struct agentrt_ipc_chan *chan, ...);
 
 ```c
 /**
- * agentrt_sched_pick_next	/* WRONG: 无短描述，缺 " - " 分隔 */
+ * airy_sched_pick_next	/* WRONG: 无短描述，缺 " - " 分隔 */
  * @sched: Scheduler context
  */
 ```
@@ -113,29 +113,29 @@ int agentrt_ipc_send(struct agentrt_ipc_chan *chan, ...);
 
 ```c
 /**
- * agentrt_ipc_send_batch() - Send a batch of IPC messages atomically
+ * airy_ipc_send_batch() - Send a batch of IPC messages atomically
  * @chan: IPC channel to send on; must be initialized.
  * @msgs: Array of messages to send; length must equal @count.
  * @count: Number of messages in @msgs; must be > 0 and <= 64.
- * @flags: Send flags, bitwise OR of %AGENTRT_IPC_F_NOWAIT and
- *         %AGENTRT_IPC_F_SIGNAL.
+ * @flags: Send flags, bitwise OR of %AIRY_IPC_F_NOWAIT and
+ *         %AIRY_IPC_F_SIGNAL.
  *
  * Sends @count messages from @msgs to @chan atomically. If
- * %AGENTRT_IPC_F_NOWAIT is set, the function returns immediately if the
+ * %AIRY_IPC_F_NOWAIT is set, the function returns immediately if the
  * channel buffer is full; otherwise it blocks.
  *
  * The function is idempotent on failure: no partial send occurs.
  *
  * Context: Process context. May sleep if @flags does not include
- *          %AGENTRT_IPC_F_NOWAIT. Takes and releases @chan->lock.
+ *          %AIRY_IPC_F_NOWAIT. Takes and releases @chan->lock.
  * Return:
  * * 0 on success.
  * * -ENOMEM if internal allocation fails.
- * * -EAGAIN if %AGENTRT_IPC_F_NOWAIT is set and buffer is full.
+ * * -EAGAIN if %AIRY_IPC_F_NOWAIT is set and buffer is full.
  * * -E2BIG if @count exceeds the channel maximum.
  */
-int agentrt_ipc_send_batch(struct agentrt_ipc_chan *chan,
-			   const struct agentrt_ipc_msg *msgs,
+int airy_ipc_send_batch(struct airy_ipc_chan *chan,
+			   const struct airy_ipc_msg *msgs,
 			   size_t count, u32 flags);
 ```
 
@@ -149,7 +149,7 @@ int agentrt_ipc_send_batch(struct agentrt_ipc_chan *chan,
 
 ```c
 /**
- * agentrt_mem_reserve() - Reserve memory for agent task
+ * airy_mem_reserve() - Reserve memory for agent task
  * @task: Task to reserve memory for; must not be NULL.
  * @size: Reserve size in bytes; must be > 0 and power of 2.
  * @gfp: GFP flags; %GFP_KERNEL or %GFP_ATOMIC.
@@ -207,11 +207,11 @@ int agentrt_ipc_send_batch(struct agentrt_ipc_chan *chan,
 
 ```c
 /**
- * struct agentrt_task - Agent task descriptor (micro-core primitive)
+ * struct airy_task - Agent task descriptor (micro-core primitive)
  * @id: Unique task ID; assigned at creation, never recycled.
  * @link: List node for ready queue linkage; owned by scheduler.
- * @state: Task state, see enum agentrt_task_state.
- * @token_budget: Token budget in Q16.16 fixed-point; see airymax_q16_t.
+ * @state: Task state, see enum airy_task_state.
+ * @token_budget: Token budget in Q16.16 fixed-point; see airy_q16_t.
  * @magic: Magic 0x41475453 ('AGTS') for descriptor validation.
  *
  * Describes a single agent task managed by the micro-core scheduler.
@@ -221,11 +221,11 @@ int agentrt_ipc_send_batch(struct agentrt_ipc_chan *chan,
  * Locking: state and token_budget are protected by the owning
  * scheduler's lock.
  */
-struct agentrt_task {
+struct airy_task {
 	u64			id;
 	struct list_head	link;
-	enum agentrt_task_state	state;
-	airymax_q16_t		token_budget;
+	enum airy_task_state	state;
+	airy_q16_t		token_budget;
 	__u32			magic;		/* 0x41475453 'AGTS' */
 };
 ```
@@ -240,13 +240,13 @@ struct agentrt_task {
 
 ```c
 /**
- * struct agentrt_ipc_ctx - IPC context
+ * struct airy_ipc_ctx - IPC context
  * @tx.queue: Transmit queue head; protected by @tx.lock.
  * @tx.depth: Maximum pending entries in @tx.queue.
  * @rx.queue: Receive queue head; protected by @rx.lock.
  * @rx.depth: Maximum pending entries in @rx.queue.
  */
-struct agentrt_ipc_ctx {
+struct airy_ipc_ctx {
 	struct {
 		struct list_head	queue;
 		size_t			depth;
@@ -273,7 +273,7 @@ struct agentrt_ipc_ctx {
 
 ```c
 /**
- * enum agentrt_task_state - Agent task lifecycle states
+ * enum airy_task_state - Agent task lifecycle states
  * @TASK_NEW: Task created but not yet enqueued.
  * @TASK_RUNNABLE: Task is in the ready queue, eligible for scheduling.
  * @TASK_RUNNING: Task is currently executing on a CPU.
@@ -284,7 +284,7 @@ struct agentrt_ipc_ctx {
  * NEW -> RUNNABLE -> RUNNING -> BLOCKED -> RUNNABLE -> ... -> DEAD.
  * The DEAD state is terminal.
  */
-enum agentrt_task_state {
+enum airy_task_state {
 	TASK_NEW,
 	TASK_RUNNABLE,
 	TASK_RUNNING,
@@ -307,7 +307,7 @@ enum agentrt_task_state {
 
 ```c
 /**
- * struct agentrt_sched_ops - Scheduler operations vector
+ * struct airy_sched_ops - Scheduler operations vector
  * @pick_next(): Select next runnable task; returns NULL if queue empty.
  * @enqueue(): Enqueue a task into the ready queue; called with @lock held.
  * @dequeue(): Dequeue a task from the ready queue; called with @lock held.
@@ -316,13 +316,13 @@ enum agentrt_task_state {
  * All callbacks are invoked under the scheduler's @lock. Callbacks
  * must not sleep or block.
  */
-struct agentrt_sched_ops {
-	struct agentrt_task *(*pick_next)(struct agentrt_sched *sched);
-	void (*enqueue)(struct agentrt_sched *sched,
-			struct agentrt_task *task);
-	void (*dequeue)(struct agentrt_sched *sched,
-			struct agentrt_task *task);
-	void (*yield)(struct agentrt_sched *sched);
+struct airy_sched_ops {
+	struct airy_task *(*pick_next)(struct airy_sched *sched);
+	void (*enqueue)(struct airy_sched *sched,
+			struct airy_task *task);
+	void (*dequeue)(struct airy_sched *sched,
+			struct airy_task *task);
+	void (*yield)(struct airy_sched *sched);
 };
 ```
 
@@ -332,7 +332,7 @@ struct agentrt_sched_ops {
 
 ### 6.1 规则 OS-STD-DOC-011：仅允许 typedef 的 kernel-doc
 
-agentrt-linux 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 typedef（如 `airymax_q16_t`）。这些允许的 typedef **必须**有 kernel-doc 注释，描述其底层类型与语义。
+agentrt-linux 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 typedef（如 `airy_q16_t`）。这些允许的 typedef **必须**有 kernel-doc 注释，描述其底层类型与语义。
 
 **OLK-6.6 源码路径**: `scripts/kernel-doc:73` (`$type_typedef` 正则)
 
@@ -340,7 +340,7 @@ agentrt-linux 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 ty
 
 ```c
 /**
- * typedef airymax_q16_t - Q16.16 fixed-point value
+ * typedef airy_q16_t - Q16.16 fixed-point value
  *
  * Signed 32-bit integer representing a fixed-point value: high 16
  * bits are the integer part, low 16 bits are the fractional part.
@@ -349,10 +349,10 @@ agentrt-linux 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 ty
  * Required in kernel code because x86 builds with -mno-80387
  * (no x87 FPU). See arch/x86/Makefile:137.
  *
- * Use airymax_q16_mul(), airymax_q16_div() helpers for arithmetic;
+ * Use airy_q16_mul(), airy_q16_div() helpers for arithmetic;
  * never operate on the raw int32_t.
  */
-typedef int32_t airymax_q16_t;
+typedef int32_t airy_q16_t;
 ```
 
 ---
@@ -379,14 +379,14 @@ kernel-doc 注释中引用其他符号时**必须**使用以下标记：
 
 ```c
 /**
- * agentrt_sched_init() - Initialize a scheduler
+ * airy_sched_init() - Initialize a scheduler
  * @sched: Scheduler context; must be zero-initialized.
  *
- * Initializes @sched with default ops from %AGENTRT_SCHED_DEFAULT_OPS.
+ * Initializes @sched with default ops from %AIRY_SCHED_DEFAULT_OPS.
  * The ready queue is built via &struct list_head. After init, call
- * agentrt_sched_pick_next() to dispatch tasks.
+ * airy_sched_pick_next() to dispatch tasks.
  *
- * See also: &enum agentrt_task_state, &typedef airymax_q16_t.
+ * See also: &enum airy_task_state, &typedef airy_q16_t.
  *
  * Context: Process context. May sleep.
  * Return: 0 on success, -EINVAL if @sched is already initialized.
@@ -476,19 +476,19 @@ $ ./scripts/kernel-doc -Wall -internal \
  * The IPC magic 0x41524531 ('ARE1') is constant and must never change.
  */
 
-#ifndef _AIRYMAX_IPC_H
-#define _AIRYMAX_IPC_H
+#ifndef _AIRY_IPC_H
+#define _AIRY_IPC_H
 
 #include <linux/types.h>
 
-#define AIRYMAX_IPC_MAGIC		0x41524531	/* 'ARE1' */
-#define AIRYMAX_IPC_HDR_SZ		128
+#define AIRY_IPC_MAGIC		0x41524531	/* 'ARE1' */
+#define AIRY_IPC_HDR_SZ		128
 
 /**
- * struct agentrt_ipc_msg_hdr - IPC message header (128 bytes)
+ * struct airy_ipc_msg_hdr - IPC message header (128 bytes)
  * @magic: Magic 0x41524531 ('ARE1'); validates protocol version.
- * @opcode: Operation code; see enum agentrt_ipc_opcode.
- * @flags: Message flags, bitwise OR of %AGENTRT_IPC_F_*.
+ * @opcode: Operation code; see enum airy_ipc_opcode.
+ * @flags: Message flags, bitwise OR of %AIRY_IPC_F_*.
  * @trace_id: Trace identifier; propagates across hops for debugging.
  * @timestamp_ns: Sender timestamp in nanoseconds (CLOCK_MONOTONIC).
  * @src_task: Source task ID; 0 for kernel-originated messages.
@@ -503,7 +503,7 @@ $ ./scripts/kernel-doc -Wall -internal \
  * All multi-byte fields are in host byte order within each side;
  * cross-endian transport is not supported.
  */
-struct agentrt_ipc_msg_hdr {
+struct airy_ipc_msg_hdr {
 	__u32	magic;			/* offset 0, 4 bytes */
 	__u16	opcode;			/* offset 4, 2 bytes */
 	__u16	flags;			/* offset 6, 2 bytes */
@@ -515,8 +515,10 @@ struct agentrt_ipc_msg_hdr {
 	__u8	reserved[84];		/* offset 44, 84 bytes */
 } __attribute__((packed));
 
-#endif /* _AIRYMAX_IPC_H */
+#endif /* _AIRY_IPC_H */
 ```
+
+> **SSoT 声明**：本结构体定义以 `include/airymax/ipc.h`（物理宿主见 `50-engineering-standards/120-cross-project-code-sharing.md` §Layout C）为单一数据源。此处的 kernel-doc 示例与 SSoT Layout C 逐字段一致，结构体名为 `struct airy_ipc_msg_hdr`。
 
 ---
 

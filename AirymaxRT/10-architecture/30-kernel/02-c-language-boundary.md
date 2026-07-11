@@ -350,7 +350,7 @@ TypeScript SDK                    Go Gateway                   C Core
      │  HTTP POST /api/agent/run      │                          │
      │───────────────────────────────▶│                          │
      │                                │                          │
-     │                                │  CGO call: agentrt_run() │
+     │                                │  CGO call: airy_run() │
      │                                │─────────────────────────▶│
      │                                │                          │
      │                                │                          │

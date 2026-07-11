@@ -178,9 +178,9 @@ AllowShortLoopsOnASingleLine: false		# 不允许单行循环
 ```yaml
 ForEachMacros:
   # ... 保留 OLK-6.6 全部 565 个宏 ...
-  - 'agentrt_for_each_task'		# agentrt-linux 自定义
-  - 'agentrt_for_each_chan'
-  - 'airymax_for_each_token'
+  - 'airy_for_each_task'		# agentrt-linux 自定义
+  - 'airy_for_each_chan'
+  - 'airy_for_each_token'
 ```
 
 ---
@@ -264,11 +264,11 @@ ForEachMacros:
   - 'xa_for_each'
   # ... (full list inherited from OLK-6.6 .clang-format:71-635) ...
   # ----- agentrt-linux custom -----
-  - 'agentrt_for_each_task'
-  - 'agentrt_for_each_chan'
-  - 'agentrt_for_each_sched'
-  - 'airymax_for_each_token'
-  - 'airymax_for_each_mem_range'
+  - 'airy_for_each_task'
+  - 'airy_for_each_chan'
+  - 'airy_for_each_sched'
+  - 'airy_for_each_token'
+  - 'airy_for_each_mem_range'
 IncludeBlocks: Preserve
 IncludeCategories:
   - Regex: '.*'

@@ -481,7 +481,7 @@ int main(void)
 |------|---------|------|
 | 有标准中文名 | 用中文名 | MicroCoreRT → 微核心运行时 |
 | 无标准中文名 | 保留英文 | sched_ext → sched_ext |
-| 代码标识符 | 保留原文 | `agentrt_error_t` → `agentrt_error_t` |
+| 代码标识符 | 保留原文 | `airy_err_t` → `airy_err_t` |
 | 文件路径 | 保留原文 | `include/airymax/error.h` → `include/airymax/error.h` |
 
 ### 5.3 翻译质量评分
@@ -603,7 +603,7 @@ if __name__ == "__main__":
 
 ```markdown
 > ⚠️ **翻译缺失**: 本文档暂无中文翻译，显示英文原文。
-> 如需翻译，请在 [GitHub Issue](link) 提交翻译请求。
+> 如需翻译，请在 [GitHub Issue](https://github.com/OpenAirymax/OpenAirymax/issues) 提交翻译请求。
 ```
 
 ### 7.2 术语冲突处理
@@ -622,11 +622,11 @@ FAIL: docs/example.md 发现禁止术语
 文档 i18n 子系统错误码遵循 ErrorCodeSystem，定义于 [SC] 共享契约层：
 
 ```c
-#define AGENTRT_DOC_ENOTRANSLATED  (-910)  /* 文档未翻译 */
-#define AGENTRT_DOC_EOUTOFSYNC    (-911)  /* 中英文不同步 */
-#define AGENTRT_DOC_ETERM         (-912)  /* 术语冲突 */
-#define AGENTRT_DOC_EENCODING    (-913)  /* 非 UTF-8 编码 */
-#define AGENTRT_DOC_EHEADER      (-914)  /* 头部模板缺失 */
+#define AIRY_DOC_ENOTRANSLATED  (-910)  /* 文档未翻译 */
+#define AIRY_DOC_EOUTOFSYNC    (-911)  /* 中英文不同步 */
+#define AIRY_DOC_ETERM         (-912)  /* 术语冲突 */
+#define AIRY_DOC_EENCODING    (-913)  /* 非 UTF-8 编码 */
+#define AIRY_DOC_EHEADER      (-914)  /* 头部模板缺失 */
 ```
 
 ### 7.4 集中错误处理
@@ -634,7 +634,7 @@ FAIL: docs/example.md 发现禁止术语
 文档校验工具采用 `goto out_free_xxx` 集中错误处理：
 
 ```c
-int agentrt_doc_validate(const char *doc_path)
+int airy_doc_validate(const char *doc_path)
 {
     struct doc_ctx *ctx;
     int err;

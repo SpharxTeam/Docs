@@ -172,8 +172,8 @@ spec:
       agent.airymaxos.dev/name: cognition-agent
   # Cupolas capability 要求
   requiredCapabilities:
-    - AGENTRT_CAP_NET_ACCESS
-    - AGENTRT_CAP_IPC_SEND
+    - AIRY_CAP_NET_ACCESS
+    - AIRY_CAP_IPC_SEND
   # 联动 NetworkPolicy 名称
   networkPolicyRef: allow-cognition-to-llm
   # 流量审计
@@ -444,7 +444,7 @@ int cupolas_xdp_drop(struct xdp_md *ctx)
 
 ### 4.3 capability 令牌校验
 
-每个网络包的发送/接收均校验 Agent 是否持有 `AGENTRT_CAP_NET_ACCESS` capability：
+每个网络包的发送/接收均校验 Agent 是否持有 `AIRY_CAP_NET_ACCESS` capability：
 
 ```c
 /* cupolas_check_net_cap 校验网络 capability */
@@ -452,12 +452,12 @@ int cupolas_check_net_cap(uint32_t agent_id, bool is_egress)
 {
 	uint64_t cap_token = cupolas_get_agent_cap_token(agent_id);
 	uint64_t required = is_egress ?
-		AGENTRT_CAP_NET_SEND : AGENTRT_CAP_NET_RECV;
+		AIRY_CAP_NET_SEND : AIRY_CAP_NET_RECV;
 
 	if (!(cap_token & (1ULL << required))) {
 		cupolas_audit_log_violation(agent_id,
 			"net capability missing");
-		return -AGENTRT_EPERM;
+		return -AIRY_EPERM;
 	}
 	return 0;
 }
@@ -479,19 +479,19 @@ int cupolas_check_net_cap(uint32_t agent_id, bool is_egress)
 ### 5.2 同节点优先 AgentsIPC
 
 ```c
-/* agentrt_ipc_route 选择通信路径 */
-int agentrt_ipc_route(uint32_t src_agent, uint32_t dst_agent,
+/* airy_ipc_route 选择通信路径 */
+int airy_ipc_route(uint32_t src_agent, uint32_t dst_agent,
 		      void *payload, size_t len)
 {
 	/* 检查目标 Agent 是否同节点 */
-	if (agentrt_is_local_agent(dst_agent)) {
+	if (airy_is_local_agent(dst_agent)) {
 		/* 同节点：走 io_uring 零拷贝 */
-		return agentrt_ipc_send_local(src_agent, dst_agent,
+		return airy_ipc_send_local(src_agent, dst_agent,
 					      payload, len);
 	}
 
 	/* 跨节点：走 CNI 网络 */
-	return agentrt_ipc_send_remote(src_agent, dst_agent,
+	return airy_ipc_send_remote(src_agent, dst_agent,
 					payload, len);
 }
 ```
@@ -545,7 +545,7 @@ int cupolas_audit_log(const struct __sk_buff *skb, const char *action)
 	cupolas_sha256(&rec, sizeof(rec) - 32, rec.record_hash);
 
 	/* 写入 MemoryRovol L1（append-only） */
-	return agentrt_memoryrov_l1_append(CUPOLAS_AUDIT_AGENT_ID,
+	return airy_memoryrov_l1_append(CUPOLAS_AUDIT_AGENT_ID,
 					   &rec, sizeof(rec));
 }
 ```

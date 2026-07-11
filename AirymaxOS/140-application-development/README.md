@@ -21,7 +21,7 @@ Agent 应用是 agentrt-linux 上的运行时租户：它通过 SDK 调用系统
 
 | 层级 | 类型 | 机制 | 范围 |
 |------|------|------|------|
-| L1 | 系统调用层 | `AGENTRT_SYS_*` 内核系统调用 | 最底层能力 |
+| L1 | 系统调用层 | `AIRY_SYS_*` 内核系统调用 | 最底层能力 |
 | L2 | AgentsIPC 协议 | 128B 消息头 + 5 种 payload | Agent 间通信 |
 | L3 | C 运行时库 | libc + libagentrt + libcupolas | C 应用基础 |
 | L4 | 多语言 SDK | Python / Rust / Go / TypeScript | 4 语言 4 嵌套客户端 |
@@ -35,18 +35,18 @@ Agent 应用是 agentrt-linux 上的运行时租户：它通过 SDK 调用系统
 
 ### 2.1 系统调用接口
 
-Agent 应用通过 `AGENTRT_SYS_*` 系统调用访问内核能力。系统调用编号从 512 起始分配（避开 Linux 6.6 标准 0-511 编号空间），按 6 类分段，每类预留 20 个编号：
+Agent 应用通过 `AIRY_SYS_*` 系统调用访问内核能力。系统调用编号从 512 起始分配（避开 Linux 6.6 标准 0-511 编号空间），按 6 类分段，每类预留 20 个编号：
 
 ```c
 /* airymaxos-kernel/include/uapi/agentrt/syscalls.h */
 /* 完整编号注册表见 07-syscall-registry.md（SSoT） */
-#define AGENTRT_SYS_TASK_SUBMIT        512  /* 提交 Agent 任务 */
-#define AGENTRT_SYS_TASK_REGISTER     516  /* 注册新 Agent */
-#define AGENTRT_SYS_IPC_SEND          532  /* IPC 零拷贝发送 */
-#define AGENTRT_SYS_ROVOL_SNAPSHOT    552  /* 记忆快照 */
-#define AGENTRT_SYS_SCHED_SET_POLICY  572  /* 设置调度策略 */
-#define AGENTRT_SYS_CAPABILITY_REQUEST 592  /* 申请 capability */
-#define AGENTRT_SYS_CLT_PHASE_NOTIFY  612  /* 认知阶段通知 */
+#define AIRY_SYS_TASK_SUBMIT        512  /* 提交 Agent 任务 */
+#define AIRY_SYS_TASK_REGISTER     516  /* 注册新 Agent */
+#define AIRY_SYS_IPC_SEND          532  /* IPC 零拷贝发送 */
+#define AIRY_SYS_ROVOL_SNAPSHOT    552  /* 记忆快照 */
+#define AIRY_SYS_SCHED_SET_POLICY  572  /* 设置调度策略 */
+#define AIRY_SYS_CAPABILITY_REQUEST 592  /* 申请 capability */
+#define AIRY_SYS_CLT_PHASE_NOTIFY  612  /* 认知阶段通知 */
 ```
 
 > **编号 SSoT**：完整的系统调用编号注册表见 [07-syscall-registry.md](07-syscall-registry.md)，涵盖 31 个已分配编号 + 89 个预留编号，是编号分配的唯一权威来源。
@@ -109,7 +109,7 @@ Agent 间通信基于 128B 定长消息头 + 5 种 payload 类型。
 | 维度 | agentrt SDK | agentrt-linux SDK |
 |------|------------|---------------|
 | 实现层 | 用户态库 | OS 级 SDK（封装系统调用） |
-| 接口 | `agentrt_cognition_*` | `agentrt_cognition_*`（同源语义） |
+| 接口 | `airy_cognition_*` | `airy_cognition_*`（同源语义） |
 | 通信 | 用户态消息队列 | AgentsIPC（io_uring 零拷贝） |
 | 隔离 | 进程级 | cgroup + Landlock |
 

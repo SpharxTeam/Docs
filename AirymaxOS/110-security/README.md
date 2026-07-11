@@ -124,7 +124,7 @@ agentrt-linux 采用 seL4 风格的 capability 安全模型：
 
 ### 3.1 0.1.1 版本范围
 
-0.1.1 完成 README + 01 + 02 + 03 文档（4 文档奠基）。03-capability-model 补充完整 capability 数据模型、CNode/MDB 派生链、四种派生操作（mint/mintcopy/derive/revoke）、POSIX 38 ID 枚举、令牌 7 状态生命周期、Cupolas blob 四类布局、4 值策略裁决、Vault backend 抽象、系统调用 592-600 集成、LSM_ORDER_FIRST 共存机制。其余 6 文档（04-module-signing 至 09-cryptography-compliance）在 1.0.1 版本完成。
+0.1.1 完成 README + 01 + 02 + 03 文档（4 文档奠基）。03-capability-model 补充完整 capability 数据模型、CNode/MDB 派生链、四种派生操作（mint/mintcopy/derive/revoke）、POSIX 41 ID 枚举、令牌 7 状态生命周期、Cupolas blob 四类布局、4 值策略裁决、Vault backend 抽象、系统调用 592-600 集成、LSM_ORDER_FIRST 共存机制。其余 6 文档（04-module-signing 至 09-cryptography-compliance）在 1.0.1 版本完成。
 
 ### 3.2 1.0.1 版本范围
 
@@ -163,7 +163,7 @@ agentrt-linux 采用 seL4 风格的 capability 安全模型：
 ### 4.4 同源 agentrt 安全
 
 agentrt 的 `cupolas/` 模块与 agentrt-linux 安全体系同源：
-- agentrt 用户态：`agentrt_cupolas_*` API
+- agentrt 用户态：`airy_cupolas_*` API
 - agentrt-linux 内核态：LSM 钩子 + capability
 - 两端通过 AgentsIPC 协议传递安全策略
 

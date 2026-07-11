@@ -128,11 +128,11 @@ fn update_task(table: &mut TaskTable, id: u32, new_prio: u8) -> Result<()> {
 
 ```rust
 // RAII：资源自动释放，无需手动 goto
-fn agentrt_session_create(name: &str) -> Result<Arc<Session>> {
+fn airy_session_create(name: &str) -> Result<Arc<Session>> {
     // 如果以下任何一步失败，之前分配的资源自动释放
     let session = Arc::new(Session::new()?);     // 失败 → Arc 自动释放
     let buf = KBox::new_uninit_slice(4096)?;      // 失败 → Arc + buf 自动释放
-    let chan = agentrt_channel_create(name)?;      // 失败 → 全部自动释放
+    let chan = airy_channel_create(name)?;      // 失败 → 全部自动释放
     // 成功：所有资源的所有权转移给调用者
     Ok(session)
 }
@@ -164,7 +164,7 @@ unsafe impl Send for RawPointerWrapper {}  // 必须经过审计
 
 ```rust
 // 好：Mutex guard 离开作用域自动释放锁
-fn agentrt_channel_send(&self, msg: AgentrtIpcMsg) -> Result<()> {
+fn airy_channel_send(&self, msg: AgentrtIpcMsg) -> Result<()> {
     let mut guard = self.inner.lock();  // 获取锁
     if guard.pending.len() >= guard.max_msgs {
         return Err(EAGAIN);  // 提前返回，guard 自动释放锁
@@ -303,7 +303,7 @@ impl ListArcSafe for AgentrtTask {
 ```rust
 // 好：显式 extern "C"
 #[no_mangle]
-pub extern "C" fn agentrt_ipc_send_rs(
+pub extern "C" fn airy_ipc_send_rs(
     channel: u32,
     msg: *const u8,
     len: usize,
@@ -312,27 +312,29 @@ pub extern "C" fn agentrt_ipc_send_rs(
 }
 
 // 坏：Rust ABI 不稳定，跨语言调用危险
-pub fn agentrt_ipc_send_rs(channel: u32, msg: &[u8]) -> i32 {
+pub fn airy_ipc_send_rs(channel: u32, msg: &[u8]) -> i32 {
     // 签名不兼容 C 调用约定
 }
 ```
 
 ### 5.2 类型布局兼容性（OS-SEC-041）
 
-> **OS-SEC-041**：FFI 边界上的结构体必须使用 `#[repr(C)]` 确保与 C 的布局兼容。Rust 默认布局（`repr(Rust)`）不保证字段顺序和填充，不能用于 FFI。IRON-9 v2 [SC] 共享契约层的结构体（如 `AgentrtIpcMsgHdr`）在 agentrt 和 agentrt-linux（AirymaxOS）两端必须位级兼容，`#[repr(C)]` 是保证这一兼容性的前提。
+> **OS-SEC-041**：FFI 边界上的结构体必须使用 `#[repr(C, packed)]` 确保与 C 的布局兼容。Rust 默认布局（`repr(Rust)`）不保证字段顺序和填充，不能用于 FFI。IRON-9 v2 [SC] 共享契约层的结构体（如 `AirymaxIpcMsgHdr`）在 agentrt 和 agentrt-linux（AirymaxOS）两端必须位级兼容，`#[repr(C, packed)]` 是保证这一兼容性的前提（对齐 Layout C SSoT 的 `__attribute__((packed))`）。
 
 ```rust
-/// [SC] 共享契约层：IP 消息头，与 C 结构体 agentrt_ipc_msg_hdr 完全一致。
-#[repr(C)]
-pub struct AgentrtIpcMsgHdr {
-    pub magic: u32,
-    pub msg_type: u32,
-    pub channel: u32,
-    pub seq: u32,
-    pub timestamp: u64,
-    pub body_len: u32,
-    pub flags: u32,
-    pub reserved: [u8; 96],
+/// [SC] 共享契约层：IPC 消息头，与 C 结构体 struct airy_ipc_msg_hdr 完全一致。
+/// 物理宿主见 50-engineering-standards/120-cross-project-code-sharing.md §Layout C。
+#[repr(C, packed)]
+pub struct AirymaxIpcMsgHdr {
+    pub magic: u32,           // offset  0, 'ARE1' (0x41524531)
+    pub opcode: u16,          // offset  4, SQE/CQE 操作码
+    pub flags: u16,           // offset  6, 标志位（NOWAIT/SIGNAL 等）
+    pub trace_id: u64,        // offset  8, 链路追踪 ID（OpenTelemetry）
+    pub timestamp_ns: u64,    // offset 16, 纳秒时间戳（CLOCK_MONOTONIC）
+    pub src_task: u64,        // offset 24, 源任务 ID（0 表示内核发起）
+    pub dst_task: u64,        // offset 32, 目标任务 ID（0 表示广播）
+    pub payload_len: u32,     // offset 40, payload 字节数
+    pub reserved: [u8; 84],   // offset 44, 保留字段，填充 0
 }
 ```
 
@@ -346,7 +348,7 @@ pub struct AgentrtIpcMsgHdr {
 ```rust
 /// Rust 分配，C 释放——通过 into_raw 传递所有权。
 #[no_mangle]
-pub extern "C" fn agentrt_task_create_rs(
+pub extern "C" fn airy_task_create_rs(
     id: u32,
     priority: u8,
 ) -> *mut AgentrtTask {
@@ -357,9 +359,9 @@ pub extern "C" fn agentrt_task_create_rs(
 
 /// C 侧释放——通过 kfree 回调。
 #[no_mangle]
-pub unsafe extern "C" fn agentrt_task_free_rs(task: *mut AgentrtTask) {
+pub unsafe extern "C" fn airy_task_free_rs(task: *mut AgentrtTask) {
     if !task.is_null() {
-        // SAFETY: 调用者保证 task 是 agentrt_task_create_rs 返回的指针
+        // SAFETY: 调用者保证 task 是 airy_task_create_rs 返回的指针
         // 且仅被释放一次
         unsafe { KBox::from_raw(task) };
         // KBox 离开作用域，自动调用 Drop
@@ -419,11 +421,11 @@ fn verify_capability_check() {
     let cap: u32 = kani::any();
     let requested: u32 = kani::any();
 
-    let result = agentrt_capability_check(cap, requested);
+    let result = airy_capability_check(cap, requested);
 
     if !result {
         // 验证：capability 检查失败时，操作不可执行
-        assert!(!agentrt_can_perform_operation(cap, requested));
+        assert!(!airy_can_perform_operation(cap, requested));
     }
 }
 ```

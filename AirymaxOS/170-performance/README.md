@@ -162,7 +162,7 @@ L4_pat   0.95      100ms        0.01
 ### 4.5 同源 agentrt 性能
 
 agentrt 的性能基线与 agentrt-linux 同源：
-- agentrt 用户态：`agentrt_metrics_record()` 性能指标采集
+- agentrt 用户态：`airy_metrics_record()` 性能指标采集
 - agentrt-linux 内核态：`perf_event` + ftrace 性能剖析
 - 两端通过 user_events 桥接性能数据
 

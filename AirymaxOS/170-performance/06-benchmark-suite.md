@@ -121,13 +121,13 @@ static void bench_syscall_agent_create(void)
 
     /* 预热 */
     for (int i = 0; i < 100; i++) {
-        syscall(SYS_AGENTRT_AGENT_CREATE, &config, 0);
+        syscall(SYS_AIRY_AGENT_CREATE, &config, 0);
     }
 
     /* 正式测量 */
     for (int i = 0; i < ITERATIONS; i++) {
         clock_gettime(CLOCK_MONOTONIC, &start);
-        syscall(SYS_AGENTRT_AGENT_CREATE, &config, 0);
+        syscall(SYS_AIRY_AGENT_CREATE, &config, 0);
         clock_gettime(CLOCK_MONOTONIC, &end);
         latencies[i] = (end.tv_sec - start.tv_sec) * 1000000000ULL +
                        (end.tv_nsec - start.tv_nsec);
@@ -188,11 +188,11 @@ static void bench_ipc_roundtrip(void)
 
     for (int i = 0; i < ITERATIONS; i++) {
         struct timespec start, end;
-        agentrt_ipc_msg_t msg = { .opcode = AGENTRT_IPC_OP_NOP };
+        airy_ipc_msg_t msg = { .opcode = AIRY_IPC_OP_NOP };
 
         clock_gettime(CLOCK_MONOTONIC, &start);
-        agentrt_ipc_send(&msg);
-        agentrt_ipc_recv(&msg);  /* 等待回声 */
+        airy_ipc_send(&msg);
+        airy_ipc_recv(&msg);  /* 等待回声 */
         clock_gettime(CLOCK_MONOTONIC, &end);
 
         latencies[i] = ts_diff_ns(&start, &end);
@@ -334,19 +334,19 @@ static void bench_agent_lifecycle(void)
         clock_gettime(CLOCK_MONOTONIC, &start);
 
         /* 创建 Agent */
-        uint32_t agent_id = agentrt_agent_create(&config);
+        uint32_t agent_id = airy_agent_create(&config);
 
         /* 签订 Token 预算 */
-        agentrt_token_budget_sign(agent_id, &budget);
+        airy_token_budget_sign(agent_id, &budget);
 
         /* 挂载 MemoryRovol */
-        agentrt_rovol_mount(agent_id, &rovol_config);
+        airy_rovol_mount(agent_id, &rovol_config);
 
         /* 运行简单认知循环 */
-        agentrt_cognition_process(agent_id, &input, &output);
+        airy_cognition_process(agent_id, &input, &output);
 
         /* 销毁 */
-        agentrt_agent_destroy(agent_id);
+        airy_agent_destroy(agent_id);
 
         clock_gettime(CLOCK_MONOTONIC, &end);
         latencies[i] = ts_diff_ns(&start, &end);
@@ -380,7 +380,7 @@ static void bench_llm_inference(void)
         clock_gettime(CLOCK_MONOTONIC, &start);
 
         /* LLM 推理 */
-        agentrt_llm_infer(prompts[i], &tokens_generated);
+        airy_llm_infer(prompts[i], &tokens_generated);
 
         clock_gettime(CLOCK_MONOTONIC, &end);
         uint64_t latency_ns = ts_diff_ns(&start, &end);
@@ -427,7 +427,7 @@ static void bench_stress_1000_agents(void)
 
     /* 创建 1000 个 Agent */
     for (int i = 0; i < num_agents; i++) {
-        agent_ids[i] = agentrt_agent_create(&config);
+        agent_ids[i] = airy_agent_create(&config);
         if (agent_ids[i] == 0) {
             printf("FAIL: failed to create agent %d\n", i);
             return;
@@ -442,7 +442,7 @@ static void bench_stress_1000_agents(void)
 
     #pragma omp parallel for
     for (int i = 0; i < num_agents; i++) {
-        agentrt_cognition_process(agent_ids[i], &input, &output);
+        airy_cognition_process(agent_ids[i], &input, &output);
     }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
@@ -451,7 +451,7 @@ static void bench_stress_1000_agents(void)
     /* 销毁所有 Agent */
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < num_agents; i++) {
-        agentrt_agent_destroy(agent_ids[i]);
+        airy_agent_destroy(agent_ids[i]);
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
     double destroy_time = ts_diff_ns(&start, &end) / 1e9;
@@ -803,10 +803,10 @@ graph TD
 
 | 错误码 | 名称 | 含义 |
 |--------|------|------|
-| -EBENCHFAIL | AGENTRT_EBENCHFAIL | 基准测试失败 |
-| -EBENCHREGRESS | AGENTRT_EBENCHREGRESS | 检测到性能回归 |
-| -EBENCHENV | AGENTRT_EBENCHENV | 测试环境异常 |
-| -EBENCHCV | AGENTRT_EBENCHCV | 变异系数过高 |
+| -EBENCHFAIL | AIRY_EBENCHFAIL | 基准测试失败 |
+| -EBENCHREGRESS | AIRY_EBENCHREGRESS | 检测到性能回归 |
+| -EBENCHENV | AIRY_EBENCHENV | 测试环境异常 |
+| -EBENCHCV | AIRY_EBENCHCV | 变异系数过高 |
 
 ---
 

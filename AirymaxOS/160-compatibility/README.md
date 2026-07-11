@@ -46,8 +46,8 @@ agentrt-linux 兼容性体系是系统长期演进的工程保障。它继承 Li
 ```c
 // airymaxos-kernel/include/uapi/agentrt/syscall.h
 // 系统调用编号一旦分配，永不复用（512-631 段，20-gap 块编号）
-#define AGENTRT_SYS_COGNITION_PROCESS  612  // cognition 段（612-631），1.0.1 引入，永久支持
-#define AGENTRT_SYS_MEMORY_ROVOL_GET   552  // memory 段（552-571），1.0.1 引入，永久支持
+#define AIRY_SYS_COGNITION_PROCESS  612  // cognition 段（612-631），1.0.1 引入，永久支持
+#define AIRY_SYS_MEMORY_ROVOL_GET   552  // memory 段（552-571），1.0.1 引入，永久支持
 ```
 
 ### 2.2 内核 KABI 管理
@@ -65,14 +65,14 @@ make CHECK_KABI=1 modules
 ### 2.3 AgentsIPC 版本协商
 
 ```c
-struct agentrt_ipc_header {
+struct airy_ipc_header {
     uint16_t version;  // 协议版本
     // ...
 };
 
 // 接收方检查版本
 if (header.version > SUPPORTED_VERSION) {
-    return -AGENTRT_ENOTSUP;  // 触发发送方降级
+    return -AIRY_ENOTSUP;  // 触发发送方降级
 }
 ```
 
@@ -140,8 +140,8 @@ if (header.version > SUPPORTED_VERSION) {
 ### 4.4 同源 agentrt 兼容性
 
 agentrt 的 ABI 稳定性与 agentrt-linux 同源：
-- agentrt 用户态：`agentrt_*` API 稳定
-- agentrt-linux 内核态：`AGENTRT_SYS_*` 系统调用稳定
+- agentrt 用户态：`airy_*` API 稳定
+- agentrt-linux 内核态：`AIRY_SYS_*` 系统调用稳定
 - 两端通过同源语义保持兼容
 
 ### 4.5 IRON-9 v2 同源且部分代码共享

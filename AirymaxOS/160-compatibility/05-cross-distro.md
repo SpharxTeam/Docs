@@ -166,10 +166,10 @@ __asm__(".symver new_function,function@@GLIBC_2.34");
 对于不依赖 glibc 的关键库（如 seL4 capability 库），采用静态链接：
 
 ```bash
-# 静态链接 libagentrt_capability
+# 静态链接 libairy_capability
 gcc -o agent_app agent_app.c \
-    -lagentrt_capability_static \
-    -Wl,-Bstatic -lagentrt_capability -Wl,-Bdynamic \
+    -lairy_capability_static \
+    -Wl,-Bstatic -lairy_capability -Wl,-Bdynamic \
     -lc -lpthread
 ```
 
@@ -212,11 +212,11 @@ dkms autoinstall
 /* airymaxos-services/compat/kernel_feature_detect.c [IND] */
 
 /**
- * agentrt_detect_sched_ext - 检测内核是否支持 sched_ext
+ * airy_detect_sched_ext - 检测内核是否支持 sched_ext
  *
  * 返回 1 表示支持，0 表示不支持
  */
-int agentrt_detect_sched_ext(void)
+int airy_detect_sched_ext(void)
 {
     if (access("/sys/kernel/sched_ext", F_OK) == 0) {
         log_write(LOG_INFO, "sched_ext supported: using SCHED_AGENT");
@@ -227,9 +227,9 @@ int agentrt_detect_sched_ext(void)
 }
 
 /**
- * agentrt_detect_io_uring - 检测内核是否支持 io_uring
+ * airy_detect_io_uring - 检测内核是否支持 io_uring
  */
-int agentrt_detect_io_uring(void)
+int airy_detect_io_uring(void)
 {
     struct io_uring_params params;
     int fd = syscall(__NR_io_uring_setup, 1, &params);
@@ -267,7 +267,7 @@ agentctl app check-portability my-agent
 # Portability level: Gold
 # Dependencies:
 #   - glibc >= 2.34 ✓
-#   - libagentrt_sdk >= 1.0.1 ✓
+#   - libairy_sdk >= 1.0.1 ✓
 #   - sched_ext (optional) ✓
 #   - io_uring (optional) ✓
 # Compatible distributions:
@@ -495,7 +495,7 @@ steps:
 
 ```c
 /* 降级时通知 Agent 应用 */
-void agentrt_notify_fallback(const char *feature,
+void airy_notify_fallback(const char *feature,
                               const char *reason)
 {
     log_write(LOG_WARN,
@@ -503,12 +503,12 @@ void agentrt_notify_fallback(const char *feature,
         feature, reason, current_agent_id);
 
     /* 通过 IPC 通知 Agent */
-    agentrt_ipc_event_t event = {
-        .type = AGENTRT_EVENT_FEATURE_FALLBACK,
+    airy_ipc_event_t event = {
+        .type = AIRY_EVENT_FEATURE_FALLBACK,
         .feature = feature,
         .reason = reason,
     };
-    agentrt_ipc_send_event(current_agent_id, &event);
+    airy_ipc_send_event(current_agent_id, &event);
 }
 ```
 
@@ -541,11 +541,11 @@ graph TD
 
 | 错误码 | 名称 | 含义 |
 |--------|------|------|
-| -ENODISTRO | AGENTRT_ENODISTRO | 不支持的发行版 |
-| -ENOKERN | AGENTRT_ENOKERN | 内核版本过低 |
-| -ENOGLIBC | AGENTRT_ENOGLIBC | glibc 版本过低 |
-| -ENOMOD | AGENTRT_ENOMOD | 内核模块加载失败 |
-| -ENOFALLBACK | AGENTRT_ENOFALLBACK | 无可用降级路径 |
+| -ENODISTRO | AIRY_ENODISTRO | 不支持的发行版 |
+| -ENOKERN | AIRY_ENOKERN | 内核版本过低 |
+| -ENOGLIBC | AIRY_ENOGLIBC | glibc 版本过低 |
+| -ENOMOD | AIRY_ENOMOD | 内核模块加载失败 |
+| -ENOFALLBACK | AIRY_ENOFALLBACK | 无可用降级路径 |
 
 ### 15.2 错误诊断
 
@@ -589,7 +589,7 @@ rpm --checksig airymaxos-kernel-1.0.1-1.x86_64.rpm
 /usr/src/linux-6.6/scripts/sign-file sha256 \
     /etc/agentrt/keys/private_key.pem \
     /etc/agentrt/keys/public_key.x509 \
-    agentrt_sched.ko
+    airy_sched.ko
 ```
 
 ---
@@ -670,7 +670,7 @@ sudo dnf install agentrt-linux-dkms kernel-devel
 
 # 编译并加载内核模块
 sudo dkms autoinstall
-sudo modprobe agentrt_sched
+sudo modprobe airy_sched
 
 # 验证
 lsmod | grep agentrt

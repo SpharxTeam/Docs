@@ -53,7 +53,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | daemons/sched_d | airymaxos-services | 调度守护进程：任务调度 | 服务同源 |
 | daemons/tool_d | airymaxos-services | 工具守护进程：执行单元 | 服务同源 |
 | cupolas (安全穹顶) | airymaxos-security | capability + LSM 安全模型 | 模型同源，安全内生 |
-| cupolas/permission | airymaxos-security | 权限裁决引擎：RBAC + 策略 | 模型同源 |
+| cupolas/permission | airymaxos-security | 权限裁决引擎：capability + 策略 | 模型同源（ADR-004 确立 capability-based 安全模型，RBAC 已被拒绝） |
 | cupolas/sanitizer | airymaxos-security | 输入净化管道：四阶段 | 模型同源 |
 | cupolas/audit | airymaxos-security | 审计追踪：SHA-256 哈希链 | 模型同源 |
 | heapstore | airymaxos-memory | 堆存储：持久化基础 | 存储同源 |

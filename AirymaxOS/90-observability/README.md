@@ -61,7 +61,7 @@ eBPF 提供可编程的内核扩展能力：
 
 ```c
 // eBPF 程序示例（伪代码）
-SEC("kprobe/agentrt_cognition_process")
+SEC("kprobe/airy_cognition_process")
 int trace_cognition(struct pt_regs *ctx) {
     // 追踪 Agent 认知处理
     bpf_trace_printk("cognition process called\\n");
@@ -142,10 +142,10 @@ agent_id  token_input  token_output  token_total  efficiency
 ### 4.2 Agent 行为追踪
 
 通过 eBPF 探针追踪 Agent 决策路径：
-- `agentrt_cognition_process` 入口/出口
-- `agentrt_planner_dag_update` 节点扩展
-- `agentrt_scheduler_dispatch` 调度决策
-- `agentrt_execution_unit_run` 执行结果
+- `airy_cognition_process` 入口/出口
+- `airy_planner_dag_update` 节点扩展
+- `airy_scheduler_dispatch` 调度决策
+- `airy_execution_unit_run` 执行结果
 
 ### 4.3 记忆卷载监控
 
@@ -164,7 +164,7 @@ L4_pat   456      0.95      7200s    0.01
 ### 4.4 同源 agentrt 可观测性
 
 agentrt 的 `commons/` 模块（error/logger/metrics/trace/cost）与 agentrt-linux 可观测性同源：
-- agentrt 用户态：`agentrt_log_write()` / `agentrt_metrics_record()`
+- agentrt 用户态：`airy_log_write()` / `airy_metrics_record()`
 - agentrt-linux 内核态：`printk` / `trace_printk` / `perf_event`
 - 两端通过 user_events 桥接
 

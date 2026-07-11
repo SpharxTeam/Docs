@@ -22,14 +22,13 @@ docs/
 ├── AirymaxRT/                             # 极境智能体运行底座平台工程文档
 │   ├── README.md                          # AirymaxRT 文档总览
 │   ├── README_zh.md                       # AirymaxRT 中文文档总览
-│   ├── 10-terminology.md                     # 术语表
-│   ├── 00-architectural-principles.md        # 24 条 S/K/C/E/A 五维正交设计原则
-│   ├── 00-basic-theories/                    # 基础理论（MCIS/认知层/记忆层/设计原则）
-│   ├── 10-architecture/              # 核心架构（MicroCoreRT/CoreLoopThree/MemoryRovol/Syscall）
-│   ├── 30-api/                       # API 参考（syscall/daemon/toolkit/algorithms）
-│   ├── 60-guides/                    # 开发指南（快速入门/构建/部署/创建Agent/排错）
-│   ├── 50-specifications/            # 规范标准（编码规范/契约/ARE标准/集成标准）
-│   └── 90-references/                      # 其他资源
+│   ├── TERMINOLOGY.md                     # 术语表
+│   ├── 00-requirements/                   # 需求规格
+│   ├── 10-architecture/                   # 核心架构（设计原则/系统架构/IRON-9 共享模型）
+│   ├── 20-modules/                        # 模块设计（atoms/cupolas/commons/daemons/contracts）
+│   ├── 30-interfaces/                     # 对外接口（API/IPC/RPC/syscalls/toolkit/algorithms）
+│   ├── 50-engineering-standards/          # 工程标准（符号链接 → AirymaxOS）
+│   └── 140-application-development/       # 应用开发（创建Agent/Skill/测试/迁移/最佳实践）
 │
 ├── AirymaxOS/                             # 极境智能体操作系统文档
 │   ├── README.md                          # AirymaxOS 文档总览（8 子仓 + 19 模块）
@@ -57,12 +56,13 @@ docs/
 │
 ├── OpenStandards/                         # Airymax 开放标准体系
 │   ├── README.md                          # 开放标准总览
-│   ├── 01-airymax-agent-runtime-standard.md    # 智能体运行时标准
-│   ├── 02-airymax-ipc-protocol-standard.md     # IPC 协议标准
-│   ├── 03-airymax-security-model-standard.md   # 安全模型标准
-│   ├── 04-airymax-memory-rovol-standard.md    # MemoryRovol 标准
-│   ├── 05-airymax-cognition-loop-standard.md  # 认知循环标准
-│   └── 06-airymax-scheduling-standard.md      # 调度标准
+│   ├── 01-airy-agent-runtime-standard.md     # 智能体运行时标准
+│   ├── 02-airy-ipc-protocol-standard.md      # IPC 协议标准
+│   ├── 03-airy-security-model-standard.md    # 安全模型标准
+│   ├── 04-airy-memory-rovol-standard.md      # MemoryRovol 标准
+│   ├── 05-airy-cognition-loop-standard.md   # 认知循环标准
+│   ├── 06-airy-scheduling-standard.md        # 调度标准
+│   └── 07-airy-syscall-standard.md           # 系统调用标准
 │
 └── Publications/                          # Airymax 研究成果发布中心
     ├── README.md                          # 研究成果发布中心入口
@@ -89,12 +89,12 @@ OpenStandards 定义了 AirymaxRT 与 AirymaxOS 之间的共享契约层，Publi
 
 | 角色 | 推荐阅读路径 |
 |------|-------------|
-| **新手入门** | AirymaxRT → 60-guides/01-getting-started.md → configuration_guide.md |
-| **开发者** | AirymaxRT → 30-api/ → 50-specifications/30-coding-standard/ |
-| **架构师** | AirymaxRT → 00-basic-theories/ → 10-architecture/ → 00-architectural-principles.md |
-| **运维工程师** | AirymaxRT → 60-guides/03-deployment-guide.md → monitoring_guide.md |
+| **新手入门** | AirymaxRT → 140-application-development/ → 10-migration-guide.md |
+| **开发者** | AirymaxRT → 30-interfaces/ → 50-engineering-standards/10-coding-style/ |
+| **架构师** | AirymaxRT → 10-architecture/ → 00-architectural-principles.md |
+| **运维工程师** | AirymaxRT → 140-application-development/ → 15-testing-standards.md |
 | **OS 开发者** | AirymaxOS → 10-architecture/ → 20-modules/ → 50-engineering-standards/ |
-| **标准制定者** | OpenStandards/ → 01-airymax-agent-runtime-standard.md |
+| **标准制定者** | OpenStandards/ → 01-airy-agent-runtime-standard.md |
 | **研究人员** | Publications/ → Journals/ / Conferences/ / Preprints/ |
 
 ## 许可证

@@ -77,27 +77,27 @@ agentrt-linux 严格遵循 POSIX locale 命名规范 `language[_TERRITORY][.code
 
 ```c
 /* include/uapi/airymax/locale.h —— agentrt-linux locale 标识符 */
-#ifndef AIRYMAX_LOCALE_H
-#define AIRYMAX_LOCALE_H
+#ifndef AIRY_LOCALE_H
+#define AIRY_LOCALE_H
 
 #include <linux/types.h>
 
 /* agentrt-linux 支持的 locale 枚举 */
-enum airymax_locale_id {
-	AIRYMAX_LOCALE_EN_US = 0,    /* 默认 locale */
-	AIRYMAX_LOCALE_ZH_CN,        /* 简体中文 + 国密 */
-	AIRYMAX_LOCALE_JA_JP,        /* 日本語 */
-	AIRYMAX_LOCALE_KO_KR,        /* 한국어 */
-	AIRYMAX_LOCALE_ZH_TW,        /* 繁体中文 */
-	AIRYMAX_LOCALE_EN_GB,        /* 英国英语 */
-	AIRYMAX_LOCALE_DE_DE,        /* 德语 */
-	AIRYMAX_LOCALE_FR_FR,        /* 法语 */
-	AIRYMAX_LOCALE_MAX,
+enum airy_locale_id {
+	AIRY_LOCALE_EN_US = 0,    /* 默认 locale */
+	AIRY_LOCALE_ZH_CN,        /* 简体中文 + 国密 */
+	AIRY_LOCALE_JA_JP,        /* 日本語 */
+	AIRY_LOCALE_KO_KR,        /* 한국어 */
+	AIRY_LOCALE_ZH_TW,        /* 繁体中文 */
+	AIRY_LOCALE_EN_GB,        /* 英国英语 */
+	AIRY_LOCALE_DE_DE,        /* 德语 */
+	AIRY_LOCALE_FR_FR,        /* 法语 */
+	AIRY_LOCALE_MAX,
 };
 
 /* locale 标识符（POSIX 格式，最长 32 字节） */
-struct airymax_locale_desc {
-	enum airymax_locale_id id;
+struct airy_locale_desc {
+	enum airy_locale_id id;
 	char posix_name[32];          /* 如 "zh_CN.UTF-8" */
 	char language[8];             /* 如 "zh" */
 	char territory[8];            /* 如 "CN" */
@@ -105,18 +105,18 @@ struct airymax_locale_desc {
 };
 
 /* locale 全局表（编译期生成，只读） */
-static const struct airymax_locale_desc airymax_locales[] = {
-	[AIRYMAX_LOCALE_EN_US] = { AIRYMAX_LOCALE_EN_US, "en_US.UTF-8", "en", "US", "UTF-8" },
-	[AIRYMAX_LOCALE_ZH_CN] = { AIRYMAX_LOCALE_ZH_CN, "zh_CN.UTF-8", "zh", "CN", "UTF-8" },
-	[AIRYMAX_LOCALE_JA_JP] = { AIRYMAX_LOCALE_JA_JP, "ja_JP.UTF-8", "ja", "JP", "UTF-8" },
-	[AIRYMAX_LOCALE_KO_KR] = { AIRYMAX_LOCALE_KO_KR, "ko_KR.UTF-8", "ko", "KR", "UTF-8" },
-	[AIRYMAX_LOCALE_ZH_TW] = { AIRYMAX_LOCALE_ZH_TW, "zh_TW.UTF-8", "zh", "TW", "UTF-8" },
-	[AIRYMAX_LOCALE_EN_GB] = { AIRYMAX_LOCALE_EN_GB, "en_GB.UTF-8", "en", "GB", "UTF-8" },
-	[AIRYMAX_LOCALE_DE_DE] = { AIRYMAX_LOCALE_DE_DE, "de_DE.UTF-8", "de", "DE", "UTF-8" },
-	[AIRYMAX_LOCALE_FR_FR] = { AIRYMAX_LOCALE_FR_FR, "fr_FR.UTF-8", "fr", "FR", "UTF-8" },
+static const struct airy_locale_desc airy_locales[] = {
+	[AIRY_LOCALE_EN_US] = { AIRY_LOCALE_EN_US, "en_US.UTF-8", "en", "US", "UTF-8" },
+	[AIRY_LOCALE_ZH_CN] = { AIRY_LOCALE_ZH_CN, "zh_CN.UTF-8", "zh", "CN", "UTF-8" },
+	[AIRY_LOCALE_JA_JP] = { AIRY_LOCALE_JA_JP, "ja_JP.UTF-8", "ja", "JP", "UTF-8" },
+	[AIRY_LOCALE_KO_KR] = { AIRY_LOCALE_KO_KR, "ko_KR.UTF-8", "ko", "KR", "UTF-8" },
+	[AIRY_LOCALE_ZH_TW] = { AIRY_LOCALE_ZH_TW, "zh_TW.UTF-8", "zh", "TW", "UTF-8" },
+	[AIRY_LOCALE_EN_GB] = { AIRY_LOCALE_EN_GB, "en_GB.UTF-8", "en", "GB", "UTF-8" },
+	[AIRY_LOCALE_DE_DE] = { AIRY_LOCALE_DE_DE, "de_DE.UTF-8", "de", "DE", "UTF-8" },
+	[AIRY_LOCALE_FR_FR] = { AIRY_LOCALE_FR_FR, "fr_FR.UTF-8", "fr", "FR", "UTF-8" },
 };
 
-#endif /* AIRYMAX_LOCALE_H */
+#endif /* AIRY_LOCALE_H */
 ```
 
 ### 2.3 LC_* 分类与应用
@@ -155,14 +155,14 @@ locale -a | grep -E "zh_CN|en_US|ja_JP|ko_KR"
 agentrt-linux 在 Linux 6.6 内核基线上扩展 printk，支持运行时 locale 切换的多语言消息。所有内核消息以 UTF-8 编码存储，禁止使用 `wchar_t`（内核态不支持）。
 
 ```c
-/* airymaxos-kernel/kernel/airymax_i18n.c */
+/* airymaxos-kernel/kernel/airy_i18n.c */
 #include <linux/spinlock.h>
 #include <linux/string.h>
 #include <linux/types.h>
 #include <uapi/airymax/locale.h>
 
 /* 内核消息 ID 枚举（与 agentrt 共享，[SC] 共享契约层） */
-enum airymax_kmsg_id {
+enum airy_kmsg_id {
 	KMSG_BOOT_START = 1,
 	KMSG_SCHED_LOADED,
 	KMSG_MEMORY_INIT,
@@ -173,15 +173,15 @@ enum airymax_kmsg_id {
 };
 
 /* 多语言消息条目 */
-struct airymax_kmsg_entry {
-	enum airymax_kmsg_id id;
+struct airy_kmsg_entry {
+	enum airy_kmsg_id id;
 	const char *en_us;     /* 英文（默认） */
 	const char *zh_cn;     /* 简体中文 */
 	const char *ja_jp;     /* 日本語 */
 };
 
 /* 编译期消息表（rodata 段，无运行时分配） */
-static const struct airymax_kmsg_entry kmsg_table[] = {
+static const struct airy_kmsg_entry kmsg_table[] = {
 	{KMSG_BOOT_START,
 	 "agentrt-linux (AirymaxOS) starting up...",
 	 "agentrt-linux（AirymaxOS，极境智能体操作系统）启动中...",
@@ -213,14 +213,14 @@ static const struct airymax_kmsg_entry kmsg_table[] = {
 };
 
 static DEFINE_SPINLOCK(kmsg_locale_lock);
-static enum airymax_locale_id kmsg_locale = AIRYMAX_LOCALE_EN_US;
+static enum airy_locale_id kmsg_locale = AIRY_LOCALE_EN_US;
 
 /* 设置内核日志 locale */
-int airymax_kmsg_set_locale(enum airymax_locale_id id)
+int airy_kmsg_set_locale(enum airy_locale_id id)
 {
 	unsigned long flags;
 
-	if (id >= AIRYMAX_LOCALE_MAX)
+	if (id >= AIRY_LOCALE_MAX)
 		return -EINVAL;
 
 	spin_lock_irqsave(&kmsg_locale_lock, flags);
@@ -230,7 +230,7 @@ int airymax_kmsg_set_locale(enum airymax_locale_id id)
 }
 
 /* 查找消息条目（按 ID） */
-static const struct airymax_kmsg_entry *airymax_kmsg_lookup(enum airymax_kmsg_id id)
+static const struct airy_kmsg_entry *airy_kmsg_lookup(enum airy_kmsg_id id)
 {
 	size_t i;
 	for (i = 0; i < ARRAY_SIZE(kmsg_table); i++)
@@ -240,13 +240,13 @@ static const struct airymax_kmsg_entry *airymax_kmsg_lookup(enum airymax_kmsg_id
 }
 
 /* 根据 locale 选择消息文本 */
-static const char *airymax_kmsg_text(const struct airymax_kmsg_entry *e,
-				     enum airymax_locale_id loc)
+static const char *airy_kmsg_text(const struct airy_kmsg_entry *e,
+				     enum airy_locale_id loc)
 {
 	switch (loc) {
-	case AIRYMAX_LOCALE_ZH_CN:
+	case AIRY_LOCALE_ZH_CN:
 		return e->zh_cn ? e->zh_cn : e->en_us;
-	case AIRYMAX_LOCALE_JA_JP:
+	case AIRY_LOCALE_JA_JP:
 		return e->ja_jp ? e->ja_jp : e->en_us;
 	default:
 		return e->en_us;
@@ -254,27 +254,27 @@ static const char *airymax_kmsg_text(const struct airymax_kmsg_entry *e,
 }
 
 /* 多语言 printk */
-#define airymax_printk(level, msg_id, fmt_args...) \
+#define airy_printk(level, msg_id, fmt_args...) \
 	do { \
-		const struct airymax_kmsg_entry *__e; \
+		const struct airy_kmsg_entry *__e; \
 		unsigned long __flags; \
-		enum airymax_locale_id __loc; \
-		__e = airymax_kmsg_lookup(msg_id); \
+		enum airy_locale_id __loc; \
+		__e = airy_kmsg_lookup(msg_id); \
 		if (__e) { \
 			spin_lock_irqsave(&kmsg_locale_lock, __flags); \
 			__loc = kmsg_locale; \
 			spin_unlock_irqrestore(&kmsg_locale_lock, __flags); \
-			printk(level airymax_kmsg_text(__e, __loc) "\n", ##fmt_args); \
+			printk(level airy_kmsg_text(__e, __loc) "\n", ##fmt_args); \
 		} \
 	} while (0)
 
 /* 使用示例 */
-void airymax_kernel_init_example(void)
+void airy_kernel_init_example(void)
 {
-	airymax_printk(KERN_INFO, KMSG_BOOT_START);
-	airymax_printk(KERN_INFO, KMSG_SCHED_LOADED);
-	airymax_printk(KERN_INFO, KMSG_MEMORY_INIT, 16384UL);
-	airymax_printk(KERN_WARNING, KMSG_CUPOLAS_DENY, 42U, current->pid);
+	airy_printk(KERN_INFO, KMSG_BOOT_START);
+	airy_printk(KERN_INFO, KMSG_SCHED_LOADED);
+	airy_printk(KERN_INFO, KMSG_MEMORY_INIT, 16384UL);
+	airy_printk(KERN_WARNING, KMSG_CUPOLAS_DENY, 42U, current->pid);
 }
 ```
 
@@ -288,15 +288,15 @@ void airymax_kernel_init_example(void)
 #include <errno.h>
 #include <airymax/locale.h>
 
-int airymax_set_kernel_locale(enum airymax_locale_id id)
+int airy_set_kernel_locale(enum airy_locale_id id)
 {
 	int fd, ret;
 
-	fd = open("/dev/airymax_i18n", O_RDWR);
+	fd = open("/dev/airy_i18n", O_RDWR);
 	if (fd < 0)
 		return -errno;
 
-	ret = ioctl(fd, AIRYMAX_IOC_SET_KMSG_LOCALE, &id);
+	ret = ioctl(fd, AIRY_IOC_SET_KMSG_LOCALE, &id);
 	close(fd);
 	return ret;
 }
@@ -305,7 +305,7 @@ int airymax_set_kernel_locale(enum airymax_locale_id id)
 int main(void)
 {
 	/* 切换内核日志为简体中文 */
-	airymax_set_kernel_locale(AIRYMAX_LOCALE_ZH_CN);
+	airy_set_kernel_locale(AIRY_LOCALE_ZH_CN);
 
 	/* dmesg 将输出中文 */
 	/* 输出示例：
@@ -337,8 +337,8 @@ ExecStart=/usr/lib/airymaxos/services/llm_d
 Environment=LANG=zh_CN.UTF-8
 Environment=LC_MESSAGES=zh_CN.UTF-8
 Environment=LC_CTYPE=zh_CN.UTF-8
-Environment=AIRYMAX_LOCALE_ID=2
-Environment=AGENTRT_LOG_LOCALE=zh_CN.UTF-8
+Environment=AIRY_LOCALE_ID=2
+Environment=AIRY_LOG_LOCALE=zh_CN.UTF-8
 Restart=on-failure
 RestartSec=5
 
@@ -349,38 +349,38 @@ WantedBy=multi-user.target
 ### 4.2 locale 切换伪代码（运行时动态切换）
 
 ```c
-/* airymaxos-services/common/airymax_locale.c */
+/* airymaxos-services/common/airy_locale.c */
 #include <locale.h>
 #include <libintl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <airymax/locale.h>
 
-#define AIRYMAX_TEXT_DOMAIN "airymaxos"
+#define AIRY_TEXT_DOMAIN "airymaxos"
 
-struct airymax_locale_state {
-	enum airymax_locale_id id;
+struct airy_locale_state {
+	enum airy_locale_id id;
 	char posix_name[32];
 	char *mo_path;
 };
 
 /* 初始化 locale 系统 */
-int airymax_locale_init(struct airymax_locale_state *st,
-			enum airymax_locale_id id)
+int airy_locale_init(struct airy_locale_state *st,
+			enum airy_locale_id id)
 {
 	const char *posix;
 	int ret;
 
-	if (id >= AIRYMAX_LOCALE_MAX)
+	if (id >= AIRY_LOCALE_MAX)
 		return -EINVAL;
 
-	posix = airymax_locales[id].posix_name;
+	posix = airy_locales[id].posix_name;
 	if (!setlocale(LC_ALL, posix))
 		return -ENOENT;
 
-	bindtextdomain(AIRYMAX_TEXT_DOMAIN, "/usr/share/locale");
-	bind_textdomain_codeset(AIRYMAX_TEXT_DOMAIN, "UTF-8");
-	textdomain(AIRYMAX_TEXT_DOMAIN);
+	bindtextdomain(AIRY_TEXT_DOMAIN, "/usr/share/locale");
+	bind_textdomain_codeset(AIRY_TEXT_DOMAIN, "UTF-8");
+	textdomain(AIRY_TEXT_DOMAIN);
 
 	st->id = id;
 	ret = strscpy(st->posix_name, posix, sizeof(st->posix_name));
@@ -390,18 +390,18 @@ int airymax_locale_init(struct airymax_locale_state *st,
 }
 
 /* 运行时切换 locale（用于响应客户端请求语言偏好） */
-int airymax_locale_switch(struct airymax_locale_state *st,
-			  enum airymax_locale_id new_id)
+int airy_locale_switch(struct airy_locale_state *st,
+			  enum airy_locale_id new_id)
 {
 	const char *posix;
 	int ret;
 
-	if (new_id >= AIRYMAX_LOCALE_MAX)
+	if (new_id >= AIRY_LOCALE_MAX)
 		return -EINVAL;
 	if (new_id == st->id)
 		return 0;
 
-	posix = airymax_locales[new_id].posix_name;
+	posix = airy_locales[new_id].posix_name;
 	if (!setlocale(LC_ALL, posix)) {
 		ret = -ENOENT;
 		goto out_err;
@@ -420,27 +420,27 @@ out_err:
 }
 
 /* 根据客户端 Accept-Language 选择最佳 locale */
-enum airymax_locale_id airymax_locale_from_accept_language(const char *accept)
+enum airy_locale_id airy_locale_from_accept_language(const char *accept)
 {
 	/* 简化版：按优先级匹配前缀 */
 	if (!accept)
-		return AIRYMAX_LOCALE_EN_US;
+		return AIRY_LOCALE_EN_US;
 
 	if (strncasecmp(accept, "zh-CN", 5) == 0 || strncasecmp(accept, "zh-Hans", 7) == 0)
-		return AIRYMAX_LOCALE_ZH_CN;
+		return AIRY_LOCALE_ZH_CN;
 	if (strncasecmp(accept, "zh-TW", 5) == 0 || strncasecmp(accept, "zh-Hant", 7) == 0)
-		return AIRYMAX_LOCALE_ZH_TW;
+		return AIRY_LOCALE_ZH_TW;
 	if (strncasecmp(accept, "ja", 2) == 0)
-		return AIRYMAX_LOCALE_JA_JP;
+		return AIRY_LOCALE_JA_JP;
 	if (strncasecmp(accept, "ko", 2) == 0)
-		return AIRYMAX_LOCALE_KO_KR;
+		return AIRY_LOCALE_KO_KR;
 	if (strncasecmp(accept, "de", 2) == 0)
-		return AIRYMAX_LOCALE_DE_DE;
+		return AIRY_LOCALE_DE_DE;
 	if (strncasecmp(accept, "fr", 2) == 0)
-		return AIRYMAX_LOCALE_FR_FR;
+		return AIRY_LOCALE_FR_FR;
 	if (strncasecmp(accept, "en-GB", 5) == 0)
-		return AIRYMAX_LOCALE_EN_GB;
-	return AIRYMAX_LOCALE_EN_US;
+		return AIRY_LOCALE_EN_GB;
+	return AIRY_LOCALE_EN_US;
 }
 ```
 
@@ -528,19 +528,19 @@ memoryRovol:
 
 ```c
 /* 跨区域回退查询策略 */
-static const enum airymax_locale_id fallback_chain_zh_cn[] = {
-	AIRYMAX_LOCALE_ZH_CN,    /* 首选：简体中文 */
-	AIRYMAX_LOCALE_ZH_TW,    /* 回退 1：繁体中文 */
-	AIRYMAX_LOCALE_EN_US,   /* 回退 2：英文 */
+static const enum airy_locale_id fallback_chain_zh_cn[] = {
+	AIRY_LOCALE_ZH_CN,    /* 首选：简体中文 */
+	AIRY_LOCALE_ZH_TW,    /* 回退 1：繁体中文 */
+	AIRY_LOCALE_EN_US,   /* 回退 2：英文 */
 };
 
-static const enum airymax_locale_id fallback_chain_ja_jp[] = {
-	AIRYMAX_LOCALE_JA_JP,    /* 首选：日本語 */
-	AIRYMAX_LOCALE_EN_US,   /* 回退 1：英文 */
+static const enum airy_locale_id fallback_chain_ja_jp[] = {
+	AIRY_LOCALE_JA_JP,    /* 首选：日本語 */
+	AIRY_LOCALE_EN_US,   /* 回退 1：英文 */
 };
 
-static const enum airymax_locale_id fallback_chain_en_us[] = {
-	AIRYMAX_LOCALE_EN_US,    /* 首选：英文，无回退 */
+static const enum airy_locale_id fallback_chain_en_us[] = {
+	AIRY_LOCALE_EN_US,    /* 首选：英文，无回退 */
 };
 ```
 
@@ -552,22 +552,22 @@ static const enum airymax_locale_id fallback_chain_en_us[] = {
 
 ```c
 /* locale 感知的加密算法选择 */
-enum airymax_crypto_algo {
-	AIRYMAX_CRYPTO_RSA_SHA256,   /* 国际默认 */
-	AIRYMAX_CRYPTO_SM2_SM3,      /* 国密（zh_CN locale 强制） */
-	AIRYMAX_CRYPTO_AES_GCM,     /* 国际默认对称 */
-	AIRYMAX_CRYPTO_SM4,         /* 国密对称（zh_CN locale 强制） */
+enum airy_crypto_algo {
+	AIRY_CRYPTO_RSA_SHA256,   /* 国际默认 */
+	AIRY_CRYPTO_SM2_SM3,      /* 国密（zh_CN locale 强制） */
+	AIRY_CRYPTO_AES_GCM,     /* 国际默认对称 */
+	AIRY_CRYPTO_SM4,         /* 国密对称（zh_CN locale 强制） */
 };
 
-enum airymax_crypto_algo airymax_crypto_select_algo(enum airymax_locale_id loc)
+enum airy_crypto_algo airy_crypto_select_algo(enum airy_locale_id loc)
 {
 	switch (loc) {
-	case AIRYMAX_LOCALE_ZH_CN:
-		return AIRYMAX_CRYPTO_SM2_SM3;   /* 国密合规 */
-	case AIRYMAX_LOCALE_ZH_TW:
-		return AIRYMAX_CRYPTO_RSA_SHA256;
+	case AIRY_LOCALE_ZH_CN:
+		return AIRY_CRYPTO_SM2_SM3;   /* 国密合规 */
+	case AIRY_LOCALE_ZH_TW:
+		return AIRY_CRYPTO_RSA_SHA256;
 	default:
-		return AIRYMAX_CRYPTO_RSA_SHA256;
+		return AIRY_CRYPTO_RSA_SHA256;
 	}
 }
 ```
@@ -592,7 +592,7 @@ enum airymax_crypto_algo airymax_crypto_select_algo(enum airymax_locale_id loc)
 
 ```c
 /* 共享 mo 文件 mmap */
-void *airymax_mo_mmap(const char *domain, const char *locale)
+void *airy_mo_mmap(const char *domain, const char *locale)
 {
 	char path[256];
 	int fd;
@@ -618,11 +618,11 @@ void *airymax_mo_mmap(const char *domain, const char *locale)
 
 | 错误码 | 数值 | 含义 |
 |--------|------|------|
-| AGENTRT_E_I18N_LOCALE_NOT_FOUND | -901 | locale 未安装 |
-| AGENTRT_E_I18N_MO_LOAD | -902 | mo 文件加载失败 |
-| AGENTRT_E_I18N_ENCODING | -903 | 编码错误 |
-| AGENTRT_E_I18N_INVALID_UTF8 | -904 | 无效 UTF-8 序列 |
-| AGENTRT_E_I18N_REGION | -905 | 区域配置错误 |
+| AIRY_E_I18N_LOCALE_NOT_FOUND | -901 | locale 未安装 |
+| AIRY_E_I18N_MO_LOAD | -902 | mo 文件加载失败 |
+| AIRY_E_I18N_ENCODING | -903 | 编码错误 |
+| AIRY_E_I18N_INVALID_UTF8 | -904 | 无效 UTF-8 序列 |
+| AIRY_E_I18N_REGION | -905 | 区域配置错误 |
 
 ---
 
@@ -643,7 +643,7 @@ void *airymax_mo_mmap(const char *domain, const char *locale)
 | 组件 | agentrt-linux（[SS]） | agentrt（[SS]） | 共享（[SC]） |
 |------|------------------------|------------------|--------------|
 | locale 枚举 | 内核 + 用户态 | 用户态 | locale_id 枚举 |
-| 多语言错误码 | AGENTRT_E_I18N_* | AGENTRT_E_I18N_* | `error.h` 错误码段 |
+| 多语言错误码 | AIRY_E_I18N_* | AIRY_E_I18N_* | `error.h` 错误码段 |
 | 内核消息表 | printk KMSG_* | 用户态日志 | KMSG_ID 枚举 |
 | 国密算法 | LSM + capability | 用户态安全模块 | SM2/SM3/SM4 算法 ID |
 

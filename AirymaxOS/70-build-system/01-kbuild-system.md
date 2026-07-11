@@ -134,9 +134,9 @@ obj-y := $(filter-out %/, $(obj-y))
 
 ```makefile
 # drivers/airymax/Makefile
-obj-$(CONFIG_AIRYMAX_IPC) += airymax-ipc.o
+obj-$(CONFIG_AIRY_IPC) += airymax-ipc.o
 airymax-ipc-y := ipc_core.o ipc_dispatch.o ipc_ringbuf.o
-airymax-ipc-$(CONFIG_AIRYMAX_IPC_DEBUG) += ipc_debug.o
+airymax-ipc-$(CONFIG_AIRY_IPC_DEBUG) += ipc_debug.o
 ```
 
 `scripts/Makefile.lib` 的 `real-search` 把 `airymax-ipc-y` 展开为真实的 `ipc_core.o` 等目标，再由 `if_changed_rule` 的 `ld_multi_m` 规则链接为 `airymax-ipc.o`，最终打包为 `airymax-ipc.ko`（模块）或并入 `built-in.a`（内建）。
@@ -157,17 +157,17 @@ agentrt-linux 子系统 Makefile 遵循 Linux 6.6 内核基线的 `Kbuild`/`Make
 #
 # agentrt-linux（AirymaxOS）AgentsIPC 内核态通道构建规则
 
-obj-$(CONFIG_AIRYMAX_IPC) += airymax-ipc.o
+obj-$(CONFIG_AIRY_IPC) += airymax-ipc.o
 
 airymax-ipc-y := ipc_core.o \
                  ipc_dispatch.o \
                  ipc_ringbuf.o \
                  ipc.o
 
-airymax-ipc-$(CONFIG_AIRYMAX_IPC_BENCH) += ipc_bench.o
+airymax-ipc-$(CONFIG_AIRY_IPC_BENCH) += ipc_bench.o
 
 ccflags-y += -I$(srctree)/drivers/airymax/include
-subdir-ccflags-y += -DAIRYMAX_IPC_PBUF=128
+subdir-ccflags-y += -DAIRY_IPC_PBUF=128
 ```
 
 要点：`obj-$(CONFIG_*)` 门控特性；`<name>-y` 列出组成部分；`ccflags-y` 仅作用于本目录，`subdir-ccflags-y` 传播到子目录；`-I` 用 `$(srctree)` 而非相对路径以兼容 out-of-tree 构建。

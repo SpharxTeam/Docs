@@ -19,7 +19,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ```c
 /* 好：边界检查在缓冲区操作之前 */
-if (user_len > AGENTRT_IPC_MSG_BODY_MAX)
+if (user_len > AIRY_IPC_MSG_BODY_MAX)
         return -EMSGSIZE;
 if (copy_from_user(kernel_buf, user_buf, user_len))
         return -EFAULT;
@@ -108,7 +108,7 @@ int ret = len;  /* 如果 len > INT_MAX，ret 变为未定义行为 */
 ```c
 /* 好 */
 size_t len = user_len;
-if (len > AGENTRT_IPC_MSG_BODY_MAX)
+if (len > AIRY_IPC_MSG_BODY_MAX)
         return -EMSGSIZE;
 
 /* 坏：有符号/无符号比较 */
@@ -139,10 +139,10 @@ pr_info(user_msg);  /* 用户可注入 %n 或 %s 导致信息泄露/崩溃 */
 
 ```c
 __printf(2, 3)
-void agentrt_log(struct agentrt_log_ctx *ctx, const char *fmt, ...);
+void airy_log(struct airy_log_ctx *ctx, const char *fmt, ...);
 
 /* 调用时编译器会检查 fmt 和参数是否匹配 */
-agentrt_log(ctx, "task %u created\n", task->id);
+airy_log(ctx, "task %u created\n", task->id);
 ```
 
 ---
@@ -155,7 +155,7 @@ agentrt_log(ctx, "task %u created\n", task->id);
 
 ```c
 /* 边界 API：必须检查 NULL */
-int agentrt_task_submit(struct agentrt_task *task)
+int airy_task_submit(struct airy_task *task)
 {
         if (!task)
                 return -EINVAL;
@@ -163,7 +163,7 @@ int agentrt_task_submit(struct agentrt_task *task)
 }
 
 /* 内部 helper：可假设参数非 NULL（调用者已检查） */
-static void __agentrt_task_enqueue(struct agentrt_task *task)
+static void __airy_task_enqueue(struct airy_task *task)
 {
         /* 直接使用 task，无需检查 NULL */
         list_add_tail(&task->link, &ready_queue);
@@ -201,14 +201,14 @@ task->id = 0;  /* 释放后使用！ */
 > **OS-SEC-019**：所有被多个线程访问的共享数据必须通过同步原语保护。数据竞争（data race）是未定义行为，可能导致内核崩溃或安全漏洞。KCSAN 在 CI 中检测数据竞争。
 
 ```c
-struct agentrt_task_table {
+struct airy_task_table {
         spinlock_t lock;
         struct list_head tasks;  /* 被 lock 保护 */
 };
 
 /* 好：加锁后访问 */
-void agentrt_task_table_add(struct agentrt_task_table *t,
-                             struct agentrt_task *task)
+void airy_task_table_add(struct airy_task_table *t,
+                             struct airy_task *task)
 {
         spin_lock(&t->lock);
         list_add_tail(&task->link, &t->tasks);
@@ -216,8 +216,8 @@ void agentrt_task_table_add(struct agentrt_task_table *t,
 }
 
 /* 坏：无锁访问，数据竞争 */
-void agentrt_task_table_add_bad(struct agentrt_task_table *t,
-                                 struct agentrt_task *task)
+void airy_task_table_add_bad(struct airy_task_table *t,
+                                 struct airy_task *task)
 {
         list_add_tail(&task->link, &t->tasks);  /* 数据竞争！ */
 }
@@ -259,15 +259,15 @@ spin_unlock(&task_table->lock);
 
 ```c
 /* 好：操作前检查 capability */
-int agentrt_resource_access(struct agentrt_session *s, u32 resource_id)
+int airy_resource_access(struct airy_session *s, u32 resource_id)
 {
-        if (!agentrt_capability_check(s->caps, resource_id, AGENTRT_CAP_ACCESS))
+        if (!airy_capability_check(s->caps, resource_id, AIRY_CAP_ACCESS))
                 return -EACCES;
         /* ... 执行访问 ... */
 }
 
 /* 坏：无 capability 检查 */
-int agentrt_resource_access_bad(struct agentrt_session *s, u32 resource_id)
+int airy_resource_access_bad(struct airy_session *s, u32 resource_id)
 {
         /* 直接访问资源，无权限检查 */
         return do_access(resource_id);
@@ -280,13 +280,13 @@ int agentrt_resource_access_bad(struct agentrt_session *s, u32 resource_id)
 
 ```c
 /* 好：capability 通过安全通道传递，不打印原始值 */
-int agentrt_capability_grant(struct agentrt_session *from,
-                              struct agentrt_session *to,
+int airy_capability_grant(struct airy_session *from,
+                              struct airy_session *to,
                               u32 cap_id)
 {
         /* cap_id 是 capability 索引，非原始值 */
-        agentrt_audit_record(AUDIT_CAP_GRANT, from->id, to->id, cap_id);
-        return __agentrt_capability_transfer(from, to, cap_id);
+        airy_audit_record(AUDIT_CAP_GRANT, from->id, to->id, cap_id);
+        return __airy_capability_transfer(from, to, cap_id);
 }
 ```
 
@@ -300,32 +300,32 @@ int agentrt_capability_grant(struct agentrt_session *from,
 
 ```c
 /* 完整的输入验证流程 */
-int agentrt_syscall_task_create(struct agentrt_task_create_args __user *uargs)
+int airy_syscall_task_create(struct airy_task_create_args __user *uargs)
 {
-        struct agentrt_task_create_args args;
-        struct agentrt_task *task;
+        struct airy_task_create_args args;
+        struct airy_task *task;
 
         /* 步骤 1：复制用户态数据 */
         if (copy_from_user(&args, uargs, sizeof(args)))
                 return -EFAULT;
 
         /* 步骤 2：长度检查 */
-        if (args.name_len > AGENTRT_TASK_NAME_MAX)
+        if (args.name_len > AIRY_TASK_NAME_MAX)
                 return -EINVAL;
         if (args.name_len == 0)
                 return -EINVAL;
 
         /* 步骤 3：范围检查 */
-        if (args.priority > AGENTRT_MAX_PRIORITY)
+        if (args.priority > AIRY_MAX_PRIORITY)
                 return -EINVAL;
 
         /* 步骤 4：类型检查 */
-        if (args.flags & ~AGENTRT_TASK_FLAG_MASK)
+        if (args.flags & ~AIRY_TASK_FLAG_MASK)
                 return -EINVAL;
 
         /* 步骤 5：使用验证后的数据 */
-        task = agentrt_task_alloc(&args);
-        return agentrt_task_submit(task);
+        task = airy_task_alloc(&args);
+        return airy_task_submit(task);
 }
 ```
 
@@ -356,7 +356,7 @@ int agentrt_syscall_task_create(struct agentrt_task_create_args __user *uargs)
 
 ```c
 /* 好：清零结构体后再填充 */
-struct agentrt_task_info info = {0};  /* 全部清零 */
+struct airy_task_info info = {0};  /* 全部清零 */
 info.id = task->id;
 info.priority = task->priority;
 info.deadline_ns = task->deadline_ns;
@@ -365,7 +365,7 @@ if (copy_to_user(uinfo, &info, sizeof(info)))
         return -EFAULT;
 
 /* 坏：未初始化字段可能泄露内核栈数据 */
-struct agentrt_task_info info;
+struct airy_task_info info;
 info.id = task->id;
 /* info.reserved 字段未初始化，可能包含内核栈数据 */
 copy_to_user(uinfo, &info, sizeof(info));
@@ -389,8 +389,8 @@ pr_info("task %u at %px\n", task->id, task);  /* %px 泄露内核地址 */
 
 ```c
 /* 好：敏感数据使用后清零 */
-char key[AGENTRT_KEY_MAX];
-agentrt_key_derive(key, sizeof(key), seed);
+char key[AIRY_KEY_MAX];
+airy_key_derive(key, sizeof(key), seed);
 /* ... 使用 key ... */
 memzero_explicit(key, sizeof(key));  /* 清零，编译器不会优化掉 */
 ```

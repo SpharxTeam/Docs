@@ -221,7 +221,7 @@ kref_put(&desc->refcount, desc_release);
 ```c
 struct airymaxos_ipc_batch {
 	u64		count;
-	struct agentrt_ipc_msg	msg[];   /* 灵活数组成员 */
+	struct airy_ipc_msg	msg[];   /* 灵活数组成员 */
 };
 
 p = kmalloc(struct_size(p, msg, n), GFP_KERNEL);

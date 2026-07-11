@@ -12,7 +12,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 Airymax 采用第四代微核心架构设计（L4 MicroCoreRT），这是 **体系并行 (MCIS)** 与 **工程两论** 在操作系统层面的核心实践与具象体现。微核心将核心功能最小化（机制与策略分离），所有高级服务运行在用户态，深刻体现了 **系统工程层次分解** 思想，同时通过 IPC Binder 的高效通信形成 **控制论负反馈** 回路，确保系统的稳定性、安全性和可扩展性。
 
-在 Airymax 术语体系中，微核心的具体实现称为 **原子核心（CoreKern）**，代码目录 `corekern/`，代码前缀 `agentrt_core_*`，强调其不可再分的基础性质。作为 **体系并行** 中的 **基础体 (Base Body)**，原子核心承载着整个系统的运行时基础设施，为上层 **认知体 (Cognition Body)**、**执行体 (Execution Body)** 提供统一、稳定、高效的运行环境。
+在 Airymax 术语体系中，微核心的具体实现称为 **原子核心（CoreKern）**，代码目录 `corekern/`，代码前缀 `airy_core_*`，强调其不可再分的基础性质。作为 **体系并行** 中的 **基础体 (Base Body)**，原子核心承载着整个系统的运行时基础设施，为上层 **认知体 (Cognition Body)**、**执行体 (Execution Body)** 提供统一、稳定、高效的运行环境。
 
 从 **五维正交体系** 视角分析，微核心是 **内核观维度** 的具象实现，严格遵循微核心设计原则和形式化验证方法论，将极简主义的设计美学与形式化验证的工程严谨性完美结合。同时，它也与 **系统观维度**（层次分解）、**工程观维度**（性能优化）、**认知观维度**（智能支持）、**设计美学维度**（简约极致）形成正交协同，共同构成 Airymax 完整的技术哲学体系。
 
@@ -332,40 +332,40 @@ IPC Binder 是微核心的通信 backbone，提供:
 #### 数据结构
 
 ```c
-typedef struct agentrt_core_ipc_channel {
+typedef struct airy_core_ipc_channel {
     char* channel_id;                // 通道唯一标识
     size_t buffer_size;              // 缓冲区大小
     void* shared_memory;             // 共享内存指针
-    agentrt_core_semaphore_t* semaphore;  // 同步信号量
+    airy_core_semaphore_t* semaphore;  // 同步信号量
     uint32_t flags;                  // 通道标志
-} agentrt_core_ipc_channel_t;
+} airy_core_ipc_channel_t;
 
-typedef struct agentrt_core_ipc_binder {
-    agentrt_core_hashmap_t* channels;     // 通道哈希表
-    agentrt_core_mutex_t* lock;           // 线程锁
+typedef struct airy_core_ipc_binder {
+    airy_core_hashmap_t* channels;     // 通道哈希表
+    airy_core_mutex_t* lock;           // 线程锁
     uint32_t max_channels;           // 最大通道数
-} agentrt_core_ipc_binder_t;
+} airy_core_ipc_binder_t;
 ```
 
 #### 核心接口
 
 ```c
 // 创建 IPC 通道
-agentrt_core_error_t agentrt_core_ipc_channel_create(
+airy_core_error_t airy_core_ipc_channel_create(
     const char* channel_id,
     size_t buffer_size,
-    agentrt_core_ipc_channel_t** out_channel);
+    airy_core_ipc_channel_t** out_channel);
 
 // 发送消息
-agentrt_core_error_t agentrt_core_ipc_send(
-    agentrt_core_ipc_channel_t* channel,
+airy_core_error_t airy_core_ipc_send(
+    airy_core_ipc_channel_t* channel,
     const void* data,
     size_t len,
     uint32_t timeout_ms);
 
 // 接收消息
-agentrt_core_error_t agentrt_core_ipc_recv(
-    agentrt_core_ipc_channel_t* channel,
+airy_core_error_t airy_core_ipc_recv(
+    airy_core_ipc_channel_t* channel,
     void** out_data,
     size_t* out_len,
     uint32_t timeout_ms);
@@ -394,43 +394,43 @@ agentrt_core_error_t agentrt_core_ipc_recv(
 #### 数据结构
 
 ```c
-typedef struct agentrt_core_smart_ptr {
+typedef struct airy_core_smart_ptr {
     void* data;                      // 数据指针
     size_t* ref_count;               // 引用计数
     void (*destructor)(void*);       // 析构函数
-} agentrt_core_smart_ptr_t;
+} airy_core_smart_ptr_t;
 
-typedef struct agentrt_core_memory_pool {
+typedef struct airy_core_memory_pool {
     void* memory_block;              // 内存块
     size_t block_size;               // 块大小
     size_t free_blocks;              // 空闲块数
-    agentrt_core_bitmap_t* allocation_map;// 分配位图
-} agentrt_core_memory_pool_t;
+    airy_core_bitmap_t* allocation_map;// 分配位图
+} airy_core_memory_pool_t;
 ```
 
 #### 核心接口
 
 ```c
 // 创建智能指针
-agentrt_core_error_t agentrt_core_smart_ptr_create(
+airy_core_error_t airy_core_smart_ptr_create(
     void* data,
     size_t data_size,
     void (*destructor)(void*),
-    agentrt_core_smart_ptr_t** out_ptr);
+    airy_core_smart_ptr_t** out_ptr);
 
 // 引用计数增加
-agentrt_core_error_t agentrt_core_smart_ptr_add_ref(
-    agentrt_core_smart_ptr_t* ptr);
+airy_core_error_t airy_core_smart_ptr_add_ref(
+    airy_core_smart_ptr_t* ptr);
 
 // 引用计数减少
-agentrt_core_error_t agentrt_core_smart_ptr_release(
-    agentrt_core_smart_ptr_t* ptr);
+airy_core_error_t airy_core_smart_ptr_release(
+    airy_core_smart_ptr_t* ptr);
 
 // 创建内存池
-agentrt_core_error_t agentrt_core_memory_pool_create(
+airy_core_error_t airy_core_memory_pool_create(
     size_t block_size,
     size_t block_count,
-    agentrt_core_memory_pool_t** out_pool);
+    airy_core_memory_pool_t** out_pool);
 ```
 
 #### 内存优化策略
@@ -460,29 +460,29 @@ typedef enum {
     TASK_PRIORITY_NORMAL = 1,
     TASK_PRIORITY_HIGH = 2,
     TASK_PRIORITY_REALTIME = 3
-} agentrt_core_task_priority_t;
+} airy_core_task_priority_t;
 
-typedef struct agentrt_core_task {
+typedef struct airy_core_task {
     char* task_id;                   // 任务 ID
-    agentrt_core_task_priority_t priority;// 优先级
+    airy_core_task_priority_t priority;// 优先级
     uint64_t created_time;           // 创建时间
     uint64_t execution_time;         // 执行时间
     void (*entry_point)(void*);      // 入口函数
     void* argument;                  // 参数
-} agentrt_core_task_t;
+} airy_core_task_t;
 
-typedef struct agentrt_core_scheduler {
-    agentrt_core_priority_queue_t* queue; // 优先级队列
-    agentrt_core_mutex_t* lock;           // 线程锁
+typedef struct airy_core_scheduler {
+    airy_core_priority_queue_t* queue; // 优先级队列
+    airy_core_mutex_t* lock;           // 线程锁
     uint32_t weight_table[4];        // 权重表
-} agentrt_core_scheduler_t;
+} airy_core_scheduler_t;
 ```
 
 #### 调度算法
 
 **加权轮询实现**:
 ```c
-void agentrt_core_scheduler_run(agentrt_core_scheduler_t* scheduler) {
+void airy_core_scheduler_run(airy_core_scheduler_t* scheduler) {
     while (!scheduler->shutdown) {
         // 按权重选择优先级
         uint32_t total_weight = 0;
@@ -498,8 +498,8 @@ void agentrt_core_scheduler_run(agentrt_core_scheduler_t* scheduler) {
             cumulative += scheduler->weight_table[i];
             if (choice < cumulative) {
                 // 执行该优先级的任务
-                agentrt_core_task_t* task =
-                    agentrt_core_priority_queue_pop(scheduler->queue, i);
+                airy_core_task_t* task =
+                    airy_core_priority_queue_pop(scheduler->queue, i);
                 if (task) {
                     task->entry_point(task->argument);
                 }
@@ -514,18 +514,18 @@ void agentrt_core_scheduler_run(agentrt_core_scheduler_t* scheduler) {
 
 ```c
 // 提交任务
-agentrt_core_error_t agentrt_core_scheduler_submit(
-    agentrt_core_scheduler_t* scheduler,
-    agentrt_core_task_t* task);
+airy_core_error_t airy_core_scheduler_submit(
+    airy_core_scheduler_t* scheduler,
+    airy_core_task_t* task);
 
 // 取消任务
-agentrt_core_error_t agentrt_core_scheduler_cancel(
-    agentrt_core_scheduler_t* scheduler,
+airy_core_error_t airy_core_scheduler_cancel(
+    airy_core_scheduler_t* scheduler,
     const char* task_id);
 
 // 等待任务完成
-agentrt_core_error_t agentrt_core_scheduler_wait(
-    agentrt_core_scheduler_t* scheduler,
+airy_core_error_t airy_core_scheduler_wait(
+    airy_core_scheduler_t* scheduler,
     const char* task_id,
     uint32_t timeout_ms);
 ```
@@ -545,44 +545,44 @@ agentrt_core_error_t agentrt_core_scheduler_wait(
 #### 数据结构
 
 ```c
-typedef struct agentrt_core_timer {
+typedef struct airy_core_timer {
     uint64_t interval_ns;            // 间隔时间（纳秒）
     uint64_t next_fire_ns;           // 下次触发时间
     void (*callback)(void*);         // 回调函数
     void* user_data;                 // 用户数据
     bool repeat;                     // 是否重复
-} agentrt_core_timer_t;
+} airy_core_timer_t;
 
-typedef struct agentrt_core_time_service {
+typedef struct airy_core_time_service {
     uint64_t epoch_ns;               // 纪元时间
-    agentrt_core_min_heap_t* timers;      // 定时器最小堆
-    agentrt_core_mutex_t* lock;           // 线程锁
-} agentrt_core_time_service_t;
+    airy_core_min_heap_t* timers;      // 定时器最小堆
+    airy_core_mutex_t* lock;           // 线程锁
+} airy_core_time_service_t;
 ```
 
 #### 核心接口
 
 ```c
 // 获取当前时间（纳秒）
-uint64_t agentrt_core_time_now_ns(void);
+uint64_t airy_core_time_now_ns(void);
 
 // 创建定时器
-agentrt_core_error_t agentrt_core_timer_create(
+airy_core_error_t airy_core_timer_create(
     uint64_t interval_ms,
     void (*callback)(void*),
     void* user_data,
     bool repeat,
-    agentrt_core_timer_t** out_timer);
+    airy_core_timer_t** out_timer);
 
 // 启动定时器
-agentrt_core_error_t agentrt_core_timer_start(
-    agentrt_core_time_service_t* service,
-    agentrt_core_timer_t* timer);
+airy_core_error_t airy_core_timer_start(
+    airy_core_time_service_t* service,
+    airy_core_timer_t* timer);
 
 // 停止定时器
-agentrt_core_error_t agentrt_core_timer_stop(
-    agentrt_core_time_service_t* service,
-    agentrt_core_timer_t* timer);
+airy_core_error_t airy_core_timer_stop(
+    airy_core_time_service_t* service,
+    airy_core_timer_t* timer);
 ```
 
 #### 时间精度
@@ -614,13 +614,13 @@ CoreLoopThree / Daemon Services
 **示例**: 任务提交流程
 ```c
 // 1. 应用层调用 syscall
-agentrt_core_syscall_invoke("task.submit", task_params, &result);
+airy_core_syscall_invoke("task.submit", task_params, &result);
 
 // 2. Syscall 层转发到 CoreKern 调度器
-agentrt_core_scheduler_submit(&g_scheduler, task);
+airy_core_scheduler_submit(&g_scheduler, task);
 
 // 3. 调度器将任务加入队列
-agentrt_core_priority_queue_push(scheduler->queue, task);
+airy_core_priority_queue_push(scheduler->queue, task);
 
 // 4. 调度线程唤醒并执行
 ```
@@ -631,13 +631,13 @@ CoreLoopThree 通过 syscall 层间接使用微核心服务:
 
 ```c
 // CoreLoopThree 认知层
-agentrt_core_cognition_process(input, &plan);
+airy_core_cognition_process(input, &plan);
     ↓
 // 通过 syscall 提交任务
 sys_task_submit(plan.tasks);
     ↓
 // CoreKern 调度器执行
-agentrt_core_scheduler_run();
+airy_core_scheduler_run();
 ```
 
 ---
@@ -731,17 +731,17 @@ agentrt_core_scheduler_run();
 #include "ipc_binder.h"
 
 // 创建通道
-agentrt_core_ipc_channel_t* channel;
-agentrt_core_ipc_channel_create("my_service", 4096, &channel);
+airy_core_ipc_channel_t* channel;
+airy_core_ipc_channel_create("my_service", 4096, &channel);
 
 // 发送消息
 const char* msg = "Hello from service";
-agentrt_core_ipc_send(channel, msg, strlen(msg), 1000);
+airy_core_ipc_send(channel, msg, strlen(msg), 1000);
 
 // 接收消息
 char* recv_msg;
 size_t recv_len;
-agentrt_core_ipc_recv(channel, (void**)&recv_msg, &recv_len, 1000);
+airy_core_ipc_recv(channel, (void**)&recv_msg, &recv_len, 1000);
 ```
 
 ### 8.2 使用智能指针
@@ -751,12 +751,12 @@ agentrt_core_ipc_recv(channel, (void**)&recv_msg, &recv_len, 1000);
 
 // 创建带析构函数的智能指针
 struct my_data* data = malloc(sizeof(struct my_data));
-agentrt_core_smart_ptr_t* ptr;
-agentrt_core_smart_ptr_create(data, sizeof(*data), free, &ptr);
+airy_core_smart_ptr_t* ptr;
+airy_core_smart_ptr_create(data, sizeof(*data), free, &ptr);
 
 // 自动引用计数管理
-agentrt_core_smart_ptr_add_ref(ptr);
-agentrt_core_smart_ptr_release(ptr);  // 自动释放
+airy_core_smart_ptr_add_ref(ptr);
+airy_core_smart_ptr_release(ptr);  // 自动释放
 ```
 
 ---
@@ -766,7 +766,7 @@ agentrt_core_smart_ptr_release(ptr);  // 自动释放
 ### 9.1 常见问题
 
 #### 问题：IPC 通信超时
-**症状**: `agentrt_core_ipc_send()` 返回超时错误
+**症状**: `airy_core_ipc_send()` 返回超时错误
 **排查**:
 1. 检查通道是否已创建
 2. 验证缓冲区大小是否足够
@@ -782,7 +782,7 @@ agentrt_core_smart_ptr_release(ptr);  // 自动释放
 ### 9.2 调试技巧
 
 - 启用 Debug 日志级别
-- 使用 `agentrt_core_memory_stats()` 查看内存使用
+- 使用 `airy_core_memory_stats()` 查看内存使用
 - 监控 IPC 通道队列长度
 
 ---

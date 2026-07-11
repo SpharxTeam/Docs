@@ -152,14 +152,14 @@ int __init ftrace_startup(struct tracer *tracer, int command) {
 ```c
 // 测试 Agent 通过 SDK 调用系统能力的契约
 static void test_agent_cognition_contract(struct kunit *test) {
-    struct agent_handle *agent = agentrt_cognition_client_create();
+    struct agent_handle *agent = airy_cognition_client_create();
     KUNIT_ASSERT_NOT_ERR_OR_NULL(test, agent);
     
-    struct cognition_response *resp = agentrt_cognition_process(agent, "hello");
-    KUNIT_EXPECT_EQ(test, AGENTRT_OK, resp->status);
+    struct cognition_response *resp = airy_cognition_process(agent, "hello");
+    KUNIT_EXPECT_EQ(test, AIRY_EOK, resp->status);
     KUNIT_EXPECT_NOT_NULL(test, resp->output);
     
-    agentrt_cognition_client_destroy(agent);
+    airy_cognition_client_destroy(agent);
 }
 ```
 

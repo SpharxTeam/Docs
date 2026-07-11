@@ -70,12 +70,12 @@ CONFIG_FTRACE=y
 #include <linux/kernel.h>
 #include <linux/livepatch.h>
 #include <linux/sched.h>
-#include <airymax/airymax_q16.h>
+#include <airymax/airy_q16.h>
 
 static struct klp_func lp_vtime_fix_funcs[] = {
 	{
-		.old_name = "airymax_sched_agent_compute_weight",
-		.new_func = airymax_sched_agent_compute_weight_fixed,
+		.old_name = "airy_sched_agent_compute_weight",
+		.new_func = airy_sched_agent_compute_weight_fixed,
 	},
 	{ }
 };
@@ -94,13 +94,13 @@ static struct klp_patch lp_vtime_fix_patch = {
 };
 
 /* 修复后的 vtime 权重计算（修复 Token 预算溢出问题） */
-static airymax_weight_t airymax_sched_agent_compute_weight_fixed(
-	const struct agentrt_task_meta *meta)
+static airy_weight_t airy_sched_agent_compute_weight_fixed(
+	const struct airy_task_meta *meta)
 {
-	airymax_weight_t base = meta->base_weight;
-	airymax_weight_t stage = meta->stage_factor;
-	airymax_weight_t token;
-	airymax_q16_t w;
+	airy_weight_t base = meta->base_weight;
+	airy_weight_t stage = meta->stage_factor;
+	airy_weight_t token;
+	airy_q16_t w;
 
 	/* 修复：增加 token_budget 上界检查，避免负值 */
 	__u32 budget = meta->token_budget & 0x7F;  /* 屏蔽高位 */
@@ -113,11 +113,11 @@ static airymax_weight_t airymax_sched_agent_compute_weight_fixed(
 		token = 0x8000;
 	}
 
-	w = (airymax_q16_t)((__s128)base * stage >> 16);
-	w = (airymax_q16_t)((__s128)w * token >> 16);
+	w = (airy_q16_t)((__s128)base * stage >> 16);
+	w = (airy_q16_t)((__s128)w * token >> 16);
 	if (w > 0xFFFF)
 		w = 0xFFFF;
-	return (airymax_weight_t)w;
+	return (airy_weight_t)w;
 }
 
 static int lp_vtime_fix_init(void)
@@ -158,10 +158,10 @@ cat /sys/kernel/livepatch/"$LP_MODULE"/transition
 # 输出：0（已完成过渡）
 
 echo "[4/4] 查看已打补丁的函数"
-cat /proc/kallsyms | grep airymax_sched_agent_compute_weight
+cat /proc/kallsyms | grep airy_sched_agent_compute_weight
 # 输出示例：
-# ffffffffc0a12340 t airymax_sched_agent_compute_weight_fixed [lp_vtime_fix]
-# ffffffffc0a12380 t airymax_sched_agent_compute_weight   [airymaxos_kernel]
+# ffffffffc0a12340 t airy_sched_agent_compute_weight_fixed [lp_vtime_fix]
+# ffffffffc0a12380 t airy_sched_agent_compute_weight   [airymaxos_kernel]
 
 echo "[完成] livepatch 已应用，无需重启系统"
 ```
@@ -620,17 +620,17 @@ echo "[完成] 12 daemon 滚动重启完成"
 
 | 错误码 | 数值 | 含义 |
 |--------|------|------|
-| AGENTRT_E_UPDATE_LIVEPATCH | -320 | livepatch 应用失败 |
-| AGENTRT_E_UPDATE_OSTREE | -321 | rpm-ostree 更新失败 |
-| AGENTRT_E_UPDATE_ROLLBACK | -322 | 回滚失败 |
-| AGENTRT_E_UPDATE_HEALTH | -323 | 健康检查失败 |
-| AGENTRT_E_UPDATE_MIGRATE | -324 | 数据迁移失败 |
-| AGENTRT_E_UPDATE_DEP | -325 | 依赖冲突 |
+| AIRY_E_UPDATE_LIVEPATCH | -320 | livepatch 应用失败 |
+| AIRY_E_UPDATE_OSTREE | -321 | rpm-ostree 更新失败 |
+| AIRY_E_UPDATE_ROLLBACK | -322 | 回滚失败 |
+| AIRY_E_UPDATE_HEALTH | -323 | 健康检查失败 |
+| AIRY_E_UPDATE_MIGRATE | -324 | 数据迁移失败 |
+| AIRY_E_UPDATE_DEP | -325 | 依赖冲突 |
 
 集中错误处理示例：
 
 ```c
-int airymax_update_atomic(const char *target_version)
+int airy_update_atomic(const char *target_version)
 {
 	int ret;
 
@@ -639,21 +639,21 @@ int airymax_update_atomic(const char *target_version)
 		goto out_err;
 	}
 
-	ret = airymax_update_ostree_upgrade(target_version);
+	ret = airy_update_ostree_upgrade(target_version);
 	if (ret < 0) {
-		ret = -AGENTRT_E_UPDATE_OSTREE;
+		ret = -AIRY_E_UPDATE_OSTREE;
 		goto out_err;
 	}
 
-	ret = airymax_update_reboot_and_check();
+	ret = airy_update_reboot_and_check();
 	if (ret < 0) {
-		ret = -AGENTRT_E_UPDATE_HEALTH;
+		ret = -AIRY_E_UPDATE_HEALTH;
 		goto out_rollback;
 	}
 	return 0;
 
 out_rollback:
-	airymax_update_rollback();
+	airy_update_rollback();
 out_err:
 	return ret;
 }

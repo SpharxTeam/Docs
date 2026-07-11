@@ -113,19 +113,19 @@ Airymax 的设计基石，理解设计哲学的必读材料：
 
 **编码规范**：
 
-- [**C编码风格规范**](50-specifications/30-coding-standard/01-c-coding-style.md) — C语言命名/函数/错误处理/并发/安全规范
-- [**C++编码风格规范**](50-specifications/30-coding-standard/05-cpp-coding-style.md) — C++语言编码规范
-- [**Python编码风格规范**](50-specifications/30-coding-standard/12-python-coding-style.md) — Python类型设计/异步/错误处理规范
-- [**JavaScript编码风格规范**](50-specifications/30-coding-standard/08-javascript-coding-style.md) — JavaScript/TypeScript编码规范
-- [**命名规范**](50-specifications/30-coding-standard/11-naming-conventions.md) — 组件/文件/函数/类型/常量命名约定
-- [**代码注释模板**](50-specifications/30-coding-standard/03-code-comment-template.md) — Doxygen/docstring注释规范
-- [**日志打印规范**](50-specifications/30-coding-standard/10-log-standard.md) — 日志级别/内容/格式/质量规范
+- [**C编码风格规范**](50-engineering-standards/10-coding-style/C_coding_style_standard.md) — C语言命名/函数/错误处理/并发/安全规范
+- [**C++编码风格规范**](50-engineering-standards/10-coding-style/Cpp_coding_style_standard.md) — C++语言编码规范
+- [**Python编码风格规范**](50-engineering-standards/10-coding-style/Python_coding_style_standard.md) — Python类型设计/异步/错误处理规范
+- [**JavaScript编码风格规范**](50-engineering-standards/10-coding-style/JavaScript_coding_style_standard.md) — JavaScript/TypeScript编码规范
+- [**命名规范**](50-engineering-standards/10-coding-style/naming_conventions.md) — 组件/文件/函数/类型/常量命名约定
+- [**代码注释模板**](50-engineering-standards/10-coding-style/code_comment_template.md) — Doxygen/docstring注释规范
+- [**日志打印规范**](50-engineering-standards/10-coding-style/log_standard.md) — 日志级别/内容/格式/质量规范
 
 **安全编码**：
 
-- [**安全设计规范**](50-specifications/30-coding-standard/15-security-design.md) — D1~D4四层防护/加密/认证/隐私保护
-- [**C/C++安全编码规范**](50-specifications/30-coding-standard/02-c-cpp-secure-coding.md) — C/C++安全编码实践
-- [**Java安全编码规范**](50-specifications/30-coding-standard/09-java-secure-coding.md) — Java安全编码实践
+- [**安全设计规范**](50-engineering-standards/10-coding-style/security_design_standard.md) — D1~D4四层防护/加密/认证/隐私保护
+- [**C/C++安全编码规范**](50-engineering-standards/10-coding-style/C_Cpp_secure_coding_standard.md) — C/C++安全编码实践
+- [**Java安全编码规范**](50-engineering-standards/10-coding-style/Java_secure_coding_standard.md) — Java安全编码实践
 
 ---
 
@@ -156,28 +156,28 @@ Airymax项目的标准化规范体系：
 
 **契约规范**：
 
-- [**契约规范总览**](50-specifications/10-contracts/06-glossary-index.md) — 术语表与快速索引
-- [**Agent契约**](50-specifications/10-contracts/01-agent-contract.md) — Agent能力描述规范（[Schema](50-specifications/10-contracts/01-agent-contract-schema.json)）
-- [**Skill契约**](50-specifications/10-contracts/02-skill-contract.md) — Skill技能描述规范（[Schema](50-specifications/10-contracts/02-skill-contract-schema.json)）
-- [**通信协议规范**](50-specifications/10-contracts/03-protocol-contract.md) — HTTP/WS/Stdio网关+JSON-RPC 2.0
-- [**系统调用API规范**](50-specifications/10-contracts/04-syscall-api-contract.md) — 系统调用接口契约
-- [**日志格式规范**](50-specifications/10-contracts/05-logging-format.md) — 结构化JSON日志格式
+- [**契约规范总览**](20-modules/10-contracts/06-glossary-index.md) — 术语表与快速索引
+- [**Agent契约**](20-modules/10-contracts/01-agent-contract.md) — Agent能力描述规范（[Schema](20-modules/10-contracts/01-agent-contract-schema.json)）
+- [**Skill契约**](20-modules/10-contracts/02-skill-contract.md) — Skill技能描述规范（[Schema](20-modules/10-contracts/02-skill-contract-schema.json)）
+- [**通信协议规范**](20-modules/10-contracts/03-protocol-contract.md) — HTTP/WS/Stdio网关+JSON-RPC 2.0
+- [**系统调用API规范**](20-modules/10-contracts/04-syscall-api-contract.md) — 系统调用接口契约
+- [**日志格式规范**](20-modules/10-contracts/05-logging-format.md) — 结构化JSON日志格式
 
 **集成标准**：
 
-- [**集成标准总览**](50-specifications/50-integration/README.md) — 模块间集成标准索引
-- [**Manager配置集成标准**](50-specifications/50-integration/01-integration-standard.md) — Manager模块与统一配置库集成
+- [**集成标准总览**](50-engineering-standards/40-integration/README.md) — 模块间集成标准索引
+- [**Manager配置集成标准**](50-engineering-standards/40-integration/integration_standard.md) — Manager模块与统一配置库集成
 
 **项目管理**：
 
-- [**错误码参考**](50-specifications/70-project-erp/02-error-code-reference.md) — 完整的错误码定义和处理建议
-- [**资源管理表**](50-specifications/70-project-erp/04-resource-management-table.md) — 资源创建/释放/所有权规范
-- [**软件物料清单 (SBOM)**](50-specifications/70-project-erp/01-sbom.md) — 组件/依赖/许可证/安全信息
-- [**模块功能需求**](50-specifications/70-project-erp/03-manuals-module-requirements.md) — manuals模块需求与技术规范
+- [**错误码参考**](50-engineering-standards/50-project-erp/error_code_reference.md) — 完整的错误码定义和处理建议
+- [**资源管理表**](50-engineering-standards/50-project-erp/resource_management_table.md) — 资源创建/释放/所有权规范
+- [**软件物料清单 (SBOM)**](50-engineering-standards/50-project-erp/SBOM.md) — 组件/依赖/许可证/安全信息
+- [**模块功能需求**](50-engineering-standards/50-project-erp/manuals_module_requirements.md) — manuals模块需求与技术规范
 
 **术语**：
 
-- [**统一术语表**](50-specifications/10-terminology.md) — Airymax统一术语定义
+- [**统一术语表**](../AirymaxOS/TERMINOLOGY.md) — Airymax统一术语定义
 
 ---
 
@@ -194,7 +194,7 @@ Airymax项目的标准化规范体系：
 
 补充材料和外部链接：
 
-- [**统一术语表**](50-specifications/10-terminology.md) — 统一术语定义
+- [**统一术语表**](../AirymaxOS/TERMINOLOGY.md) — 统一术语定义
 - [**变更日志**](../CHANGELOG.md) — 版本更新历史
 - [**许可证**](../agentrt/LICENSE) — AGPL v3 + Apache 2.0 双许可证全文
 
@@ -317,7 +317,7 @@ docs/
 │       ├── 20-python/README.md
 │       ├── 30-rust/README.md
 │       └── 40-typescript/README.md
-├── 50-specifications/               # 规范与契约
+├── 50-engineering-standards/        # 工程标准（符号链接 → AirymaxOS）
 │   ├── README.md
 │   ├── 10-contracts/                # 契约规范
 │   │   ├── 01-agent-contract.md

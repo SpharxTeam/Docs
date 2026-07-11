@@ -26,7 +26,7 @@ agentrt-linux（AirymaxOS）的 Rust 代码仅用于**内核模块**（安全敏
 ### 1.2 与 Rust for Linux 社区的关系
 
 agentrt-linux（AirymaxOS）的 Rust 编码风格以 Rust for Linux 社区约定为基线，在此基础上增加：
-- `agentrt_` / `airymaxos_` 前缀隔离
+- `airy_` / `airymaxos_` 前缀隔离
 - IRON-9 v2 三层模型代码归属标注
 - 内核模块专属的 unsafe 审计规范
 - 与 C 代码互操作的 FFI 边界规范
@@ -55,7 +55,7 @@ pub struct AgentrtChannel {
 }
 
 // 好：move 语义——创建函数转移所有权给调用者
-pub fn agentrt_channel_create(name: &str) -> Result<Arc<AgentrtChannel>> {
+pub fn airy_channel_create(name: &str) -> Result<Arc<AgentrtChannel>> {
     let chan = Arc::new(AgentrtChannel {
         name: CString::new(name)?,
         msg_queue: VecDeque::new(),
@@ -73,12 +73,12 @@ pub fn agentrt_channel_create(name: &str) -> Result<Arc<AgentrtChannel>> {
 ```rust
 // 好：借用——零拷贝
 fn validate_msg(msg: &AgentrtIpcMsg) -> bool {
-    msg.len <= AGENTRT_IPC_MSG_BODY_MAX && !msg.body.is_null()
+    msg.len <= AIRY_IPC_MSG_BODY_MAX && !msg.body.is_null()
 }
 
 // 坏：不必要的克隆
 fn validate_msg(msg: AgentrtIpcMsg) -> bool {
-    msg.len <= AGENTRT_IPC_MSG_BODY_MAX
+    msg.len <= AIRY_IPC_MSG_BODY_MAX
 }
 ```
 
@@ -88,7 +88,7 @@ fn validate_msg(msg: AgentrtIpcMsg) -> bool {
 
 ```rust
 // 好：有意义的生命周期名
-fn agentrt_msg_validate<'msg>(
+fn airy_msg_validate<'msg>(
     msg: &'msg AgentrtIpcMsg,
     chan: &AgentrtChannel,
 ) -> Result<&'msg [u8]> {
@@ -115,26 +115,26 @@ fn first<'a>(x: &'a [u8], y: &[u8]) -> &'a [u8] {
 
 ```rust
 // 函数名：snake_case
-pub fn agentrt_ipc_send(channel: u32, msg: &[u8]) -> Result<()> { ... }
+pub fn airy_ipc_send(channel: u32, msg: &[u8]) -> Result<()> { ... }
 
 // 类型名：PascalCase
 pub struct AgentrtIpcChannel { ... }
 pub enum AgentrtTaskState { ... }
 
 // 常量：SCREAMING_SNAKE_CASE
-const AGENTRT_MAX_TASKS: usize = 1024;
-const AGENTRT_IPC_MSG_HDR_SIZE: usize = 128;
+const AIRY_MAX_TASKS: usize = 1024;
+const AIRY_IPC_MSG_HDR_SIZE: usize = 128;
 ```
 
-### 3.2 agentrt_ / airymaxos_ 前缀隔离（OS-STD-034）
+### 3.2 airy_ / airymaxos_ 前缀隔离（OS-STD-034）
 
-> **OS-STD-034**：Rust 代码同样遵循 `agentrt_` / `airymaxos_` 前缀隔离规范：
-> - `agentrt_*` 前缀：同源 API（[SS] 语义同源层），SDK 层与 agentrt 用户态 API 签名一致（同一份源码两端编译），其他层语义同源
+> **OS-STD-034**：Rust 代码同样遵循 `airy_` / `airymaxos_` 前缀隔离规范：
+> - `airy_*` 前缀：同源 API（[SS] 语义同源层），SDK 层与 agentrt 用户态 API 签名一致（同一份源码两端编译），其他层语义同源
 > - `airymaxos_*` 前缀：agentrt-linux（AirymaxOS）专属 API（[IND] 完全独立层）
 
 ```rust
-/// [SS] 语义同源层：与 agentrt 用户态 agentrt_ipc_send() 签名一致（SDK 层，同一份源码两端编译）
-pub fn agentrt_ipc_send(channel: u32, msg: &[u8]) -> Result<()> { ... }
+/// [SS] 语义同源层：与 agentrt 用户态 airy_ipc_send() 签名一致（SDK 层，同一份源码两端编译）
+pub fn airy_ipc_send(channel: u32, msg: &[u8]) -> Result<()> { ... }
 
 /// [IND] 完全独立层：agentrt-linux（AirymaxOS）内核专属
 pub fn airymaxos_lsm_hook_register(hooks: &SecurityHookList) -> Result<()> { ... }
@@ -177,11 +177,11 @@ fn read_mmio_register(base: *const u8, offset: usize) -> u32 {
 // 坏：unsafe 块过大，包裹了 safe 代码
 unsafe {
     let base = ioremap(phys_addr, PAGE_SIZE)?;
-    let val = readl(base.add(AGENTRT_REG_CTRL));
-    if val & AGENTRT_CTRL_ENABLE != 0 {
+    let val = readl(base.add(AIRY_REG_CTRL));
+    if val & AIRY_CTRL_ENABLE != 0 {
         pr_info!("Device enabled\n");
     }
-    writel(val | AGENTRT_CTRL_RESET, base.add(AGENTRT_REG_CTRL));
+    writel(val | AIRY_CTRL_RESET, base.add(AIRY_REG_CTRL));
 }
 ```
 
@@ -198,10 +198,10 @@ unsafe {
 /// # Safety
 ///
 /// 调用者必须确保：
-/// - `ptr` 指向有效的 `AgentrtTaskDesc` 结构体
+/// - `ptr` 指向有效的 `AirymaxTaskDesc` 结构体
 /// - `ptr` 在读取期间不会被并发修改
 /// - `ptr` 的生命周期覆盖此函数的执行
-pub unsafe fn agentrt_task_desc_read(ptr: *const AgentrtTaskDesc) -> AgentrtTaskDesc {
+pub unsafe fn airy_task_desc_read(ptr: *const AirymaxTaskDesc) -> AirymaxTaskDesc {
     // SAFETY: 调用者已保证 ptr 有效且不会被并发修改
     unsafe { ptr::read_volatile(ptr) }
 }
@@ -221,7 +221,7 @@ pub unsafe fn agentrt_task_desc_read(ptr: *const AgentrtTaskDesc) -> AgentrtTask
 
 ```rust
 // 好：返回 Result
-fn agentrt_channel_lookup(id: u32) -> Result<Arc<AgentrtChannel>> {
+fn airy_channel_lookup(id: u32) -> Result<Arc<AgentrtChannel>> {
     CHANNELS.read()
         .get(&id)
         .cloned()
@@ -229,7 +229,7 @@ fn agentrt_channel_lookup(id: u32) -> Result<Arc<AgentrtChannel>> {
 }
 
 // 坏：unwrap 可能导致内核 panic
-fn agentrt_channel_lookup(id: u32) -> Arc<AgentrtChannel> {
+fn airy_channel_lookup(id: u32) -> Arc<AgentrtChannel> {
     CHANNELS.read().get(&id).unwrap().clone()  // 通道不存在时 panic
 }
 ```
@@ -239,10 +239,10 @@ fn agentrt_channel_lookup(id: u32) -> Arc<AgentrtChannel> {
 > **OS-STD-037**：使用 `?` 运算符传播错误，但需确保 `?` 返回的错误类型与函数签名兼容。这是 Rust 版本的内核 goto 集中出口模式——资源通过 RAII 自动释放，错误通过 `?` 向上传播。
 
 ```rust
-fn agentrt_session_create(name: &str) -> Result<Arc<AgentrtSession>> {
+fn airy_session_create(name: &str) -> Result<Arc<AgentrtSession>> {
     let session = Arc::new(AgentrtSession::new()?);  // 失败自动 return Err
     let buf = Box::<[u8; 4096]>::new_uninit()?;      // 失败自动释放 session
-    let chan = agentrt_channel_create(name)?;          // 失败自动释放 session + buf
+    let chan = airy_channel_create(name)?;          // 失败自动释放 session + buf
     // RAII 保证：无需手动 goto 清理
     Ok(session)
 }
@@ -254,12 +254,12 @@ fn agentrt_session_create(name: &str) -> Result<Arc<AgentrtSession>> {
 
 ```rust
 // 好：Option 表达"可能不存在"
-fn agentrt_task_find(id: u32) -> Option<Arc<AgentrtTask>> {
+fn airy_task_find(id: u32) -> Option<Arc<AgentrtTask>> {
     TASKS.read().get(&id).cloned()
 }
 
 // 使用时：强制处理 None 情况
-if let Some(task) = agentrt_task_find(task_id) {
+if let Some(task) = airy_task_find(task_id) {
     task.submit()?;
 }
 ```
@@ -377,7 +377,7 @@ let table = KBox::pin_init(
 ```rust
 // Rust 侧：导出给 C 调用的函数
 #[no_mangle]
-pub extern "C" fn agentrt_ipc_channel_create_rs(
+pub extern "C" fn airy_ipc_channel_create_rs(
     name: *const kernel::ffi::c_char,
     out: *mut *mut AgentrtIpcChannel,
 ) -> i32 {
@@ -385,7 +385,7 @@ pub extern "C" fn agentrt_ipc_channel_create_rs(
     let name_str = unsafe { CStr::from_ptr(name) };
     let name = name_str.to_str().unwrap_or("unknown");
 
-    match agentrt_ipc_channel_create(name) {
+    match airy_ipc_channel_create(name) {
         Ok(chan) => {
             unsafe { *out = Arc::into_raw(chan) as *mut _ };
             0
@@ -406,7 +406,7 @@ pub extern "C" fn agentrt_ipc_channel_create_rs(
 | `const char *` | `*const core::ffi::c_char` | 以 NUL 结尾的字符串 |
 | `void *` | `*mut core::ffi::c_void` | 不透明指针 |
 | `size_t` | `usize` | 大小类型 |
-| `struct agentrt_task *` | `*mut AgentrtTask` | 结构体指针 |
+| `struct airy_task *` | `*mut AgentrtTask` | 结构体指针 |
 
 ### 8.3 所有权语义（OS-STD-046）
 
@@ -423,7 +423,7 @@ pub extern "C" fn agentrt_ipc_channel_create_rs(
 /// - `name` 必须是以 NUL 结尾的有效 C 字符串
 /// - `out` 必须指向有效的内存区域
 #[no_mangle]
-pub unsafe extern "C" fn agentrt_ipc_channel_create(
+pub unsafe extern "C" fn airy_ipc_channel_create(
     name: *const c_char,
     out: *mut *mut AgentrtIpcChannel,
 ) -> c_int {
@@ -453,7 +453,7 @@ use kernel::error::code::*;
 
 module! {
     type: AgentrtIpcModule,
-    name: "agentrt_ipc",
+    name: "airy_ipc",
     author: "SPHARX Ltd.",
     description: "agentrt-linux（AirymaxOS）IPC Channel Module (Rust)",
     license: "GPL",
@@ -552,7 +552,7 @@ graph TD
 | 章节 | 核心原则 | 映射 |
 |------|---------|------|
 | §2 所有权与借用 | E-3 资源确定性、K-2 接口契约化 | 所有权模型保证资源生命周期 |
-| §3 命名约定 | E-5 命名语义化、K-2 接口契约化 | `agentrt_` 前缀隔离 |
+| §3 命名约定 | E-5 命名语义化、K-2 接口契约化 | `airy_` 前缀隔离 |
 | §4 unsafe 规范 | E-1 安全内生、A-2 细节关注 | 最小化 + 文档化 + 审查 |
 | §5 错误处理 | E-6 错误可追溯、E-3 资源确定性 | `?` + RAII 替代 goto |
 | §6 内核抽象 | E-1 安全内生、K-2 接口契约化 | kernel crate 安全封装 |

@@ -98,62 +98,62 @@ SCHED_AGENT 通过 BPF struct_ops 暴露下列钩子：
 
 ### 3.1 Q16.16 定点数表示
 
-Linux 6.6 内核态禁用浮点（kernel_fpu 禁用），因此 vtime 必须以定点数表达。agentrt-linux 采用 **Q16.16 定点数**（`airymax_q16_t`），整数部分 16 位、小数部分 16 位，定义于 `include/airymax/memory_types.h`（IRON-9 v2 [SC] 共享契约层）：
+Linux 6.6 内核态禁用浮点（kernel_fpu 禁用），因此 vtime 必须以定点数表达。agentrt-linux 采用 **Q16.16 定点数**（`airy_q16_t`），整数部分 16 位、小数部分 16 位，定义于 `include/airymax/memory_types.h`（IRON-9 v2 [SC] 共享契约层）：
 
 ```c
-/* include/airymax/airymax_q16.h —— Q16.16 定点数原语 */
-#ifndef AIRYMAX_Q16_H
-#define AIRYMAX_Q16_H
+/* include/airymax/airy_q16.h —— Q16.16 定点数原语 */
+#ifndef AIRY_Q16_H
+#define AIRY_Q16_H
 
 #include <linux/types.h>
 
-typedef __s64 airymax_q16_t;       /* Q16.16 定点数 */
-typedef __u32 airymax_weight_t;    /* 0-65535 权重 */
+typedef __s64 airy_q16_t;       /* Q16.16 定点数 */
+typedef __u32 airy_weight_t;    /* 0-65535 权重 */
 
-#define AIRYMAX_Q16_SHIFT       16
-#define AIRYMAX_Q16_ONE         (((airymax_q16_t)1) << AIRYMAX_Q16_SHIFT)
-#define AIRYMAX_Q16_HALF        (AIRYMAX_Q16_ONE >> 1)
+#define AIRY_Q16_SHIFT       16
+#define AIRY_Q16_ONE         (((airy_q16_t)1) << AIRY_Q16_SHIFT)
+#define AIRY_Q16_HALF        (AIRY_Q16_ONE >> 1)
 
 /* 整数 ↔ Q16.16 */
-static inline airymax_q16_t airymax_q16_from_int(__s64 v)
+static inline airy_q16_t airy_q16_from_int(__s64 v)
 {
-	return (airymax_q16_t)v << AIRYMAX_Q16_SHIFT;
+	return (airy_q16_t)v << AIRY_Q16_SHIFT;
 }
 
-static inline __s64 airymax_q16_to_int(airymax_q16_t v)
+static inline __s64 airy_q16_to_int(airy_q16_t v)
 {
-	return (__s64)(v >> AIRYMAX_Q16_SHIFT);
+	return (__s64)(v >> AIRY_Q16_SHIFT);
 }
 
 /* Q16.16 ↔ u32 权重（0-65535 映射到 0.0-1.0） */
-static inline airymax_q16_t airymax_q16_from_weight(airymax_weight_t w)
+static inline airy_q16_t airy_q16_from_weight(airy_weight_t w)
 {
-	return (airymax_q16_t)w << (AIRYMAX_Q16_SHIFT - 16 + 16);
+	return (airy_q16_t)w << (AIRY_Q16_SHIFT - 16 + 16);
 }
 
 /* 乘法：a * b（其中一个必须是权重，避免溢出） */
-static inline airymax_q16_t airymax_q16_mul_w(airymax_q16_t a, airymax_weight_t w)
+static inline airy_q16_t airy_q16_mul_w(airy_q16_t a, airy_weight_t w)
 {
-	return (airymax_q16_t)((__s128)a * w >> 16);
+	return (airy_q16_t)((__s128)a * w >> 16);
 }
 
 /* 加法 / 减法 / 比较 */
-static inline airymax_q16_t airymax_q16_add(airymax_q16_t a, airymax_q16_t b)
+static inline airy_q16_t airy_q16_add(airy_q16_t a, airy_q16_t b)
 {
 	return a + b;
 }
 
-static inline airymax_q16_t airymax_q16_sub(airymax_q16_t a, airymax_q16_t b)
+static inline airy_q16_t airy_q16_sub(airy_q16_t a, airy_q16_t b)
 {
 	return a - b;
 }
 
-static inline bool airymax_q16_lt(airymax_q16_t a, airymax_q16_t b)
+static inline bool airy_q16_lt(airy_q16_t a, airy_q16_t b)
 {
 	return a < b;
 }
 
-#endif /* AIRYMAX_Q16_H */
+#endif /* AIRY_Q16_H */
 ```
 
 ### 3.2 vtime 衰减公式
@@ -179,16 +179,16 @@ vtime_smooth = α * vtime_new + (1 - α) * vtime_old
 
 ```c
 /* SCHED_AGENT EMA vtime 平滑 */
-static inline airymax_q16_t airymax_sched_agent_ema(airymax_q16_t old_v,
-						    airymax_q16_t new_v)
+static inline airy_q16_t airy_sched_agent_ema(airy_q16_t old_v,
+						    airy_q16_t new_v)
 {
-	const airymax_q16_t alpha = 0x4000;     /* 0.25 */
-	const airymax_q16_t one_minus_alpha = 0xC000; /* 0.75 */
+	const airy_q16_t alpha = 0x4000;     /* 0.25 */
+	const airy_q16_t one_minus_alpha = 0xC000; /* 0.75 */
 
 	/* α * new_v + (1-α) * old_v，全部定点运算 */
-	airymax_q16_t term1 = (airymax_q16_t)((__s128)new_v * alpha >> 16);
-	airymax_q16_t term2 = (airymax_q16_t)((__s128)old_v * one_minus_alpha >> 16);
-	return airymax_q16_add(term1, term2);
+	airy_q16_t term1 = (airy_q16_t)((__s128)new_v * alpha >> 16);
+	airy_q16_t term2 = (airy_q16_t)((__s128)old_v * one_minus_alpha >> 16);
+	return airy_q16_add(term1, term2);
 }
 ```
 
@@ -208,13 +208,13 @@ weight = base_weight * stage_factor * token_factor / 65536
 
 ```c
 /* token 预算感知权重计算 */
-static airymax_weight_t airymax_sched_agent_compute_weight(
-	const struct agentrt_task_meta *meta)
+static airy_weight_t airy_sched_agent_compute_weight(
+	const struct airy_task_meta *meta)
 {
-	airymax_weight_t base = meta->base_weight;
-	airymax_weight_t stage = meta->stage_factor;
-	airymax_weight_t token;
-	airymax_q16_t w;
+	airy_weight_t base = meta->base_weight;
+	airy_weight_t stage = meta->stage_factor;
+	airy_weight_t token;
+	airy_q16_t w;
 
 	if (meta->token_budget < 20) {       /* 预算 < 20%，加速 */
 		token = 0x10000;
@@ -225,11 +225,11 @@ static airymax_weight_t airymax_sched_agent_compute_weight(
 	}
 
 	/* base * stage * token / 65536 / 65536 */
-	w = (airymax_q16_t)((__s128)base * stage >> 16);
-	w = (airymax_q16_t)((__s128)w * token >> 16);
+	w = (airy_q16_t)((__s128)base * stage >> 16);
+	w = (airy_q16_t)((__s128)w * token >> 16);
 	if (w > 0xFFFF)
 		w = 0xFFFF;
-	return (airymax_weight_t)w;
+	return (airy_weight_t)w;
 }
 ```
 
@@ -250,29 +250,29 @@ agentrt-linux 的 12 个 daemon 与认知层 kthread 共享 CPU 资源。亲和�
 
 ```c
 /* agentrt-linux CPU 亲和性映射表 */
-struct agentrt_sched_agent_topo {
+struct airy_sched_agent_topo {
 	int node_id;            /* NUMA 节点 */
 	int die_id;            /* CPU die */
 	int core_id;           /* 物理核 */
 	int smt_sibling;      /* SMT 兄弟核 */
-	enum agentrt_sched_agent_class cls;
+	enum airy_sched_agent_class cls;
 };
 
 /* 默认映射策略（基于 8 核 2 NUMA 示例） */
-static const struct agentrt_sched_agent_topo default_topo[] = {
-	{0, 0, 0, 4, AGENTRT_TOPO_COGNITION_T2},   /* CPU0,4 - 认知 t2 */
-	{0, 0, 1, 5, AGENTRT_TOPO_COGNITION_T1},   /* CPU1,5 - 认知 t1 */
-	{0, 0, 2, 6, AGENTRT_TOPO_LLM},            /* CPU2,6 - llm_d */
-	{0, 0, 3, 7, AGENTRT_TOPO_NET},            /* CPU3,7 - net_d */
-	{1, 0, 0, 4, AGENTRT_TOPO_MEMORY},         /* NUMA1 CPU0,4 - memory_d */
-	{1, 0, 1, 5, AGENTRT_TOPO_SECURITY},        /* NUMA1 CPU1,5 - 安全 */
-	{1, 0, 2, 6, AGENTRT_TOPO_IPC},            /* NUMA1 CPU2,6 - IPC */
-	{1, 0, 3, 7, AGENTRT_TOPO_GENERIC},        /* NUMA1 CPU3,7 - 通用 */
+static const struct airy_sched_agent_topo default_topo[] = {
+	{0, 0, 0, 4, AIRY_TOPO_COGNITION_T2},   /* CPU0,4 - 认知 t2 */
+	{0, 0, 1, 5, AIRY_TOPO_COGNITION_T1},   /* CPU1,5 - 认知 t1 */
+	{0, 0, 2, 6, AIRY_TOPO_LLM},            /* CPU2,6 - llm_d */
+	{0, 0, 3, 7, AIRY_TOPO_NET},            /* CPU3,7 - net_d */
+	{1, 0, 0, 4, AIRY_TOPO_MEMORY},         /* NUMA1 CPU0,4 - memory_d */
+	{1, 0, 1, 5, AIRY_TOPO_SECURITY},        /* NUMA1 CPU1,5 - 安全 */
+	{1, 0, 2, 6, AIRY_TOPO_IPC},            /* NUMA1 CPU2,6 - IPC */
+	{1, 0, 3, 7, AIRY_TOPO_GENERIC},        /* NUMA1 CPU3,7 - 通用 */
 };
 
 /* 设置 CPU 亲和性 */
-static int agentrt_sched_agent_set_affinity(struct task_struct *p,
-					    const struct agentrt_sched_agent_topo *t)
+static int airy_sched_agent_set_affinity(struct task_struct *p,
+					    const struct airy_sched_agent_topo *t)
 {
 	struct cpumask mask;
 	int ret;
@@ -328,7 +328,7 @@ echo "1,3,5,7" > /sys/fs/cgroup/system/cpuset.cpus
 ```c
 /* airymaxos-kernel/sched_ext/sched_agent_bpf.c */
 #include <scx/common.bpf.h>
-#include <airymax/airymax_q16.h>
+#include <airymax/airy_q16.h>
 #include <airymax/memory_types.h>
 
 /* BPF map：任务状态 */
@@ -336,7 +336,7 @@ struct {
 	__uint(type, BPF_MAP_TYPE_TASK_STORAGE);
 	__uint(map_flags, BPF_F_NO_PREALLOC);
 	__type(key, int);
-	__type(value, struct agentrt_task_state);
+	__type(value, struct airy_task_state);
 } task_state SEC(".task_storage");
 
 /* BPF map：调度统计 */
@@ -348,13 +348,13 @@ struct {
 } sched_stats SEC(".maps");
 
 /* 全局 vtime 基线 */
-volatile const airymax_q16_t vtime_now = 0;
+volatile const airy_q16_t vtime_now = 0;
 
 /* 任务入队 */
 s32 BPF_STRUCT_OPS(agent_enqueue, struct task_struct *p, u64 enq_flags)
 {
-	struct agentrt_task_state *st;
-	airymax_q16_t vtime;
+	struct airy_task_state *st;
+	airy_q16_t vtime;
 
 	st = bpf_task_storage_get(&task_state, p, 0,
 				  BPF_LOCAL_STORAGE_GET_F_CREATE);
@@ -363,7 +363,7 @@ s32 BPF_STRUCT_OPS(agent_enqueue, struct task_struct *p, u64 enq_flags)
 
 	/* 计算 vtime = max(vtime_now, st->vtime) */
 	vtime = st->vtime;
-	if (airymax_q16_lt(vtime, vtime_now))
+	if (airy_q16_lt(vtime, vtime_now))
 		vtime = vtime_now;
 
 	st->vtime = vtime;
@@ -383,19 +383,19 @@ void BPF_STRUCT_OPS(agent_dispatch, s32 cpu, struct task_struct *prev)
 /* 任务运行结束 */
 void BPF_STRUCT_OPS(agent_running, struct task_struct *p)
 {
-	struct agentrt_task_state *st;
-	airymax_q16_t delta, weight, new_v;
+	struct airy_task_state *st;
+	airy_q16_t delta, weight, new_v;
 
 	st = bpf_task_storage_get(&task_state, p, 0, 0);
 	if (!st)
 		return;
 
 	/* delta_exec * weight / max_weight */
-	delta = airymax_q16_from_int(bpf_get_cpu_usage_ns());
-	weight = airymax_sched_agent_compute_weight(&st->meta);
-	new_v = airymax_q16_add(st->vtime,
-				airymax_q16_mul_w(delta, weight));
-	st->vtime = airymax_sched_agent_ema(st->vtime, new_v);
+	delta = airy_q16_from_int(bpf_get_cpu_usage_ns());
+	weight = airy_sched_agent_compute_weight(&st->meta);
+	new_v = airy_q16_add(st->vtime,
+				airy_q16_mul_w(delta, weight));
+	st->vtime = airy_sched_agent_ema(st->vtime, new_v);
 }
 
 /* 注册 struct_ops */
@@ -555,16 +555,16 @@ void BPF_STRUCT_OPS(agent_exit, struct scx_exit_info *info)
 
 | 错误码 | 数值 | 含义 |
 |--------|------|------|
-| AGENTRT_E_SCHED_TIMEOUT | -210 | 调度超时 |
-| AGENTRT_E_SCHED_BPF_LOAD | -211 | BPF 加载失败 |
-| AGENTRT_E_SCHED_VTIME_OVF | -212 | vtime 溢出 |
-| AGENTRT_E_SCHED_NO_AFFINITY | -213 | 无可用 CPU 亲和性 |
-| AGENTRT_E_SCHED_TOKEN_BUDGET | -214 | Token 预算耗尽 |
+| AIRY_E_SCHED_TIMEOUT | -210 | 调度超时 |
+| AIRY_E_SCHED_BPF_LOAD | -211 | BPF 加载失败 |
+| AIRY_E_SCHED_VTIME_OVF | -212 | vtime 溢出 |
+| AIRY_E_SCHED_NO_AFFINITY | -213 | 无可用 CPU 亲和性 |
+| AIRY_E_SCHED_TOKEN_BUDGET | -214 | Token 预算耗尽 |
 
 集中错误处理示例（K&R 风格 + `goto out_free_xxx`）：
 
 ```c
-int agentrt_sched_agent_init(struct agentrt_sched_config *cfg)
+int airy_sched_agent_init(struct airy_sched_config *cfg)
 {
 	struct bpf_object *obj = NULL;
 	struct bpf_link *link = NULL;
@@ -572,19 +572,19 @@ int agentrt_sched_agent_init(struct agentrt_sched_config *cfg)
 
 	obj = bpf_object__open_file("/usr/lib/airymaxos/sched_ext/sched_agent_bpf.o", NULL);
 	if (libbpf_get_error(obj)) {
-		ret = AGENTRT_E_SCHED_BPF_LOAD;
+		ret = AIRY_E_SCHED_BPF_LOAD;
 		goto out_free_obj;
 	}
 
 	ret = bpf_object__load(obj);
 	if (ret < 0) {
-		ret = AGENTRT_E_SCHED_BPF_LOAD;
+		ret = AIRY_E_SCHED_BPF_LOAD;
 		goto out_free_obj;
 	}
 
 	link = bpf_map__attach_struct_ops(bpf_object__find_map_by_name(obj, "agent_ops"));
 	if (!link) {
-		ret = AGENTRT_E_SCHED_BPF_LOAD;
+		ret = AIRY_E_SCHED_BPF_LOAD;
 		goto out_free_obj;
 	}
 	return 0;
@@ -618,9 +618,9 @@ out_free_obj:
 | 组件 | agentrt-linux（[SS]） | agentrt（[SS]） | 共享（[SC]） |
 |------|------------------------|------------------|--------------|
 | 调度语义 | SCHED_AGENT（sched_ext） | MicroCoreRT 用户态调度 | 调度语义（概念同源，签名独立演进） |
-| vtime 公式 | Q16.16 内核态 | Q16.16 用户态 | `airymax_q16_t` 头文件 |
+| vtime 公式 | Q16.16 内核态 | Q16.16 用户态 | `airy_q16_t` 头文件 |
 | 权重因子 | stage + token | stage + token | 权重枚举定义 |
-| 错误码 | AGENTRT_E_SCHED_* | AGENTRT_E_SCHED_* | `error.h` 错误码段 |
+| 错误码 | AIRY_E_SCHED_* | AIRY_E_SCHED_* | `error.h` 错误码段 |
 
 ---
 

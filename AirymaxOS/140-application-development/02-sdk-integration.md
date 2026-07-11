@@ -64,31 +64,23 @@ AgentsIPC 协议的核心是 128 字节定长消息头，定义于 IRON-9 v2 [SC
 ```c
 /* include/uapi/agentrt/ipc.h（IRON-9 v2 [SC] 共享契约层）
  * 与 agentrt 用户态运行时完全共享，禁止单端修改 */
-struct agentrt_ipc_msg_hdr_t {
-	uint32_t magic;          /* 0x41524531 ('ARE1') */
-	uint16_t version;        /* 协议版本，当前 1 */
-	uint16_t type;           /* REQUEST/RESPONSE/EVENT/STREAM/CONTROL */
-	uint32_t src_agent_id;   /* 发送方 Agent ID */
-	uint32_t dst_agent_id;   /* 接收方 Agent ID */
-	uint64_t payload_len;    /* payload 长度（可超出 128B） */
-	uint64_t trace_id;       /* 链路追踪 ID（贯穿全链路） */
-	uint32_t seq;            /* 序列号（请求-响应配对） */
-	uint32_t flags;          /* 标志位（压缩/加密/重试） */
-	uint64_t reserved[8];    /* 预留 64 字节扩展 */
-};  /* 共 128 字节，编译期 static_assert 验证 */
-static_assert(sizeof(struct agentrt_ipc_msg_hdr_t) == 128,
-	      "IPC header must be exactly 128 bytes");
+/* IPC 128B 消息头定义见 [SC] 共享契约层（SSoT），不就地重定义 */
+#include <airymax/ipc.h>
+/* 结构体名称：struct airy_ipc_msg_hdr（Layout C，物理宿主见
+ * 50-engineering-standards/120-cross-project-code-sharing.md §Layout C） */
 ```
+
+> **SSoT 声明**：本节 IPC 128B 消息头不再就地重定义，以 `include/airymax/ipc.h`（物理宿主见 `50-engineering-standards/120-cross-project-code-sharing.md` §Layout C）为单一数据源。结构体名称为 `struct airy_ipc_msg_hdr`（Layout C）。
 
 ### 2.2 消息类型
 
 ```c
-enum agentrt_ipc_msg_type {
-	AGENTRT_IPC_TYPE_REQUEST  = 1,  /* 请求 */
-	AGENTRT_IPC_TYPE_RESPONSE = 2,  /* 响应 */
-	AGENTRT_IPC_TYPE_EVENT    = 3,  /* 事件（单向） */
-	AGENTRT_IPC_TYPE_STREAM   = 4,  /* 流式（LLM 流式输出） */
-	AGENTRT_IPC_TYPE_CONTROL  = 5,  /* 控制消息（心跳/关闭） */
+enum airy_ipc_msg_type {
+	AIRY_IPC_TYPE_REQUEST  = 1,  /* 请求 */
+	AIRY_IPC_TYPE_RESPONSE = 2,  /* 响应 */
+	AIRY_IPC_TYPE_EVENT    = 3,  /* 事件（单向） */
+	AIRY_IPC_TYPE_STREAM   = 4,  /* 流式（LLM 流式输出） */
+	AIRY_IPC_TYPE_CONTROL  = 5,  /* 控制消息（心跳/关闭） */
 };
 ```
 
@@ -112,22 +104,22 @@ enum agentrt_ipc_msg_type {
 
 ```c
 /* include/agentrt/sdk.h（[SS] 语义同源层） */
-typedef struct agentrt_client agentrt_client_t;
-typedef struct agentrt_response agentrt_response_t;
+typedef struct airy_client airy_client_t;
+typedef struct airy_response airy_response_t;
 
 /* 客户端创建/销毁 */
-agentrt_client_t *agentrt_client_create(const char *socket_path);
-void agentrt_client_destroy(agentrt_client_t *client);
+airy_client_t *airy_client_create(const char *socket_path);
+void airy_client_destroy(airy_client_t *client);
 
 /* 通用请求-响应（封装 AgentsIPC） */
-int agentrt_client_call(agentrt_client_t *client,
+int airy_client_call(airy_client_t *client,
 			uint32_t dst_agent_id,
 			const char *method,
 			const uint8_t *payload, size_t payload_len,
-			agentrt_response_t **out_resp);
+			airy_response_t **out_resp);
 
 /* 流式请求（封装 STREAM 消息） */
-int agentrt_client_call_stream(agentrt_client_t *client,
+int airy_client_call_stream(airy_client_t *client,
 			       uint32_t dst_agent_id,
 			       const char *method,
 			       const uint8_t *payload, size_t payload_len,
@@ -135,7 +127,7 @@ int agentrt_client_call_stream(agentrt_client_t *client,
 			       void *user_data);
 
 /* 响应释放 */
-void agentrt_response_free(agentrt_response_t *resp);
+void airy_response_free(airy_response_t *resp);
 ```
 
 ### 3.2 内存安全约定
@@ -144,7 +136,7 @@ FFI 边界遵循「谁分配谁释放」原则，杜绝跨语言内存泄漏：
 
 | 分配方 | 释放方 | 内存类型 |
 |--------|--------|----------|
-| C 库（malloc） | C 库（agentrt_response_free） | 响应数据 |
+| C 库（malloc） | C 库（airy_response_free） | 响应数据 |
 | 语言运行时 | 语言运行时 | 请求 payload |
 | io_uring 共享内存 | 内核回收 | SQE/CQE |
 
@@ -154,9 +146,9 @@ C 负整数体系错误码直接穿透 FFI 边界：
 
 ```c
 /* SDK 调用返回负错误码，语言层包装为异常 */
-int ret = agentrt_client_call(client, dst, method, ...);
+int ret = airy_client_call(client, dst, method, ...);
 if (ret < 0) {
-	/* ret 为 AGENTRT_E* 负错误码，[SC] 层共享 */
+	/* ret 为 AIRY_E* 负错误码，[SC] 层共享 */
 	return ret;
 }
 ```
@@ -168,23 +160,23 @@ if (ret < 0) {
 ### 4.1 Python SDK（CFFI）
 
 ```python
-# agentrt_python/_core.py
+# airy_python/_core.py
 import cffi
 
 ffi = cffi.FFI()
 ffi.cdef("""
-    typedef struct agentrt_client agentrt_client_t;
-    typedef struct agentrt_response agentrt_response_t;
-    agentrt_client_t *agentrt_client_create(const char *socket_path);
-    void agentrt_client_destroy(agentrt_client_t *client);
-    int agentrt_client_call(agentrt_client_t *client,
+    typedef struct airy_client airy_client_t;
+    typedef struct airy_response airy_response_t;
+    airy_client_t *airy_client_create(const char *socket_path);
+    void airy_client_destroy(airy_client_t *client);
+    int airy_client_call(airy_client_t *client,
                             uint32_t dst_agent_id,
                             const char *method,
                             const uint8_t *payload, size_t payload_len,
-                            agentrt_response_t **out_resp);
-    const uint8_t *agentrt_response_data(agentrt_response_t *resp,
+                            airy_response_t **out_resp);
+    const uint8_t *airy_response_data(airy_response_t *resp,
                                           size_t *out_len);
-    void agentrt_response_free(agentrt_response_t *resp);
+    void airy_response_free(airy_response_t *resp);
 """)
 
 lib = ffi.dlopen("libagentrt.so")
@@ -198,35 +190,35 @@ class AgentrtError(Exception):
 class Client:
     """SDK 客户端，封装 syscall/AgentsIPC 通信"""
     def __init__(self, socket_path: str = "/var/run/agentrt/agent.sock"):
-        self._client = lib.agentrt_client_create(
+        self._client = lib.airy_client_create(
             ffi.new("char[]", socket_path.encode()))
         if not self._client:
             raise AgentrtError(-1)
 
     def call(self, dst_agent_id: int, method: str, payload: bytes) -> bytes:
         buf = ffi.from_buffer(payload) if payload else ffi.NULL
-        resp_ptr = ffi.new("agentrt_response_t **")
-        ret = lib.agentrt_client_call(
+        resp_ptr = ffi.new("airy_response_t **")
+        ret = lib.airy_client_call(
             self._client, dst_agent_id,
             method.encode(), buf, len(payload), resp_ptr)
         if ret < 0:
             raise AgentrtError(ret)
         try:
             length_ptr = ffi.new("size_t *")
-            data = lib.agentrt_response_data(resp_ptr[0], length_ptr)
+            data = lib.airy_response_data(resp_ptr[0], length_ptr)
             return ffi.buffer(data, length_ptr[0])[:]
         finally:
-            lib.agentrt_response_free(resp_ptr[0])
+            lib.airy_response_free(resp_ptr[0])
 
     def __del__(self):
         if self._client:
-            lib.agentrt_client_destroy(self._client)
+            lib.airy_client_destroy(self._client)
 ```
 
 ### 4.2 Rust SDK（bindgen）
 
 ```rust
-// agentrt_rust/src/lib.rs
+// airy_rust/src/lib.rs
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_uint};
 use std::ptr;
@@ -260,14 +252,14 @@ impl From<i32> for AgentrtError {
 }
 
 pub struct Client {
-    inner: *mut ffi::agentrt_client_t,
+    inner: *mut ffi::airy_client_t,
 }
 
 impl Client {
     pub fn new(socket_path: &str) -> Result<Self, AgentrtError> {
         let c_path = CString::new(socket_path).unwrap();
         unsafe {
-            let inner = ffi::agentrt_client_create(c_path.as_ptr());
+            let inner = ffi::airy_client_create(c_path.as_ptr());
             if inner.is_null() {
                 return Err(AgentrtError::Unknown(-1));
             }
@@ -278,9 +270,9 @@ impl Client {
     pub fn call(&self, dst_agent_id: u32, method: &str,
                 payload: &[u8]) -> Result<Vec<u8>, AgentrtError> {
         let c_method = CString::new(method).unwrap();
-        let mut resp_ptr: *mut ffi::agentrt_response_t = ptr::null_mut();
+        let mut resp_ptr: *mut ffi::airy_response_t = ptr::null_mut();
         let ret = unsafe {
-            ffi::agentrt_client_call(
+            ffi::airy_client_call(
                 self.inner, dst_agent_id, c_method.as_ptr(),
                 payload.as_ptr(), payload.len(), &mut resp_ptr)
         };
@@ -289,9 +281,9 @@ impl Client {
         }
         unsafe {
             let mut len: usize = 0;
-            let data = ffi::agentrt_response_data(resp_ptr, &mut len);
+            let data = ffi::airy_response_data(resp_ptr, &mut len);
             let result = std::slice::from_raw_parts(data, len).to_vec();
-            ffi::agentrt_response_free(resp_ptr);
+            ffi::airy_response_free(resp_ptr);
             Ok(result)
         }
     }
@@ -299,7 +291,7 @@ impl Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
-        unsafe { ffi::agentrt_client_destroy(self.inner); }
+        unsafe { ffi::airy_client_destroy(self.inner); }
     }
 }
 ```
@@ -307,7 +299,7 @@ impl Drop for Client {
 ### 4.3 Go SDK（cgo）
 
 ```go
-// agentrt_go/client.go
+// airy_go/client.go
 package agentrt
 
 /*
@@ -322,7 +314,7 @@ import (
 )
 
 type Client struct {
-	handle *C.agentrt_client_t
+	handle *C.airy_client_t
 }
 
 type AgentrtError struct{ Code int32 }
@@ -334,7 +326,7 @@ func (e *AgentrtError) Error() string {
 func NewClient(socketPath string) (*Client, error) {
 	cPath := C.CString(socketPath)
 	defer C.free(unsafe.Pointer(cPath))
-	h := C.agentrt_client_create(cPath)
+	h := C.airy_client_create(cPath)
 	if h == nil {
 		return nil, &AgentrtError{Code: -1}
 	}
@@ -346,26 +338,26 @@ func (c *Client) Call(dstAgentID uint32, method string,
 	cMethod := C.CString(method)
 	defer C.free(unsafe.Pointer(cMethod))
 
-	var resp *C.agentrt_response_t
+	var resp *C.airy_response_t
 	var payloadPtr *C.uint8_t
 	if len(payload) > 0 {
 		payloadPtr = (*C.uint8_t)(unsafe.Pointer(&payload[0]))
 	}
-	ret := C.agentrt_client_call(c.handle, C.uint(dstAgentID),
+	ret := C.airy_client_call(c.handle, C.uint(dstAgentID),
 		cMethod, payloadPtr, C.size_t(len(payload)), &resp)
 	if ret < 0 {
 		return nil, &AgentrtError{Code: int32(ret)}
 	}
-	defer C.agentrt_response_free(resp)
+	defer C.airy_response_free(resp)
 
 	var length C.size_t
-	data := C.agentrt_response_data(resp, &length)
+	data := C.airy_response_data(resp, &length)
 	return C.GoBytes(unsafe.Pointer(data), C.int(length)), nil
 }
 
 func (c *Client) Close() {
 	if c.handle != nil {
-		C.agentrt_client_destroy(c.handle)
+		C.airy_client_destroy(c.handle)
 	}
 }
 ```
@@ -373,7 +365,7 @@ func (c *Client) Close() {
 ### 4.4 TypeScript SDK（N-API）
 
 ```typescript
-// agentrt_typescript/native.ts
+// airy_typescript/native.ts
 import { addon, AgentrtError } from './binding';
 
 /**
@@ -426,22 +418,22 @@ export class Client {
 
 ```c
 /* libagentrt/sdk.c 内部实现 */
-int agentrt_client_call(agentrt_client_t *client,
+int airy_client_call(airy_client_t *client,
 			uint32_t dst_agent_id,
 			const char *method,
 			const uint8_t *payload, size_t payload_len,
-			agentrt_response_t **out_resp)
+			airy_response_t **out_resp)
 {
-	struct agentrt_ipc_msg_hdr_t hdr = {0};
+	struct airy_ipc_msg_hdr hdr = {0};
 	int ret;
 
 	if (!client || !method || (!payload && payload_len > 0))
-		return -AGENTRT_EINVAL;
+		return -AIRY_EINVAL;
 
 	/* 填充 128B 消息头 */
 	hdr.magic = 0x41524531;
 	hdr.version = 1;
-	hdr.type = AGENTRT_IPC_TYPE_REQUEST;
+	hdr.type = AIRY_IPC_TYPE_REQUEST;
 	hdr.src_agent_id = client->self_agent_id;
 	hdr.dst_agent_id = dst_agent_id;
 	hdr.payload_len = payload_len;
@@ -450,24 +442,24 @@ int agentrt_client_call(agentrt_client_t *client,
 
 	/* agentrt-linux 路径：syscall（io_uring 注册） */
 	if (client->use_syscall) {
-		ret = syscall(AGENTRT_SYS_IPC_SEND, &hdr, payload, payload_len);
+		ret = syscall(AIRY_SYS_IPC_SEND, &hdr, payload, payload_len);
 		if (ret < 0)
 			return ret;
-		return agentrt_syscall_recv(client, hdr.seq, out_resp);
+		return airy_syscall_recv(client, hdr.seq, out_resp);
 	}
 
 	/* agentrt 用户态路径：io_uring 提交至消息队列 */
-	return agentrt_ipc_uring_submit(client, &hdr, payload, payload_len,
+	return airy_ipc_uring_submit(client, &hdr, payload, payload_len,
 					out_resp);
 }
 ```
 
 ### 5.2 SDK 客户端调用系统调用示例
 
-以下展示一个 Python SDK 客户端完整调用 `AGENTRT_SYS_COGNITION_PROCESS` 系统调用的代码片段：
+以下展示一个 Python SDK 客户端完整调用 `AIRY_SYS_COGNITION_PROCESS` 系统调用的代码片段：
 
 ```python
-# agentrt_python/clients/cognition.py
+# airy_python/clients/cognition.py
 from ._core import Client, AgentrtError
 import json
 
@@ -482,11 +474,11 @@ class CognitionClient:
 
     def process(self, prompt: str, **kwargs) -> dict:
         """
-        执行认知处理（封装 syscall AGENTRT_SYS_COGNITION_PROCESS）
+        执行认知处理（封装 syscall AIRY_SYS_COGNITION_PROCESS）
         当宿主为 agentrt-linux 时，SDK 内部走 syscall 路径
         """
         if self._tokens_used >= self._token_budget:
-            raise AgentrtError(-401)  # AGENTRT_EBUDGET_EXHAUSTED
+            raise AgentrtError(-401)  # AIRY_EBUDGET_EXHAUSTED
 
         payload = json.dumps({
             "prompt": prompt,
@@ -495,7 +487,7 @@ class CognitionClient:
         }).encode()
 
         # SDK 内部检测宿主：
-        #   - agentrt-linux -> syscall(AGENTRT_SYS_COGNITION_PROCESS)
+        #   - agentrt-linux -> syscall(AIRY_SYS_COGNITION_PROCESS)
         #   - agentrt 用户态 -> AgentsIPC 调用 llm_d
         resp = self._client.call(self.LLM_DAEMON_ID,
                                   "cognition.process", payload)
@@ -520,13 +512,13 @@ class CognitionClient:
        |
        v
 [libagentrt.so]
-   agentrt_client_call()
+   airy_client_call()
        |
        v (检测宿主为 agentrt-linux)
-   syscall(AGENTRT_SYS_IPC_SEND, hdr, payload)
+   syscall(AIRY_SYS_IPC_SEND, hdr, payload)
        |
        v
-[内核态 agentrt_core]
+[内核态 airy_core]
    io_uring 提交队列接收 SQE
        |
        v
@@ -544,7 +536,7 @@ class CognitionClient:
        |
        v
 [libagentrt.so]
-   agentrt_syscall_recv() 取回响应
+   airy_syscall_recv() 取回响应
        |
        v
 [Python 应用]
@@ -586,7 +578,7 @@ SDK 在初始化时检测宿主环境，选择通信路径：
 
 ```c
 /* libagentrt/host_detect.c */
-bool agentrt_host_is_airymaxos(void)
+bool airy_host_is_airymaxos(void)
 {
 	/* 检测 /proc/airymaxos/version 是否存在 */
 	int fd = open("/proc/airymaxos/version", O_RDONLY);

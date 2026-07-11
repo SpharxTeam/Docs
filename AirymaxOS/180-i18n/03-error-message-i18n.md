@@ -2,7 +2,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）错误消息国际化设计
 
-> **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）错误消息国际化工程设计文档，覆盖错误码（agentrt_error_t）与本地化消息分离设计、错误码注册表 SSoT、多语言消息映射\
+> **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）错误消息国际化工程设计文档，覆盖错误码（airy_err_t）与本地化消息分离设计、错误码注册表 SSoT、多语言消息映射\
 > **版本**：0.1.1（文档体系完成）/ 1.0.1（开发）\
 > **最后更新**：2026-07-09\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
@@ -16,7 +16,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 agentrt-linux（AirymaxOS）作为面向全球开发者和用户的智能体操作系统发行版，其错误消息体系是开发者体验与可追溯性的关键。本文档定义错误消息国际化工程设计，目标是：
 
-1. **错误码与消息分离**：错误码（`agentrt_error_t`）作为机器可读契约，本地化消息作为人类可读呈现，二者严格分离
+1. **错误码与消息分离**：错误码（`airy_err_t`）作为机器可读契约，本地化消息作为人类可读呈现，二者严格分离
 2. **错误码注册表 SSoT**：所有错误码唯一定义于 `include/airymax/error.h`（IRON-9 v2 [SC] 共享契约层），任何文档、代码不得另起定义
 3. **多语言消息映射**：每个错误码映射到多语言消息表，支持 zh_CN、en_US、ja_JP 等 locale
 4. **跨端错误码同源**：agentrt-linux 内核态与 agentrt 用户态运行时错误码完全一致，实现跨端错误可追溯
@@ -47,7 +47,7 @@ agentrt-linux 采用双错误码体系，分别适用于不同场景：
 
 | 体系 | 适用场景 | 格式 | 权威源 |
 |------|----------|------|--------|
-| **C 负整数体系**（首要） | C 内核和 Daemon 层 | `AGENTRT_OK=0`、`AGENTRT_EINVAL=-2` | `include/airymax/error.h` |
+| **C 负整数体系**（首要） | C 内核和 Daemon 层 | `AIRY_EOK=0`、`AIRY_EINVAL=-1` | `include/airymax/error.h` |
 | **SDK 十六进制体系**（次要） | SDK 和外部接口 | `0x0000`-`0x7FFF` 分段 | `include/airymax/error.h` |
 
 ### 2.2 C 负整数体系分段
@@ -56,74 +56,80 @@ C 负整数体系按子系统分段，定义于 [SC] 共享契约层：
 
 ```c
 /* include/airymax/error.h [SC] */
-#ifndef _AIRYMAX_ERROR_H
-#define _AIRYMAX_ERROR_H
+#ifndef _AIRY_ERROR_H
+#define _AIRY_ERROR_H
 
 #include <linux/types.h>
 
-typedef int agentrt_error_t;
+typedef int airy_err_t;
 
 /* 成功 */
-#define AGENTRT_OK               0
+#define AIRY_EOK               0
 
-/* 通用错误（-1 ~ -99） */
-#define AGENTRT_EGENERIC        (-1)
-#define AGENTRT_EINVAL          (-2)
-#define AGENTRT_ENOMEM          (-3)
-#define AGENTRT_ENOSYS          (-4)
-#define AGENTRT_ENOENT          (-5)
-#define AGENTRT_EACCES          (-6)
-#define AGENTRT_EBUSY           (-7)
-#define AGENTRT_ETIMEDOUT       (-8)
-#define AGENTRT_EIO             (-9)
+/* 通用错误（-1 ~ -99），SSoT 对齐 30-interfaces/01-syscalls.md */
+#define AIRY_EINVAL          (-1)   /* 无效参数 */
+#define AIRY_ENOMEM          (-2)   /* 内存不足 */
+#define AIRY_ENOSYS          (-3)   /* 未实现 */
+#define AIRY_EPERM           (-4)   /* 权限不足 */
+#define AIRY_ENOENT          (-5)   /* 资源不存在 */
+#define AIRY_EAGAIN          (-6)   /* 重试 */
+#define AIRY_EMSGSIZE        (-7)   /* 消息过大 */
+#define AIRY_EBADF           (-8)   /* 描述符错误 */
+#define AIRY_EBUSY           (-9)   /* 资源繁忙 */
+#define AIRY_ENOTSUP         (-10)  /* 不支持 */
+#define AIRY_ETIMEOUT        (-11)  /* 超时 */
+#define AIRY_ECONFLICT       (-12)  /* 状态冲突 */
+#define AIRY_EGENERIC        (-13)  /* 通用错误（兜底） */
+#define AIRY_EACCES          (-14)  /* 访问拒绝 */
+#define AIRY_EIO             (-15)  /* I/O 错误 */
 
 /* 系统级错误（-100 ~ -199） */
-#define AGENTRT_SYS_EBOOT       (-100)
-#define AGENTRT_SYS_ESHUTDOWN   (-101)
-#define AGENTRT_SYS_ESERVICE    (-102)
-#define AGENTRT_SYS_ECONFIG     (-103)
+#define AIRY_SYS_EBOOT       (-100)
+#define AIRY_SYS_ESHUTDOWN   (-101)
+#define AIRY_SYS_ESERVICE    (-102)
+#define AIRY_SYS_ECONFIG     (-103)
 
 /* 内核错误（-200 ~ -299） */
-#define AGENTRT_KERN_EBPF       (-200)
-#define AGENTRT_KERN_ESCHED     (-201)
-#define AGENTRT_KERN_EIPC       (-202)
-#define AGENTRT_KERN_EMEM       (-203)
+#define AIRY_KERN_EBPF       (-200)
+#define AIRY_KERN_ESCHED     (-201)
+#define AIRY_KERN_EIPC       (-202)
+#define AIRY_KERN_EMEM       (-203)
 
 /* 服务错误（-300 ~ -399） */
-#define AGENTRT_SVC_EGATEWAY    (-300)
-#define AGENTRT_SVC_ELLM        (-301)
-#define AGENTRT_SVC_ETOOL       (-302)
-#define AGENTRT_SVC_ESCHED      (-303)
+#define AIRY_SVC_EGATEWAY    (-300)
+#define AIRY_SVC_ELLM        (-301)
+#define AIRY_SVC_ETOOL       (-302)
+#define AIRY_SVC_ESCHED      (-303)
 
 /* LLM 推理错误（-400 ~ -499） */
-#define AGENTRT_LLM_EPROVIDER   (-400)
-#define AGENTRT_LLM_ECONTEXT    (-401)
-#define AGENTRT_LLM_ETOKEN      (-402)
-#define AGENTRT_LLM_ERATE       (-403)
+#define AIRY_LLM_EPROVIDER   (-400)
+#define AIRY_LLM_ECONTEXT    (-401)
+#define AIRY_LLM_ETOKEN      (-402)
+#define AIRY_LLM_ERATE       (-403)
 
 /* 执行错误（-500 ~ -599） */
-#define AGENTRT_EXEC_ETASK      (-500)
-#define AGENTRT_EXEC_ECOMPENSATE (-501)
+#define AIRY_EXEC_ETASK      (-500)
+#define AIRY_EXEC_ECOMPENSATE (-501)
 
 /* 记忆错误（-600 ~ -699） */
-#define AGENTRT_MEM_EROVOL      (-600)
-#define AGENTRT_MEM_ESWAP       (-601)
-#define AGENTRT_MEM_EFORGET     (-602)
+#define AIRY_MEM_EROVOL      (-600)
+#define AIRY_MEM_ESWAP       (-601)
+#define AIRY_MEM_EFORGET     (-602)
 
 /* 安全错误（-700 ~ -799） */
-#define AGENTRT_SEC_ECAP        (-700)
-#define AGENTRT_SEC_ESANDBOX    (-701)
-#define AGENTRT_SEC_EAUDIT      (-702)
+#define AIRY_SEC_ECAP        (-700)
+#define AIRY_SEC_ESANDBOX    (-701)
+#define AIRY_SEC_EAUDIT      (-702)
 
 /* 协议错误（-800 ~ -899） */
-#define AGENTRT_PROTO_EMCP      (-800)
-#define AGENTRT_PROTO_EA2A      (-801)
+#define AIRY_PROTO_EMCP      (-800)
+#define AIRY_PROTO_EA2A      (-801)
 
 /* i18n 错误（-900 ~ -999） */
-#define AGENTRT_I18N_ELOCALE    (-900)
-#define AGENTRT_I18N_EENCODING  (-901)
+#define AIRY_I18N_ELOCALE    (-900)
+#define AIRY_I18N_EENCODING  (-901)
 
-#endif /* _AIRYMAX_ERROR_H */
+#endif /* _AIRY_ERROR_H */
 ```
 
 ### 2.3 SDK 十六进制体系分段
@@ -134,24 +140,24 @@ SDK 十六进制体系用于 SDK 和外部接口（Python/Go/Rust/Java SDK）：
 /* include/airymax/error.h [SC] （续） */
 
 /* SDK 错误码（0x0000 - 0x7FFF） */
-#define AGENTRT_ERR_OK             0x0000
-#define AGENTRT_ERR_GENERIC        0x0001
-#define AGENTRT_ERR_INVALID_PARAM  0x0002
+#define AIRY_ERROR_OK             0x0000
+#define AIRY_ERROR_GENERIC        0x0001
+#define AIRY_ERROR_INVALID_PARAM  0x0002
 
 /* 通用段 0x0000 - 0x0FFF */
-#define AGENTRT_ERR_SYS_BASE       0x0100
+#define AIRY_ERROR_SYS_BASE       0x0100
 
 /* 内核段 0x1000 - 0x1FFF */
-#define AGENTRT_ERR_KERN_BASE      0x1000
+#define AIRY_ERROR_KERN_BASE      0x1000
 
 /* 服务段 0x2000 - 0x2FFF */
-#define AGENTRT_ERR_SVC_BASE       0x2000
+#define AIRY_ERROR_SVC_BASE       0x2000
 
 /* LLM 段 0x3000 - 0x3FFF */
-#define AGENTRT_ERR_LLM_BASE       0x3000
+#define AIRY_ERROR_LLM_BASE       0x3000
 
 /* 安全段 0x4000 - 0x4FFF */
-#define AGENTRT_ERR_SEC_BASE       0x4000
+#define AIRY_ERROR_SEC_BASE       0x4000
 ```
 
 ### 2.4 双体系映射
@@ -161,34 +167,34 @@ SDK 十六进制体系用于 SDK 和外部接口（Python/Go/Rust/Java SDK）：
 ```c
 /* include/airymax/error.h [SC] （续） */
 
-static inline u16 agentrt_err_c_to_sdk(agentrt_error_t err)
+static inline u16 airy_err_c_to_sdk(airy_err_t err)
 {
     if (err >= 0)
-        return AGENTRT_ERR_OK;
+        return AIRY_ERROR_OK;
 
     /* C 负整数 → SDK 十六进制 */
     switch (err) {
-    case AGENTRT_EGENERIC:        return AGENTRT_ERR_GENERIC;
-    case AGENTRT_EINVAL:          return AGENTRT_ERR_INVALID_PARAM;
-    case AGENTRT_KERN_EBPF:       return AGENTRT_ERR_KERN_BASE + 0x00;
-    case AGENTRT_KERN_ESCHED:     return AGENTRT_ERR_KERN_BASE + 0x01;
-    case AGENTRT_KERN_EIPC:       return AGENTRT_ERR_KERN_BASE + 0x02;
-    case AGENTRT_SVC_EGATEWAY:    return AGENTRT_ERR_SVC_BASE + 0x00;
-    case AGENTRT_SVC_ELLM:        return AGENTRT_ERR_SVC_BASE + 0x01;
+    case AIRY_EGENERIC:        return AIRY_ERROR_GENERIC;
+    case AIRY_EINVAL:          return AIRY_ERROR_INVALID_PARAM;
+    case AIRY_KERN_EBPF:       return AIRY_ERROR_KERN_BASE + 0x00;
+    case AIRY_KERN_ESCHED:     return AIRY_ERROR_KERN_BASE + 0x01;
+    case AIRY_KERN_EIPC:       return AIRY_ERROR_KERN_BASE + 0x02;
+    case AIRY_SVC_EGATEWAY:    return AIRY_ERROR_SVC_BASE + 0x00;
+    case AIRY_SVC_ELLM:        return AIRY_ERROR_SVC_BASE + 0x01;
     /* ... 完整映射表 */
-    default:                      return AGENTRT_ERR_GENERIC;
+    default:                      return AIRY_ERROR_GENERIC;
     }
 }
 
-static inline agentrt_error_t agentrt_err_sdk_to_c(u16 sdk_err)
+static inline airy_err_t airy_err_sdk_to_c(u16 sdk_err)
 {
     /* SDK 十六进制 → C 负整数（反向映射） */
     switch (sdk_err) {
-    case AGENTRT_ERR_OK:           return AGENTRT_OK;
-    case AGENTRT_ERR_GENERIC:      return AGENTRT_EGENERIC;
-    case AGENTRT_ERR_INVALID_PARAM: return AGENTRT_EINVAL;
+    case AIRY_ERROR_OK:           return AIRY_EOK;
+    case AIRY_ERROR_GENERIC:      return AIRY_EGENERIC;
+    case AIRY_ERROR_INVALID_PARAM: return AIRY_EINVAL;
     /* ... 完整映射表 */
-    default:                       return AGENTRT_EGENERIC;
+    default:                       return AIRY_EGENERIC;
     }
 }
 ```
@@ -198,7 +204,7 @@ static inline agentrt_error_t agentrt_err_sdk_to_c(u16 sdk_err)
 | 场景 | 体系 | 示例 |
 |------|------|------|
 | C 内核代码 | C 负整数 | `return -ENOENT;` |
-| Daemon C 代码 | C 负整数 | `return AGENTRT_IPC_ETIMEDOUT;` |
+| Daemon C 代码 | C 负整数 | `return AIRY_IPC_ETIMEDOUT;` |
 | Python SDK | SDK 十六进制 | `raise AgentrtError(0x1002)` |
 | Go SDK | SDK 十六进制 | `return AgentrtErrKernIPC` |
 | Rust SDK | SDK 十六进制 | `AgentrtErr::KernIpc` |
@@ -244,7 +250,7 @@ from pathlib import Path
 ERROR_HEADER = "include/airymax/error.h"
 
 PATTERN = re.compile(
-    r'#define\s+(AGENTRT_[A-Z_]+)\s+(\(?-?\d+\)?)\s*/\*\s*(.*?)\s*\*/'
+    r'#define\s+(AIRY_[A-Z_]+)\s+(\(?-?\d+\)?)\s*/\*\s*(.*?)\s*\*/'
 )
 
 def parse_errors(header_path):
@@ -302,13 +308,12 @@ Python SDK 自动生成的错误码：
 from enum import IntEnum
 
 class AgentrtError(IntEnum):
-    AGENTRT_OK = 0  # 成功
-    AGENTRT_EGENERIC = -1  # 通用错误
-    AGENTRT_EINVAL = -2  # 参数非法
-    AGENTRT_ENOMEM = -3  # 内存不足
-    AGENTRT_KERN_EBPF = -200  # BPF 程序加载失败
-    AGENTRT_KERN_ESCHED = -201  # 调度器错误
-    AGENTRT_IPC_ETIMEDOUT = -802  # IPC 通信超时
+    AIRY_EOK = 0  # 成功
+    AIRY_EINVAL = -1  # 参数非法
+    AIRY_ENOMEM = -2  # 内存不足
+    AIRY_KERN_EBPF = -200  # BPF 程序加载失败
+    AIRY_KERN_ESCHED = -201  # 调度器错误
+    AIRY_IPC_ETIMEDOUT = -802  # IPC 通信超时
     # ...
 ```
 
@@ -324,13 +329,13 @@ class AgentrtError(IntEnum):
 ┌─────────────────────────────────────────────────┐
 │  错误码（SSoT）                                  │
 │  include/airymax/error.h [SC]                   │
-│  AGENTRT_IPC_ETIMEDOUT = -802                   │
+│  AIRY_IPC_ETIMEDOUT = -802                   │
 └────────────────────┬────────────────────────────┘
                      │
                      ↓
          ┌───────────────────────┐
          │  错误码 → msgid 映射   │
-         │  agentrt_error_to_msgid│
+         │  airy_err_to_msgid│
          └───────────┬───────────┘
                      │
         ┌────────────┼────────────┐
@@ -350,27 +355,27 @@ class AgentrtError(IntEnum):
 /* airymaxos-services/common/error_msgid.c [IND] */
 #include <airymax/error.h>
 
-const char *agentrt_error_to_msgid(agentrt_error_t err)
+const char *airy_err_to_msgid(airy_err_t err)
 {
     switch (err) {
-    case AGENTRT_OK:               return "AGENTRT_OK";
-    case AGENTRT_EGENERIC:         return "AGENTRT_EGENERIC";
-    case AGENTRT_EINVAL:           return "AGENTRT_EINVAL";
-    case AGENTRT_ENOMEM:           return "AGENTRT_ENOMEM";
-    case AGENTRT_ENOSYS:           return "AGENTRT_ENOSYS";
-    case AGENTRT_KERN_EBPF:        return "AGENTRT_KERN_EBPF";
-    case AGENTRT_KERN_ESCHED:      return "AGENTRT_KERN_ESCHED";
-    case AGENTRT_KERN_EIPC:        return "AGENTRT_KERN_EIPC";
-    case AGENTRT_SVC_EGATEWAY:     return "AGENTRT_SVC_EGATEWAY";
-    case AGENTRT_SVC_ELLM:         return "AGENTRT_SVC_ELLM";
-    case AGENTRT_LLM_EPROVIDER:    return "AGENTRT_LLM_EPROVIDER";
-    case AGENTRT_LLM_ECONTEXT:     return "AGENTRT_LLM_ECONTEXT";
-    case AGENTRT_MEM_EROVOL:       return "AGENTRT_MEM_EROVOL";
-    case AGENTRT_SEC_ECAP:         return "AGENTRT_SEC_ECAP";
-    case AGENTRT_IPC_ETIMEDOUT:    return "AGENTRT_IPC_ETIMEDOUT";
-    case AGENTRT_I18N_ELOCALE:     return "AGENTRT_I18N_ELOCALE";
+    case AIRY_EOK:               return "AIRY_EOK";
+    case AIRY_EGENERIC:         return "AIRY_EGENERIC";
+    case AIRY_EINVAL:           return "AIRY_EINVAL";
+    case AIRY_ENOMEM:           return "AIRY_ENOMEM";
+    case AIRY_ENOSYS:           return "AIRY_ENOSYS";
+    case AIRY_KERN_EBPF:        return "AIRY_KERN_EBPF";
+    case AIRY_KERN_ESCHED:      return "AIRY_KERN_ESCHED";
+    case AIRY_KERN_EIPC:        return "AIRY_KERN_EIPC";
+    case AIRY_SVC_EGATEWAY:     return "AIRY_SVC_EGATEWAY";
+    case AIRY_SVC_ELLM:         return "AIRY_SVC_ELLM";
+    case AIRY_LLM_EPROVIDER:    return "AIRY_LLM_EPROVIDER";
+    case AIRY_LLM_ECONTEXT:     return "AIRY_LLM_ECONTEXT";
+    case AIRY_MEM_EROVOL:       return "AIRY_MEM_EROVOL";
+    case AIRY_SEC_ECAP:         return "AIRY_SEC_ECAP";
+    case AIRY_IPC_ETIMEDOUT:    return "AIRY_IPC_ETIMEDOUT";
+    case AIRY_I18N_ELOCALE:     return "AIRY_I18N_ELOCALE";
     /* ... 完整映射表，由 error_gen 自动生成 */
-    default:                       return "AGENTRT_EGENERIC";
+    default:                       return "AIRY_EGENERIC";
     }
 }
 ```
@@ -382,20 +387,20 @@ const char *agentrt_error_to_msgid(agentrt_error_t err)
 #include <libintl.h>
 #include <airymax/error.h>
 
-const char *agentrt_strerror_i18n(agentrt_error_t err)
+const char *airy_strerror_i18n(airy_err_t err)
 {
     const char *msgid;
 
-    msgid = agentrt_error_to_msgid(err);
+    msgid = airy_err_to_msgid(err);
     if (!msgid)
-        return dgettext("airymaxos", "AGENTRT_EGENERIC");
+        return dgettext("airymaxos", "AIRY_EGENERIC");
 
     /* gettext 查找当前 locale 的翻译 */
     return dgettext("airymaxos", msgid);
 }
 
 /* 带参数的错误消息格式化 */
-int agentrt_strerror_r(agentrt_error_t err, char *buf, size_t len)
+int airy_strerror_r(airy_err_t err, char *buf, size_t len)
 {
     const char *msg;
     int written;
@@ -403,7 +408,7 @@ int agentrt_strerror_r(agentrt_error_t err, char *buf, size_t len)
     if (!buf || len == 0)
         return -EINVAL;
 
-    msg = agentrt_strerror_i18n(err);
+    msg = airy_strerror_i18n(err);
     /* strscpy 安全拷贝，保证 NUL 终止 */
     written = strscpy(buf, msg, len);
     if (written < 0)
@@ -423,21 +428,21 @@ int agentrt_strerror_r(agentrt_error_t err, char *buf, size_t len)
 
 | 错误码 | en_US | zh_CN | ja_JP |
 |--------|-------|-------|-------|
-| AGENTRT_OK | Success | 成功 | 成功 |
-| AGENTRT_EGENERIC | Generic error | 通用错误 | 汎用エラー |
-| AGENTRT_EINVAL | Invalid parameter | 参数非法 | パラメータが無効です |
-| AGENTRT_ENOMEM | Out of memory | 内存不足 | メモリ不足 |
-| AGENTRT_KERN_EBPF | BPF program load failed | BPF 程序加载失败 | BPF プログラムのロードに失敗 |
-| AGENTRT_KERN_ESCHED | Scheduler error | 调度器错误 | スケジューラエラー |
-| AGENTRT_KERN_EIPC | IPC failure | IPC 通信失败 | IPC 通信失敗 |
-| AGENTRT_SVC_EGATEWAY | Gateway service error | 网关服务错误 | ゲートウェイサービスエラー |
-| AGENTRT_SVC_ELLM | LLM service error | LLM 服务错误 | LLM サービスエラー |
-| AGENTRT_LLM_EPROVIDER | LLM provider error | LLM 提供商错误 | LLM プロバイダエラー |
-| AGENTRT_LLM_ECONTEXT | Context too long | 上下文过长 | コンテキストが長すぎます |
-| AGENTRT_MEM_EROVOL | MemoryRovol error | 记忆卷载错误 | MemoryRovol エラー |
-| AGENTRT_SEC_ECAP | Capability denied | capability 权限拒绝 | capability 権限拒否 |
-| AGENTRT_IPC_ETIMEDOUT | IPC timeout | IPC 通信超时 | IPC 通信タイムアウト |
-| AGENTRT_I18N_ELOCALE | Locale unavailable | locale 不可用 | locale が利用不可 |
+| AIRY_EOK | Success | 成功 | 成功 |
+| AIRY_EGENERIC | Generic error | 通用错误 | 汎用エラー |
+| AIRY_EINVAL | Invalid parameter | 参数非法 | パラメータが無効です |
+| AIRY_ENOMEM | Out of memory | 内存不足 | メモリ不足 |
+| AIRY_KERN_EBPF | BPF program load failed | BPF 程序加载失败 | BPF プログラムのロードに失敗 |
+| AIRY_KERN_ESCHED | Scheduler error | 调度器错误 | スケジューラエラー |
+| AIRY_KERN_EIPC | IPC failure | IPC 通信失败 | IPC 通信失敗 |
+| AIRY_SVC_EGATEWAY | Gateway service error | 网关服务错误 | ゲートウェイサービスエラー |
+| AIRY_SVC_ELLM | LLM service error | LLM 服务错误 | LLM サービスエラー |
+| AIRY_LLM_EPROVIDER | LLM provider error | LLM 提供商错误 | LLM プロバイダエラー |
+| AIRY_LLM_ECONTEXT | Context too long | 上下文过长 | コンテキストが長すぎます |
+| AIRY_MEM_EROVOL | MemoryRovol error | 记忆卷载错误 | MemoryRovol エラー |
+| AIRY_SEC_ECAP | Capability denied | capability 权限拒绝 | capability 権限拒否 |
+| AIRY_IPC_ETIMEDOUT | IPC timeout | IPC 通信超时 | IPC 通信タイムアウト |
+| AIRY_I18N_ELOCALE | Locale unavailable | locale 不可用 | locale が利用不可 |
 
 ### 5.2 zh_CN .po 文件片段
 
@@ -453,57 +458,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 # 成功
-msgid "AGENTRT_OK"
+msgid "AIRY_EOK"
 msgstr "成功"
 
 # 通用错误
-msgid "AGENTRT_EGENERIC"
+msgid "AIRY_EGENERIC"
 msgstr "通用错误"
 
-msgid "AGENTRT_EINVAL"
+msgid "AIRY_EINVAL"
 msgstr "参数非法"
 
-msgid "AGENTRT_ENOMEM"
+msgid "AIRY_ENOMEM"
 msgstr "内存不足"
 
 # 内核错误
-msgid "AGENTRT_KERN_EBPF"
+msgid "AIRY_KERN_EBPF"
 msgstr "BPF 程序加载失败"
 
-msgid "AGENTRT_KERN_ESCHED"
+msgid "AIRY_KERN_ESCHED"
 msgstr "调度器错误"
 
-msgid "AGENTRT_KERN_EIPC"
+msgid "AIRY_KERN_EIPC"
 msgstr "IPC 通信失败"
 
 # 服务错误
-msgid "AGENTRT_SVC_EGATEWAY"
+msgid "AIRY_SVC_EGATEWAY"
 msgstr "网关服务错误"
 
-msgid "AGENTRT_SVC_ELLM"
+msgid "AIRY_SVC_ELLM"
 msgstr "LLM 服务错误"
 
 # LLM 推理错误
-msgid "AGENTRT_LLM_EPROVIDER"
+msgid "AIRY_LLM_EPROVIDER"
 msgstr "LLM 提供商错误"
 
-msgid "AGENTRT_LLM_ECONTEXT"
+msgid "AIRY_LLM_ECONTEXT"
 msgstr "上下文过长"
 
 # 记忆错误
-msgid "AGENTRT_MEM_EROVOL"
+msgid "AIRY_MEM_EROVOL"
 msgstr "记忆卷载错误"
 
 # 安全错误
-msgid "AGENTRT_SEC_ECAP"
+msgid "AIRY_SEC_ECAP"
 msgstr "capability 权限拒绝"
 
 # 协议错误
-msgid "AGENTRT_IPC_ETIMEDOUT"
+msgid "AIRY_IPC_ETIMEDOUT"
 msgstr "IPC 通信超时"
 
 # i18n 错误
-msgid "AGENTRT_I18N_ELOCALE"
+msgid "AIRY_I18N_ELOCALE"
 msgstr "locale 不可用"
 ```
 
@@ -520,28 +525,28 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "AGENTRT_OK"
+msgid "AIRY_EOK"
 msgstr "Success"
 
-msgid "AGENTRT_EGENERIC"
+msgid "AIRY_EGENERIC"
 msgstr "Generic error"
 
-msgid "AGENTRT_EINVAL"
+msgid "AIRY_EINVAL"
 msgstr "Invalid parameter"
 
-msgid "AGENTRT_ENOMEM"
+msgid "AIRY_ENOMEM"
 msgstr "Out of memory"
 
-msgid "AGENTRT_KERN_EBPF"
+msgid "AIRY_KERN_EBPF"
 msgstr "BPF program load failed"
 
-msgid "AGENTRT_KERN_ESCHED"
+msgid "AIRY_KERN_ESCHED"
 msgstr "Scheduler error"
 
-msgid "AGENTRT_IPC_ETIMEDOUT"
+msgid "AIRY_IPC_ETIMEDOUT"
 msgstr "IPC timeout"
 
-msgid "AGENTRT_I18N_ELOCALE"
+msgid "AIRY_I18N_ELOCALE"
 msgstr "Locale unavailable"
 ```
 
@@ -568,7 +573,7 @@ agentrt-linux 仓库:           │ （symlink 或 git submodule）
 ```bash
 # 1. 修改 include/airymax/error.h（任一仓库）
 vim include/airymax/error.h
-# 新增：#define AGENTRT_NEW_ERR  (-999)
+# 新增：#define AIRY_NEW_ERR  (-999)
 
 # 2. agentrt 仓库 CI 校验
 cd /path/to/agentrt && make ci-check-error-codes
@@ -586,10 +591,10 @@ make ci-cross-validate
 
 ```bash
 # 查询错误码定义来源
-airymaxos-error-trace AGENTRT_IPC_ETIMEDOUT
+airymaxos-error-trace AIRY_IPC_ETIMEDOUT
 
 # 输出：
-# 错误码：AGENTRT_IPC_ETIMEDOUT
+# 错误码：AIRY_IPC_ETIMEDOUT
 # 值：-802
 # 定义文件：include/airymax/error.h:42
 # 引入版本：1.0.1
@@ -627,11 +632,11 @@ airymaxos-error-trace AGENTRT_IPC_ETIMEDOUT
 static void test_no_duplicate_definition(void)
 {
     /* 每个错误码值必须唯一 */
-    assert(AGENTRT_OK == 0);
-    assert(AGENTRT_EGENERIC == -1);
-    assert(AGENTRT_EINVAL == -2);
-    assert(AGENTRT_KERN_EBPF == -200);
-    assert(AGENTRT_IPC_ETIMEDOUT == -802);
+    assert(AIRY_EOK == 0);
+    assert(AIRY_EINVAL == -1);
+    assert(AIRY_ENOMEM == -2);
+    assert(AIRY_KERN_EBPF == -200);
+    assert(AIRY_IPC_ETIMEDOUT == -802);
     /* ... 全量校验 */
 }
 
@@ -639,15 +644,15 @@ static void test_msgid_mapping(void)
 {
     const char *msgid;
 
-    msgid = agentrt_error_to_msgid(AGENTRT_OK);
-    assert(strcmp(msgid, "AGENTRT_OK") == 0);
+    msgid = airy_err_to_msgid(AIRY_EOK);
+    assert(strcmp(msgid, "AIRY_EOK") == 0);
 
-    msgid = agentrt_error_to_msgid(AGENTRT_IPC_ETIMEDOUT);
-    assert(strcmp(msgid, "AGENTRT_IPC_ETIMEDOUT") == 0);
+    msgid = airy_err_to_msgid(AIRY_IPC_ETIMEDOUT);
+    assert(strcmp(msgid, "AIRY_IPC_ETIMEDOUT") == 0);
 
-    /* 未知错误码降级到 AGENTRT_EGENERIC */
-    msgid = agentrt_error_to_msgid(-9999);
-    assert(strcmp(msgid, "AGENTRT_EGENERIC") == 0);
+    /* 未知错误码降级到 AIRY_EGENERIC */
+    msgid = airy_err_to_msgid(-9999);
+    assert(strcmp(msgid, "AIRY_EGENERIC") == 0);
 }
 
 int main(void)
@@ -669,14 +674,14 @@ int main(void)
 
 ```c
 /* 即使 .mo 缺失，仍返回有意义的字符串 */
-const char *msg = agentrt_strerror_i18n(AGENTRT_IPC_ETIMEDOUT);
-/* 若 zh_CN.mo 缺失，msg = "AGENTRT_IPC_ETIMEDOUT"（msgid passthrough） */
+const char *msg = airy_strerror_i18n(AIRY_IPC_ETIMEDOUT);
+/* 若 zh_CN.mo 缺失，msg = "AIRY_IPC_ETIMEDOUT"（msgid passthrough） */
 ```
 
 ### 8.2 错误码注册失败
 
 ```c
-int agentrt_error_register_new(agentrt_error_t new_err, const char *msgid)
+int airy_err_register_new(airy_err_t new_err, const char *msgid)
 {
     int err;
 
@@ -700,7 +705,7 @@ int agentrt_error_register_new(agentrt_error_t new_err, const char *msgid)
 错误码注册表初始化采用 `goto out_free_xxx` 集中错误处理：
 
 ```c
-int agentrt_error_registry_init(struct error_registry_cfg *cfg)
+int airy_err_registry_init(struct error_registry_cfg *cfg)
 {
     struct error_registry *reg;
     int err;

@@ -63,7 +63,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 层次 | 共享程度 | 认知子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
 | **[SC] 共享契约层** | 完全共享代码 | CoreLoopThree 阶段枚举（PERCEPTION/THINKING/ACTION）、Thinkdual 模式枚举（SYSTEM1_FAST/SYSTEM2_SLOW）、LLM 推理阶段枚举（PREFILL/DECODE/SPECULATIVE）、CoreLoopThree 上下文结构、Token 能效指标结构、GPU/NPU 能力描述符 | `include/airymax/cognition_types.h` |
-| **[SS] 语义同源层** | API 签名同源，实现独立 | `coreloopthree_run()`、`coreloopthree_notify_phase()`、`thinkdual_switch()`、`llm_scheduler_submit()`、`llm_scheduler_query_phase()`、`wasm_runtime_instantiate()`、`gpu_npu_schedule()`、`token_efficiency_record()` 等 8 项 | 各自独立实现 |
+| **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | `coreloopthree_run()`、`coreloopthree_notify_phase()`、`thinkdual_switch()`、`llm_scheduler_submit()`、`llm_scheduler_query_phase()`、`wasm_runtime_instantiate()`、`gpu_npu_schedule()`、`token_efficiency_record()` 等 8 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | Wasm runtime 完整实现（wasmtime/WAMR）、GPU/NPU 驱动、超节点沙箱实现、具身智能框架（Claw）、KVC-Gateway/LMCache/Bifrost 集成、CoreLoopThree kthread 内核态实现 | 各自独立仓库 |
 
 ### 2.1 维度对比
@@ -232,10 +232,10 @@ graph TD
 
 ```c
 typedef enum {
-    AGENTRT_CLT_PHASE_PERCEPTION = 0,  /* 感知循环：采集多模态输入 */
-    AGENTRT_CLT_PHASE_THINKING   = 1,  /* 思考循环：LLM 推理，决策制定 */
-    AGENTRT_CLT_PHASE_ACTION     = 2,  /* 行动循环：执行决策，输出结果 */
-} agentrt_clt_phase_t;
+    AIRY_CLT_PHASE_PERCEPTION = 0,  /* 感知循环：采集多模态输入 */
+    AIRY_CLT_PHASE_THINKING   = 1,  /* 思考循环：LLM 推理，决策制定 */
+    AIRY_CLT_PHASE_ACTION     = 2,  /* 行动循环：执行决策，输出结果 */
+} airy_clt_phase_t;
 ```
 
 1. **Perception Loop（感知循环）**：采集多模态输入（文本、图像、音频、传感器）。
@@ -250,14 +250,14 @@ typedef enum {
 **CoreLoopThree 上下文** [SC]（`include/airymax/cognition_types.h`）：
 
 ```c
-typedef struct agentrt_clt_context {
-    agentrt_clt_phase_t           current_phase;       /* 当前阶段 */
-    agentrt_thinkdual_mode_t      thinkdual_mode;      /* 双思考模式 */
-    agentrt_llm_inference_phase_t inference_phase;     /* LLM 推理阶段 */
+typedef struct airy_clt_context {
+    airy_clt_phase_t           current_phase;       /* 当前阶段 */
+    airy_thinkdual_mode_t      thinkdual_mode;      /* 双思考模式 */
+    airy_llm_inference_phase_t inference_phase;     /* LLM 推理阶段 */
     uint32_t                      priority;             /* 调度优先级 */
     uint64_t                      timestamp;           /* 阶段时间戳 */
     uint64_t                      cycle_count;         /* 循环计数 */
-} agentrt_clt_context_t;
+} airy_clt_context_t;
 ```
 
 ### 4.2 Thinkdual 双思考系统内核态加速 [SS]
@@ -266,9 +266,9 @@ typedef struct agentrt_clt_context {
 
 ```c
 typedef enum {
-    AGENTRT_THINKDUAL_SYSTEM1_FAST = 0,  /* 快思考：直觉式、低延迟、低能耗 */
-    AGENTRT_THINKDUAL_SYSTEM2_SLOW = 1,  /* 慢思考：推理式、高延迟、高准确度 */
-} agentrt_thinkdual_mode_t;
+    AIRY_THINKDUAL_SYSTEM1_FAST = 0,  /* 快思考：直觉式、低延迟、低能耗 */
+    AIRY_THINKDUAL_SYSTEM2_SLOW = 1,  /* 慢思考：推理式、高延迟、高准确度 */
+} airy_thinkdual_mode_t;
 ```
 
 - **System 1（快思考）**：直觉式、低延迟、低能耗。适用于简单决策。
@@ -301,10 +301,10 @@ typedef enum {
 
 ```c
 typedef enum {
-    AGENTRT_LLM_PHASE_PREFILL      = 0,  /* prefill 阶段：首 token 生成 */
-    AGENTRT_LLM_PHASE_DECODE       = 1,  /* decode 阶段：后续 token 生成 */
-    AGENTRT_LLM_PHASE_SPECULATIVE  = 2,  /* 投机解码阶段 */
-} agentrt_llm_inference_phase_t;
+    AIRY_LLM_PHASE_PREFILL      = 0,  /* prefill 阶段：首 token 生成 */
+    AIRY_LLM_PHASE_DECODE       = 1,  /* decode 阶段：后续 token 生成 */
+    AIRY_LLM_PHASE_SPECULATIVE  = 2,  /* 投机解码阶段 */
+} airy_llm_inference_phase_t;
 ```
 
 **调度策略** [SS]：
@@ -339,7 +339,7 @@ typedef enum {
 **GPU/NPU 能力描述符** [SC]（`include/airymax/cognition_types.h`）：
 
 ```c
-typedef struct agentrt_gpu_npu_descriptor {
+typedef struct airy_gpu_npu_descriptor {
     uint32_t device_id;        /* 设备 ID */
     uint32_t device_type;      /* GPU/NPU/加速器 */
     uint64_t memory_bytes;     /* 设备内存 */
@@ -347,7 +347,7 @@ typedef struct agentrt_gpu_npu_descriptor {
     uint32_t tflops;           /* 算力（TFLOPS） */
     uint8_t  supports_mig;     /* 是否支持 MIG */
     uint8_t  supports_mps;     /* 是否支持 MPS */
-} agentrt_gpu_npu_descriptor_t;
+} airy_gpu_npu_descriptor_t;
 ```
 
 ### 4.6 Token 能效优化（KVC-Gateway + LMCache + Bifrost）[IND]
@@ -359,14 +359,14 @@ typedef struct agentrt_gpu_npu_descriptor {
 **Token 能效指标** [SC]（`include/airymax/cognition_types.h`）：
 
 ```c
-typedef struct agentrt_token_efficiency_metric {
+typedef struct airy_token_efficiency_metric {
     uint64_t total_tokens;          /* 总 token 数 */
     uint64_t cached_tokens;         /* 缓存命中 token 数 */
     uint64_t speculative_tokens;    /* 投机解码 token 数 */
     uint64_t discarded_tokens;      /* 丢弃 token 数 */
     double   cache_hit_rate;        /* 缓存命中率 */
     double   speculative_accept_rate; /* 投机接受率 */
-} agentrt_token_efficiency_metric_t;
+} airy_token_efficiency_metric_t;
 ```
 
 **优化效果**：
@@ -430,16 +430,16 @@ typedef struct agentrt_token_efficiency_metric {
 
 | 内容 | 说明 |
 |------|------|
-| `agentrt_clt_phase_t` 枚举 | CoreLoopThree 3 阶段（PERCEPTION/THINKING/ACTION） |
-| `agentrt_thinkdual_mode_t` 枚举 | Thinkdual 2 模式（SYSTEM1_FAST/SYSTEM2_SLOW） |
-| `agentrt_llm_inference_phase_t` 枚举 | LLM 推理 3 阶段（PREFILL/DECODE/SPECULATIVE） |
-| `agentrt_clt_context_t` 结构 | CoreLoopThree 上下文（current_phase/thinkdual_mode/inference_phase/priority/timestamp/cycle_count） |
-| `agentrt_token_efficiency_metric_t` 结构 | Token 能效指标（total_tokens/cached_tokens/speculative_tokens/discarded_tokens/cache_hit_rate/speculative_accept_rate） |
-| `agentrt_gpu_npu_descriptor_t` 结构 | GPU/NPU 能力描述符（device_id/device_type/memory_bytes/compute_units/tflops/supports_mig/supports_mps） |
+| `airy_clt_phase_t` 枚举 | CoreLoopThree 3 阶段（PERCEPTION/THINKING/ACTION） |
+| `airy_thinkdual_mode_t` 枚举 | Thinkdual 2 模式（SYSTEM1_FAST/SYSTEM2_SLOW） |
+| `airy_llm_inference_phase_t` 枚举 | LLM 推理 3 阶段（PREFILL/DECODE/SPECULATIVE） |
+| `airy_clt_context_t` 结构 | CoreLoopThree 上下文（current_phase/thinkdual_mode/inference_phase/priority/timestamp/cycle_count） |
+| `airy_token_efficiency_metric_t` 结构 | Token 能效指标（total_tokens/cached_tokens/speculative_tokens/discarded_tokens/cache_hit_rate/speculative_accept_rate） |
+| `airy_gpu_npu_descriptor_t` 结构 | GPU/NPU 能力描述符（device_id/device_type/memory_bytes/compute_units/tflops/supports_mig/supports_mps） |
 
 ### 6.2 [SS] 语义同源层——8 项 API 映射
 
-API 签名同源，实现独立：
+高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进：
 
 | 序号 | API | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|-----|------|-------------|---------------|
@@ -582,14 +582,14 @@ sequenceDiagram
 | 4 | CoreLoopThree 上下文结构一致性 | 6 字段 | 6 字段（同） | ✅ PASS [SC] |
 | 5 | Token 能效指标结构一致性 | 6 字段 | 6 字段（同） | ✅ PASS [SC] |
 | 6 | GPU/NPU 能力描述符一致性 | 7 字段 | 7 字段（同） | ✅ PASS [SC] |
-| 7 | `coreloopthree_run()` 签名一致性 | 用户态循环 | 内核 kthread 循环 | ✅ PASS [SS] |
-| 8 | `coreloopthree_notify_phase()` 签名一致性 | 用户态回调 | sched_ext 接口 | ✅ PASS [SS] |
-| 9 | `thinkdual_switch()` 签名一致性 | 用户态切换 | 内核态切换 | ✅ PASS [SS] |
-| 10 | `llm_scheduler_submit()` 签名一致性 | 用户态队列 | io_uring 提交 | ✅ PASS [SS] |
-| 11 | `llm_scheduler_query_phase()` 签名一致性 | 用户态查询 | 内核 BPF tracing | ✅ PASS [SS] |
-| 12 | `wasm_runtime_instantiate()` 签名一致性 | 用户态 wasmtime | 内核态 WAMR | ✅ PASS [SS] |
-| 13 | `gpu_npu_schedule()` 签名一致性 | 用户态 API | drm_sched + drivers/accel/ | ✅ PASS [SS] |
-| 14 | `token_efficiency_record()` 签名一致性 | 用户态记录 | 内核 ftrace | ✅ PASS [SS] |
+| 7 | `coreloopthree_run()` 语义等价性 | 用户态循环 | 内核 kthread 循环 | ✅ PASS [SS] |
+| 8 | `coreloopthree_notify_phase()` 语义等价性 | 用户态回调 | sched_ext 接口 | ✅ PASS [SS] |
+| 9 | `thinkdual_switch()` 语义等价性 | 用户态切换 | 内核态切换 | ✅ PASS [SS] |
+| 10 | `llm_scheduler_submit()` 语义等价性 | 用户态队列 | io_uring 提交 | ✅ PASS [SS] |
+| 11 | `llm_scheduler_query_phase()` 语义等价性 | 用户态查询 | 内核 BPF tracing | ✅ PASS [SS] |
+| 12 | `wasm_runtime_instantiate()` 语义等价性 | 用户态 wasmtime | 内核态 WAMR | ✅ PASS [SS] |
+| 13 | `gpu_npu_schedule()` 语义等价性 | 用户态 API | drm_sched + drivers/accel/ | ✅ PASS [SS] |
+| 14 | `token_efficiency_record()` 语义等价性 | 用户态记录 | 内核 ftrace | ✅ PASS [SS] |
 | 15 | Wasm runtime/GPU 驱动/超节点沙箱独立性 | 用户态实现 | 内核态实现 | ✅ PASS [IND] |
 
 **结论**：agentrt coreloopthree + frameworks 设计无需修改。15 项检查全部 PASS，两端在 [SC]/[SS]/[IND] 三层共享模型下完全一致。

@@ -8,7 +8,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **理论根基**：Linux 6.6 UABI 永不破坏哲学 + seL4 接口契约 XML 思想 + Airymax K-2 接口契约化 + C-2 增量演化\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
 > **同源映射**：Linux 6.6 系统调用兼容性（IRON-9 v2 [SC] 共享契约层，IPC 消息头与 agentrt 共享）\
-> **IRON-9 v2 层次**：[SC] 共享契约层（IPC 消息头 `agentrt_ipc_msg_hdr_t` 与 agentrt 共享）+ [IND] 完全独立层（版本协商逻辑为 agentrt-linux 专属）
+> **IRON-9 v2 层次**：[SC] 共享契约层（IPC 消息头 `struct airy_ipc_msg_hdr` 与 agentrt 共享）+ [IND] 完全独立层（版本协商逻辑为 agentrt-linux 专属）
 
 ---
 
@@ -88,30 +88,25 @@ AgentsIPC 协议遵循语义化版本（Semantic Versioning）：
 协议版本号编码在 128B 消息头的 `version` 字段（uint16_t）：
 
 ```c
-/* include/airymax/ipc.h [SC] 共享契约层 */
-typedef struct __attribute__((aligned(64))) agentrt_ipc_msg_hdr {
-    uint32_t magic;          /* 0x41524531 'ARE1' */
-    uint16_t version;        /* 协议版本：高 8 位主版本，低 8 位次版本 */
-    uint16_t type;           /* 5 种 payload 协议 */
-    uint32_t payload_len;    /* payload 长度 */
-    uint32_t flags;          /* 标志位 */
-    uint32_t src_pid;        /* 源进程 ID */
-    uint32_t dst_pid;        /* 目标进程 ID */
-    uint64_t trace_id;       /* 链路追踪 ID */
-    uint64_t timestamp_ns;   /* 纳秒时间戳 */
-    uint8_t  reserved[72];   /* 保留字段（对齐 128B） */
-} agentrt_ipc_msg_hdr_t;
+/* IPC 128B 消息头定义见 [SC] 共享契约层（SSoT），不就地重定义 */
+#include <airymax/ipc.h>
+/* 结构体名称：struct airy_ipc_msg_hdr（Layout C，物理宿主见
+ * 50-engineering-standards/120-cross-project-code-sharing.md §Layout C） */
+```
 
+> **SSoT 声明**：本节 IPC 128B 消息头不再就地重定义，以 `include/airymax/ipc.h`（物理宿主见 `50-engineering-standards/120-cross-project-code-sharing.md` §Layout C）为单一数据源。结构体名称为 `struct airy_ipc_msg_hdr`（Layout C）。版本号编解码宏作为协议层语义保留，但消息头权威布局以 SSoT Layout C 为准（`opcode`/`flags`/`trace_id`/`timestamp_ns`/`src_task`/`dst_task`/`payload_len`/`reserved[84]`）。
+
+```c
 /* 版本号编解码宏 */
-#define AGENTRT_IPC_VERSION_MAJOR(v)  ((uint8_t)((v) >> 8))
-#define AGENTRT_IPC_VERSION_MINOR(v)  ((uint8_t)((v) & 0xFF))
-#define AGENTRT_IPC_VERSION_MAKE(maj, min) ((((uint16_t)(maj)) << 8) | ((uint16_t)(min)))
+#define AIRY_IPC_VERSION_MAJOR(v)  ((uint8_t)((v) >> 8))
+#define AIRY_IPC_VERSION_MINOR(v)  ((uint8_t)((v) & 0xFF))
+#define AIRY_IPC_VERSION_MAKE(maj, min) ((((uint16_t)(maj)) << 8) | ((uint16_t)(min)))
 
 /* 当前协议版本 */
-#define AGENTRT_IPC_VERSION_1_0  AGENTRT_IPC_VERSION_MAKE(1, 0)
-#define AGENTRT_IPC_VERSION_1_1  AGENTRT_IPC_VERSION_MAKE(1, 1)
-#define AGENTRT_IPC_VERSION_1_2  AGENTRT_IPC_VERSION_MAKE(1, 2)
-#define AGENTRT_IPC_VERSION_CURRENT  AGENTRT_IPC_VERSION_1_2
+#define AIRY_IPC_VERSION_1_0  AIRY_IPC_VERSION_MAKE(1, 0)
+#define AIRY_IPC_VERSION_1_1  AIRY_IPC_VERSION_MAKE(1, 1)
+#define AIRY_IPC_VERSION_1_2  AIRY_IPC_VERSION_MAKE(1, 2)
+#define AIRY_IPC_VERSION_CURRENT  AIRY_IPC_VERSION_1_2
 ```
 
 ---
@@ -158,7 +153,7 @@ sequenceDiagram
     participant URING as io_uring 通道
     participant KERN as 内核 IPC 服务
 
-    APP->>URING: 提交 AGENTRT_IPC_OP_HANDSHAKE SQE
+    APP->>URING: 提交 AIRY_IPC_OP_HANDSHAKE SQE
     Note over APP: SQE payload: 客户端支持的<br/>最高版本 + 支持版本位图
     URING->>KERN: 转发握手请求
     KERN->>KERN: 查找最低共同支持版本
@@ -174,27 +169,27 @@ sequenceDiagram
 /* include/airymax/ipc.h [SC] 共享契约层 */
 
 /* 握手请求 payload */
-typedef struct agentrt_ipc_handshake_req {
+typedef struct airy_ipc_handshake_req {
     uint16_t client_max_version;    /* 客户端支持的最高版本 */
     uint16_t client_min_version;    /* 客户端支持的最低版本 */
     uint32_t client_version_bitmap; /* 客户端支持版本位图（bit n = v1.n）*/
     uint8_t  reserved[8];
-} agentrt_ipc_handshake_req_t;
+} airy_ipc_handshake_req_t;
 
 /* 握手响应 payload */
-typedef struct agentrt_ipc_handshake_resp {
+typedef struct airy_ipc_handshake_resp {
     uint16_t negotiated_version;    /* 协商确定的版本 */
     uint16_t server_max_version;    /* 服务端支持的最高版本 */
     uint32_t server_version_bitmap; /* 服务端支持版本位图 */
     uint32_t server_features;       /* 服务端特性标志 */
     uint8_t  reserved[4];
-} agentrt_ipc_handshake_resp_t;
+} airy_ipc_handshake_resp_t;
 
 /* 特性标志位 */
-#define AGENTRT_IPC_FEAT_FAST_PATH     0x01  /* 快速路径优化 */
-#define AGENTRT_IPC_FEAT_BATCH_SUBMIT  0x02  /* 批量提交 */
-#define AGENTRT_IPC_FEAT_ZERO_COPY     0x04  /* 零拷贝 */
-#define AGENTRT_IPC_FEAT_TRACE_ID      0x08  /* trace_id 贯穿 */
+#define AIRY_IPC_FEAT_FAST_PATH     0x01  /* 快速路径优化 */
+#define AIRY_IPC_FEAT_BATCH_SUBMIT  0x02  /* 批量提交 */
+#define AIRY_IPC_FEAT_ZERO_COPY     0x04  /* 零拷贝 */
+#define AIRY_IPC_FEAT_TRACE_ID      0x08  /* trace_id 贯穿 */
 ```
 
 ### 4.3 协商算法
@@ -205,7 +200,7 @@ typedef struct agentrt_ipc_handshake_resp {
 /* airymaxos-kernel/ipc/version_negotiate.c [IND] */
 
 /**
- * agentrt_ipc_negotiate_version - 协商 IPC 协议版本
+ * airy_ipc_negotiate_version - 协商 IPC 协议版本
  * @client_req: 客户端握手请求
  * @server_supported: 服务端支持版本位图
  *
@@ -213,8 +208,8 @@ typedef struct agentrt_ipc_handshake_resp {
  *
  * 算法：取客户端与服务端共同支持的最高版本
  */
-uint16_t agentrt_ipc_negotiate_version(
-    const agentrt_ipc_handshake_req_t *client_req,
+uint16_t airy_ipc_negotiate_version(
+    const airy_ipc_handshake_req_t *client_req,
     uint32_t server_supported)
 {
     uint32_t common = client_req->client_version_bitmap & server_supported;
@@ -228,7 +223,7 @@ uint16_t agentrt_ipc_negotiate_version(
     uint16_t negotiated = 0;
     for (int v = 15; v >= 0; v--) {
         if (common & (1U << v)) {
-            negotiated = AGENTRT_IPC_VERSION_MAKE(1, v);
+            negotiated = AIRY_IPC_VERSION_MAKE(1, v);
             break;
         }
     }
@@ -285,11 +280,11 @@ stateDiagram-v2
 
 | payload 类型 | type 值 | 版本化策略 |
 |-------------|---------|-----------|
-| AGENTRT_IPC_TYPE_REQUEST | 0x01 | 新增字段追加至尾部，旧版本忽略尾部 |
-| AGENTRT_IPC_TYPE_RESPONSE | 0x02 | 同上 |
-| AGENTRT_IPC_TYPE_EVENT | 0x03 | 同上 |
-| AGENTRT_IPC_TYPE_ERROR | 0x04 | 错误码枚举只增不减 |
-| AGENTRT_IPC_TYPE_HANDSHAKE | 0x05 | 握手专用，结构固定 |
+| AIRY_IPC_TYPE_REQUEST | 0x01 | 新增字段追加至尾部，旧版本忽略尾部 |
+| AIRY_IPC_TYPE_RESPONSE | 0x02 | 同上 |
+| AIRY_IPC_TYPE_EVENT | 0x03 | 同上 |
+| AIRY_IPC_TYPE_ERROR | 0x04 | 错误码枚举只增不减 |
+| AIRY_IPC_TYPE_HANDSHAKE | 0x05 | 握手专用，结构固定 |
 
 ---
 
@@ -315,12 +310,12 @@ stateDiagram-v2
 log_write(LOG_WARN,
     "IPC version downgrade: client=v%d.%d server=v%d.%d negotiated=v%d.%d "
     "feature=fast_path disabled reason=server_version_too_low",
-    AGENTRT_IPC_VERSION_MAJOR(client_ver),
-    AGENTRT_IPC_VERSION_MINOR(client_ver),
-    AGENTRT_IPC_VERSION_MAJOR(server_ver),
-    AGENTRT_IPC_VERSION_MINOR(server_ver),
-    AGENTRT_IPC_VERSION_MAJOR(negotiated),
-    AGENTRT_IPC_VERSION_MINOR(negotiated));
+    AIRY_IPC_VERSION_MAJOR(client_ver),
+    AIRY_IPC_VERSION_MINOR(client_ver),
+    AIRY_IPC_VERSION_MAJOR(server_ver),
+    AIRY_IPC_VERSION_MINOR(server_ver),
+    AIRY_IPC_VERSION_MAJOR(negotiated),
+    AIRY_IPC_VERSION_MINOR(negotiated));
 ```
 
 ---
@@ -341,10 +336,10 @@ payload 版本化遵循"只追加不修改"原则：
 
 ```c
 /* flags 高 8 位用于 payload 子版本 */
-#define AGENTRT_IPC_FLAGS_PAYLOAD_VER_SHIFT  24
-#define AGENTRT_IPC_FLAGS_PAYLOAD_VER_MASK   0xFF000000
-#define AGENTRT_IPC_FLAGS_GET_PAYLOAD_VER(f) \
-    (((f) & AGENTRT_IPC_FLAGS_PAYLOAD_VER_MASK) >> AGENTRT_IPC_FLAGS_PAYLOAD_VER_SHIFT)
+#define AIRY_IPC_FLAGS_PAYLOAD_VER_SHIFT  24
+#define AIRY_IPC_FLAGS_PAYLOAD_VER_MASK   0xFF000000
+#define AIRY_IPC_FLAGS_GET_PAYLOAD_VER(f) \
+    (((f) & AIRY_IPC_FLAGS_PAYLOAD_VER_MASK) >> AIRY_IPC_FLAGS_PAYLOAD_VER_SHIFT)
 ```
 
 ---
@@ -357,17 +352,17 @@ payload 版本化遵循"只追加不修改"原则：
 
 | 操作码 | 名称 | 引入版本 | 状态 |
 |--------|------|---------|------|
-| 0x00 | AGENTRT_IPC_OP_NOP | v1.0 | 活跃 |
-| 0x01 | AGENTRT_IPC_OP_HANDSHAKE | v1.0 | 活跃 |
-| 0x10 | AGENTRT_IPC_OP_AGENT_CREATE | v1.0 | 活跃 |
-| 0x11 | AGENTRT_IPC_OP_AGENT_DESTROY | v1.0 | 活跃 |
-| 0x20 | AGENTRT_IPC_OP_ROVOL_MOUNT | v1.0 | 活跃 |
-| 0x21 | AGENTRT_IPC_OP_ROVOL_UMOUNT | v1.0 | 活跃 |
-| 0x30 | AGENTRT_IPC_OP_TOKEN_BUDGET | v1.0 | 活跃 |
-| 0x40 | AGENTRT_IPC_OP_EVENT_SUBSCRIBE | v1.1 | 活跃 |
-| 0x41 | AGENTRT_IPC_OP_EVENT_UNSUBSCRIBE | v1.1 | 活跃 |
-| 0x50 | AGENTRT_IPC_OP_BATCH_SUBMIT | v1.2 | 活跃 |
-| 0x60 | AGENTRT_IPC_OP_RELIABLE_SEND | v2.0 | 规划中 |
+| 0x00 | AIRY_IPC_OP_NOP | v1.0 | 活跃 |
+| 0x01 | AIRY_IPC_OP_HANDSHAKE | v1.0 | 活跃 |
+| 0x10 | AIRY_IPC_OP_AGENT_CREATE | v1.0 | 活跃 |
+| 0x11 | AIRY_IPC_OP_AGENT_DESTROY | v1.0 | 活跃 |
+| 0x20 | AIRY_IPC_OP_ROVOL_MOUNT | v1.0 | 活跃 |
+| 0x21 | AIRY_IPC_OP_ROVOL_UMOUNT | v1.0 | 活跃 |
+| 0x30 | AIRY_IPC_OP_TOKEN_BUDGET | v1.0 | 活跃 |
+| 0x40 | AIRY_IPC_OP_EVENT_SUBSCRIBE | v1.1 | 活跃 |
+| 0x41 | AIRY_IPC_OP_EVENT_UNSUBSCRIBE | v1.1 | 活跃 |
+| 0x50 | AIRY_IPC_OP_BATCH_SUBMIT | v1.2 | 活跃 |
+| 0x60 | AIRY_IPC_OP_RELIABLE_SEND | v2.0 | 规划中 |
 
 ### 8.2 未识别操作码处理
 
@@ -375,18 +370,18 @@ payload 版本化遵循"只追加不修改"原则：
 
 ```c
 switch (opcode) {
-case AGENTRT_IPC_OP_HANDSHAKE:
+case AIRY_IPC_OP_HANDSHAKE:
     return handle_handshake(sqes, cqe);
-case AGENTRT_IPC_OP_AGENT_CREATE:
+case AIRY_IPC_OP_AGENT_CREATE:
     return handle_agent_create(sqes, cqe);
 /* ... */
 default:
     /* 未识别操作码 */
     cqe->res = -ENOSYS;
-    cqe->flags |= AGENTRT_IPC_CQE_F_UNSUPPORTED;
+    cqe->flags |= AIRY_IPC_CQE_F_UNSUPPORTED;
     log_write(LOG_WARN, "unsupported IPC opcode: 0x%02x version: v%d.%d",
-        opcode, AGENTRT_IPC_VERSION_MAJOR(hdr->version),
-        AGENTRT_IPC_VERSION_MINOR(hdr->version));
+        opcode, AIRY_IPC_VERSION_MAJOR(hdr->version),
+        AIRY_IPC_VERSION_MINOR(hdr->version));
     return 0;
 }
 ```
@@ -419,13 +414,13 @@ sequenceDiagram
 
 ```c
 /**
- * agentrt_ipc_check_migration_compat - 检查跨节点迁移 IPC 兼容性
+ * airy_ipc_check_migration_compat - 检查跨节点迁移 IPC 兼容性
  * @src_version: 源节点内核支持的协议版本位图
  * @dst_version: 目标节点内核支持的协议版本位图
  *
  * 返回 0 表示兼容，-EINVAL 表示不兼容
  */
-int agentrt_ipc_check_migration_compat(uint32_t src_version,
+int airy_ipc_check_migration_compat(uint32_t src_version,
                                        uint32_t dst_version)
 {
     uint32_t common = src_version & dst_version;
@@ -454,21 +449,21 @@ static const struct {
     uint16_t version;
     uint32_t features;
     const char *description;
-} agentrt_ipc_supported_versions[] = {
-    { AGENTRT_IPC_VERSION_1_0, 0, "v1.0 基础版本" },
-    { AGENTRT_IPC_VERSION_1_1, AGENTRT_IPC_FEAT_TRACE_ID, "v1.1 新增 trace_id" },
-    { AGENTRT_IPC_VERSION_1_2,
-      AGENTRT_IPC_FEAT_TRACE_ID | AGENTRT_IPC_FEAT_BATCH_SUBMIT,
+} airy_ipc_supported_versions[] = {
+    { AIRY_IPC_VERSION_1_0, 0, "v1.0 基础版本" },
+    { AIRY_IPC_VERSION_1_1, AIRY_IPC_FEAT_TRACE_ID, "v1.1 新增 trace_id" },
+    { AIRY_IPC_VERSION_1_2,
+      AIRY_IPC_FEAT_TRACE_ID | AIRY_IPC_FEAT_BATCH_SUBMIT,
       "v1.2 新增批量提交" },
     { 0, 0, NULL }  /* 终止符 */
 };
 
-uint32_t agentrt_ipc_get_supported_bitmap(void)
+uint32_t airy_ipc_get_supported_bitmap(void)
 {
     uint32_t bitmap = 0;
-    for (int i = 0; agentrt_ipc_supported_versions[i].version; i++) {
-        uint8_t minor = AGENTRT_IPC_VERSION_MINOR(
-            agentrt_ipc_supported_versions[i].version);
+    for (int i = 0; airy_ipc_supported_versions[i].version; i++) {
+        uint8_t minor = AIRY_IPC_VERSION_MINOR(
+            airy_ipc_supported_versions[i].version);
         bitmap |= (1U << minor);
     }
     return bitmap;
@@ -614,18 +609,18 @@ impl IpcNegotiator {
 
 | 错误码 | 名称 | 含义 | 处理建议 |
 |--------|------|------|---------|
-| -EINVAL | AGENTRT_IPC_EINVAL | 无效参数 | 检查 payload 格式 |
-| -ENOSYS | AGENTRT_IPC_ENOSYS | 未实现操作码 | 降级至已实现操作码 |
-| -EPROTO | AGENTRT_IPC_EPROTO | 协议错误 | 检查 magic/version |
-| -EOPNOTSUPP | AGENTRT_IPC_ENOTSUP | 版本不支持 | 降级至更低版本 |
-| -ETIMEDOUT | AGENTRT_IPC_ETIMEOUT | 协商超时 | 重试或关闭连接 |
+| -EINVAL | AIRY_IPC_EINVAL | 无效参数 | 检查 payload 格式 |
+| -ENOSYS | AIRY_IPC_ENOSYS | 未实现操作码 | 降级至已实现操作码 |
+| -EPROTO | AIRY_IPC_EPROTO | 协议错误 | 检查 magic/version |
+| -EOPNOTSUPP | AIRY_IPC_ENOTSUP | 版本不支持 | 降级至更低版本 |
+| -ETIMEDOUT | AIRY_IPC_ETIMEOUT | 协商超时 | 重试或关闭连接 |
 
 ### 12.2 协商失败处理
 
 ```c
 /* airymaxos-kernel/ipc/handshake.c [IND] */
 
-int handle_handshake_failure(struct agentrt_ipc_connection *conn,
+int handle_handshake_failure(struct airy_ipc_connection *conn,
                              int error)
 {
     switch (error) {
@@ -634,7 +629,7 @@ int handle_handshake_failure(struct agentrt_ipc_connection *conn,
             "IPC handshake failed: version unsupported "
             "client_min=%d client_max=%d server_supported=0x%08x",
             conn->client_min, conn->client_max,
-            agentrt_ipc_get_supported_bitmap());
+            airy_ipc_get_supported_bitmap());
         break;
     case -ETIMEDOUT:
         log_write(LOG_WARN,
@@ -697,17 +692,17 @@ graph TD
 
 ```c
 /* 最低版本约束配置 */
-static uint16_t min_negotiated_version = AGENTRT_IPC_VERSION_1_1;
+static uint16_t min_negotiated_version = AIRY_IPC_VERSION_1_1;
 
-int agentrt_ipc_set_min_version(uint16_t min_ver)
+int airy_ipc_set_min_version(uint16_t min_ver)
 {
-    if (min_ver > AGENTRT_IPC_VERSION_CURRENT) {
+    if (min_ver > AIRY_IPC_VERSION_CURRENT) {
         return -EINVAL;
     }
     min_negotiated_version = min_ver;
     log_write(LOG_INFO, "IPC minimum negotiated version set to v%d.%d",
-        AGENTRT_IPC_VERSION_MAJOR(min_ver),
-        AGENTRT_IPC_VERSION_MINOR(min_ver));
+        AIRY_IPC_VERSION_MAJOR(min_ver),
+        AIRY_IPC_VERSION_MINOR(min_ver));
     return 0;
 }
 ```
@@ -847,7 +842,7 @@ class TestIPCVersionNegotiation:
 
 ```bash
 # KUnit 测试
-make kunitconfig CONFIG_AGENTRT_IPC_KUNIT=y
+make kunitconfig CONFIG_AIRY_IPC_KUNIT=y
 make test
 
 # 版本兼容性矩阵测试

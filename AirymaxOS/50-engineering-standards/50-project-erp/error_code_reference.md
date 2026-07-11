@@ -7,6 +7,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**： 2026-07-07\
 > **父文档**： [项目管理规范总览](README.md)\
 > **关联规范**： IRON-9 v2 工程铁律（内部工程标准规范） / [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md) / [接口设计规范](../../30-interfaces/README.md)
+>
+> **SSoT 声明**： 本文档的错误码规范以 [SC] 共享契约层 `include/airymax/error.h` 为单一数据源（SSoT）。C 内核首要体系使用 `AIRY_E*` 前缀（唯一主名称），SDK 次要体系使用 `AIRY_ERROR_*` 前缀。旧版 `AIRY_ERR_*` 前缀已废弃，新代码禁止使用。详见 [跨项目代码共享](../120-cross-project-code-sharing.md)。
 
 ---
 
@@ -353,14 +355,14 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
 
 | 错误码 | 宏名称 | 含义 |
 |--------|--------|------|
-| 0x00010000 | AGENTRT_ERR_INVALID_PARAM | 参数无效 |
-| 0x00020000 | AGENTRT_ERR_OUT_OF_MEMORY | 内存不足 |
-| 0x00030000 | AGENTRT_ERR_PERMISSION_DENIED | 权限不足 |
-| 0x00040000 | AGENTRT_ERR_TIMEOUT | 操作超时 |
-| 0x00050000 | AGENTRT_ERR_INVALID_STATE | 状态无效 |
-| 0x00060000 | AGENTRT_ERR_PROTOCOL_ERROR | 协议错误 |
-| 0x00070000 | AGENTRT_ERR_INTERNAL_ERROR | 内部错误 |
-| 0x00080000 | AGENTRT_ERR_EXTERNAL_ERROR | 外部错误 |
+| 0x00010000 | AIRY_ERROR_INVALID_PARAM | 参数无效 |
+| 0x00020000 | AIRY_ERROR_OUT_OF_MEMORY | 内存不足 |
+| 0x00030000 | AIRY_ERROR_PERMISSION_DENIED | 权限不足 |
+| 0x00040000 | AIRY_ERROR_TIMEOUT | 操作超时 |
+| 0x00050000 | AIRY_ERROR_INVALID_STATE | 状态无效 |
+| 0x00060000 | AIRY_ERROR_PROTOCOL_ERROR | 协议错误 |
+| 0x00070000 | AIRY_ERROR_INTERNAL_ERROR | 内部错误 |
+| 0x00080000 | AIRY_ERROR_EXTERNAL_ERROR | 外部错误 |
 
 #### 2.3.2 子仓用户态错误码段
 
@@ -373,6 +375,24 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
 | 0x06 | airymaxos-cloudnative | 0x06010000 ~ 0x06FF0000 | 云原生组件错误 |
 | 0x07 | airymaxos-system | 0x07010000 ~ 0x07FF0000 | 系统工具错误 |
 | 0x08 | airymaxos-tests-linux | 0x08010000 ~ 0x08FF0000 | 测试框架错误 |
+
+### 2.4 命名约定（AIRY_E* 为 C 内核唯一主名称，AIRY_ERROR_* 为 SDK 唯一主名称）
+
+**双前缀规范**：
+
+| 体系 | 唯一主名称前缀 | 适用场景 | 示例 |
+|------|--------------|----------|------|
+| C 内核首要体系 | `AIRY_E*` | C 内核和 daemon 层 | `AIRY_EINVAL` |
+| SDK 次要体系 | `AIRY_ERROR_*` | SDK 和外部接口 | `AIRY_ERROR_INVALID_PARAM` |
+
+旧版使用的 `AIRY_ERR_*` 前缀已废弃，全系统统一使用上述双前缀规范。下表列出旧名与现行主名称的对应关系，旧名仅作历史参考，新代码禁止使用。
+
+| 体系 | 现行主名称 | 废弃旧名 | 描述 |
+|------|-----------|---------|------|
+| C 内核 | `AIRY_E*` | `AIRY_ERR_*`（C 内核上下文） | POSIX 风格简短名 |
+| SDK | `AIRY_ERROR_*` | `AIRY_ERR_*`（SDK 上下文） | 详细前缀名 |
+
+> **变更说明**：`AIRY_ERR_*` 前缀在 v0.3.0 审查中发现与 AirymaxRT 侧命名不一致（P0-04），已统一废弃。C 内核错误码使用 `AIRY_E*`，SDK 错误码使用 `AIRY_ERROR_*`。详见审查报告 `_review_0.3.0/01-comprehensive-review-report.md` P0-04。
 
 ---
 
@@ -395,7 +415,7 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
 | `bpf_struct_ops.h` | BPF 调度器错误码 | sched_ext 注册相关错误码 |
 | `cognition_types.h` | 认知错误码 | CoreLoopThree 相关错误码（阶段无效、kthread 注册失败） |
 
-通用错误码（`AGENTRT_E*`）属于 [SS] 语义同源层，agentrt 和 agentrt-linux 使用相同的错误码前缀和语义，但具体数值实现各自独立（详见 3.1.2 节）。
+通用错误码（`AIRY_E*`）属于 [SS] 语义同源层，agentrt 和 agentrt-linux 使用相同的错误码前缀和语义，但具体数值实现各自独立（详见 3.1.2 节）。
 
 #### 3.1.2 [SS] 语义同源层 — 语义一致，数值独立
 
@@ -453,7 +473,7 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
 ```c
 /**
  * @brief 错误码宏定义 — 内核态
- * @file include/airymax/airymax_kernel_errno.h
+ * @file include/airymax/airy_kernel_errno.h
  * @since 1.0.1
  */
 
@@ -486,23 +506,23 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
  */
 
 /* === 通用用户态错误码（0x00XX0000） === */
-#define AGENTRT_ERR_INVALID_PARAM    0x00010000  /**< 参数无效 */
-#define AGENTRT_ERR_OUT_OF_MEMORY    0x00020000  /**< 内存不足 */
-#define AGENTRT_ERR_PERMISSION_DENIED 0x00030000 /**< 权限不足 */
-#define AGENTRT_ERR_TIMEOUT          0x00040000  /**< 操作超时 */
-#define AGENTRT_ERR_INVALID_STATE    0x00050000  /**< 状态无效 */
-#define AGENTRT_ERR_PROTOCOL_ERROR   0x00060000  /**< 协议错误 */
-#define AGENTRT_ERR_INTERNAL_ERROR   0x00070000  /**< 内部错误 */
-#define AGENTRT_ERR_EXTERNAL_ERROR   0x00080000  /**< 外部错误 */
+#define AIRY_ERROR_INVALID_PARAM    0x00010000  /**< 参数无效 */
+#define AIRY_ERROR_OUT_OF_MEMORY    0x00020000  /**< 内存不足 */
+#define AIRY_ERROR_PERMISSION_DENIED 0x00030000 /**< 权限不足 */
+#define AIRY_ERROR_TIMEOUT          0x00040000  /**< 操作超时 */
+#define AIRY_ERROR_INVALID_STATE    0x00050000  /**< 状态无效 */
+#define AIRY_ERROR_PROTOCOL_ERROR   0x00060000  /**< 协议错误 */
+#define AIRY_ERROR_INTERNAL_ERROR   0x00070000  /**< 内部错误 */
+#define AIRY_ERROR_EXTERNAL_ERROR   0x00080000  /**< 外部错误 */
 
 /* === 子仓错误码基址 === */
-#define AGENTRT_ERR_SERVICES_BASE    0x01000000  /**< services 子仓错误码基址 */
-#define AGENTRT_ERR_SECURITY_BASE    0x03000000  /**< security 子仓错误码基址 */
-#define AGENTRT_ERR_MEMORY_BASE      0x04000000  /**< memory 子仓错误码基址 */
-#define AGENTRT_ERR_COGNITION_BASE   0x05000000  /**< cognition 子仓错误码基址 */
-#define AGENTRT_ERR_CLOUDNATIVE_BASE 0x06000000  /**< cloudnative 子仓错误码基址 */
-#define AGENTRT_ERR_SYSTEM_BASE      0x07000000  /**< system 子仓错误码基址 */
-#define AGENTRT_ERR_TESTS_BASE       0x08000000  /**< tests-linux 子仓错误码基址 */
+#define AIRY_ERROR_SERVICES_BASE    0x01000000  /**< services 子仓错误码基址 */
+#define AIRY_ERROR_SECURITY_BASE    0x03000000  /**< security 子仓错误码基址 */
+#define AIRY_ERROR_MEMORY_BASE      0x04000000  /**< memory 子仓错误码基址 */
+#define AIRY_ERROR_COGNITION_BASE   0x05000000  /**< cognition 子仓错误码基址 */
+#define AIRY_ERROR_CLOUDNATIVE_BASE 0x06000000  /**< cloudnative 子仓错误码基址 */
+#define AIRY_ERROR_SYSTEM_BASE      0x07000000  /**< system 子仓错误码基址 */
+#define AIRY_ERROR_TESTS_BASE       0x08000000  /**< tests-linux 子仓错误码基址 */
 ```
 
 ### 4.2 错误码传播规范
@@ -522,10 +542,10 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
 
 | 规则 | 说明 | 示例 |
 |------|------|------|
-| **错误不丢失** | 每一层向上传播时必须保留原始错误码 | 使用 `agentrt_error_wrap()` 包装 |
+| **错误不丢失** | 每一层向上传播时必须保留原始错误码 | 使用 `airy_err_wrap()` 包装 |
 | **错误可丰富** | 每一层可以添加本层上下文，但不修改原始错误码 | 添加模块名、函数名、行号 |
 | **错误不吞没** | 禁止在中间层吞没错误（返回 OK 掩盖错误） | 禁止 `if (err) return OK;` |
-| **错误链可追溯** | 通过 `agentrt_error_chain` 结构体维护完整错误链 | 类似 `errno` 但更丰富 |
+| **错误链可追溯** | 通过 `airy_err_chain` 结构体维护完整错误链 | 类似 `errno` 但更丰富 |
 
 #### 4.2.3 错误包装示例
 
@@ -538,13 +558,13 @@ IPC 错误码由 airymaxos-kernel 和 airymaxos-services 联合定义：
  * @param line 行号
  * @return 带上下文的错误码（用户态十六进制）
  */
-uint32_t agentrt_error_wrap(int err, const char *module,
+uint32_t airy_err_wrap(int err, const char *module,
                             const char *func, int line);
 
 /* 使用示例 */
 int ret = io_uring_submit(&ring);
 if (ret < 0) {
-    return agentrt_error_wrap(ret, "ipc_svc", __func__, __LINE__);
+    return airy_err_wrap(ret, "ipc_svc", __func__, __LINE__);
 }
 ```
 
@@ -671,7 +691,7 @@ graph TD
 - [项目管理规范总览](README.md)：项目管理规范顶层入口
 - [SBOM 规范](SBOM.md)：软件物料清单规范
 - [集成标准总览](../40-integration/README.md)：集成标准
-- [agentrt 集成规范](../40-integration/agentrt_integration.md)：与 agentrt 的集成规范
+- [agentrt 集成规范](../40-integration/airy_integration.md)：与 agentrt 的集成规范
 - [接口设计](../../30-interfaces/README.md)：系统调用与 IPC 接口
 - [五维正交原则](../../10-architecture/02-five-dimensional-principles.md)：E-6 错误可追溯原则
 - IRON-9 v2 工程铁律（闭源内部参考）

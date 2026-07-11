@@ -193,7 +193,7 @@ agentrt-linux 与 agentrt 同源且部分代码共享（IRON-9 v2）。两者在
 | coreloopthree + frameworks (CoreLoopThree) | 跨平台认知循环 | airymaxos-cognition (kthread) | 认知模型一致 | 三层认知循环语义同源 |
 | daemons (12 daemons) | 跨平台守护进程 | airymaxos-services (systemd 集成) | 服务模型一致 | 守护进程命名 *_d 同源 |
 | gateway + sdk | 跨平台网关 | airymaxos-cloudnative (K8s+OCI) | 网关语义一致 | agentctl 与 sdk 同源 |
-| commons | 跨平台基础库 | airymaxos-system (基础库) | 工具语义一致 | 命名空间 agentrt_ 同源 |
+| commons | 跨平台基础库 | airymaxos-system (基础库) | 工具语义一致 | 命名空间 airy_ 同源 |
 
 ### 4.2 同源红利
 

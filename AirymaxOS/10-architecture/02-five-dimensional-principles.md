@@ -354,11 +354,11 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 
 | 命名空间 | 用途 | 示例 |
 |----------|------|------|
-| `agentrt_` 前缀 | agentrt 命名空间（同源） | agentrt_sys_task_submit / agentrt_ipc_send |
+| `airy_` 前缀 | agentrt 命名空间（同源） | airy_sys_task_submit / airy_ipc_send |
 | `<service_name>_d` 后缀 | 守护进程命名 | llm_d / market_d / monit_d / tool_d / sched_d |
 | `module_action_object()` | 函数命名 | cognition_submit_task / memory_search_vector |
-| 大写_下划线 | 常量命名 | AGENTRT_OK / AGENTRT_IPC_MSG_HDR_SIZE |
-| 名词结构 | 类型命名 | agentrt_task_desc_t / agentrt_ipc_msg_hdr_t |
+| 大写_下划线 | 常量命名 | AIRY_EOK / AIRY_IPC_MSG_HDR_SIZE |
+| 名词结构 | 类型命名 | struct airy_task_desc / struct airy_ipc_msg_hdr |
 
 ### 5.6 E-6 错误可追溯原则
 
@@ -369,8 +369,8 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 | 落地子仓/模块 | 错误追溯机制 | 实现要点 |
 |---------------|--------------|----------|
 | airymaxos-security 审计哈希链 | 安全错误追溯 | SHA-256 哈希链不可篡改日志 |
-| airymaxos-services 结构化错误码 | 错误码体系 | agentrt_errno.h 对齐 errno |
-| airymaxos-services 错误链 | 错误上下文传递 | agentrt_error_wrap 添加模块名/函数名/行号 |
+| airymaxos-services 结构化错误码 | 错误码体系 | airy_errno.h 对齐 errno |
+| airymaxos-services 错误链 | 错误上下文传递 | airy_err_wrap 添加模块名/函数名/行号 |
 | airymaxos-services OpenTelemetry | 调用栈追溯 | 分布式追踪 + 完整调用链 |
 | airymaxos-tests-linux 错误注入测试 | 错误恢复验证 | 故障注入 + 错误恢复测试 |
 
@@ -582,9 +582,9 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 | 头文件 | 对应维度 | 在五维原则中的角色 | 消费方 |
 |--------|---------|-------------------|--------|
 | `sched.h` | S 系统观 | magic 0x41475453 'AGTS' + SCHED_EXT=7（禁用 SCHED_AGENT 宏）+ MAC_MAX_AGENTS=1024 | kernel / cognition |
-| `ipc.h` | S 系统观 | magic 0x41524531 'ARE1' + 128B 消息头（`agentrt_ipc_msg_hdr_t`）契约 | kernel / services |
+| `ipc.h` | S 系统观 | magic 0x41524531 'ARE1' + 128B 消息头（`struct airy_ipc_msg_hdr`）契约 | kernel / services |
 | `bpf_struct_ops.h` | K 内核观 | struct_ops 4 状态机（INIT/INUSE/TOBEFREE/READY）+ common_value 16B | kernel / cognition |
-| `security_types.h` | E 工程观 | 38 capability + 254 LSM 钩子 + Cupolas blob 布局 | kernel / security |
+| `security_types.h` | E 工程观 | 41 capability + 252 LSM 钩子 + Cupolas blob 布局 | kernel / security |
 | `memory_types.h` | E 工程观 | MemoryRovol L1-L4 + GFP 掩码语义 + PMEM 接口 | kernel / memory |
 | `cognition_types.h` | C 认知观 | 三阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual 模式 | kernel / cognition |
 

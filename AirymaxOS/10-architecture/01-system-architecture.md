@@ -254,9 +254,9 @@ agentrt-linux 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
 | 头文件 | 在系统架构中的角色 | 消费方 |
 |--------|-------------------|--------|
 | `sched.h` | 任务描述符 magic（0x41475453 'AGTS'）+ SCHED_EXT=7 调度类编号 + vtime 衰减公式 + 优先级范围 0-139 | kernel / cognition |
-| `ipc.h` | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`agentrt_ipc_msg_hdr_t`）+ SQE/CQE 操作码 | kernel / services |
+| `ipc.h` | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码 | kernel / services |
 | `bpf_struct_ops.h` | struct_ops 状态机 4 状态枚举（INIT/INUSE/TOBEFREE/READY）+ common_value 16B 布局 | kernel / cognition |
-| `security_types.h` | POSIX capability 38 ID 枚举 + LSM 钩子 254 ID 枚举 + Cupolas blob 布局 + capability 派生模型 | kernel / security |
+| `security_types.h` | POSIX capability 41 ID 枚举 + LSM 钩子 252 ID 枚举 + Cupolas blob 布局 + capability 派生模型 | kernel / security |
 | `memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口 | kernel / memory |
 | `cognition_types.h` | CoreLoopThree 阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual 模式 + Token 能效指标 | kernel / cognition |
 
@@ -328,7 +328,7 @@ graph TB
     style OS_KERN fill:#fff3e0,stroke:#e65100
 ```
 
-> **OS-ARCH-002**： 跨态协作遵循"零适配层天然契合"原则——agentrt 与 agentrt-linux 通过 [SC] 共享契约层 6 个头文件直接对接，不生成 `agentrt_compat_aliases.h` 或任何兼容层。在 Linux 平台上，agentrt 可选启用 agentrt-linux 内核加速路径（通过 ops 注入机制，非强制）；在 macOS/Windows 上仅走用户态路径。
+> **OS-ARCH-002**： 跨态协作遵循"零适配层天然契合"原则——agentrt 与 agentrt-linux 通过 [SC] 共享契约层 6 个头文件直接对接，不生成 `airy_compat_aliases.h` 或任何兼容层。在 Linux 平台上，agentrt 可选启用 agentrt-linux 内核加速路径（通过 ops 注入机制，非强制）；在 macOS/Windows 上仅走用户态路径。
 
 ---
 

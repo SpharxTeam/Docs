@@ -59,8 +59,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 层次 | 共享程度 | 服务子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | IPC 消息头（magic 0x41524531 'ARE1'）、128B 消息头结构（`agentrt_ipc_msg_hdr_t`）、SQE/CQE 操作码与标志位、ring 创建/注册参数 | `include/airymax/ipc.h`（与 airymaxos-kernel 共享） |
-| **[SS] 语义同源层** | API 签名同源，实现独立 | 12 daemons 语义（gateway_d/llm_d/tool_d/sched_d/market_d/monit_d/channel_d/info_d/notify_d/observe_d/hook_d/plugin_d）、io_uring IPC 通信原语（channel/socket/fifo/eventpair）、消息传递范式、capability 令牌传递语义、daemon 生命周期（init→run→stop）等 15+ 项 | 各自独立实现 |
+| **[SC] 共享契约层** | 完全共享代码 | IPC 消息头（magic 0x41524531 'ARE1'）、128B 消息头结构（`struct airy_ipc_msg_hdr`）、SQE/CQE 操作码与标志位、ring 创建/注册参数 | `include/airymax/ipc.h`（与 airymaxos-kernel 共享） |
+| **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | 12 daemons 语义（gateway_d/llm_d/tool_d/sched_d/market_d/monit_d/channel_d/info_d/notify_d/observe_d/hook_d/plugin_d）、io_uring IPC 通信原语（channel/socket/fifo/eventpair）、消息传递范式、capability 令牌传递语义、daemon 生命周期（init→run→stop）等 15+ 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | 用户态 VFS 实现（seL4 服务用户态化参考，ADR-014）、用户态网络栈（DPDK/AF_XDP）、用户态驱动框架（VFIO/libvfio）、systemd 集成、cgroup v2 资源管理、journald 日志聚合、具体文件系统实现（ext4/xfs/tmpfs/btrfs） | 各自独立仓库 |
 
 ### 2.1 维度对比
@@ -69,7 +69,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 |------|-------------------|--------------------------------|----------|
 | 服务数量 | 12 daemons | 12 daemons + VFS/Net/Drivers | [SS] |
 | daemon 语义 | gateway_d/llm_d/tool_d/... | gateway_d/llm_d/tool_d/... | [SS] |
-| IPC 消息头 | `agentrt_ipc_msg_hdr_t`（128B） | `agentrt_ipc_msg_hdr_t`（128B） | [SC] |
+| IPC 消息头 | `struct airy_ipc_msg_hdr`（128B） | `struct airy_ipc_msg_hdr`（128B） | [SC] |
 | IPC magic | 0x41524531 'ARE1' | 0x41524531 'ARE1' | [SC] |
 | 通信方式 | 进程间消息队列 | io_uring 零拷贝 IPC | [SS] |
 | 通信原语 | 用户态 channel/socket/fifo | io_uring channel/socket/fifo | [SS] |
@@ -262,20 +262,13 @@ WantedBy=airymaxos.target
 **IPC 消息头** [SC]（`include/airymax/ipc.h`，与 agentrt 共享）：
 
 ```c
-/* 128B 消息头 [SC]——agentrt 与 agentrt-linux 共享 */
-typedef struct __attribute__((aligned(64))) agentrt_ipc_msg_hdr {
-    uint32_t magic;          /* 0x41524531 'ARE1' */
-    uint16_t version;        /* 协议版本 */
-    uint16_t type;           /* 5 种 payload 协议 */
-    uint32_t payload_len;    /* payload 长度 */
-    uint32_t flags;          /* 标志位 */
-    uint32_t src_pid;        /* 源进程 ID */
-    uint32_t dst_pid;        /* 目标进程 ID */
-    uint64_t trace_id;       /* 链路追踪 ID */
-    uint64_t timestamp_ns;   /* 纳秒时间戳 */
-    uint8_t  reserved[72];   /* 保留字段（对齐 128B） */
-} agentrt_ipc_msg_hdr_t;
+/* IPC 128B 消息头定义见 [SC] 共享契约层（SSoT），不就地重定义 */
+#include <airymax/ipc.h>
+/* 结构体名称：struct airy_ipc_msg_hdr（Layout C，物理宿主见
+ * 50-engineering-standards/120-cross-project-code-sharing.md §Layout C） */
 ```
+
+> **SSoT 声明**：本节 IPC 128B 消息头不再就地定义，以 `include/airymax/ipc.h`（物理宿主见 `50-engineering-standards/120-cross-project-code-sharing.md` §Layout C）为单一数据源。结构体名称为 `struct airy_ipc_msg_hdr`，使用 `__attribute__((packed))` 对齐与 `__u32`/`__u16`/`__u64`/`__u8` UAPI 类型。
 
 **零拷贝路径** [SS]：
 - 发送方注册 page 为 io_uring buffer [SS]。
@@ -318,17 +311,17 @@ typedef struct __attribute__((aligned(64))) agentrt_ipc_msg_hdr {
 
 | 内容 | 说明 |
 |------|------|
-| `AGENTRT_IPC_MAGIC`（0x41524531 'ARE1'） | IPC 消息头 magic（同源 agentrt） |
-| `AGENTRT_IPC_MSG_HDR_SIZE`（128） | 128B 消息头大小 |
-| `AGENTRT_IPC_RING_DEF/MAX_ENTRIES`（256/32768） | ring 默认/最大条目数 |
-| `AGENTRT_IPC_OP_*` 宏（NOP/SEND/RECV/MSG_RING/SEND_ZC） | SQE 操作码 |
-| `AGENTRT_IPC_SQE_*` 宏（FIXED_BUF/ASYNC/BUF_SELECT/SKIP_CQE） | SQE 标志位 |
-| `AGENTRT_IPC_CQE_F_*` 宏（BUFFER/MORE/NOTIF） | CQE 标志位 |
-| `agentrt_ipc_msg_hdr_t` 结构 | 128B 消息头（magic/version/type/payload_len/flags/src_pid/dst_pid/trace_id/timestamp_ns/reserved） |
+| `AIRY_IPC_MAGIC`（0x41524531 'ARE1'） | IPC 消息头 magic（同源 agentrt） |
+| `AIRY_IPC_MSG_HDR_SIZE`（128） | 128B 消息头大小 |
+| `AIRY_IPC_RING_DEF/MAX_ENTRIES`（256/32768） | ring 默认/最大条目数 |
+| `AIRY_IPC_OP_*` 宏（NOP/SEND/RECV/MSG_RING/SEND_ZC） | SQE 操作码 |
+| `AIRY_IPC_SQE_*` 宏（FIXED_BUF/ASYNC/BUF_SELECT/SKIP_CQE） | SQE 标志位 |
+| `AIRY_IPC_CQE_F_*` 宏（BUFFER/MORE/NOTIF） | CQE 标志位 |
+| `struct airy_ipc_msg_hdr` 结构 | 128B 消息头（magic/opcode/flags/trace_id/timestamp_ns/src_task/dst_task/payload_len/reserved[84]，Layout C SSoT） |
 
 ### 6.2 [SS] 语义同源层——15+ 项 API 映射
 
-API 签名同源，实现独立。服务模块的同源 API：
+高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进。服务模块的同源 API：
 
 **6.2.1 12 daemons 语义同源（12 项）**
 
@@ -386,7 +379,7 @@ sequenceDiagram
     participant SCHED as sched_d (用户态)
     participant SYS as systemd (用户态)
 
-    APP->>GW: 提交请求（agentrt_ipc_msg_hdr_t [SC]）
+    APP->>GW: 提交请求（struct airy_ipc_msg_hdr [SC]）
     GW->>IPC: io_uring 提交（MSG_RING [SS]）
     IPC->>LLM: 零拷贝传递（registered buffer [SS]）
     LLM->>IPC: 推理结果（trace_id [SC] 贯穿）
@@ -502,7 +495,7 @@ graph TD
 |------|---------|----------------------|--------|
 | daemon 名称 | gateway_d/llm_d/tool_d/... | gateway_d/llm_d/tool_d/... | ✅ [SS] 同源语义 |
 | IPC magic | 0x41524531 'ARE1' | 0x41524531 'ARE1' | ✅ [SC] 共享契约 |
-| IPC 消息头 | `agentrt_ipc_msg_hdr_t`（128B） | `agentrt_ipc_msg_hdr_t`（128B） | ✅ [SC] 共享契约 |
+| IPC 消息头 | `struct airy_ipc_msg_hdr`（128B） | `struct airy_ipc_msg_hdr`（128B） | ✅ [SC] 共享契约 |
 | 通信原语 | channel/socket/fifo/eventpair | channel/socket/fifo/eventpair | ✅ [SS] 同源语义 |
 | capability 令牌 | 用户态 capability | 内核态 capability | ✅ [SS] 同源语义 |
 

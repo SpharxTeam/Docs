@@ -42,7 +42,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）微内核化改造的核心机制之一，基于 io\_uring 零拷贝消息传递，承载用户态服务（Daemon）之间、Agent 与内核之间的高性能消息传递。128 字节统一消息头（magic=0x41524531）与 agentrt 的 AgentsIPC 同源（IRON-9 v2 \[SS] 语义同源层）。
 
-**系统内代码**: `agentrt_ipc_*`
+**系统内代码**: `airy_ipc_*`
 
 **参见**: MicroCoreRT（微核心运行时）、AgentsIPC（Agent 进程间通信）、io\_uring 异步 I/O
 
@@ -66,7 +66,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）系统调用层（syscall）的七大功能域之一，为 Agent 与 Skill 提供隔离执行环境。沙箱机制结合 Linux 6.6 内核基线的 seccomp + Landlock + capability 三道防线，配合 Cupolas 共同构成安全防护体系。
 
-**系统内代码**: `agentrt_sys_sandbox_*`
+**系统内代码**: `airy_sys_sandbox_*`
 
 **参见**: Cupolas（安全穹顶）、Service Isolation（服务隔离）、Security by Design（安全内生设计）
 
@@ -102,7 +102,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）安全子系统（airymaxos-security）实现 capability 系统（seL4 风格），与 Cupolas 同源。capability 令牌格式定义于 `include/airymax/security_types.h`（IRON-9 v2 \[SC] 共享契约层），结合 LSM 钩子（SELinux）实现纵深防御。
 
-**系统内代码**: `agentrt_cap_*`
+**系统内代码**: `airy_cap_*`
 
 **参见**: Cupolas（安全穹顶）、LSM（Linux Security Module）、Security by Design（安全内生设计）
 
@@ -124,7 +124,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）通过 agentrt-linux 内核增强策略将 sched\_ext 向前移植到 Linux 6.6 内核基线，实现 SCHED\_AGENT 策略——专门为 Agent 工作负载优化的 eBPF 用户态调度器。调度语义与 agentrt 的 MicroCoreRT 一致（同源）。
 
-**系统内代码**: `agentrt_sched_agent_*`，eBPF 程序
+**系统内代码**: `airy_sched_agent_*`，eBPF 程序
 
 **参见**: SCHED\_AGENT（Agent 调度类）、eBPF、MicroCoreRT（微核心运行时）
 
@@ -216,7 +216,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）利用 Linux 6.6 内核基线的 CXL 支持实现 MemoryRovol L1-L4 跨节点内存池化，配合 MGLRU（多代 LRU）实现冷热数据分层。这是 agentrt-linux 作为 OS 发行版相对于 agentrt 用户态运行时的独特优势。
 
-**系统内代码**: `agentrt_cxl_*`
+**系统内代码**: `airy_cxl_*`
 
 **参见**: MGLRU（多代 LRU）、MemoryRovol（记忆卷载）、PMEM（持久内存）
 
@@ -228,7 +228,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）网络栈用户态化的核心技术，通过 DPDK/AF\_XDP 将网络处理从内核态移到用户态（net\_d 守护进程），实现微内核化改造。遵循 K-1 内核极简原则（五维正交24原则）。
 
-**系统内代码**: `agentrt_net_d`（net\_d 守护进程）
+**系统内代码**: `airy_net_d`（net\_d 守护进程）
 
 **参见**: Microkernel（微内核）、K-1 内核极简原则、Daemon（用户态服务进程）
 
@@ -240,7 +240,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）驱动框架用户态化的核心技术，通过 VFIO/libvfio 将部分设备驱动从内核态移到用户态（drv\_d 守护进程），实现微内核化改造。遵循 K-1 内核极简原则（五维正交24原则）。
 
-**系统内代码**: `agentrt_drv_d`（drv\_d 守护进程）
+**系统内代码**: `airy_drv_d`（drv\_d 守护进程）
 
 **参见**: Microkernel（微内核）、K-1 内核极简原则、Daemon（用户态服务进程）
 
@@ -258,7 +258,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **旧称/禁止使用**: 仅出现 "AirymaxOS" 而无 "agentrt-linux" 前缀的表述
 
-**系统内代码**: `agentrt_*` 前缀（IRON-9 v2 \[SC] 共享契约层）
+**系统内代码**: `airy_*` 前缀（IRON-9 v2 \[SC] 共享契约层）
 
 **代码目录**: `airymaxos-kernel/` / `airymaxos-services/` / `airymaxos-cognition/` / `airymaxos-memory/` / `airymaxos-security/` / `airymaxos-cloudnative/` / `airymaxos-system/` / `tests-linux/`（8 子仓）
 
@@ -274,7 +274,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **与 agentrt 的关系**: 遵循 IRON-9 v2 \[SS] 语义同源层——语义同源（调度语义、IPC 语义、内存管理语义概念一致），实现独立（agentrt-linux 基于 sched\_ext + io\_uring + MGLRU，agentrt 基于用户态消息队列 + 用户态调度器）。
 
-**系统内代码**: `agentrt_core_*`
+**系统内代码**: `airy_core_*`
 
 **代码目录**: `airymaxos-kernel/`
 
@@ -288,7 +288,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **标准名称**: Agent 进程间通信 (AgentsIPC)
 
-**系统内代码**: `agentrt_ipc_*`
+**系统内代码**: `airy_ipc_*`
 
 **参见**: IPC、io\_uring、128 字节消息头、SCHED\_AGENT
 
@@ -322,7 +322,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **旧称/禁止使用**: "记忆漩涡引擎"
 
-**系统内代码**: `agentrt_memoryrov_*`
+**系统内代码**: `airy_memoryrov_*`
 
 **代码目录**: `airymaxos-memory/`
 
@@ -348,7 +348,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **旧称/禁止使用**: "三层循环运行时"、"三层一体架构"、"三层循环核心"
 
-**系统内代码**: `agentrt_loop_*`
+**系统内代码**: `airy_loop_*`
 
 **代码目录**: `airymaxos-cognition/`
 
@@ -396,7 +396,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **标准名称**: Agent 调度类 (SCHED\_AGENT)
 
-**系统内代码**: `agentrt_sched_agent_*`，eBPF 程序
+**系统内代码**: `airy_sched_agent_*`，eBPF 程序
 
 **参见**: sched\_ext、eBPF、MicroCoreRT（微核心运行时）、CoreLoopThree（认知三阶段循环）
 
@@ -498,12 +498,12 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 体系                 | 适用场景           | 格式                                 |
 | ------------------ | -------------- | ---------------------------------- |
-| **C 负整数体系**（首要）    | C 内核和 daemon 层 | `AGENTRT_OK=0`、`AGENTRT_EINVAL=-2` |
+| **C 负整数体系**（首要）    | C 内核和 daemon 层 | `AIRY_EOK=0`、`AIRY_EINVAL=-1` |
 | **SDK 十六进制体系**（次要） | SDK 和外部接口      | `0x0000`-`0x7FFF` 分段               |
 
 权威源唯一：`include/airymax/error.h`（IRON-9 v2 \[SC] 共享契约层）为唯一定义源。
 
-**系统内代码**: `AGENTRT_E*` / `AGENTRT_ERR_*`
+**系统内代码**: `AIRY_E*`（C 内核首要体系）/ `AIRY_ERROR_*`（SDK 次要体系）
 
 **禁止**: C 内核代码中使用十六进制错误码；SDK 中使用负整数错误码
 
@@ -511,7 +511,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 段   | 范围           | 含义           |
 | --- | ------------ | ------------ |
-| 成功  | 0            | `AGENTRT_OK` |
+| 成功  | 0            | `AIRY_EOK` |
 | 通用  | -1 \~ -99    | 通用错误         |
 | 系统  | -100 \~ -199 | 系统级错误        |
 | 内核  | -200 \~ -299 | 内核错误         |
@@ -532,7 +532,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 在 agentrt-linux 中，遗忘机制与 MGLRU（多代 LRU）的多代页面回收策略在语义上一致——冷数据被遗忘（归档），热数据被保留（活跃代）。
 
-**系统内代码**: `agentrt_forgetting_*`
+**系统内代码**: `airy_forgetting_*`
 
 **代码目录**: `airymaxos-memory/`
 
@@ -546,7 +546,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **标准名称**: 记忆交换算法（正式）/ MemorySwap（简称）
 
-**系统内代码**: `agentrt_memory_swap_manager_t`
+**系统内代码**: `airy_memory_swap_manager_t`
 
 **参见**: MemoryRovol（记忆卷载）、Forgetting Engine（遗忘机制）、MGLRU（多代 LRU）
 
@@ -572,7 +572,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **旧称/禁止使用**: "Multi-Agent System"（过于泛化）
 
-**系统内代码**: `mac_*` / `agentrt_mac_*`
+**系统内代码**: `mac_*` / `airy_mac_*`
 
 **参见**: Thinkdual（双思考系统）、CoreLoopThree（认知三阶段循环）
 
@@ -598,11 +598,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **核心宏**:
 
-- 分配: `AGENTRT_MALLOC` / `AGENTRT_CALLOC` / `AGENTRT_REALLOC`
-- 释放: `AGENTRT_FREE` / `MEMORY_FREE_SAFE`
-- 字符串: `AGENTRT_STRDUP` / `AGENTRT_STRNCPY_TERM`
-- 拷贝: `AGENTRT_MEMCPY_SAFE`
-- 清除: `AGENTRT_SEC_CLEAR`
+- 分配: `AIRY_MALLOC` / `AIRY_CALLOC` / `AIRY_REALLOC`
+- 释放: `AIRY_FREE` / `MEMORY_FREE_SAFE`
+- 字符串: `AIRY_STRDUP` / `AIRY_STRNCPY_TERM`
+- 拷贝: `AIRY_MEMCPY_SAFE`
+- 清除: `AIRY_SEC_CLEAR`
 
 **禁止函数**: `malloc`、`free`、`printf`、`strcpy`、`strcat`、`sprintf`、`gets` 等（完整列表见 `banned_functions.h`）
 
@@ -665,27 +665,27 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 标准中文                     | 标准英文                                      | 代码前缀                     | IRON-9 v2 层次       | 禁止使用的旧称              |
 | ------------------------ | ----------------------------------------- | ------------------------ | ------------------ | -------------------- |
-| agentrt-linux（极境智能体操作系统） | agentrt-linux（AirymaxOS）                  | `agentrt_*`              | \[SC]/\[SS]/\[IND] | 仅出现 "AirymaxOS" 而无前缀 |
-| 微核心运行时                   | MicroCoreRT                               | `agentrt_core_*`         | \[SS]              | 微内核（不加限定词时）          |
-| Agent 进程间通信              | AgentsIPC                                 | `agentrt_ipc_*`          | \[SS]              | —                    |
+| agentrt-linux（极境智能体操作系统） | agentrt-linux（AirymaxOS）                  | `airy_*`              | \[SC]/\[SS]/\[IND] | 仅出现 "AirymaxOS" 而无前缀 |
+| 微核心运行时                   | MicroCoreRT                               | `airy_core_*`         | \[SS]              | 微内核（不加限定词时）          |
+| Agent 进程间通信              | AgentsIPC                                 | `airy_ipc_*`          | \[SS]              | —                    |
 | 安全穹顶                     | Cupolas                                   | `cupolas_*`              | \[SS]              | Cupolas安全模块          |
-| 记忆卷载                     | MemoryRovol                               | `agentrt_memoryrov_*`    | \[SS]              | 记忆漩涡引擎               |
-| 认知三阶段循环                  | CoreLoopThree                             | `agentrt_loop_*`         | \[SS]              | 三层循环运行时、三层一体架构       |
+| 记忆卷载                     | MemoryRovol                               | `airy_memoryrov_*`    | \[SS]              | 记忆漩涡引擎               |
+| 认知三阶段循环                  | CoreLoopThree                             | `airy_loop_*`         | \[SS]              | 三层循环运行时、三层一体架构       |
 | 双思考系统                    | Thinkdual                                 | `tc_*` / `mc_*` / `sc_*` | \[SS]              | 认知双思系统、双系统认知模型       |
-| Agent 调度类                | SCHED\_AGENT                              | `agentrt_sched_agent_*`  | \[SS]              | —                    |
+| Agent 调度类                | SCHED\_AGENT                              | `airy_sched_agent_*`  | \[SS]              | —                    |
 | 同源且部分代码共享                | IRON-9 v2                                 | —                        | —                  | IRON-9（旧版仅语义同源）      |
 | 共享契约层                    | \[SC] Shared-Contract                     | —                        | \[SC]              | —                    |
 | 语义同源层                    | \[SS] Shared-Semantics                    | —                        | \[SS]              | —                    |
 | 完全独立层                    | \[IND] Independent                        | —                        | \[IND]             | —                    |
 | 五维正交24原则                 | Five-Dimensional Orthogonal 24 Principles | —                        | \[SC]              | —                    |
 | 体系并行论                    | Multibody Cybernetic Intelligent System   | —                        | \[SC]              | —                    |
-| 统一错误码体系                  | ErrorCodeSystem                           | `AGENTRT_E*`             | \[SC]              | —                    |
-| 遗忘机制                     | Forgetting Engine                         | `agentrt_forgetting_*`   | \[SS]              | —                    |
-| 记忆交换算法                   | MemorySwap                                | `agentrt_memory_swap_*`  | \[SS]              | —                    |
-| 任务流引擎                    | TaskFlow                                  | `agentrt_taskflow_*`     | \[SS]              | —                    |
+| 统一错误码体系                  | ErrorCodeSystem                           | `AIRY_E*` / `AIRY_ERROR_*` | \[SC]              | —                    |
+| 遗忘机制                     | Forgetting Engine                         | `airy_forgetting_*`   | \[SS]              | —                    |
+| 记忆交换算法                   | MemorySwap                                | `airy_memory_swap_*`  | \[SS]              | —                    |
+| 任务流引擎                    | TaskFlow                                  | `airy_taskflow_*`     | \[SS]              | —                    |
 | 多智能体协作框架                 | MAC                                       | `mac_*`                  | \[SS]              | Multi-Agent System   |
 | 分时推理框架                   | TimeSliceInfer                            | `ts_*`                   | \[SS]              | 时间切片推理               |
-| 安全宏体系                    | Memory Safety Macro System                | `AGENTRT_MALLOC` 等       | \[SC]              | —                    |
+| 安全宏体系                    | Memory Safety Macro System                | `AIRY_MALLOC` 等       | \[SC]              | —                    |
 | Linux 6.6 内核基线           | Linux 6.6 Kernel Baseline                 | —                        | \[IND]             | —                    |
 | 8 子仓架构                   | 8-Repository Architecture                 | —                        | \[IND]             | —                    |
 | 用户态服务进程                  | Daemon                                    | `*_d` 后缀                 | \[IND]             | 守护进程、后端服务层           |
@@ -701,31 +701,31 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 模块           | 格式                                      | 示例                                 | IRON-9 v2 层次 |
 | ------------ | --------------------------------------- | ---------------------------------- | ------------ |
-| 内核           | `agentrt_core_[action]`                 | `agentrt_core_init`                | \[SS]        |
-| 系统调用         | `agentrt_sys_[domain]_[action]`         | `agentrt_sys_task_submit`          | \[SC]        |
-| 认知层          | `agentrt_[prefix]_[action]`             | `agentrt_tc_context_window_append` | \[SS]        |
+| 内核           | `airy_core_[action]`                 | `airy_init`                | \[SS]        |
+| 系统调用         | `airy_sys_[domain]_[action]`         | `airy_sys_task_submit`          | \[SC]        |
+| 认知层          | `airy_[prefix]_[action]`             | `airy_tc_context_window_append` | \[SS]        |
 | 安全穹顶         | `cupolas_[subsystem]_[action]`          | `cupolas_permission_check`         | \[SS]        |
 | 用户态服务        | `[service]_[action]`                    | `llm_d_complete`                   | \[IND]       |
-| IPC 通信       | `agentrt_ipc_[action]`                  | `agentrt_ipc_send`                 | \[SS]        |
-| SCHED\_AGENT | `agentrt_sched_agent_[action]`          | `agentrt_sched_agent_submit`       | \[SS]        |
-| 多智能体         | `mac_[action]` / `agentrt_mac_[action]` | `mac_framework_create`             | \[SS]        |
+| IPC 通信       | `airy_ipc_[action]`                  | `airy_ipc_send`                 | \[SS]        |
+| SCHED\_AGENT | `airy_sched_agent_[action]`          | `airy_sched_agent_submit`       | \[SS]        |
+| 多智能体         | `mac_[action]` / `airy_mac_[action]` | `mac_framework_create`             | \[SS]        |
 
 ### 结构体命名
 
 | 规范      | 格式                        | 示例                           |
 | ------- | ------------------------- | ---------------------------- |
-| 公共结构体   | `agentrt_[name]_t`        | `agentrt_error_t`            |
+| 公共结构体   | `airy_[name]_t`        | `airy_err_t`            |
 | 子系统结构体  | `[prefix]_[name]_t`       | `tc_context_window_t`        |
-| 配置结构体   | `agentrt_[name]_config_t` | `agentrt_cognition_config_t` |
-| IPC 消息头 | `agentrt_ipc_msg_hdr_t`   | 128 字节统一消息头                  |
+| 配置结构体   | `airy_[name]_config_t` | `airy_cognition_config_t` |
+| IPC 消息头 | `struct airy_ipc_msg_hdr`   | 128 字节统一消息头                  |
 
 ### 枚举命名
 
 | 规范    | 格式                       | 示例                          |
 | ----- | ------------------------ | --------------------------- |
-| 状态枚举  | `AGENTRT_[NAME]_STATE_*` | `AGENTRT_TASK_STATE_READY`  |
-| 类型枚举  | `AGENTRT_[NAME]_TYPE_*`  | `AGENTRT_PROTOCOL_TYPE_MCP` |
-| 错误码枚举 | `AGENTRT_E*`             | `AGENTRT_EINVAL`            |
+| 状态枚举  | `AIRY_[NAME]_STATE_*` | `AIRY_TASK_STATE_READY`  |
+| 类型枚举  | `AIRY_[NAME]_TYPE_*`  | `AIRY_PROTOCOL_TYPE_MCP` |
+| 错误码枚举 | `AIRY_E*`             | `AIRY_EINVAL`            |
 
 ### 文件/目录命名
 
@@ -815,17 +815,17 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 参考文献
 
-\[1] 体系并行论 — `00-basic-theories/01-mcis-cn.md`
-\[2] 认知层理论 — `00-basic-theories/02-cognition-design-cn.md`
-\[3] 记忆层理论 — `00-basic-theories/03-memory-design-cn.md`
-\[4] 设计原则 — `00-basic-theories/04-design-principles-cn.md`
+\[1] 体系并行论 — `docs/AirymaxRT/00-basic-theories/01-mcis-cn.md`
+\[2] 认知层理论 — `docs/AirymaxRT/00-basic-theories/02-cognition-design-cn.md`
+\[3] 记忆层理论 — `docs/AirymaxRT/00-basic-theories/03-memory-design-cn.md`
+\[4] 设计原则 — `docs/AirymaxRT/00-basic-theories/04-design-principles-cn.md`
 \[5] 五维正交24原则与 agentrt-linux（AirymaxOS）落地映射 — `docs/AirymaxOS/10-architecture/02-five-dimensional-principles.md`
 \[6] agentrt-linux 架构设计 — `docs/AirymaxOS/10-architecture/01-system-architecture.md`
 \[7] 微内核设计思想详解 — `docs/AirymaxOS/10-architecture/03-microkernel-strategy.md`
 \[8] agentrt-linux（AirymaxOS）工程基线 — `docs/AirymaxOS/10-architecture/04-engineering-baseline.md`
 \[9] agentrt-linux 工程标准规范 — `docs/AirymaxOS/50-engineering-standards/README.md`
-\[10] agentrt 统一术语表 — `docs/AirymaxRT/50-specifications/10-terminology.md`
-\[11] agentrt 技术规范 — `docs/AirymaxRT/50-specifications/README.md`
+\[10] agentrt 统一术语表 — `docs/AirymaxOS/TERMINOLOGY.md`
+\[11] agentrt 技术规范 — `docs/AirymaxOS/50-engineering-standards/README.md`
 
 ***
 

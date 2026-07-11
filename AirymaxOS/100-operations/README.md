@@ -113,7 +113,7 @@ agentrt-linux 采用 RPM 包格式 + dnf 包管理器：
 
 ### 4.1 Agent 运维
 
-- **Agent 健康检查**：通过 `agentrt_health_check()` API + systemd watchdog
+- **Agent 健康检查**：通过 `airy_health_check()` API + systemd watchdog
 - **Token 预算监控**：实时告警 Token 消耗超预算
 - **Agent 故障恢复**：Agent 崩溃后自动重启 + 状态恢复
 

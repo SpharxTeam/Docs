@@ -52,7 +52,7 @@ graph TB
 
     subgraph "IRON-9 v2 三层"
         SC["[SC] 共享契约层<br/>━━━━━━━━━━━━━<br/>include/airymax/<br/>bpf_struct_ops.h<br/>memory_types.h<br/>security_types.h<br/>cognition_types.h<br/>sched.h<br/>ipc.h<br/>━━━━━━━━━━━━━<br/>完全共享代码"]
-        SS["[SS] 语义同源层<br/>━━━━━━━━━━━━━<br/>调度语义同源<br/>IPC 语义同源<br/>安全语义同源<br/>记忆语义同源<br/>认知语义同源<br/>━━━━━━━━━━━━━<br/>API 同源，实现独立"]
+        SS["[SS] 语义同源层<br/>━━━━━━━━━━━━━<br/>调度语义同源<br/>IPC 语义同源<br/>安全语义同源<br/>记忆语义同源<br/>认知语义同源<br/>━━━━━━━━━━━━━<br/>高层 API 语义同源，签名独立演进"]
         IND["[IND] 完全独立层<br/>━━━━━━━━━━━━━<br/>平台适配层<br/>构建系统<br/>跨平台兼容层<br/>各自独立演进"]
     end
 
@@ -159,11 +159,11 @@ agentrt 在 agentrt-linux 上的运行示意：
 
 ```c
 /* bpf_struct_ops.h — 共享契约（简化示意） */
-#define AIRYMAX_SCHED_BPF_NAME_MAX  16
+#define AIRY_SCHED_BPF_NAME_MAX  16
 #define SCHED_AGENT_NAME            "sched_agent"
 
 /* sched_ext 策略通过 bpf_struct_ops 注册，禁止定义 SCHED_AGENT 策略编号宏 */
-struct airymax_sched_ops {
+struct airy_sched_ops {
     struct bpf_struct_ops_common_val common;
     s32 (*select_cpu)(struct task_struct *p, s32 prev_cpu, u64 enq_flags);
     void (*enqueue)(struct task_struct *p, u64 enq_flags);
@@ -192,10 +192,10 @@ struct airymax_sched_ops {
 
 ```c
 /* memory_types.h — 共享契约（简化示意） */
-#define AIRYMAX_MEM_LAYER_L1     1   /* 原始卷（不可变） */
-#define AIRYMAX_MEM_LAYER_L2     2   /* 特征层 */
-#define AIRYMAX_MEM_LAYER_L3     3   /* 结构层 */
-#define AIRYMAX_MEM_LAYER_L4     4   /* 模式层 */
+#define AIRY_MEM_LAYER_L1     1   /* 原始卷（不可变） */
+#define AIRY_MEM_LAYER_L2     2   /* 特征层 */
+#define AIRY_MEM_LAYER_L3     3   /* 结构层 */
+#define AIRY_MEM_LAYER_L4     4   /* 模式层 */
 
 typedef struct {
     uint64_t mem_id;           /* 全局唯一记忆 ID */
@@ -204,13 +204,13 @@ typedef struct {
     uint32_t data_size;        /* 数据大小 */
     uint8_t  checksum[32];     /* SHA-256 校验和 */
     uint8_t  reserved[32];
-} airymax_mem_entry_t;
+} airy_mem_entry_t;
 
 /* GFP 掩码语义（内核态使用） */
-#define AIRYMAX_GFP_ROVOL_L1     (__GFP_HIGH | __GFP_MOVABLE)
-#define AIRYMAX_GFP_ROVOL_L2     (__GFP_MOVABLE)
-#define AIRYMAX_GFP_ROVOL_L3     (__GFP_RECLAIMABLE)
-#define AIRYMAX_GFP_ROVOL_L4     (__GFP_RECLAIMABLE)
+#define AIRY_GFP_ROVOL_L1     (__GFP_HIGH | __GFP_MOVABLE)
+#define AIRY_GFP_ROVOL_L2     (__GFP_MOVABLE)
+#define AIRY_GFP_ROVOL_L3     (__GFP_RECLAIMABLE)
+#define AIRY_GFP_ROVOL_L4     (__GFP_RECLAIMABLE)
 ```
 
 **agentrt-linux 落地**：
@@ -226,7 +226,7 @@ typedef struct {
 |------|------|
 | 文件名 | `include/airymax/security_types.h` |
 | 维护方 | agentrt |
-| 共享内容 | POSIX capability 38 ID 枚举、LSM 钩子 254 ID 枚举、Cupolas blob 布局（cred/inode/file/task）、capability 派生模型（mint/mintcopy/derive/revoke）、Vault backend 抽象、策略裁决结果 4 值枚举 |
+| 共享内容 | POSIX capability 41 ID 枚举、LSM 钩子 252 ID 枚举、Cupolas blob 布局（cred/inode/file/task）、capability 派生模型（mint/mintcopy/derive/revoke）、Vault backend 抽象、策略裁决结果 4 值枚举 |
 | agentrt-linux 使用方式 | 内核态 capability 系统使用相同的令牌格式与安全类型 |
 
 ```c
@@ -240,21 +240,21 @@ typedef struct __attribute__((aligned(64))) {
     uint32_t permissions;     /* 权限位掩码 */
     uint32_t reserved;
     uint8_t  signature[32];  /* 内核签名（HMAC-SHA256） */
-} airymax_cap_token_t;
+} airy_cap_token_t;
 
 typedef enum {
-    AIRYMAX_CAP_OP_MINT       = 0x01,
-    AIRYMAX_CAP_OP_MINTCOPY   = 0x02,
-    AIRYMAX_CAP_OP_DERIVE     = 0x03,
-    AIRYMAX_CAP_OP_REVOKE     = 0x04,
-} airymax_cap_op_t;
+    AIRY_CAP_OP_MINT       = 0x01,
+    AIRY_CAP_OP_MINTCOPY   = 0x02,
+    AIRY_CAP_OP_DERIVE     = 0x03,
+    AIRY_CAP_OP_REVOKE     = 0x04,
+} airy_cap_op_t;
 
 typedef enum {
-    AIRYMAX_LSM_ALLOW         = 0,
-    AIRYMAX_LSM_DENY          = 1,
-    AIRYMAX_LSM_AUDIT         = 2,
-    AIRYMAX_LSM_ENFORCE       = 3,
-} airymax_lsm_verdict_t;
+    AIRY_LSM_ALLOW         = 0,
+    AIRY_LSM_DENY          = 1,
+    AIRY_LSM_AUDIT         = 2,
+    AIRY_LSM_ENFORCE       = 3,
+} airy_lsm_verdict_t;
 ```
 
 **agentrt-linux 落地**：
@@ -277,21 +277,21 @@ typedef enum {
 ```c
 /* cognition_types.h — 共享契约（简化示意） */
 typedef enum {
-    AIRYMAX_CLT_PERCEPTION    = 0,   /* 感知阶段 */
-    AIRYMAX_CLT_THINKING      = 1,   /* 思考阶段 */
-    AIRYMAX_CLT_ACTION        = 2,   /* 行动阶段 */
-} airymax_clt_phase_t;
+    AIRY_CLT_PERCEPTION    = 0,   /* 感知阶段 */
+    AIRY_CLT_THINKING      = 1,   /* 思考阶段 */
+    AIRY_CLT_ACTION        = 2,   /* 行动阶段 */
+} airy_clt_phase_t;
 
 typedef enum {
-    AIRYMAX_THINK_SYSTEM1_FAST = 0,  /* System 1 快速直觉 */
-    AIRYMAX_THINK_SYSTEM2_SLOW = 1,  /* System 2 慢速深思 */
-} airymax_thinkdual_mode_t;
+    AIRY_THINK_SYSTEM1_FAST = 0,  /* System 1 快速直觉 */
+    AIRY_THINK_SYSTEM2_SLOW = 1,  /* System 2 慢速深思 */
+} airy_thinkdual_mode_t;
 
 typedef enum {
-    AIRYMAX_LLM_PREFILL        = 0,  /* 预填充阶段 */
-    AIRYMAX_LLM_DECODE         = 1,  /* 解码阶段 */
-    AIRYMAX_LLM_SPECULATIVE    = 2,  /* 推测解码 */
-} airymax_llm_phase_t;
+    AIRY_LLM_PREFILL        = 0,  /* 预填充阶段 */
+    AIRY_LLM_DECODE         = 1,  /* 解码阶段 */
+    AIRY_LLM_SPECULATIVE    = 2,  /* 推测解码 */
+} airy_llm_phase_t;
 ```
 
 **agentrt-linux 落地**：
@@ -307,27 +307,34 @@ typedef enum {
 |------|------|
 | 文件名 | `include/airymax/sched.h` |
 | 维护方 | agentrt |
-| 共享内容 | SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）、任务描述符（magic 0x41475453 'AGTS'）、vtime 类型与衰减公式、优先级范围 0-139、AIRYMAX_SLICE_DFL（20ms） |
+| 共享内容 | SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）、任务描述符（magic 0x41475453 'AGTS'）、vtime 类型与衰减公式、优先级范围 0-139、AIRY_SLICE_DFL（20ms） |
 | agentrt-linux 使用方式 | 内核态 sched_ext 子系统使用相同的任务描述符与 vtime 语义 |
 
 ```c
 /* sched.h — 共享契约（简化示意） */
-#define AIRYMAX_TASK_MAGIC        0x41475453  /* "AGTS" */
-#define AIRYMAX_SCHED_SLICE_DFL   20          /* ms */
-#define AIRYMAX_PRIO_MIN          0
-#define AIRYMAX_PRIO_MAX          139
+#define AIRY_TASK_MAGIC        0x41475453  /* "AGTS" */
+#define AIRY_SCHED_SLICE_DFL   20          /* ms */
+#define AIRY_PRIO_MIN          0
+#define AIRY_PRIO_MAX          139
 #define MAC_MAX_AGENTS            1024
 
 /* 禁止定义 SCHED_AGENT 策略编号宏，复用内核 SCHED_EXT=7 */
 
-typedef struct __attribute__((aligned(64))) {
-    uint32_t magic;           /* AIRYMAX_TASK_MAGIC (0x41475453) */
-    uint16_t version;
-    uint16_t prio;            /* 优先级 0-139 */
-    uint64_t vtime;           /* 虚拟时间（Q16.16 定点数） */
-    uint64_t deadline_ns;
-    uint8_t  reserved[88];    /* 填充至 128 字节 */
-} airymax_task_desc_t;
+/**
+ * @brief Agent 任务描述符（上下文扩展视图）
+ * @note SSoT: 120-cross-project-code-sharing.md §2.6 sched.h
+ *       权威定义仅含 magic/prio/_pad/vtime 4 字段（__u32/__u16/airy_vtime_t）
+ *       以下为集成场景扩展视图，含 version/deadline_ns/reserved 等扩展字段
+ * @note IRON-9 v2 [SC] 共享契约层：核心字段同源，扩展字段各自独立
+ */
+struct __attribute__((aligned(64))) airy_task_desc {
+    uint32_t magic;           /* AIRY_TASK_MAGIC (0x41475453) — [SC] 同源 */
+    uint16_t version;         /* [IND] 扩展字段 */
+    uint16_t prio;            /* 优先级 0-139 — [SC] 同源 */
+    uint64_t vtime;           /* 虚拟时间（Q16.16 定点数）— [SC] 同源 */
+    uint64_t deadline_ns;     /* [IND] 扩展字段 */
+    uint8_t  reserved[88];    /* 填充至 128 字节 — [IND] 扩展字段 */
+};
 ```
 
 **agentrt-linux 落地**：
@@ -343,35 +350,27 @@ typedef struct __attribute__((aligned(64))) {
 |------|------|
 | 文件名 | `include/airymax/ipc.h` |
 | 维护方 | agentrt |
-| 共享内容 | IPC magic（0x41524531 'ARE1'）、128B 消息头结构（agentrt_ipc_msg_hdr_t）、SQE/CQE 操作码与标志位 |
+| 共享内容 | IPC magic（0x41524531 'ARE1'）、128B 消息头结构（struct airy_ipc_msg_hdr）、SQE/CQE 操作码与标志位 |
 | agentrt-linux 使用方式 | 内核态 IPC 子系统原生支持 128B 消息头 |
 
 ```c
 /* ipc.h — 共享契约（简化示意） */
-#define AIRYMAX_IPC_MAGIC        0x41524531  /* "ARE1" */
-#define AIRYMAX_IPC_MSG_HDR_SIZE 128
-#define AIRYMAX_IPC_VERSION      0x0100
+#define AIRY_IPC_MAGIC        0x41524531  /* "ARE1" */
+#define AIRY_IPC_MSG_HDR_SIZE 128
+#define AIRY_IPC_VERSION      0x0100
 
 typedef enum {
-    AIRYMAX_IPC_PAYLOAD_JSON_RPC = 0x01,
-    AIRYMAX_IPC_PAYLOAD_MCP      = 0x02,
-    AIRYMAX_IPC_PAYLOAD_A2A      = 0x03,
-    AIRYMAX_IPC_PAYLOAD_OPENAI   = 0x04,
-    AIRYMAX_IPC_PAYLOAD_CUSTOM   = 0xFF,
-} airymax_ipc_payload_type_t;
+    AIRY_IPC_PAYLOAD_JSON_RPC = 0x01,
+    AIRY_IPC_PAYLOAD_MCP      = 0x02,
+    AIRY_IPC_PAYLOAD_A2A      = 0x03,
+    AIRY_IPC_PAYLOAD_OPENAI   = 0x04,
+    AIRY_IPC_PAYLOAD_CUSTOM   = 0xFF,
+} airy_ipc_payload_type_t;
 
-typedef struct __attribute__((aligned(64))) {
-    uint32_t magic;           /* AIRYMAX_IPC_MAGIC (0x41524531) */
-    uint16_t version;         /* 0x0100 */
-    uint16_t header_size;     /* 128 */
-    uint32_t payload_size;
-    uint8_t  payload_type;    /* airymax_ipc_payload_type_t */
-    uint8_t  priority;
-    uint16_t flags;
-    uint64_t trace_id;
-    uint64_t timestamp;
-    uint8_t  reserved[92];    /* 填充至 128 字节 */
-} airymax_ipc_msg_hdr_t;
+/* IPC 128B 消息头定义见 [SC] 共享契约层（SSoT），不就地重定义 */
+#include <airymax/ipc.h>
+/* 结构体名称：struct airy_ipc_msg_hdr（Layout C，物理宿主见
+ * 50-engineering-standards/120-cross-project-code-sharing.md §Layout C） */
 ```
 
 **agentrt-linux 落地**：
@@ -404,7 +403,7 @@ typedef struct __attribute__((aligned(64))) {
 | 维度 | agentrt（MicroCoreRT） | agentrt-linux（SCHED_AGENT） | 同源语义 |
 |------|------------------------|------------------------------|----------|
 | **调度模型** | 用户态优先级调度 | 内核态 SCHED_AGENT 策略 | 优先级调度语义一致 |
-| **任务描述** | `agentrt_task_desc_t` | 内核态 `task_struct` 扩展 | 任务结构语义一致 |
+| **任务描述** | `struct airy_task_desc` | 内核态 `task_struct` 扩展 | 任务结构语义一致 |
 | **调度策略** | 可插拔策略（FIFO/RR/CFS） | EEVDF + SCHED_AGENT | 策略可插拔语义一致 |
 | **优先级范围** | 0-139 | 0-139 | 优先级范围一致 |
 | **抢占语义** | 支持抢占 | 支持抢占 | 抢占语义一致 |
@@ -607,14 +606,14 @@ graph TD
 // [SC] 层契约测试 — 结构体布局一致性
 #include <airymax/ipc.h>
 
-static_assert(sizeof(airymax_ipc_msg_hdr_t) == 128,
+static_assert(sizeof(struct airy_ipc_msg_hdr) == 128,
               "IPC message header must be 128 bytes");
-static_assert(offsetof(airymax_ipc_msg_hdr_t, magic) == 0,
+static_assert(offsetof(struct airy_ipc_msg_hdr, magic) == 0,
               "magic must be at offset 0");
-static_assert(offsetof(airymax_ipc_msg_hdr_t, payload_size) == 8,
-              "payload_size must be at offset 8");
-static_assert(offsetof(airymax_ipc_msg_hdr_t, trace_id) == 24,
-              "trace_id must be at offset 24");
+static_assert(offsetof(struct airy_ipc_msg_hdr, opcode) == 4,
+              "opcode must be at offset 4");
+static_assert(offsetof(struct airy_ipc_msg_hdr, trace_id) == 8,
+              "trace_id must be at offset 8");
 ```
 
 ### 6.3 L2: [SS] 层语义测试

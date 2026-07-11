@@ -622,7 +622,7 @@ airymaxos_active_sessions 1500
   "trace_id": "abc123def456",
   "span_id": "span001",
   "parent_span_id": "span000",
-  "operation": "agentrt_cognition_process",
+  "operation": "airy_cognition_process",
   "start_time": "2026-07-06T10:30:45.123Z",
   "duration_ms": 45.6,
   "attributes": {
@@ -660,7 +660,7 @@ airymaxos_active_sessions 1500
   "level": "INFO",
   "trace_id": "req_abc123",
   "module": "coreloopthree.cognition",
-  "function": "agentrt_cognition_process",
+  "function": "airy_cognition_process",
   "line": 142,
   "message": "任务规划完成",
   "context": {
@@ -744,11 +744,11 @@ airymaxos_active_sessions 1500
 **错误链示例**：
 
 ```
-[ERROR] AGENTRT_ENOMEM: 内存分配失败
-  at coreloopthree/cognition/planner.c:142 (agentrt_planner_expand)
-  at coreloopthree/cognition/cognition.c:87 (agentrt_cognition_process)
-  at syscalls/syscall.c:234 (agentrt_sys_task_submit)
-  context: requested=256MB, available=128MB, process=agentrt_llm_d, pid=1234
+[ERROR] AIRY_ENOMEM: 内存分配失败
+  at coreloopthree/cognition/planner.c:142 (airy_planner_expand)
+  at coreloopthree/cognition/cognition.c:87 (airy_cognition_process)
+  at syscalls/syscall.c:234 (airy_sys_task_submit)
+  context: requested=256MB, available=128MB, process=airy_llm_d, pid=1234
   suggestion: 1) 减少批量大小 2) 启用内存压缩 3) 增加系统内存
 ```
 

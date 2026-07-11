@@ -61,8 +61,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 层次 | 共享程度 | 安全子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | POSIX capability 38 个 ID 枚举、LSM 钩子 254 个 ID 枚举、Cupolas blob 结构布局（cred/inode/file/task）、capability 派生模型（mint/mintcopy/derive/revoke）、Vault backend 抽象、策略裁决结果 4 值枚举 | `include/airymax/security_types.h` |
-| **[SS] 语义同源层** | API 签名同源，实现独立 | `security_add_hooks()`、`call_int_hook` 短路、`DEFINE_LSM(cupolas)`、Landlock 三系统调用、`cap_capable()`、`security_file_open()` 等 17 项 | 各自独立实现 |
+| **[SC] 共享契约层** | 完全共享代码 | POSIX capability 41 个 ID 枚举、LSM 钩子 252 个 ID 枚举、Cupolas blob 结构布局（cred/inode/file/task）、capability 派生模型（mint/mintcopy/derive/revoke）、Vault backend 抽象、策略裁决结果 4 值枚举 | `include/airymax/security_types.h` |
+| **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | `security_add_hooks()`、`call_int_hook` 短路、`DEFINE_LSM(cupolas)`、Landlock 三系统调用、`cap_capable()`、`security_file_open()` 等 17 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | SELinux 完整实现、AppArmor 完整实现、Smack、TOMOYO、IMA digest list、IMA VirtCCA、IMA 策略 DB、EVM xattr 签名、内核 ABI 预留机制 | 各自独立仓库 |
 
 ### 2.1 维度对比
@@ -81,7 +81,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - 保留 agentrt Cupolas 的"LSM hook 风格"安全策略注入 [SS]。
 - 保留 Cupolas 的"声明式安全策略"配置范式 [SS]。
 - 升级为 OS 级 capability 系统（seL4 风格）[SC]——capability ID 与派生模型两端共享。
-- 新增内核态 LSM 框架承重 [SS]——`security_hook_heads` 254 钩子 + `lsm_blob_sizes` 扁平 blob。
+- 新增内核态 LSM 框架承重 [SS]——`security_hook_heads` 252 钩子 + `lsm_blob_sizes` 扁平 blob。
 - 新增 Landlock 用户态沙箱 [SS]——非特权进程自限制 + 域不可逆叠加。
 - 新增机密计算 Vault backend 抽象 [SC]——TPM/SGX/SEV-SNP/TDX/CCA 后端可插拔。
 
@@ -171,8 +171,8 @@ airymaxos-security/
 ```mermaid
 graph TD
     subgraph SC["[SC] 共享契约层 include/airymax/security_types.h"]
-        CAP[capability 38 ID 枚举]
-        LSM[LSM 钩子 254 ID 枚举]
+        CAP[capability 41 ID 枚举]
+        LSM[LSM 钩子 252 ID 枚举]
         BLOB[Cupolas blob 布局<br/>cred / inode / file / task]
         DERIVE[capability 派生模型<br/>mint / mintcopy / derive / revoke]
         VAULT[Vault backend 抽象]
@@ -228,19 +228,19 @@ graph TD
 **capability 派生模型** [SC]（`include/airymax/security_types.h`）：
 
 ```c
-typedef struct agentrt_capability {
+typedef struct airy_capability {
     uint64_t cap_id;
     uint32_t cap_type;      /* CNode/Endpoint/Thread/Frame/IO/IRQ/ASID */
     uint32_t rights;        /* read/write/execute/grant/revoke */
     uint64_t parent_cap_id;
     uint64_t mint_depth;
     uint32_t mint_quota;
-} agentrt_capability_t;
+} airy_capability_t;
 ```
 
 ### 4.2 agent_lsm（LSM hook，Cupolas 同源）[SS]
 
-**LSM Hook 点**（254 个钩子 ID 枚举 [SC]）：
+**LSM Hook 点**（252 个钩子 ID 枚举 [SC]）：
 - `file_open`、`file_permission`、`file_ioctl`
 - `socket_bind`、`socket_connect`、`socket_accept`
 - `task_create`、`task_kill`、`task_setpgid`
@@ -315,19 +315,19 @@ sandbox_create()
 **Vault backend 抽象** [SC]（`include/airymax/security_types.h`，借鉴 IMA ROT 抽象层）：
 
 ```c
-typedef struct agentrt_vault_backend {
+typedef struct airy_vault_backend {
     const char *name;       /* tpm/sgx/sev-snp/tdx/cca */
-    int (*init)(struct agentrt_vault_backend *self);
-    int (*seal)(struct agentrt_vault_backend *self,
+    int (*init)(struct airy_vault_backend *self);
+    int (*seal)(struct airy_vault_backend *self,
                 const uint8_t *plaintext, size_t len,
                 uint8_t *ciphertext, size_t *out_len);
-    int (*unseal)(struct agentrt_vault_backend *self,
+    int (*unseal)(struct airy_vault_backend *self,
                   const uint8_t *ciphertext, size_t len,
                   uint8_t *plaintext, size_t *out_len);
-    int (*attest)(struct agentrt_vault_backend *self,
+    int (*attest)(struct airy_vault_backend *self,
                   const uint8_t *challenge, size_t len,
                   uint8_t *evidence, size_t *out_len);
-} agentrt_vault_backend_t;
+} airy_vault_backend_t;
 ```
 
 **应用场景**：
@@ -342,7 +342,7 @@ typedef struct agentrt_vault_backend {
 - Linux 6.6 引入 eBPF 程序签名验证机制。
 - 仅允许已签名 eBPF 程序加载至内核。
 - 防止恶意 eBPF 程序破坏内核安全。
-- BPF_LSM 通过 X-macro 模式为全部 254 个 LSM 钩子生成 trampoline [SS]。
+- BPF_LSM 通过 X-macro 模式为全部 252 个 LSM 钩子生成 trampoline [SS]。
 
 **策略**：
 - `enforce`：仅允许已签名程序加载。
@@ -378,11 +378,11 @@ typedef struct agentrt_vault_backend {
 
 ```c
 typedef enum {
-    AGENTRT_CUPOLAS_DECISION_ALLOW = 0,  /* 允许 */
-    AGENTRT_CUPOLAS_DECISION_DENY  = 1,  /* 拒绝 */
-    AGENTRT_CUPOLAS_DECISION_AUDIT = 2,  /* 允许但审计 */
-    AGENTRT_CUPOLAS_DECISION_LOG   = 3,  /* 允许但记录日志 */
-} agentrt_cupolas_decision_t;
+    AIRY_CUPOLAS_DECISION_ALLOW = 0,  /* 允许 */
+    AIRY_CUPOLAS_DECISION_DENY  = 1,  /* 拒绝 */
+    AIRY_CUPOLAS_DECISION_AUDIT = 2,  /* 允许但审计 */
+    AIRY_CUPOLAS_DECISION_LOG   = 3,  /* 允许但记录日志 */
+} airy_cupolas_decision_t;
 ```
 
 ### 4.9 Cupolas 7 大子系统（与 agentrt 同源 [SS]）
@@ -439,19 +439,19 @@ typedef enum {
 
 | 内容 | 说明 |
 |------|------|
-| `agentrt_cap_id_t` 枚举 | POSIX capability 38 个 ID（CAP_CHOWN=0 ... CAP_CHECKPOINT_RESTORE=40） |
-| `agentrt_lsm_hook_id_t` 枚举 | LSM 钩子 254 个 ID（binder_set_context_mgr=0 ... MAX） |
-| `agentrt_cupolas_cred_security_t` 结构 | Cupolas cred blob 布局（agent_id/domain_id/capability_set/sandbox_level/audit_seq） |
-| `agentrt_cupolas_inode_security_t` 结构 | Cupolas inode blob 布局 |
-| `agentrt_cupolas_file_security_t` 结构 | Cupolas file blob 布局 |
-| `agentrt_cupolas_task_security_t` 结构 | Cupolas task blob 布局 |
-| `agentrt_capability_t` 结构 | capability 派生模型（cap_id/cap_type/rights/parent_cap_id/mint_depth/mint_quota） |
-| `agentrt_vault_backend_t` 结构 | Vault backend 抽象（init/seal/unseal/attest） |
-| `agentrt_cupolas_decision_t` 枚举 | 策略裁决结果 4 值（ALLOW/DENY/AUDIT/LOG） |
+| `airy_cap_id_t` 枚举 | POSIX capability 41 个 ID（CAP_CHOWN=0 ... CAP_CHECKPOINT_RESTORE=40） |
+| `airy_lsm_hook_id_t` 枚举 | LSM 钩子 252 个 ID（binder_set_context_mgr=0 ... MAX） |
+| `airy_cupolas_cred_security_t` 结构 | Cupolas cred blob 布局（agent_id/domain_id/capability_set/sandbox_level/audit_seq） |
+| `airy_cupolas_inode_security_t` 结构 | Cupolas inode blob 布局 |
+| `airy_cupolas_file_security_t` 结构 | Cupolas file blob 布局 |
+| `airy_cupolas_task_security_t` 结构 | Cupolas task blob 布局 |
+| `airy_capability_t` 结构 | capability 派生模型（cap_id/cap_type/rights/parent_cap_id/mint_depth/mint_quota） |
+| `airy_vault_backend_t` 结构 | Vault backend 抽象（init/seal/unseal/attest） |
+| `airy_cupolas_decision_t` 枚举 | 策略裁决结果 4 值（ALLOW/DENY/AUDIT/LOG） |
 
 ### 6.2 [SS] 语义同源层——17 项 API 映射
 
-API 签名同源，实现独立：
+高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进：
 
 | 序号 | API | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|-----|------|-------------|---------------|
@@ -518,7 +518,7 @@ sequenceDiagram
 
 - **agentrt-linux 安全治理组**：安全子系统最佳实践。
 - **agentrt-linux 国密**：SM2/SM3/SM4 国密算法实现。
-- **agentrt-linux LSM**：LSM hook 集成经验——254 钩子 + 扁平 blob + 三源排序。
+- **agentrt-linux LSM**：LSM hook 集成经验——252 钩子 + 扁平 blob + 三源排序。
 - **agentrt-linux 机密计算**：TEE 集成基线——Vault backend 抽象 [SC]。
 - **Linux 6.6 内核基线**：LSM 框架 + Landlock + capability + Lockdown + 4 层密钥环。
 
@@ -572,7 +572,7 @@ sequenceDiagram
 | M0 | 文档体系完成（本模块设计文档） | 2026-07 | — |
 | M1 | [SC] `include/airymax/security_types.h` 共享契约层 | 2026 Q3 | [SC] |
 | M2 | capability 系统内核接口 + 派生模型 | 2026 Q3 | [SC] |
-| M3 | agent_lsm 集成 + 254 钩子注册 + 策略引擎 | 2026 Q4 | [SS] |
+| M3 | agent_lsm 集成 + 252 钩子注册 + 策略引擎 | 2026 Q4 | [SS] |
 | M4 | Landlock 沙箱 + seccomp + 三系统调用 | 2026 Q4 | [SS] |
 | M5 | Vault backend 抽象 + TPM/SGX 后端 | 2027 Q1 | [SC] + [IND] |
 | M6 | 国密算法集成（SM2/SM3/SM4） | 2027 Q1 | [IND] |
@@ -595,13 +595,13 @@ sequenceDiagram
 
 | 序号 | 检查项 | agentrt 状态 | agentrt-linux 状态 | 结论 |
 |------|--------|-------------|---------------|------|
-| 1 | capability ID 枚举一致性 | 38 个 POSIX caps | 38 个 POSIX caps | ✅ PASS [SC] |
-| 2 | LSM 钩子 ID 枚举一致性 | 254 个钩子 ID | 254 个钩子 ID | ✅ PASS [SC] |
+| 1 | capability ID 枚举一致性 | 41 个 POSIX caps | 41 个 POSIX caps | ✅ PASS [SC] |
+| 2 | LSM 钩子 ID 枚举一致性 | 252 个钩子 ID | 252 个钩子 ID | ✅ PASS [SC] |
 | 3 | capability 派生模型一致性 | mint/mintcopy/derive/revoke | mint/mintcopy/derive/revoke | ✅ PASS [SC] |
 | 4 | Cupolas blob 布局一致性 | cred/inode/file/task | cred/inode/file/task | ✅ PASS [SC] |
 | 5 | Vault backend 抽象一致性 | 5 函数（init/seal/unseal/attest） | 5 函数（init/seal/unseal/attest） | ✅ PASS [SC] |
 | 6 | 策略裁决结果一致性 | 4 值（ALLOW/DENY/AUDIT/LOG） | 4 值（ALLOW/DENY/AUDIT/LOG） | ✅ PASS [SC] |
-| 7 | `security_add_hooks()` 签名一致性 | 用户态注册 | 内核 `hlist_add_tail_rcu` | ✅ PASS [SS] |
+| 7 | `security_add_hooks()` 语义等价性 | 用户态注册 | 内核 `hlist_add_tail_rcu` | ✅ PASS [SS] |
 | 8 | `call_int_hook` 短路语义一致性 | first-deny | first-deny | ✅ PASS [SS] |
 | 9 | Landlock 三系统调用一致性 | 用户态包装 | 内核 syscall | ✅ PASS [SS] |
 | 10 | `cap_capable()` 检查流程一致性 | 用户态模拟 | 内核 `commoncap.c` | ✅ PASS [SS] |
@@ -642,7 +642,7 @@ sequenceDiagram
 - Linux 6.6 `security/landlock/`（Landlock 实现）
 - Linux 6.6 `security/keys/`（密钥环实现）
 - Linux 6.6 `include/linux/lsm_hooks.h`（LSM 钩子声明）
-- Linux 6.6 `include/linux/lsm_hook_defs.h`（254 钩子定义）
+- Linux 6.6 `include/linux/lsm_hook_defs.h`（252 钩子定义）
 - Linux 6.6 `security/bpf/hooks.c`（BPF_LSM X-macro）
 - Linux 6.6 `Documentation/admin-guide/lockdown.rst`（Lockdown）
 - Linux 6.6 eBPF kfunc + dynamic pointer 文档

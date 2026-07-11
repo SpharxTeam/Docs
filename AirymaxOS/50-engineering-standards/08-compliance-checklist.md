@@ -105,7 +105,7 @@ echo "OK: 0 forbidden words in open-source docs"
 |--------|----------|----------|
 | §2 三层模型表 | 包含 [SC]/[SS]/[IND] 三行表 | grep "\[SC\]" + grep "\[SS\]" + grep "\[IND\]" |
 | [SC] 头文件引用 | 引用 `include/airymax/*.h` | grep "include/airymax/" |
-| [SS] API 映射表 | 包含 API 签名映射 | grep "\[SS\].*API" |
+| [SS] API 映射表 | 包含 API 语义映射（SDK 层签名映射，其他层语义映射） | grep "\[SS\].*API" |
 | [IND] 独立实现表 | 包含独立实现清单 | grep "\[IND\]" |
 | agentrt 一致性检查 | 包含 15 项检查表 | grep "agentrt 一致性检查" |
 | 里程碑 M0-M8 | 包含 M0-M8 里程碑 | grep "M0.*M8" |
@@ -136,7 +136,7 @@ done
 |---|--------|--------|----------|
 | 1 | `include/airymax/bpf_struct_ops.h` | eBPF | struct_ops 状态机 + common_value |
 | 2 | `include/airymax/memory_types.h` | 记忆 | MemoryRovol L1-L4 + GFP 掩码 + PMEM 接口 |
-| 3 | `include/airymax/security_types.h` | 安全 | capability 38 ID + LSM 254 ID + Cupolas blob + 派生模型 + Vault + 裁决 4 值 |
+| 3 | `include/airymax/security_types.h` | 安全 | capability 41 ID + LSM 252 ID + Cupolas blob + 派生模型 + Vault + 裁决 4 值 |
 | 4 | `include/airymax/cognition_types.h` | 认知 | CoreLoopThree 阶段 + Thinkdual 模式 + LLM 推理阶段 + 上下文 + 能效 + GPU/NPU |
 | 5 | `include/airymax/sched.h` | 调度 | SCHED_EXT 约束 + 任务描述符（'AGTS'）+ vtime + 优先级 + SLICE_DFL |
 | 6 | `include/airymax/ipc.h` | IPC | IPC magic（'ARE1'）+ 128B 消息头 + SQE/CQE 操作码 |
@@ -245,18 +245,18 @@ find atoms/ daemons/ commons/ memoryrovol/ -name "*.c" -o -name "*.h" | \
 
 | 前缀 | 用途 | 示例 |
 |------|------|------|
-| `agentrt_` | agentrt 同源 API（[SS] 语义同源层） | `agentrt_ipc_send()` |
+| `airy_` | agentrt 同源 API（[SS] 语义同源层） | `airy_ipc_send()` |
 | `airymaxos_` | agentrt-linux 专属 API（[IND] 独立层） | `airymaxos_kthread_create()` |
-| `AGENTRT_` | agentrt 宏/常量（[SC] 共享层） | `AGENTRT_API` / `AGENTRT_SYS_*` |
+| `AIRY_` | agentrt 宏/常量（[SC] 共享层） | `AIRY_API` / `AIRY_SYS_*` |
 | `AIRYMAXOS_` | agentrt-linux 宏/常量（[IND] 独立层） | `AIRYMAXOS_CONFIG_*` |
 
 **检查脚本**：
 ```bash
 #!/bin/bash
 # check-naming.sh
-# 检查 agentrt_ 前缀是否仅用于 [SS] 同源 API
+# 检查 airy_ 前缀是否仅用于 [SS] 同源 API
 grep -rn "^void\|^int\|^static.*(" atoms/ daemons/ | \
-  grep -v "agentrt_\|airymaxos_\|static inline\|main(" | \
+  grep -v "airy_\|airymaxos_\|static inline\|main(" | \
   head -20
 ```
 
@@ -268,7 +268,7 @@ grep -rn "^void\|^int\|^static.*(" atoms/ daemons/ | \
 |------|------|
 | `fprintf(stderr, ...)` | `log_write(LOG_LEVEL_INFO, ...)` |
 | `printf(...)` | `log_write_va(LOG_LEVEL_DEBUG, ...)` |
-| `puts(...)` | `agentrt_print_info(...)`（构建期） |
+| `puts(...)` | `airy_print_info(...)`（构建期） |
 
 **ANSI 颜色编码**：
 
@@ -328,13 +328,13 @@ out_free_a:
 
 ### 3.5 CMake 构建系统检查
 
-**规则 STD-CODE-05**：CMake 脚本遵循 `cmake/agentrt_print.cmake` 统一打印系统。
+**规则 STD-CODE-05**：CMake 脚本遵循 `cmake/airy_print.cmake` 统一打印系统。
 
 | 检查项 | 合格标准 |
 |--------|----------|
-| 打印函数 | 使用 `agentrt_print_ok/info/warn/error/fatal/debug/section` 而非 `message()` |
-| 时间戳 | 使用 `_AGENTRT_TIMESTAMP` 宏生成 |
-| ANSI 颜色 | 通过 `_AGENTRT_C_*` 变量，支持 `AGENTRT_BUILD_COLOR` 环境变量控制 |
+| 打印函数 | 使用 `airy_print_ok/info/warn/error/fatal/debug/section` 而非 `message()` |
+| 时间戳 | 使用 `_AIRY_TIMESTAMP` 宏生成 |
+| ANSI 颜色 | 通过 `_AIRY_C_*` 变量，支持 `AIRY_BUILD_COLOR` 环境变量控制 |
 | SPDX | CMake 文件头含 SPDX-License-Identifier |
 
 ---
@@ -369,9 +369,9 @@ done
 
 **合格标准**：6 个头文件 MD5 哈希完全一致。
 
-### 4.2 [SS] 语义同源层 API 签名检查
+### 4.2 [SS] 语义同源层 API 一致性检查
 
-**规则 STD-IRON-02**：[SS] 语义同源层的 API 签名必须一致（函数名、参数类型、返回值）。
+**规则 STD-IRON-02**：[SS] 语义同源层：SDK 层 API 签名应与 agentrt 同源 API 一致（同一份源码两端编译）；系统调用层签名因抽象层级不同而独立演进（agentrt JSON-RPC ↔ agentrt-linux 编号 syscall），仅要求概念操作语义同源。
 
 **检查方法**：使用 `diff` 对比 agentrt 与 agentrt-linux 的头文件 API 声明部分。
 
@@ -511,7 +511,7 @@ scripts/
 | 编号 | 规则名称 | 检查脚本 | 优先级 |
 |------|----------|----------|--------|
 | STD-IRON-01 | [SC] 共享契约层一致性 | check-sc-consistency.sh | P0 |
-| STD-IRON-02 | [SS] 语义同源层 API 签名 | — | P1 |
+| STD-IRON-02 | [SS] 语义同源层 API 一致性（SDK 层签名 + 其他层语义） | — | P1 |
 | STD-IRON-03 | [IND] 独立层隔离 | check-ind-isolation.sh | P0 |
 | STD-IRON-04 | 主流发行版兼容性 | check-distro-compat.sh | P1 |
 

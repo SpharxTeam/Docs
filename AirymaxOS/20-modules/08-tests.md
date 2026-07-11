@@ -63,8 +63,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 层次 | 共享程度 | 测试子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | IPC 测试验证的消息头格式（magic 0x41524531 'ARE1' + 128B `agentrt_ipc_msg_hdr_t`）；调度器测试验证的 task_desc（magic 0x41475453 'AGTS'）+ vtime 衰减公式；安全形式化验证的 capability 38 ID 枚举 + LSM 254 ID 枚举；struct_ops 状态机验证（INIT/INUSE/TOBEFREE/READY）；MemoryRovol 快照一致性验证的 L1-L4 数据结构 + GFP 掩码语义；认知测试验证的 CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 | `include/airymax/` 6 个头文件（测试框架验证这些共享类型） |
-| **[SS] 语义同源层** | API 签名同源，实现独立 | 单元测试框架语义（agentrt cargo test/go test/googletest → OS 级同框架）、集成测试模式（agentrt 集成测试 → OS 级集成测试）、性能基准指标（IPC 延迟/调度延迟/内存吞吐/I/O 吞吐——两端同指标）、覆盖率目标（≥90%/≥80%/≥70%——两端同标准）、回归测试方法（性能不退化——两端同方法）等 8+ 项 | 各自独立实现 |
+| **[SC] 共享契约层** | 完全共享代码 | IPC 测试验证的消息头格式（magic 0x41524531 'ARE1' + 128B `struct airy_ipc_msg_hdr`）；调度器测试验证的 task_desc（magic 0x41475453 'AGTS'）+ vtime 衰减公式；安全形式化验证的 capability 41 ID 枚举 + LSM 252 ID 枚举；struct_ops 状态机验证（INIT/INUSE/TOBEFREE/READY）；MemoryRovol 快照一致性验证的 L1-L4 数据结构 + GFP 掩码语义；认知测试验证的 CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 | `include/airymax/` 6 个头文件（测试框架验证这些共享类型） |
+| **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | 单元测试框架语义（agentrt cargo test/go test/googletest → OS 级同框架）、集成测试模式（agentrt 集成测试 → OS 级集成测试）、性能基准指标（IPC 延迟/调度延迟/内存吞吐/I/O 吞吐——两端同指标）、覆盖率目标（≥90%/≥80%/≥70%——两端同标准）、回归测试方法（性能不退化——两端同方法）等 8+ 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | 形式化验证框架（seL4 Isabelle/HOL + Coq——OS 专属）、Soak Test 框架（72h 持续运行——OS 专属）、混沌工程框架（Chaos Mesh 类似——OS 专属）、eBPF 可观测性验证（OS 专属）、agentrt-linux 集成测试框架（OS 专属）、测试运行器与报告生成（OS 专属） | 各自独立仓库 |
 
 ### 2.1 维度对比
@@ -80,7 +80,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 覆盖率目标 | ≥90%/≥80%/≥70% | ≥90%/≥80%/≥70% | [SS] |
 | IPC 消息头验证 | 验证 128B msg_hdr | 验证 128B msg_hdr（magic 0x41524531 [SC]） | [SC] |
 | 调度器验证 | 不涉及内核调度 | 验证 task_desc（magic 0x41475453 [SC]） | [SC] |
-| 安全验证 | 用户态 capability 测试 | capability 38 ID 形式化验证 [SC] | [SC] |
+| 安全验证 | 用户态 capability 测试 | capability 41 ID 形式化验证 [SC] | [SC] |
 | 跨平台 | Linux/macOS/Windows | Linux 6.6 专属 | [IND] |
 
 ### 2.2 同源传承要点
@@ -139,7 +139,7 @@ tests-linux/
 - `coq/`：Coq 证明 [IND]。
 - `spec/`：形式化规约 [IND]。
   - `kernel-spec/`：内核规约（SCHED_AGENT + task_desc [SC]）[IND]。
-  - `capability-spec/`：capability 系统规约（capability 38 ID [SC]）[IND]。
+  - `capability-spec/`：capability 系统规约（capability 41 ID [SC]）[IND]。
   - `ipc-spec/`：IPC 规约（128B msg_hdr + magic 0x41524531 [SC]）[IND]。
   - `memory-spec/`：MemoryRovol 规约（L1-L4 数据结构 [SC]）[IND]。
 - `proof/`：证明脚本 [IND]。
@@ -213,7 +213,7 @@ tests-linux/
 - `include/airymax/sched.h`：验证 task_desc magic 0x41475453 + vtime 衰减 [SC]。
 - `include/airymax/bpf_struct_ops.h`：验证 struct_ops 状态机四态 [SC]。
 - `include/airymax/memory_types.h`：验证 MemoryRovol L1-L4 数据结构 [SC]。
-- `include/airymax/security_types.h`：验证 capability 38 ID + LSM 254 ID [SC]。
+- `include/airymax/security_types.h`：验证 capability 41 ID + LSM 252 ID [SC]。
 - `include/airymax/cognition_types.h`：验证 CoreLoopThree 阶段枚举 [SC]。
 
 ### 4.2 集成测试框架（agentrt-linux 集成测试标准）[IND]
@@ -251,7 +251,7 @@ source $OET_PATH/libs/locallibs/common_lib.sh
 **验证范围**（验证 [SC] 共享类型）：
 | 验证对象 | 验证性质 | 工具 | [SC] 引用 |
 |---------|---------|------|-----------|
-| capability 系统 | 不可伪造、可撤销 | Isabelle/HOL | capability 38 ID [SC] |
+| capability 系统 | 不可伪造、可撤销 | Isabelle/HOL | capability 41 ID [SC] |
 | IPC 机制 | 无死锁、无消息丢失 | Coq | 128B msg_hdr + magic 0x41524531 [SC] |
 | 调度器框架 | 公平性、有界延迟 | Isabelle/HOL | task_desc magic 0x41475453 + vtime [SC] |
 | MemoryRovol | 快照一致性 | Coq | MemoryRovol L1-L4 [SC] |
@@ -338,7 +338,7 @@ source $OET_PATH/libs/locallibs/common_lib.sh
 - 验证活性（liveness）：好的事情最终会发生 [IND]。
 
 **验证范围**（引用 [SC] 共享契约层）：
-- capability 系统（最小权限保证，capability 38 ID [SC]）[IND]。
+- capability 系统（最小权限保证，capability 41 ID [SC]）[IND]。
 - IPC 机制（无死锁、无消息丢失，128B msg_hdr [SC]）[IND]。
 - 调度器框架（公平性、有界延迟，task_desc [SC]）[IND]。
 - MemoryRovol（快照一致性，L1-L4 [SC]）[IND]。
@@ -377,12 +377,12 @@ source $OET_PATH/libs/locallibs/common_lib.sh
 | `include/airymax/sched.h` | task_desc magic 0x41475453 'AGTS' + vtime 衰减公式 + 优先级范围 | 单元测试 + 形式化验证（Isabelle/HOL 公平性） |
 | `include/airymax/bpf_struct_ops.h` | struct_ops 状态机（INIT/INUSE/TOBEFREE/READY）+ common_value 16B | 单元测试 + eBPF 可观测性验证 |
 | `include/airymax/memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口 | 单元测试 + 形式化验证（Coq 快照一致性）+ Soak 监控 |
-| `include/airymax/security_types.h` | capability 38 ID 枚举 + LSM 254 ID + Cupolas blob 布局 + 派生模型 | 单元测试 + 形式化验证（Isabelle/HOL 不可伪造） |
+| `include/airymax/security_types.h` | capability 41 ID 枚举 + LSM 252 ID + Cupolas blob 布局 + 派生模型 | 单元测试 + 形式化验证（Isabelle/HOL 不可伪造） |
 | `include/airymax/cognition_types.h` | CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 + LLM 推理阶段枚举 | 单元测试 + 形式化验证（Coq 阶段转换）+ Soak 监控 |
 
 ### 6.2 [SS] 语义同源层——8 项 API 映射
 
-API 签名同源，实现独立。测试模块的同源 API：
+高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进。测试模块的同源 API：
 
 | 序号 | 语义 | agentrt 实现 | agentrt-linux 实现 |
 |------|------|-------------|-------------------|
@@ -458,7 +458,7 @@ graph TD
         SCHED_TEST[sched.h 验证<br/>task_desc + vtime]
         BPF_TEST[bpf_struct_ops.h 验证<br/>状态机四态]
         MEM_TEST[memory_types.h 验证<br/>MemoryRovol L1-L4]
-        SEC_TEST[security_types.h 验证<br/>capability 38 ID]
+        SEC_TEST[security_types.h 验证<br/>capability 41 ID]
         COG_TEST[cognition_types.h 验证<br/>CoreLoopThree 阶段]
     end
     subgraph SS["[SS] 语义同源层"]
