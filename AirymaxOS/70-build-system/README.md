@@ -151,7 +151,7 @@ AIRYMAXOS_PATCH = 1
 AIRYMAXOS_RELEASE = ""
 ```
 
-通过 `filechk` 生成 `airymaxos_version.h`，特性开关与版本号解耦。
+通过 `filechk` 生成 `airy_version.h`，特性开关与版本号解耦。
 
 ---
 

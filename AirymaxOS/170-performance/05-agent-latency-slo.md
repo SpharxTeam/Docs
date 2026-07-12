@@ -133,7 +133,7 @@ typedef struct airy_latency_slo {
 ### 3.2 认知延迟测量
 
 ```c
-/* airymaxos-kernel/perf/latency_slo.c [IND] */
+/* kernel/perf/latency_slo.c [IND] */
 
 /**
  * airy_measure_cognition_latency - 测量认知延迟
@@ -320,7 +320,7 @@ void airy_monitor_coreloop_latency(uint32_t agent_id)
 当 Agent 接近 SLO 违约时，提升其调度优先级：
 
 ```c
-/* airymaxos-kernel/sched/slo_guard.c [IND] */
+/* kernel/sched/slo_guard.c [IND] */
 
 /**
  * airy_slo_guard - SLO 保障守护

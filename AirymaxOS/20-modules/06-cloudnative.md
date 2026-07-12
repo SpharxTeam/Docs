@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）云原生设计文档（airymaxos-cloudnative，极境云原生）
+# agentrt-linux（AirymaxOS）云原生设计文档（cloudnative，极境云原生）
 
 > **子仓编号**：06\
 > **子仓代号**：极境云原生（Airymax Cloud Native）\
@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-cloudnative` 是 agentrt-linux（AirymaxOS）的云原生基础设施子仓，承担以下核心职责：
+`cloudnative` 是 agentrt-linux（AirymaxOS）的云原生基础设施子仓，承担以下核心职责：
 
 1. **Kubernetes 集成 [IND]**：将 Agent 作为 Kubernetes CRD（Custom Resource Definition）原生集成，控制器 reconcile 期望状态。
 2. **containerd shim [IND]**：提供 containerd shim v2，实现 Agent 容器化运行（Wasm/runc/进程三模式）。
@@ -59,17 +59,17 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 gateway + sdk）与 agentrt-linux（airymaxos-cloudnative）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 gateway + sdk）与 agentrt-linux（cloudnative）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 云原生子系统内容 | 组织方式 |
 |------|---------|-----------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | IPC 消息头（magic 0x41524531 'ARE1'）、128B 消息头结构（`struct airy_ipc_msg_hdr`）、SQE/CQE 操作码（gateway_d io_uring 通道）；capability 41 ID 枚举（容器沙箱 + CNI 网络策略）；CoreLoopThree 阶段枚举 + Thinkdual 模式枚举（Agent CRD cognition 字段引用） | `include/airymax/ipc.h` + `include/airymax/security_types.h` + `include/airymax/cognition_types.h`（与 airymaxos-kernel/services/security/cognition 共享） |
+| **[SC] 共享契约层** | 完全共享代码 | IPC 消息头（magic 0x41524531 'ARE1'）、128B 消息头结构（`struct airy_ipc_msg_hdr`）、SQE/CQE 操作码（gateway_d io_uring 通道）；capability 41 ID 枚举（容器沙箱 + CNI 网络策略）；CoreLoopThree 阶段枚举 + Thinkdual 模式枚举（Agent CRD cognition 字段引用） | `include/airymax/ipc.h` + `include/airymax/security_types.h` + `include/airymax/cognition_types.h`（与 kernel/services/security/cognition 共享） |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | gateway 网关语义（agentrt gateway → K8s Ingress + gateway_d）、SDK 管理接口语义（agentrt sdk → agentctl）、Agent 生命周期管理（agentrt lifecycle → CRD controller reconcile）、资源声明语义（agentrt resource → K8s resource spec）、可观测性 API（agentrt monitoring → OpenTelemetry）、containerd shim 生命周期、服务网格数据平面语义、CNI 网络语义等 10+ 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | K8s CRD 定义与控制器实现、containerd shim v2 实现、OCI 镜像规范实现、CNI 插件实现、OpenTelemetry 集成、DPU/IPU 卸载框架、超节点 OS、K8s 自定义调度器、准入 webhook、Multus 多 CNI | 各自独立仓库 |
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（gateway + sdk） | agentrt-linux（airymaxos-cloudnative） | 同源标注 |
+| 维度 | agentrt（gateway + sdk） | agentrt-linux（cloudnative） | 同源标注 |
 |------|------------------------|----------------------------------|----------|
 | 网关语义 | gateway（应用层网关） | K8s Ingress + gateway_d（OS 级） | [SS] |
 | IPC 消息头 | `struct airy_ipc_msg_hdr`（128B） | `struct airy_ipc_msg_hdr`（128B） | [SC] |
@@ -99,7 +99,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 3. 目录结构
 
 ```
-airymaxos-cloudnative/
+cloudnative/
 ├── kubernetes/             # K8s 集成（Agent 作为 CRD）[IND]
 ├── containerd-shim/        # containerd shim（Agent 容器化）[IND]
 ├── oci/                    # OCI 镜像规范 [IND]
@@ -116,7 +116,7 @@ airymaxos-cloudnative/
 - `crds/`：Agent CRD 定义（Agent、AgentRuntime、AgentPipeline），cognition 字段引用 CoreLoopThree 阶段枚举 [SC]。
 - `controllers/`：控制器（Controller Runtime），reconcile 期望状态 [SS]。
 - `operators/`：Operator 实现 [IND]。
-- `schedulers/`：K8s 自定义调度器（与 `airymaxos-cognition/llm-scheduler` 协作）[IND]。
+- `schedulers/`：K8s 自定义调度器（与 `cognition/llm-scheduler` 协作）[IND]。
 - `webhooks/`：准入 webhook [IND]。
 
 ### 3.2 containerd-shim/（containerd shim）[IND]
@@ -124,7 +124,7 @@ airymaxos-cloudnative/
 - `airymax-shim`：Agent 容器 shim（基于 containerd shim v2 API）[IND]。
 - `runtime`：runtime spec 处理 [IND]。
 - `image-pull`：镜像拉取（与 OCI 协作）[IND]。
-- `snapshot`：快照支持（与 `airymaxos-memory` 协作，MemoryRovol 数据结构 [SC]）[IND]。
+- `snapshot`：快照支持（与 `memory` 协作，MemoryRovol 数据结构 [SC]）[IND]。
 
 ### 3.3 oci/（OCI 镜像规范）[IND]
 
@@ -138,7 +138,7 @@ airymaxos-cloudnative/
 
 - `airymax-cni`：agentrt-linux CNI 插件 [IND]。
 - `service-mesh`：服务网格（基于 eBPF 数据平面）[IND]。
-- `network-policy`：网络策略（与 `airymaxos-security` 协作，capability 41 ID [SC]）[IND]。
+- `network-policy`：网络策略（与 `security` 协作，capability 41 ID [SC]）[IND]。
 - `multus`：Multus 多 CNI 支持 [IND]。
 
 ### 3.5 agentctl/（对标 kubectl）[SS]
@@ -206,14 +206,14 @@ spec:
 
 **shim 架构**：
 - 基于 containerd shim v2 API 实现 [IND]。
-- 支持 Wasm runtime（与 `airymaxos-cognition/wasm-runtime` 协作）[IND]。
+- 支持 Wasm runtime（与 `cognition/wasm-runtime` 协作）[IND]。
 - 支持传统容器（runc）[IND]。
 - 支持 Agent 进程模式 [IND]。
 
 **优势**：
 - 与 K8s 生态无缝集成 [IND]。
 - 复用 containerd 镜像分发 [IND]。
-- 支持快照与迁移（与 `airymaxos-memory` 协作）[IND]。
+- 支持快照与迁移（与 `memory` 协作）[IND]。
 
 ### 4.3 OCI 镜像规范 [IND]
 
@@ -232,7 +232,7 @@ spec:
 **airymax-cni**：
 - 基于 eBPF 的高性能 CNI 插件 [IND]。
 - 服务网格数据平面（替代 Istio sidecar）[IND]。
-- 网络策略（与 `airymaxos-security` 协作，capability 令牌 [SC]）[IND]。
+- 网络策略（与 `security` 协作，capability 令牌 [SC]）[IND]。
 
 **优势**：
 - 无 sidecar，减少资源开销 [IND]。
@@ -306,7 +306,7 @@ agentctl snapshot my-agent --output snapshot.tar
 gateway_d 是 agentrt gateway 在 OS 级的升级形态 [SS]：
 - 网关语义同源（agentrt gateway → gateway_d）[SS]。
 - IPC 通道升级为 io_uring 零拷贝，消息头 [SC] 共享 [SS]。
-- 注册为 systemd 守护进程（与 `airymaxos-services` 协作）[IND]。
+- 注册为 systemd 守护进程（与 `services` 协作）[IND]。
 - K8s Ingress 集成（南北向流量入口）[IND]。
 
 **gateway_d io_uring IPC 消息头** [SC]（`include/airymax/ipc.h`，与 agentrt 共享）：
@@ -490,13 +490,13 @@ graph TD
 
 | 协作子仓 | 协作内容 | 同源标注 |
 |---------|---------|----------|
-| `airymaxos-kernel` | 提供 eBPF、io_uring 等云原生所需内核特性 | [IND] |
-| `airymaxos-services` | gateway_d 提供网关，IPC 消息头共享 | [SS]/[SC] |
-| `airymaxos-security` | 提供容器沙箱、网络策略（capability 41 ID） | [SC] |
-| `airymaxos-memory` | 提供容器快照、迁移（MemoryRovol L1-L4） | [SC] |
-| `airymaxos-cognition` | Agent 容器化运行、CRD cognition 字段引用 | [SC] |
-| `airymaxos-system` | 提供云原生管理工具 | [IND] |
-| `airymaxos-tests-linux` | 云原生测试、混沌工程 | [IND] |
+| `kernel` | 提供 eBPF、io_uring 等云原生所需内核特性 | [IND] |
+| `services` | gateway_d 提供网关，IPC 消息头共享 | [SS]/[SC] |
+| `security` | 提供容器沙箱、网络策略（capability 41 ID） | [SC] |
+| `memory` | 提供容器快照、迁移（MemoryRovol L1-L4） | [SC] |
+| `cognition` | Agent 容器化运行、CRD cognition 字段引用 | [SC] |
+| `system` | 提供云原生管理工具 | [IND] |
+| `tests-linux` | 云原生测试、混沌工程 | [IND] |
 
 ---
 

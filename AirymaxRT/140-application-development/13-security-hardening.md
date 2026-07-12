@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/security-hardening.md
+**路径**: docs/AirymaxRT/140-application-development/security-hardening.md
 ---
 
 ## 概述

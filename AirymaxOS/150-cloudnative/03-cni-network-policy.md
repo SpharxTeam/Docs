@@ -160,7 +160,7 @@ spec:
 agentrt-linux 专属 CRD，将 NetworkPolicy 与 Cupolas capability 联动：
 
 ```yaml
-# airymaxos-cloudnative/manifests/cupolas-network-policy.yaml
+# cloudnative/manifests/cupolas-network-policy.yaml
 apiVersion: agent.airymaxos.dev/v1
 kind: AgentNetworkPolicy
 metadata:
@@ -224,7 +224,7 @@ agentrt-linux 提供专属 CNI 插件，与 Cupolas 联动：
 ### 3.2 CNI 插件接口实现
 
 ```go
-// airymaxos-cloudnative/cni/airymaxos-cni.go
+// cloudnative/cni/airymaxos-cni.go
 package main
 
 import (
@@ -345,7 +345,7 @@ func registerToCupolas(meta *AgentMeta, cfg *NetConfig) error {
 Cupolas 通过 eBPF TC 程序在内核网络栈进行流量过滤：
 
 ```c
-/* airymaxos-security/ebpf/cupolas_net_tc.c */
+/* security/ebpf/cupolas_net_tc.c */
 #include <linux/bpf.h>
 #include <linux/if_ether.h>
 #include <linux/ip.h>
@@ -432,7 +432,7 @@ char _license[] SEC("license") = "GPL";
 对于明确的恶意流量，Cupolas 通过 XDP 程序在网卡驱动层早期丢弃：
 
 ```c
-/* airymaxos-security/ebpf/cupolas_xdp.c */
+/* security/ebpf/cupolas_xdp.c */
 SEC("xdp")
 int cupolas_xdp_drop(struct xdp_md *ctx)
 {
@@ -556,11 +556,11 @@ CNI 插件与 Cupolas 暴露 Prometheus 指标：
 
 ```yaml
 # 网络策略指标示例
-- airymaxos_net_policy_allow_total{src_agent="100",dst_agent="200"} 12345
-- airymaxos_net_policy_deny_total{src_agent="100",dst_agent="300"} 67
-- airymaxos_net_audit_records_total  456789
-- airymaxos_ipc_local_messages_total 1234567
-- airymaxos_ipc_remote_messages_total 45678
+- airy_net_policy_allow_total{src_agent="100",dst_agent="200"} 12345
+- airy_net_policy_deny_total{src_agent="100",dst_agent="300"} 67
+- airy_net_audit_records_total  456789
+- airy_ipc_local_messages_total 1234567
+- airy_ipc_remote_messages_total 45678
 ```
 
 ---

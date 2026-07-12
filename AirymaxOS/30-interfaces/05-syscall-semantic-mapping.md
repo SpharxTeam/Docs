@@ -460,7 +460,6 @@ graph TB
 - [编码规范](04-coding-standard.md) — C/Rust 风格 + 日志 + Doxygen
 - [接口设计总览](README.md)
 - [架构设计](../10-architecture/01-system-architecture.md) — 五维正交原则
-- P0-03 决策报告：`docs-closed/agentrt-linux/_research_0.3.1/02-p0-03-api-paradigm-decision.md`
 
 ---
 

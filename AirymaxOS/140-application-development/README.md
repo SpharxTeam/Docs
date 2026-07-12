@@ -38,7 +38,7 @@ Agent 应用是 agentrt-linux 上的运行时租户：它通过 SDK 调用系统
 Agent 应用通过 `AIRY_SYS_*` 系统调用访问内核能力。系统调用编号从 512 起始分配（避开 Linux 6.6 标准 0-511 编号空间），按 6 类分段，每类预留 20 个编号：
 
 ```c
-/* airymaxos-kernel/include/uapi/agentrt/syscalls.h */
+/* kernel/include/uapi/agentrt/syscalls.h */
 /* 完整编号注册表见 07-syscall-registry.md（SSoT） */
 #define AIRY_SYS_TASK_SUBMIT        512  /* 提交 Agent 任务 */
 #define AIRY_SYS_TASK_REGISTER     516  /* 注册新 Agent */

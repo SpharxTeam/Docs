@@ -2675,7 +2675,7 @@ curl http://localhost:8080/metrics
 | `AIRY_MAX_TASKS` | `256` | 最大任务数 |
 | `AIRY_MAX_RECORDS` | `1024` | 最大记忆记录数 |
 | `AIRY_MAX_SESSIONS` | `64` | 最大会话数 |
-| `AIRY_MAX_AGENTS` | `128` | 最大 Agent 数 |
+| `MAC_MAX_AGENTS` | `1024` | 最大 Agent 数（内核硬上限，基准测试验证到 1000 并发） |
 | `AIRY_RATE_LIMIT_TABLE_SIZE` | `1021` | 速率限制哈希表大小 |
 
 ---

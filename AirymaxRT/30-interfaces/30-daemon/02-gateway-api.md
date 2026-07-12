@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/30-daemon/02-gateway-api.md
+**路径**: docs/AirymaxRT/30-interfaces/30-daemon/02-gateway-api.md
 ---
 
 ## 📋 概述
@@ -763,7 +763,7 @@ int main() {
 
 ## 🔗 相关文档
 
-- [CoreLoopThree API](../core/coreloop_api.md)
-- [Protocol Stack API（待编写）](../protocols/unified_protocol_api.md)
-- [Docker部署指南](../docker/README.md)
-- [完整示例（待编写）](../examples/full_agent_example.c)
+- [CoreLoopThree API](../20-core/01-coreloop-api.md)
+- [协议适配指南](../70-toolkit/01-protocol-guide.md)
+- [Docker 部署指南](../40-docker/README.md)
+- [快速入门示例](../50-examples/01-quickstart.md)

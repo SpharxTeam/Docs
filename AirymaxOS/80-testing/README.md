@@ -181,10 +181,10 @@ static void test_agent_cognition_contract(struct kunit *test) {
 
 | 模块 | 最低覆盖率 | 关键路径 |
 |------|-----------|---------|
-| airymaxos-kernel | 90% | 100%（调度/内存/IPC） |
-| airymaxos-security | 95% | 100%（capability/LSM） |
-| airymaxos-memory | 90% | 100%（CXL/PMEM） |
-| airymaxos-cognition | 85% | 100%（CoreLoopThree） |
+| kernel | 90% | 100%（调度/内存/IPC） |
+| security | 95% | 100%（capability/LSM） |
+| memory | 90% | 100%（CXL/PMEM） |
+| cognition | 85% | 100%（CoreLoopThree） |
 | 其他 | 80% | 90% |
 
 ---

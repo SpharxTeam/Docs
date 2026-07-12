@@ -17,8 +17,8 @@ agentrt-linux 架构设计建立在三大支柱之上，三大支柱相辅相成
 
 | 支柱 | 核心思想 | 参考来源 | 落地子仓 |
 |------|----------|----------|----------|
-| **微内核设计思想** | 最小化特权态代码（Liedtke minimality）、服务用户态化、消息传递通信、capability 安全 | seL4（ADR-014，唯一来源） | airymaxos-kernel / airymaxos-services / airymaxos-security |
-| **agentrt-linux 工程基线** | 采用 agentrt-linux 自身的模块设计、技术规格、标准和规范，兼容企业级 Linux 生态 | Linux 6.6 内核基线（1.x.x）/ Linux 7.1（2.x.x，ADR-013） | airymaxos-system / airymaxos-tests-linux / airymaxos-cloudnative |
+| **微内核设计思想** | 最小化特权态代码（Liedtke minimality）、服务用户态化、消息传递通信、capability 安全 | seL4（ADR-014，唯一来源） | kernel / services / security |
+| **agentrt-linux 工程基线** | 采用 agentrt-linux 自身的模块设计、技术规格、标准和规范，兼容企业级 Linux 生态 | Linux 6.6 内核基线（1.x.x）/ Linux 7.1（2.x.x，ADR-013） | system / tests-linux / cloudnative |
 | **Airymax 同源性** | 与 agentrt 共享 MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree 设计理念，天然适配无适配层 | agentrt atoms/cupolas/coreloopthree | 全部 8 子仓 |
 
 ### 1.2 支柱之间的关系
@@ -52,14 +52,14 @@ graph TB
     subgraph "agentrt-linux 8 子仓架构"
         direction TB
 
-        KERNEL["airymaxos-kernel<br/>极境内核<br/>Linux 6.6 + 微内核化改造<br/>同源: atoms/corekern (MicroCoreRT)"]
-        SERVICES["airymaxos-services<br/>极境服务<br/>VFS + 网络 + 驱动 + 12 daemons<br/>同源: daemons"]
-        SECURITY["airymaxos-security<br/>极境安全<br/>capability + LSM + 国密<br/>同源: cupolas"]
-        MEMORY["airymaxos-memory<br/>极境记忆<br/>MemoryRovol + CXL + MGLRU<br/>同源: heapstore + memoryrovol"]
-        COGNITION["airymaxos-cognition<br/>极境认知<br/>CoreLoopThree kthread + Wasm<br/>同源: coreloopthree + frameworks"]
-        CLOUDNATIVE["airymaxos-cloudnative<br/>极境云原生<br/>K8s + containerd + 超节点 OS<br/>同源: gateway + sdk"]
-        SYSTEM["airymaxos-system<br/>极境系统<br/>包管理 + 配置 + DevStation<br/>同源: commons"]
-        TESTS["airymaxos-tests-linux<br/>极境测试<br/>单元 + 集成 + 形式化验证 + Soak<br/>同源: 全模块测试"]
+        KERNEL["kernel<br/>极境内核<br/>Linux 6.6 + 微内核化改造<br/>同源: atoms/corekern (MicroCoreRT)"]
+        SERVICES["services<br/>极境服务<br/>VFS + 网络 + 驱动 + 12 daemons<br/>同源: daemons"]
+        SECURITY["security<br/>极境安全<br/>capability + LSM + 国密<br/>同源: cupolas"]
+        MEMORY["memory<br/>极境记忆<br/>MemoryRovol + CXL + MGLRU<br/>同源: heapstore + memoryrovol"]
+        COGNITION["cognition<br/>极境认知<br/>CoreLoopThree kthread + Wasm<br/>同源: coreloopthree + frameworks"]
+        CLOUDNATIVE["cloudnative<br/>极境云原生<br/>K8s + containerd + 超节点 OS<br/>同源: gateway + sdk"]
+        SYSTEM["system<br/>极境系统<br/>包管理 + 配置 + DevStation<br/>同源: commons"]
+        TESTS["tests-linux<br/>极境测试<br/>单元 + 集成 + 形式化验证 + Soak<br/>同源: 全模块测试"]
 
         KERNEL --> SERVICES
         KERNEL --> SECURITY
@@ -101,14 +101,14 @@ graph TB
 
 | # | 子仓 | 中文 | 核心职责 | 同源 agentrt |
 |---|------|------|----------|--------------|
-| 1 | airymaxos-kernel | 极境内核 | Linux 6.6 内核基线 + sched_ext + eBPF kfunc + io_uring + Rust 实验性支持 | atoms/corekern (MicroCoreRT) |
-| 2 | airymaxos-services | 极境服务 | VFS 用户态化 + 网络栈 + 驱动框架 + 12 daemons + systemd 集成 | daemons |
-| 3 | airymaxos-security | 极境安全 | capability（seL4 风格）+ LSM + 机密计算 + 国密 SM2/SM3/SM4 + 审计哈希链 | cupolas |
-| 4 | airymaxos-memory | 极境记忆 | MemoryRovol 内核态实现 + CXL 内存池化 + PMEM + MGLRU（多代 LRU）+ 遗忘曲线 | heapstore + memoryrovol |
-| 5 | airymaxos-cognition | 极境认知 | CoreLoopThree kthread + Wasm 3.0 沙箱 + LLM 调度 + 超节点沙箱 + 双系统协同 | coreloopthree + frameworks |
-| 6 | airymaxos-cloudnative | 极境云原生 | K8s + containerd shim + OCI + CNI + agentctl + 超节点 OS | gateway + sdk |
-| 7 | airymaxos-system | 极境系统 | RPM + dnf + 配置 + shell + 基础库 + DevStation 开发环境 | commons |
-| 8 | airymaxos-tests-linux | 极境测试 | 单元测试 + 集成测试 + 形式化验证 + Soak 长时测试 + 混沌工程 | 全模块测试 |
+| 1 | kernel | 极境内核 | Linux 6.6 内核基线 + sched_ext + eBPF kfunc + io_uring + Rust 实验性支持 | atoms/corekern (MicroCoreRT) |
+| 2 | services | 极境服务 | VFS 用户态化 + 网络栈 + 驱动框架 + 12 daemons + systemd 集成 | daemons |
+| 3 | security | 极境安全 | capability（seL4 风格）+ LSM + 机密计算 + 国密 SM2/SM3/SM4 + 审计哈希链 | cupolas |
+| 4 | memory | 极境记忆 | MemoryRovol 内核态实现 + CXL 内存池化 + PMEM + MGLRU（多代 LRU）+ 遗忘曲线 | heapstore + memoryrovol |
+| 5 | cognition | 极境认知 | CoreLoopThree kthread + Wasm 3.0 沙箱 + LLM 调度 + 超节点沙箱 + 双系统协同 | coreloopthree + frameworks |
+| 6 | cloudnative | 极境云原生 | K8s + containerd shim + OCI + CNI + agentctl + 超节点 OS | gateway + sdk |
+| 7 | system | 极境系统 | RPM + dnf + 配置 + shell + 基础库 + DevStation 开发环境 | commons |
+| 8 | tests-linux | 极境测试 | 单元测试 + 集成测试 + 形式化验证 + Soak 长时测试 + 混沌工程 | 全模块测试 |
 
 ---
 
@@ -122,12 +122,12 @@ agentrt-linux 采用 7 层架构模型，自底向上分别为硬件层、内核
 graph TB
     subgraph "agentrt-linux 7 层架构模型"
         direction TB
-        L7["L7 测试层 (airymaxos-tests-linux)<br/>单元测试 + 集成测试 + 形式化验证 + Soak + 混沌"]
-        L6["L6 系统层 (airymaxos-system)<br/>包管理 + 配置 + shell + 基础库 + DevStation"]
-        L5["L5 云原生层 (airymaxos-cloudnative)<br/>K8s CRD + containerd shim + OCI + 超节点 OS"]
-        L4["L4 认知层 (airymaxos-cognition)<br/>CoreLoopThree kthread + Wasm 3.0 + LLM 调度"]
-        L3["L3 服务层 (airymaxos-services + airymaxos-security + airymaxos-memory)<br/>VFS 用户态 + 网络 + 驱动 + capability + 记忆持久化"]
-        L2["L2 内核层 (airymaxos-kernel)<br/>Linux 6.6 + sched_ext + eBPF kfunc + io_uring + EEVDF + MGLRU"]
+        L7["L7 测试层 (tests-linux)<br/>单元测试 + 集成测试 + 形式化验证 + Soak + 混沌"]
+        L6["L6 系统层 (system)<br/>包管理 + 配置 + shell + 基础库 + DevStation"]
+        L5["L5 云原生层 (cloudnative)<br/>K8s CRD + containerd shim + OCI + 超节点 OS"]
+        L4["L4 认知层 (cognition)<br/>CoreLoopThree kthread + Wasm 3.0 + LLM 调度"]
+        L3["L3 服务层 (services + security + memory)<br/>VFS 用户态 + 网络 + 驱动 + capability + 记忆持久化"]
+        L2["L2 内核层 (kernel)<br/>Linux 6.6 + sched_ext + eBPF kfunc + io_uring + EEVDF + MGLRU"]
         L1["L1 硬件层<br/>x86 / ARM (鲲鹏/飞腾) / RISC-V / CXL / PMEM"]
 
         L7 --> L6
@@ -160,12 +160,12 @@ graph TB
 | 层次 | 子仓 | 核心机制 | 依赖下层 |
 |------|------|----------|----------|
 | L1 硬件层 | （硬件） | CPU / 内存 / CXL / PMEM / NIC / NVMe | - |
-| L2 内核层 | airymaxos-kernel | EEVDF 调度器 + sched_ext（SCHED_AGENT）+ eBPF kfunc + dynamic pointer + io_uring 零拷贝 + MGLRU 多代 LRU + Rust 实验性支持 | L1 |
-| L3 服务层 | airymaxos-services / airymaxos-security / airymaxos-memory | VFS 用户态化 + 网络栈 + 驱动框架 + 12 daemons + capability（seL4 风格）+ LSM + 国密 + MemoryRovol 内核态 + CXL 内存池化 | L2 |
-| L4 认知层 | airymaxos-cognition | CoreLoopThree kthread + Wasm 3.0 沙箱 + LLM 调度 + 双系统协同（System 1 + System 2）+ 增量规划器 | L3 |
-| L5 云原生层 | airymaxos-cloudnative | K8s CRD + containerd shim + OCI + CNI + 超节点 OS + agentctl | L4 |
-| L6 系统层 | airymaxos-system | RPM + dnf + systemd + 配置 + shell + 基础库 + DevStation | L5 |
-| L7 测试层 | airymaxos-tests-linux | 单元测试 + 集成测试 + 形式化验证 + Soak 长时测试 + 混沌工程 | L2-L6 全部 |
+| L2 内核层 | kernel | EEVDF 调度器 + sched_ext（SCHED_AGENT）+ eBPF kfunc + dynamic pointer + io_uring 零拷贝 + MGLRU 多代 LRU + Rust 实验性支持 | L1 |
+| L3 服务层 | services / security / memory | VFS 用户态化 + 网络栈 + 驱动框架 + 12 daemons + capability（seL4 风格）+ LSM + 国密 + MemoryRovol 内核态 + CXL 内存池化 | L2 |
+| L4 认知层 | cognition | CoreLoopThree kthread + Wasm 3.0 沙箱 + LLM 调度 + 双系统协同（System 1 + System 2）+ 增量规划器 | L3 |
+| L5 云原生层 | cloudnative | K8s CRD + containerd shim + OCI + CNI + 超节点 OS + agentctl | L4 |
+| L6 系统层 | system | RPM + dnf + systemd + 配置 + shell + 基础库 + DevStation | L5 |
+| L7 测试层 | tests-linux | 单元测试 + 集成测试 + 形式化验证 + Soak 长时测试 + 混沌工程 | L2-L6 全部 |
 
 ### 3.3 层次纪律
 
@@ -186,14 +186,14 @@ agentrt-linux 与 agentrt 同源且部分代码共享（IRON-9 v2）。两者在
 
 | agentrt 模块 | agentrt 性质 | agentrt-linux 同源子仓 | 同源语义 | 同源契约 |
 |--------------|--------------|---------------------|----------|----------|
-| atoms/corekern (MicroCoreRT) | 跨平台用户态微核心 | airymaxos-kernel (SCHED_AGENT) | 调度语义一致 | SCHED_AGENT 策略语义同源 |
-| atoms/ipc + protocols (AgentsIPC) | 跨平台 IPC 协议 | airymaxos-services (消息传递) | IPC 协议语义一致 | 128B 消息头 + magic 0x41524531 ('ARE1') 同源 |
-| cupolas (Cupolas) | 跨平台安全穹顶 | airymaxos-security (capability) | 安全模型一致 | capability 模型同源 |
-| heapstore + memoryrovol (MemoryRovol) | 跨平台记忆系统 | airymaxos-memory (记忆持久化) | 记忆模型一致 | L1-L4 四层卷载语义同源 |
-| coreloopthree + frameworks (CoreLoopThree) | 跨平台认知循环 | airymaxos-cognition (kthread) | 认知模型一致 | 三层认知循环语义同源 |
-| daemons (12 daemons) | 跨平台守护进程 | airymaxos-services (systemd 集成) | 服务模型一致 | 守护进程命名 *_d 同源 |
-| gateway + sdk | 跨平台网关 | airymaxos-cloudnative (K8s+OCI) | 网关语义一致 | agentctl 与 sdk 同源 |
-| commons | 跨平台基础库 | airymaxos-system (基础库) | 工具语义一致 | 命名空间 airy_ 同源 |
+| atoms/corekern (MicroCoreRT) | 跨平台用户态微核心 | kernel (SCHED_AGENT) | 调度语义一致 | SCHED_AGENT 策略语义同源 |
+| atoms/ipc + protocols (AgentsIPC) | 跨平台 IPC 协议 | services (消息传递) | IPC 协议语义一致 | 128B 消息头 + magic 0x41524531 ('ARE1') 同源 |
+| cupolas (Cupolas) | 跨平台安全穹顶 | security (capability) | 安全模型一致 | capability 模型同源 |
+| heapstore + memoryrovol (MemoryRovol) | 跨平台记忆系统 | memory (记忆持久化) | 记忆模型一致 | L1-L4 四层卷载语义同源 |
+| coreloopthree + frameworks (CoreLoopThree) | 跨平台认知循环 | cognition (kthread) | 认知模型一致 | 三层认知循环语义同源 |
+| daemons (12 daemons) | 跨平台守护进程 | services (systemd 集成) | 服务模型一致 | 守护进程命名 *_d 同源 |
+| gateway + sdk | 跨平台网关 | cloudnative (K8s+OCI) | 网关语义一致 | agentctl 与 sdk 同源 |
+| commons | 跨平台基础库 | system (基础库) | 工具语义一致 | 命名空间 airy_ 同源 |
 
 ### 4.2 同源红利
 

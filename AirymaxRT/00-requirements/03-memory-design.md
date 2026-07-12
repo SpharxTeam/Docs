@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09  
 **状态**: Release       
-**路径**: OpenAirymax/Docs/00-basic-theories/03-memory-design.md
+**路径**: docs/AirymaxRT/00-requirements/03-memory-design.md
 
 ## 1. Introduction
 
@@ -51,7 +51,7 @@ $$
 
 where $t$ is the time interval and $\tau$ is the decay constant (default 7 days). This weight affects retrieval priority, simulating natural memory aging.
 
-> **Terminology Standardization Note**: The forgetting formula uniformly uses the $\tau$ notation (consistent with 00-architectural-principles.md C-4). The historical $\lambda$ notation ($R = e^{-\lambda t}$) is mathematically equivalent ($\lambda = 1/\tau$), but this specification uniformly uses $\tau$ for terminology consistency. See 10-terminology.md v3.0 ruling #6.
+> **Terminology Standardization Note**: The forgetting formula uniformly uses the $\tau$ notation (consistent with 00-architectural-principles.md C-4). The historical $\lambda$ notation ($R = e^{-\lambda t}$) is mathematically equivalent ($\lambda = 1/\tau$), but this specification uniformly uses $\tau$ for terminology consistency. See TERMINOLOGY.md v3.0 ruling #6.
 
 ### 2.4 Topological Data Analysis
 

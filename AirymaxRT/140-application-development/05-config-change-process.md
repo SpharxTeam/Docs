@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/05-config-change-process.md
+**路径**: docs/AirymaxRT/140-application-development/05-config-change-process.md
 ---
 
 ## 一、概述

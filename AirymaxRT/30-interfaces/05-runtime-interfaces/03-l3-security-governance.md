@@ -564,8 +564,8 @@ ARE 发布的每个二进制版本必须附带 SBOM，采用 [SPDX 2.3](https://
       "SPDXID": "SPDXRef-Package-atoms-corekern",
       "name": "agentrt-atoms-corekern",
       "versionInfo": "0.1.1",
-      "licenseConcluded": "AGPL-3.0-only",
-      "licenseDeclared": "AGPL-3.0-only",
+      "licenseConcluded": "AGPL-3.0-or-later OR Apache-2.0",
+      "licenseDeclared": "AGPL-3.0-or-later OR Apache-2.0",
       "supplier": "Organization: SPHARX Ltd.",
       "filesAnalyzed": true,
       "checksums": [

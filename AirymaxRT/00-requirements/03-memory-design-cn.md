@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09  
 **状态**: 正式发布  
-**路径**: OpenAirymax/Docs/00-basic-theories/03-memory-design-cn.md  
+**路径**: docs/AirymaxRT/00-requirements/03-memory-design-cn.md  
 
 ---
 
@@ -52,7 +52,7 @@ $$
 
 其中 $t$ 是时间间隔，$\tau$ 是衰减常数（默认 7 天）。该权重影响检索优先级，模拟记忆的自然老化。
 
-> **术语标准化说明**: 遗忘公式统一采用 $\tau$ 版本表示（与 00-architectural-principles.md C-4 一致）。历史版本中使用的 $\lambda$ 表示法（$R = e^{-\lambda t}$）数学等价（$\lambda = 1/\tau$），但本规范统一使用 $\tau$ 以保持术语一致性。详见 10-terminology.md v3.0 裁决 #6。
+> **术语标准化说明**: 遗忘公式统一采用 $\tau$ 版本表示（与 00-architectural-principles.md C-4 一致）。历史版本中使用的 $\lambda$ 表示法（$R = e^{-\lambda t}$）数学等价（$\lambda = 1/\tau$），但本规范统一使用 $\tau$ 以保持术语一致性。详见 TERMINOLOGY.md v3.0 裁决 #6。
 
 ### 2.4 拓扑数据分析
 

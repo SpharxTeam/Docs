@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-28
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/60-syscalls/05-task.md
+**路径**: docs/AirymaxRT/30-interfaces/60-syscalls/05-task.md
 **API 版本**: v1.0.0
 ---
 

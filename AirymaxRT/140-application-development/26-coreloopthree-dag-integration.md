@@ -2,7 +2,7 @@
 
 **版本**: 0.1.1 (W18)
 **状态**: 已实现
-**路径**: OpenAirymax/Docs/60-guides/26-coreloopthree-dag-integration.md
+**路径**: docs/AirymaxRT/140-application-development/26-coreloopthree-dag-integration.md
 **版权**: (c) 2026 SPHARX Ltd. All Rights Reserved.
 
 ## 概述

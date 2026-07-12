@@ -24,7 +24,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [8. 文件系统层次标准（FHS）](#8-文件系统层次标准fhs)
 - [9. 容器镜像兼容性](#9-容器镜像兼容性)
 - [10. systemd 服务兼容性](#10-systemd-服务兼容性)
-- [11. 主流 Linux 发行版标准兼容性](#11-openeuler-标准兼容性)
+- [11. 主流 Linux 发行版标准兼容性](#11-主流-linux-发行版标准兼容性)
 - [12. 兼容性测试矩阵](#12-兼容性测试矩阵)
 - [13. 已知限制与降级策略](#13-已知限制与降级策略)
 - [14. 数据流图](#14-数据流图)
@@ -209,7 +209,7 @@ dkms autoinstall
 运行时检测内核特性，降级使用：
 
 ```c
-/* airymaxos-services/compat/kernel_feature_detect.c [IND] */
+/* services/compat/kernel_feature_detect.c [IND] */
 
 /**
  * airy_detect_sched_ext - 检测内核是否支持 sched_ext
@@ -460,7 +460,7 @@ matrix:
     - fedora:40
     - fedora:41
     - rhel:9
-    - openeuler:24.03
+    - rockylinux:9
   arch:
     - amd64
     - arm64
@@ -690,7 +690,7 @@ agentctl test compat --matrix full
 # 测试特定发行版
 agentctl test compat --distro ubuntu:22.04
 agentctl test compat --distro fedora:40
-agentctl test compat --distro openeuler:24.03
+agentctl test compat --distro rockylinux:9
 ```
 
 ### 21.2 回归测试

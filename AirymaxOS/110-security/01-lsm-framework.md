@@ -461,10 +461,10 @@ agentrt-linux 五维正交 24 原则在 LSM 框架层的体现：
 |------|------|-------------------|
 | **E-1 安全内生** | OS-SEC-001 | 安全钩子内置于内核每一关键路径，无需外挂补丁 |
 | **E-2 形式化验证** | OS-SEC-002 | LSM 钩子链表 RCU 不变量需通过形式化检查 |
-| **K-2 接口契约化** | OS-KER-001 | `security_hook_heads` 字段集是稳定契约，跨版本 ABI 永不破坏 |
-| **K-3 服务隔离** | OS-KER-002 | 不同 LSM 通过 `LSM_FLAG_EXCLUSIVE` 互斥；blob 偏移隔离 |
-| **K-4 可插拔策略** | OS-KER-003 | `CONFIG_LSM` 决定启用顺序，运行时不可追加 |
-| **K-6 内核契约化** | OS-KER-004 | MicroCoreRT 锁定 Cupolas 可消费的钩子白名单 |
+| **K-2 接口契约化** | OS-KER-086 | `security_hook_heads` 字段集是稳定契约，跨版本 ABI 永不破坏 |
+| **K-3 服务隔离** | OS-KER-087 | 不同 LSM 通过 `LSM_FLAG_EXCLUSIVE` 互斥；blob 偏移隔离 |
+| **K-4 可插拔策略** | OS-KER-088 | `CONFIG_LSM` 决定启用顺序，运行时不可追加 |
+| **K-6 内核契约化** | OS-KER-089 | MicroCoreRT 锁定 Cupolas 可消费的钩子白名单 |
 | **C-1 编译期检查** | OS-STD-001 | `BUILD_BUG_ON` 校验 blob 大小与对齐 |
 | **C-2 类型安全** | OS-STD-002 | `LSM_HOOK_INIT` 宏保证回调签名匹配 |
 | **C-3 RAII** | OS-STD-003 | blob 由 kmem_cache 自动管理生命周期 |
@@ -644,10 +644,10 @@ struct airy_cupolas_audit_event {
 | OS-IRON-001 | 铁律 | `security_hook_heads` 字段集为永久 ABI，导出后不可破坏 |
 | OS-IRON-002 | 铁律 | `lsm_hook_defs.h` 钩子签名改动必须修复所有调用点 |
 | OS-IRON-003 | 铁律 | Cupolas 与 agentrt 安全 API 同源且部分代码共享维护 |
-| OS-KER-001 | 内核契约 | `security_hook_heads` 由 `__ro_after_init` 保护 |
-| OS-KER-002 | 内核契约 | exclusive LSM 互斥语义不可绕过 |
-| OS-KER-003 | 内核契约 | `CONFIG_LSM` 顺序在编译期固化，运行时不可追加 |
-| OS-KER-004 | 内核契约 | MicroCoreRT 锁定 Cupolas 钩子白名单 |
+| OS-KER-086 | 内核契约 | `security_hook_heads` 由 `__ro_after_init` 保护 |
+| OS-KER-087 | 内核契约 | exclusive LSM 互斥语义不可绕过 |
+| OS-KER-088 | 内核契约 | `CONFIG_LSM` 顺序在编译期固化，运行时不可追加 |
+| OS-KER-089 | 内核契约 | MicroCoreRT 锁定 Cupolas 钩子白名单 |
 | OS-STD-001 | 工程标准 | blob 大小变化必须配套 `BUILD_BUG_ON` 校验 |
 | OS-STD-002 | 工程标准 | 钩子回调签名严格由 `LSM_HOOK` 宏决定 |
 | OS-STD-003 | 工程标准 | blob 生命周期由 kmem_cache 自动管理 |

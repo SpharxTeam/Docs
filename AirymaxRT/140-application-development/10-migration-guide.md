@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/10-migration-guide.md
+**路径**: docs/AirymaxRT/140-application-development/10-migration-guide.md
 ---
 
 ## 1. 概述
@@ -413,8 +413,8 @@ agentrt-migrate --report --output=migration_report.md
 
 ## 相关文档
 
-- [架构设计原则](../00-architectural-principles.md) - 理解版本演进的设计动机
-- [系统调用 API](../30-api/README.md) - v1.0 新的系统调用接口
+- [架构设计原则](../10-architecture/00-architectural-principles.md) - 理解版本演进的设计动机
+- [系统调用 API](../30-interfaces/README.md) - v1.0 新的系统调用接口
 - [编码规范](../50-engineering-standards/10-coding-style/C_coding_style_standard.md) - v1.0 编码标准
 - [故障排查](common-issues.md) - 迁移过程中的问题诊断
 

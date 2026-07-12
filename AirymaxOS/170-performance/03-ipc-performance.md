@@ -162,7 +162,7 @@ out_err:
 ### 3.1 io_uring 初始化配置
 
 ```c
-/* airymaxos-services/common/airy_ipc_ring.c */
+/* services/common/airy_ipc_ring.c */
 #include <liburing.h>
 #include <airymax/ipc_msg_hdr.h>
 
@@ -345,7 +345,7 @@ out_free_batch:
 内核 kthread 之间通信用 kfifo + wait_event_interruptible（这是 Linux 6.6 内核基线的强制约定）：
 
 ```c
-/* airymaxos-kernel/ipc/airy_kfifo_channel.c */
+/* kernel/ipc/airy_kfifo_channel.c */
 #include <linux/kfifo.h>
 #include <linux/wait.h>
 #include <linux/sched.h>

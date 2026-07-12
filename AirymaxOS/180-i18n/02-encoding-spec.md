@@ -337,7 +337,7 @@ out_err:
 用户态 daemon 使用 glibc 的 mbsrtowcs / iconv 进行编码转换，所有外源输入必须经过编码校验：
 
 ```c
-/* airymaxos-services/common/airy_unicode.c */
+/* services/common/airy_unicode.c */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

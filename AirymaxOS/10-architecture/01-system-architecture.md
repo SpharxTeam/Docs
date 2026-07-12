@@ -20,10 +20,10 @@ agentrt-linux 采用三大设计支柱:
 
 | 原则 | 含义 | agentrt-linux 落地 |
 |---|---|---|
-| 最小化内核 | 只保留调度、IPC、地址空间、内存管理 | airymaxos-kernel 仅保留必要内核服务 |
-| 服务用户态化 | 文件系统、网络、驱动移到用户态 | airymaxos-services 承载用户态系统服务 |
+| 最小化内核 | 只保留调度、IPC、地址空间、内存管理 | kernel 仅保留必要内核服务 |
+| 服务用户态化 | 文件系统、网络、驱动移到用户态 | services 承载用户态系统服务 |
 | 消息传递通信 | 服务之间通过 IPC 通信 | 基于 io_uring 的高性能消息传递 |
-| capability 安全 | 不可伪造令牌控制资源访问 | airymaxos-security 实现 capability 系统 |
+| capability 安全 | 不可伪造令牌控制资源访问 | security 实现 capability 系统 |
 | 隔离与模块化 | 每个服务独立运行，故障隔离 | 每个 Agent 独立地址空间 |
 
 **参考来源**:
@@ -35,13 +35,13 @@ agentrt-linux 采用三大设计支柱:
 
 | 维度 | agentrt-linux 工程基线 | agentrt-linux 落地 |
 |---|---|---|
-| 内核 | Linux 6.6 内核基线 | airymaxos-kernel 基于 Linux 6.6 内核基线 |
-| 包管理 | RPM + dnf | airymaxos-system 采用 RPM + dnf |
-| 系统服务 | systemd | airymaxos-services 集成 systemd |
-| 安全 | SELinux + 国密算法 | airymaxos-security 实现国密支持 |
-| 测试 | agentrt-linux 系统级测试套件 | airymaxos-tests-linux 实现集成测试框架 |
-| AI 原生 | 认知循环系统、超节点 OS | airymaxos-cognition + airymaxos-cloudnative |
-| 架构支持 | x86, ARM, RISC-V, 鲲鹏, 飞腾 | airymaxos-kernel 多架构支持 |
+| 内核 | Linux 6.6 内核基线 | kernel 基于 Linux 6.6 内核基线 |
+| 包管理 | RPM + dnf | system 采用 RPM + dnf |
+| 系统服务 | systemd | services 集成 systemd |
+| 安全 | SELinux + 国密算法 | security 实现国密支持 |
+| 测试 | agentrt-linux 系统级测试套件 | tests-linux 实现集成测试框架 |
+| AI 原生 | 认知循环系统、超节点 OS | cognition + cloudnative |
+| 架构支持 | x86, ARM, RISC-V, 鲲鹏, 飞腾 | kernel 多架构支持 |
 | 社区治理 | SIG（Special Interest Group）| agentrt-linux 按子仓划分 SIG |
 
 ### 1.3 Airymax 同源性（与 agentrt 同源）
@@ -50,14 +50,14 @@ agentrt-linux 采用三大设计支柱:
 
 | agentrt 模块 | agentrt-linux 同源模块 | 同源语义 |
 |---|---|---|
-| atoms/corekern (MicroCoreRT) | airymaxos-kernel (SCHED_AGENT) | 调度语义一致 |
-| atoms/ipc + protocols (AgentsIPC) | airymaxos-services (消息传递) | IPC 协议语义一致 |
-| cupolas (Cupolas) | airymaxos-security (capability) | 安全模型一致 |
-| heapstore + memoryrovol (MemoryRovol) | airymaxos-memory (记忆持久化) | 记忆模型一致 |
-| coreloopthree + frameworks (CoreLoopThree) | airymaxos-cognition (kthread) | 认知模型一致 |
-| daemons (12 daemons) | airymaxos-services (systemd 集成) | 服务模型一致 |
-| gateway + sdk | airymaxos-cloudnative (K8s+OCI) | 网关语义一致 |
-| commons | airymaxos-system (基础库) | 工具语义一致 |
+| atoms/corekern (MicroCoreRT) | kernel (SCHED_AGENT) | 调度语义一致 |
+| atoms/ipc + protocols (AgentsIPC) | services (消息传递) | IPC 协议语义一致 |
+| cupolas (Cupolas) | security (capability) | 安全模型一致 |
+| heapstore + memoryrovol (MemoryRovol) | memory (记忆持久化) | 记忆模型一致 |
+| coreloopthree + frameworks (CoreLoopThree) | cognition (kthread) | 认知模型一致 |
+| daemons (12 daemons) | services (systemd 集成) | 服务模型一致 |
+| gateway + sdk | cloudnative (K8s+OCI) | 网关语义一致 |
+| commons | system (基础库) | 工具语义一致 |
 
 ## 2. 整体架构
 
@@ -77,23 +77,23 @@ agentrt-linux 采用三大设计支柱:
 └─────────────────────────┼───────────────────────────────────────┘
                           │ 同源天然适配
 ┌─────────────────────────▼───────────────────────────────────────┐
-│                 agentrt-linux 用户态服务层 (airymaxos-services)     │
+│                 agentrt-linux 用户态服务层 (services)     │
 │  ┌─────────┬──────────┬──────────┬──────────┬─────────────┐   │
 │  │ VFS     │ 网络栈   │ 驱动框架  │ 12 daemons│ systemd     │   │
 │  │ 用户态  │ 用户态   │ 用户态    │ OS 级守护  │ 集成        │   │
 │  └─────────┴──────────┴──────────┴──────────┴─────────────┘   │
 │  ┌───────────────────────────────────────────────────────────┐ │
-│  │ airymaxos-cognition (认知运行时)                          │ │
+│  │ cognition (认知运行时)                          │ │
 │  │ CoreLoopThree kthread + Wasm runtime + LLM 调度           │ │
 │  └───────────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────────┐ │
-│  │ airymaxos-cloudnative (云原生)                             │ │
+│  │ cloudnative (云原生)                             │ │
 │  │ K8s + containerd + OCI + CNI + agentctl                   │ │
 │  └───────────────────────────────────────────────────────────┘ │
 └─────────────────────────┬───────────────────────────────────────┘
                           │ 系统调用 (syscall)
 ┌─────────────────────────▼───────────────────────────────────────┐
-│              agentrt-linux 微内核核心 (airymaxos-kernel)             │
+│              agentrt-linux 微内核核心 (kernel)             │
 │  ┌──────────┬──────────┬──────────┬──────────┬────────────┐   │
 │  │ sched_ext│ io_uring │ 内存管理  │ IPC      │ Rust 模块   │   │
 │  │ SCHED_   │ 零拷贝   │ 基本能力  │ agent_ipc│ 安全驱动    │   │
@@ -110,7 +110,7 @@ agentrt-linux 采用三大设计支柱:
 > **概念图澄清**： 上图为 agentrt-linux 整体栈的概念性展示（4 层），用于呈现 agentrt 与 agentrt-linux 的运行关系。
 > agentrt-linux 内部 8 子仓的依赖关系采用 **7 层架构模型**（L1-L7），权威定义见 [README.md §3](README.md#3-架构层次模型)。
 > 7 层架构模型**不包含** agentrt（agentrt 是外部组件，运行于 agentrt-linux 之上，见 [ADR-011](05-adrs.md#adr-011-7-层架构模型范围界定与-agentrt-用户态关系论证)）。
-> 完整技术论证见 [C-2.3 架构模型论证报告](../../../docs-closed/agentrt-linux/_analysis_0.3.0/03-architecture-model-analysis.md)（VP-4 决策确认）。
+> 完整技术论证见 C-2.3 架构模型论证报告（VP-4 决策确认）。
 
 ### 2.2 微内核化改造策略
 
@@ -118,7 +118,7 @@ agentrt-linux 不是从零开发微内核，而是基于 Linux 内核进行**微
 
 | 传统 Linux（宏内核） | agentrt-linux（微内核化） |
 |---|---|
-| VFS 在内核态 | VFS 用户态化（airymaxos-services） |
+| VFS 在内核态 | VFS 用户态化（services） |
 | 网络栈在内核态 | 网络栈部分用户态化（DPDK/AF_XDP） |
 | 驱动在内核态 | 部分驱动用户态化（VFIO/libvfio） |
 | 安全模块在内核态 | capability + LSM 用户态化 |
@@ -168,7 +168,7 @@ agentrt 的 AgentsIPC 定义 (are_ipc.h):
   - magic: 0x41524531 ("ARE1")
   - 5 种 payload 协议 (JSON-RPC/MCP/A2A/OpenAI/Custom)
 
-agentrt-linux 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
+agentrt-linux 的 IPC 子系统 (kernel + services):
   - 内核原生支持 128 字节消息头（同源）
   - magic 0x41524531 作为内核识别码（同源）
   - 5 种 payload 协议作为内核原生协议（同源）
@@ -184,35 +184,35 @@ agentrt-linux 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
 
 | 理论 | 来源 | 应用 |
 |---|---|---|
-| Liedtke minimality principle | seL4 | airymaxos-kernel 最小化 |
-| capability-based security | seL4 | airymaxos-security |
-| 形式化验证 | seL4 | airymaxos-tests-linux |
-| 消息传递 IPC | seL4（Endpoint/Notification） | airymaxos-services |
-| 对象导向资源管理 | seL4（capability 对象模型） | airymaxos-kernel |
+| Liedtke minimality principle | seL4 | kernel 最小化 |
+| capability-based security | seL4 | security |
+| 形式化验证 | seL4 | tests-linux |
+| 消息传递 IPC | seL4（Endpoint/Notification） | services |
+| 对象导向资源管理 | seL4（capability 对象模型） | kernel |
 
 ### 4.2 Linux 2026 最新特性
 
 | 特性 | 来源 | 应用 |
 |---|---|---|
-| EEVDF 调度器 | Linux 6.6 内核基线 | airymaxos-kernel |
-| Rust 实验性支持 | Linux 6.6 内核基线 | airymaxos-kernel（安全驱动）|
-| sched_ext | agentrt-linux 内核增强（主线 6.12+） | airymaxos-kernel（SCHED_AGENT）|
-| io_uring 异步 I/O 改进 | Linux 6.6 | airymaxos-kernel + services |
-| eBPF kfunc + dynamic pointer | Linux 6.6 原生 | airymaxos-security |
-| MGLRU（多代 LRU） | Linux 6.6 | airymaxos-memory |
-| XFS 在线 fsck | Linux 6.6 内核基线 | airymaxos-services |
-| BPF + io_uring 集成 | Linux 6.6 | airymaxos-security |
+| EEVDF 调度器 | Linux 6.6 内核基线 | kernel |
+| Rust 实验性支持 | Linux 6.6 内核基线 | kernel（安全驱动）|
+| sched_ext | agentrt-linux 内核增强（主线 6.12+） | kernel（SCHED_AGENT）|
+| io_uring 异步 I/O 改进 | Linux 6.6 | kernel + services |
+| eBPF kfunc + dynamic pointer | Linux 6.6 原生 | security |
+| MGLRU（多代 LRU） | Linux 6.6 | memory |
+| XFS 在线 fsck | Linux 6.6 内核基线 | services |
+| BPF + io_uring 集成 | Linux 6.6 | security |
 
 ### 4.3 agentrt-linux 2026 AI 原生
 
 | 特性 | 来源 | 应用 |
 |---|---|---|
-| 认知循环系统 | Linux 6.6 内核基线（SP3 增强） | airymaxos-cognition |
-| 超节点 OS | Linux 6.6 内核基线（SP3 增强） | airymaxos-cloudnative |
-| 超节点沙箱 | Linux 7.1（2.x.x 基线，ADR-013） | airymaxos-cognition |
-| Token 能效优化 | agentrt-linux Token 能效框架 2026 | airymaxos-cognition |
-| 具身智能 Claw | Linux 7.1（2.x.x 基线，ADR-013） | airymaxos-cognition |
-| DevStation | agentrt-linux 工程基线 | airymaxos-system |
+| 认知循环系统 | Linux 6.6 内核基线（SP3 增强） | cognition |
+| 超节点 OS | Linux 6.6 内核基线（SP3 增强） | cloudnative |
+| 超节点沙箱 | Linux 7.1（2.x.x 基线，ADR-013） | cognition |
+| Token 能效优化 | agentrt-linux Token 能效框架 2026 | cognition |
+| 具身智能 Claw | Linux 7.1（2.x.x 基线，ADR-013） | cognition |
+| DevStation | agentrt-linux 工程基线 | system |
 
 ## 5. 架构决策记录
 
@@ -223,12 +223,12 @@ agentrt-linux 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
 | ADR-001 | 采用 Linux 6.6 内核基线（同步 SP3 增强） | 2026-07-06 |
 | ADR-002 | 微内核化改造策略（基于 Linux + sched_ext + eBPF kfunc + io_uring） | 2026-07-06 |
 | ADR-003 | 8 子仓划分（基于微内核设计思想 + agentrt-linux 工程基线 + Airymax 同源） | 2026-07-06 |
-| ADR-004 | capability 安全模型（seL4 风格，airymaxos-security） | 2026-07-06 |
+| ADR-004 | capability 安全模型（seL4 风格，security） | 2026-07-06 |
 | ADR-005 | io_uring IPC 子系统（同源 AgentsIPC 128B 消息头） | 2026-07-06 |
-| ADR-006 | CoreLoopThree kthread 认知循环（airymaxos-cognition） | 2026-07-06 |
-| ADR-007 | MemoryRovol 内核态实现（airymaxos-memory，L1-L4 四层递进） | 2026-07-06 |
-| ADR-008 | Wasm 3.0 沙箱运行时（airymaxos-cognition frameworks） | 2026-07-06 |
-| ADR-009 | K8s CRD + containerd shim 云原生（airymaxos-cloudnative） | 2026-07-06 |
+| ADR-006 | CoreLoopThree kthread 认知循环（cognition） | 2026-07-06 |
+| ADR-007 | MemoryRovol 内核态实现（memory，L1-L4 四层递进） | 2026-07-06 |
+| ADR-008 | Wasm 3.0 沙箱运行时（cognition frameworks） | 2026-07-06 |
+| ADR-009 | K8s CRD + containerd shim 云原生（cloudnative） | 2026-07-06 |
 | ADR-010 | 与 agentrt 同源且部分代码共享（IRON-9 v2，无适配层天然契合） | 2026-07-06 |
 | ADR-011 | 7 层架构模型范围界定与 agentrt 用户态关系论证 | 2026-07-09 |
 | ADR-012 | 微内核化改造技术路线确认（基于 Linux 改造 + seL4 思想，非从零开发） | 2026-07-09 |
@@ -245,7 +245,7 @@ agentrt-linux 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
 
 | 层次 | 共享程度 | 本文档涉及内容 |
 |------|---------|---------------|
-| **[SC] 共享契约层** | 完全共享代码 | 6 个头文件 `include/airymax/{sched,ipc,bpf_struct_ops,memory_types,security_types,cognition_types}.h`，物理宿主在 airymaxos-kernel 子仓 `kernel/include/airymax/`，其他子仓通过 `-I` 引用 |
+| **[SC] 共享契约层** | 完全共享代码 | 6 个头文件 `include/airymax/{sched,ipc,bpf_struct_ops,memory_types,security_types,cognition_types}.h`，物理宿主在 kernel 子仓 `kernel/include/airymax/`，其他子仓通过 `-I` 引用 |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | agentrt 7 大模块（MicroCoreRT/AgentsIPC/Cupolas/MemoryRovol/CoreLoopThree/Frameworks/Daemons）↔ agentrt-linux 8 子仓（kernel/services/security/memory/cognition/cloudnative/system/tests-linux）的同源映射 |
 | **[IND] 完全独立层** | 完全独立 | agentrt 跨平台用户态实现（libc/POSIX，Linux/macOS/Windows）↔ agentrt-linux Linux 6.6 内核态实现（Kbuild/Kconfig/sched_ext/io_uring/eBPF） |
 
@@ -264,13 +264,13 @@ agentrt-linux 的 IPC 子系统 (airymaxos-kernel + airymaxos-services):
 
 | agentrt 模块（用户态） | agentrt-linux 子仓（内核态） | 同源 API | 实现差异 |
 |----------------------|---------------------------|---------|---------|
-| MicroCoreRT（atoms/corekern） | airymaxos-kernel | sched_ext 17 项 + eBPF 11 项同源 API | 用户态链表 vs 内核 BPF 回调 |
-| AgentsIPC（atoms/ipc） | airymaxos-kernel + airymaxos-services | io_uring 8 项同源 API | 用户态 mmap vs 内核 io_uring_setup() |
-| Cupolas（cupolas） | airymaxos-security | capability 4 项同源 API（mint/revoke/derive/copy） | 用户态 Cupolas vs 内核 CNode（ES-SEL4） |
-| MemoryRovol（memoryrovol） | airymaxos-memory | MemoryRovol L1-L4 4 层接口同源 | 用户态 mmap+msync vs 内核 PMEM+CXL |
-| CoreLoopThree（atoms/coreloopthree） | airymaxos-cognition | 三阶段枚举 + Thinkdual 模式同源 | 用户态协程 vs 内核 kthread |
-| Frameworks（atoms/frameworks） | airymaxos-cognition + airymaxos-cloudnative | DAG 工作流编排同源 | 用户态线程池 vs 内核 kthread_pool |
-| Daemons（daemons） | airymaxos-services | 12 daemons systemd 单元同源 | 用户态进程 vs 内核 kthread/daemon |
+| MicroCoreRT（atoms/corekern） | kernel | sched_ext 17 项 + eBPF 11 项同源 API | 用户态链表 vs 内核 BPF 回调 |
+| AgentsIPC（atoms/ipc） | kernel + services | io_uring 8 项同源 API | 用户态 mmap vs 内核 io_uring_setup() |
+| Cupolas（cupolas） | security | capability 4 项同源 API（mint/revoke/derive/copy） | 用户态 Cupolas vs 内核 CNode（ES-SEL4） |
+| MemoryRovol（memoryrovol） | memory | MemoryRovol L1-L4 4 层接口同源 | 用户态 mmap+msync vs 内核 PMEM+CXL |
+| CoreLoopThree（atoms/coreloopthree） | cognition | 三阶段枚举 + Thinkdual 模式同源 | 用户态协程 vs 内核 kthread |
+| Frameworks（atoms/frameworks） | cognition + cloudnative | DAG 工作流编排同源 | 用户态线程池 vs 内核 kthread_pool |
+| Daemons（daemons） | services | 12 daemons systemd 单元同源 | 用户态进程 vs 内核 kthread/daemon |
 
 ### 6.4 [IND] 完全独立层
 
@@ -297,10 +297,10 @@ graph TB
     end
 
     subgraph "agentrt-linux 内核态（Linux 6.6）"
-        OS_KERN[airymaxos-kernel<br/>sched_ext + eBPF + io_uring]
-        OS_SEC[airymaxos-security<br/>LSM + Landlock + cap]
-        OS_MEM[airymaxos-memory<br/>MGLRU + PMEM + CXL]
-        OS_COG[airymaxos-cognition<br/>kthread + Wasm 3.0]
+        OS_KERN[kernel<br/>sched_ext + eBPF + io_uring]
+        OS_SEC[security<br/>LSM + Landlock + cap]
+        OS_MEM[memory<br/>MGLRU + PMEM + CXL]
+        OS_COG[cognition<br/>kthread + Wasm 3.0]
     end
 
     subgraph "[SC] 共享契约层（6 头文件）"

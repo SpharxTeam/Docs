@@ -42,7 +42,7 @@ agentrt-linux（AirymaxOS）将 Agent 应用建模为 Kubernetes 自定义资源
 | 存储 | PVC | MemoryRovol CSI 卷 |
 | 安全 | SecurityContext | Cupolas capability + Landlock |
 | 调度类 | CFS（默认） | SCHED_AGENT |
-| 生命周期 | RestartPolicy | Agent 状态机（9 状态） |
+| 生命周期 | RestartPolicy | Agent 状态机（8 状态） |
 
 ---
 
@@ -51,7 +51,7 @@ agentrt-linux（AirymaxOS）将 Agent 应用建模为 Kubernetes 自定义资源
 ### 2.1 CRD 完整 YAML 定义
 
 ```yaml
-# airymaxos-cloudnative/manifests/crd-agent.yaml
+# cloudnative/manifests/crd-agent.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -318,7 +318,7 @@ spec:
 ### 3.2 Controller 伪代码
 
 ```go
-// airymaxos-cloudnative/controllers/agent_controller.go
+// cloudnative/controllers/agent_controller.go
 package controllers
 
 import (
@@ -632,12 +632,12 @@ Controller 暴露 Prometheus 指标供监控：
 ```go
 var (
 	agentCreated = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "airymaxos_agent_created_total",
+		Name: "airy_agent_created_total",
 		Help: "Total agents created",
 	}, []string{"namespace"})
 
 	agentTokenUsed = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "airymaxos_agent_token_used",
+		Name: "airy_agent_token_used",
 		Help: "Tokens used by agent",
 	}, []string{"namespace", "agent"})
 )
@@ -668,7 +668,7 @@ spec:
     - type: External
       external:
         metric:
-          name: airymaxos_agent_token_utilization
+          name: airy_agent_token_utilization
           selector:
             matchLabels:
               agent: cognition-agent

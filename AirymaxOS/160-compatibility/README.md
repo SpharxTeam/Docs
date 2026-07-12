@@ -44,7 +44,7 @@ agentrt-linux 兼容性体系是系统长期演进的工程保障。它继承 Li
 **OS-IRON-001**：一旦接口导出至用户空间，必须永久支持。
 
 ```c
-// airymaxos-kernel/include/uapi/agentrt/syscall.h
+// kernel/include/uapi/agentrt/syscall.h
 // 系统调用编号一旦分配，永不复用（512-631 段，20-gap 块编号）
 #define AIRY_SYS_COGNITION_PROCESS  612  // cognition 段（612-631），1.0.1 引入，永久支持
 #define AIRY_SYS_MEMORY_ROVOL_GET   552  // memory 段（552-571），1.0.1 引入，永久支持

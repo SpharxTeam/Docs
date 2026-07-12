@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/build_standards.md
+**路径**: docs/AirymaxRT/140-application-development/build_standards.md
 ---
 
 ## 📋 目录
@@ -78,7 +78,7 @@ OpenAirymax/
 │   └── [其他构建产物]
 │
 └── Docs/                       ← 独立文档目录（独立仓库）
-    └── 30-api/            # API文档
+    └── 30-interfaces/         # 接口文档
 ```
 
 ---

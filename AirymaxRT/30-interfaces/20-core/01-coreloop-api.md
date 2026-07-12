@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09  
 **状态**: 维护中  
-**路径**: OpenAirymax/Docs/30-api/20-core/01-coreloop-api.md  
+**路径**: docs/AirymaxRT/30-interfaces/20-core/01-coreloop-api.md  
 ---
 
 ## 📖 概述
@@ -990,7 +990,7 @@ switch (err) {
 
 ## 🔗 相关文档
 
-- [MemoryRovol 详细API（待编写）](../core/memoryrovol_api.md)
-- [用户态服务集成指南](../daemon/gateway_api.md)
-- [协议栈适配（待编写）](../protocols/unified_protocol_api.md)
-- [快速入门示例](../examples/quickstart.md)
+- [MemoryRovol 架构](../../10-architecture/03-memoryrovol.md)
+- [用户态服务集成指南](../30-daemon/02-gateway-api.md)
+- [协议适配指南](../70-toolkit/01-protocol-guide.md)
+- [快速入门示例](../50-examples/01-quickstart.md)

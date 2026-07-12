@@ -4,7 +4,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）工程标准规范第 7 篇——治理层规范\
 > **版本**： 0.1.1\
-> **最后更新**： 2026-07-06\
+> **最后更新**： 2026-07-12\
 > **同源映射**： agentrt `docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）+ Linux 6.6 内核基线 `MAINTAINERS`（734KB）维护者制度范本\
 > **理论根基**： Linux 内核 30+ 年沉淀的 Lieutenant System（副官系统）+ Airymax 体系并行论\
 > **替代关系**： 本文档替代 Linux `Documentation/process/management-style.rst`、`submitting-patches.rst`（DCO 章节）、`contribution-maturity-model.rst`、`6.Followthrough.rst` 在 agentrt-linux 场景下的适用
@@ -131,7 +131,7 @@ agentrt-linux 采用 8 子仓独立 git 仓库模型（参见第 4 章），故 
 | **伞仓 MAINTAINERS** | `agentrt-linux/MAINTAINERS` | 列出 8 个子仓及其仓库地址，定义跨子仓协调归属 | M/R/L/S/W/B/T/F（指向子仓目录）+ H（同源 agentrt 模块）+ V（版本基线） |
 | **子仓 MAINTAINERS** | `<子仓>/MAINTAINERS`（8 份） | 列出该子仓内部的子系统及其维护者 | 全部 14 + 3 字段 |
 
-每个子仓根目录维护自己的 MAINTAINERS 文件，伞仓 MAINTAINERS 通过 `F:` 字段指向各子仓目录（如 `F: kernel/` 指向 airymaxos-kernel 子仓），并通过 `T:` 字段标注该子仓的 git 远程地址。
+每个子仓根目录维护自己的 MAINTAINERS 文件，伞仓 MAINTAINERS 通过 `F:` 字段指向各子仓目录（如 `F: kernel/` 指向 kernel 子仓），并通过 `T:` 字段标注该子仓的 git 远程地址。
 
 #### 2.4.2 伞仓 MAINTAINERS 模板
 
@@ -268,7 +268,7 @@ agentrt-linux CI（本仓 CI）
    ↓ pass
 agentrt CI（触发镜像 PR，验证 agentrt 编译通过）
    ↓ pass
-L1 子系统维护者（airymaxos-kernel M:）审查
+L1 子系统维护者（kernel M:）审查
    ↓ approve
 L3 总维护者（SPHARX Engineering）最终审批
    ↓ approve
@@ -335,7 +335,7 @@ agentrt-linux 的补丁传播遵循严格的信任链分层：
 
 ```mermaid
 graph TD
-    A["普通贡献者<br/>(Contributor)"] -->|提交 PR| B["子系统维护者<br/>(airymaxos-kernel / services / ...)<br/>8 子仓各自维护者"]
+    A["普通贡献者<br/>(Contributor)"] -->|提交 PR| B["子系统维护者<br/>(kernel / services / ...)<br/>8 子仓各自维护者"]
     B -->|pull 请求| C["顶级子系统维护者<br/>(airymaxos 总维护者)<br/>跨子仓协调"]
     C -->|pull 请求| D["agentrt-linux 总维护者<br/>(BDFL 角色)<br/>最终合并权"]
     D -->|merge| E["main 主线<br/>(稳定可发布)"]
@@ -372,25 +372,25 @@ agentrt-linux 由 8 个子仓构成，每个子仓对应一个 agentrt 同源模
 
 | 子仓 | 中文 | 主维护者 | 审查者 | 状态 | 同源 agentrt 模块 |
 |------|------|---------|--------|------|------------------|
-| airymaxos-kernel | 极境内核 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | atoms/corekern |
-| airymaxos-services | 极境服务 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | daemons |
-| airymaxos-security | 极境安全 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | cupolas |
-| airymaxos-memory | 极境记忆 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | heapstore + memoryrovol |
-| airymaxos-cognition | 极境认知 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | coreloopthree + frameworks |
-| airymaxos-cloudnative | 极境云原生 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | gateway + sdk |
-| airymaxos-system | 极境系统 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | commons |
-| airymaxos-tests-linux | 极境测试 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | 全模块测试 |
+| kernel | 极境内核 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | atoms/corekern |
+| services | 极境服务 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | daemons |
+| security | 极境安全 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | cupolas |
+| memory | 极境记忆 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | heapstore + memoryrovol |
+| cognition | 极境认知 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | coreloopthree + frameworks |
+| cloudnative | 极境云原生 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | gateway + sdk |
+| system | 极境系统 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | commons |
+| tests-linux | 极境测试 | 开源极境工程与规范委员会 | 开源极境工程与规范委员会 | Experimental | 全模块测试 |
 
 ### 4.1 子仓归属说明
 
-- **airymaxos-kernel**：对应 agentrt `atoms/corekern`，承载 MicroCoreRT 微核心运行时在内核态的实现（IPC、内存、任务、时间四大子系统）。这是整个 agentrt-linux 的内核基座，主维护者须具备 Linux 6.6 内核基线的深度经验。
-- **airymaxos-services**：对应 agentrt `daemons`，承载用户态后台服务（LLM daemon、监控 daemon、工具 daemon 等）。
-- **airymaxos-security**：对应 agentrt `cupolas`，承载安全穹顶（守卫、权限、净化、审计、工作台、金库、网络安全）。
-- **airymaxos-memory**：对应 agentrt `heapstore + memoryrovol`，承载堆存储与四层记忆卷载（原始卷→特征层→结构层→模式层）。
-- **airymaxos-cognition**：对应 agentrt `coreloopthree + frameworks`，承载三层认知循环与认知框架。
-- **airymaxos-cloudnative**：对应 agentrt `gateway + sdk`，承载网关层与 SDK。
-- **airymaxos-system**：对应 agentrt `commons`，承载跨模块统一基础库（错误、日志、指标、追踪、成本）。
-- **airymaxos-tests-linux**：对应 agentrt 全模块测试，承载 KUnit、kselftest、fault injection 等测试基础设施。
+- **kernel**：对应 agentrt `atoms/corekern`，承载 MicroCoreRT 微核心运行时在内核态的实现（IPC、内存、任务、时间四大子系统）。这是整个 agentrt-linux 的内核基座，主维护者须具备 Linux 6.6 内核基线的深度经验。
+- **services**：对应 agentrt `daemons`，承载用户态后台服务（LLM daemon、监控 daemon、工具 daemon 等）。
+- **security**：对应 agentrt `cupolas`，承载安全穹顶（守卫、权限、净化、审计、工作台、金库、网络安全）。
+- **memory**：对应 agentrt `heapstore + memoryrovol`，承载堆存储与四层记忆卷载（原始卷→特征层→结构层→模式层）。
+- **cognition**：对应 agentrt `coreloopthree + frameworks`，承载三层认知循环与认知框架。
+- **cloudnative**：对应 agentrt `gateway + sdk`，承载网关层与 SDK。
+- **system**：对应 agentrt `commons`，承载跨模块统一基础库（错误、日志、指标、追踪、成本）。
+- **tests-linux**：对应 agentrt 全模块测试，承载 KUnit、kselftest、fault injection 等测试基础设施。
 
 ### 4.2 维护者任命流程
 
@@ -608,170 +608,43 @@ agentrt-linux 总维护者承担 BDFL（Benevolent Dictator For Life）角色。
 
 ---
 
-## 第 10 章 OS 工程规则编号注册表（SSoT）
+## 第 10 章 OS 工程规则编号汇总
 
-本章汇总 agentrt-linux 工程标准体系中所有规则编号，作为规则编号的**单一事实源（Single Source of Truth, SSoT）**。所有工程标准文档中的规则编号必须与本章注册表一致；任何编号冲突以本章为准。新规则须按 10.7 流程申请注册。
-
-> **编号格式约定**：
-> - 所有编号使用 3 位数字序号：`OS-<前缀>-<子域>-<NNN>`（如 `OS-KER-001`、`OS-STD-CODE-001`）
-> - 子域为可选层级：CODE（编码）/ FMT（格式）/ STY（风格）/ GOV（治理）/ KER（内核）
-> - 历史短编号（如 `OS-KER-1`）统一升级为 3 位格式（`OS-KER-001`）
-
-### 10.1 OS-IRON 编号汇总（工程铁律，不可妥协）
-
-> **SSoT 声明**：OS-IRON 铁律编号的唯一权威来源（SSoT）为工程规范委员会规则编号注册表（14 条铁律）。本表为规则编号注册表的公开镜像，必须与之一一对应，并与 [00-engineering-standards-handbook.md §2.1](./00-engineering-standards-handbook.md) 保持完全一致。原表中不属于 IRON 层级的治理规则已重分类：①"信任链分层不可越级提交"→ OS-STD-GOV-008；②"Reviewed-by 不可替代 Signed-off-by"→ 由 OS-IRON-005（审查优先）+ OS-IRON-007（DCO）共同涵盖；③"组织 6 级成熟度 Level 2 为底线"→ OS-STD-GOV-009。
-
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| **OS-IRON-001** | 用户空间 ABI 永不破坏——一旦接口导出至用户空间，必须永久支持 | 04 工程思想 §2.1 |
-| **OS-IRON-002** | 内核内部 API 不保证稳定；API 改动者必须同时修复所有受影响代码（"you broke it, you fix it"） | 04 工程思想 §2.2 |
-| **OS-IRON-003** | 策略与机制分离——机制留在内核（提供能力），策略外移至用户空间或可插拔模块 | 04 工程思想 §3 |
-| **OS-IRON-004** | 渐进式开发，补丁自包含——每个补丁是逻辑上自包含的最小变更单元，中点可编译运行，支持 git bisect | 04 工程思想 §4 / 05 开发流程 |
-| **OS-IRON-005** | 审查优先文化——所有代码进入主线前必须通过至少一名维护者审查并获得 Reviewed-by 标签 | 04 工程思想 §6 / 07 治理 §6（本文） |
-| **OS-IRON-006** | 不破坏用户空间原则——任何补丁不得导致用户空间程序行为改变，除非该行为被明确标记为 bug（regression 零容忍） | 04 工程思想 §9 / 05 开发流程 |
-| **OS-IRON-007** | DCO 强制——所有补丁必须包含 Signed-off-by 标签，CI 中 DCO bot 自动验证链条完整性 | 07 治理 §5（本文） |
-| **OS-IRON-008** | 共享契约层 6 个头文件双向 CI 验证——[SC] 头文件变更必须通过 agentrt + AirymaxOS CI 同时通过 | 120 跨项目代码共享 |
-| **OS-IRON-009** | 代码共享边界：仅 agentrt ↔ AirymaxOS——与 主流 Linux 发行版 项目仅技术参考，不共享代码 | 120 跨项目代码共享 / 07 治理 §1.4（本文） |
-| **OS-IRON-010** | "Linux 6.6 为基、seL4 为鉴"工程取向——以 Linux 6.6 内核基线 工程思想为基线，以 seL4 微内核思想为架构层借鉴 | 04 工程思想 §12 |
-| **OS-IRON-011** | 双源边界声明——Linux 6.6 内核基线 与 seL4 源码仅为本地参考路径研究对象，关系是"技术参考"非"代码共享" | 04 工程思想 §12 |
-| **OS-IRON-012** | seL4 借鉴仅限架构层（ES-SEL4-1~5）——不包括编码风格层（4 空格 / camelCase / 重度 typedef） | 04 工程思想 §12 |
-| **OS-IRON-013** | 8 子仓独立 git 仓库 + submodule 管理——拆分为 8 个独立 leaf 仓，由管理仓通过 submodule 统一管理 | 04 工程思想 §13 |
-| **OS-IRON-014** | [SC] 共享契约层 6 头文件单一数据源（禁止物理副本）——6 个头文件物理宿主在 kernel/include/airymax/，其他子仓通过 -I 引用 | 120 跨项目代码共享 |
-
-### 10.2 OS-STD 编号汇总（标准规则）
-
-#### 10.2.1 OS-STD-CODE（编码规范）
-
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| OS-STD-CODE-001 | 全局函数/变量描述性命名，禁止无意义缩写 | 01 代码规范 |
-| OS-STD-CODE-002 | goto 集中出口，分级标签按分配逆序释放 | 01 代码规范 |
-| OS-STD-CODE-003 | 禁止 `strcpy`/`strncpy`/`strlcpy`，强制 `strscpy` | 01 代码规范 |
-| OS-STD-CODE-004 | 编译期必须 0 警告 0 错误；任何警告须修复或显式标注 `#pragma` 抑制并附说明 | 06 工具链 |
-
-#### 10.2.2 OS-STD-FMT（格式规范）
-
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| OS-STD-FMT-001 | Tab 8 字符宽（C 内核代码），行尾禁止空白 | 02 代码格式 |
-| OS-STD-FMT-002 | 指针声明 `*` 贴名字不贴类型 | 02 代码格式 |
-
-#### 10.2.3 OS-STD-STY（风格规范）
-
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| OS-STD-STY-001 | 反过度抽象，不预先抽象 | 03 代码风格 |
-| OS-STD-STY-002 | 引用计数强制，锁不替代引用计数 | 03 代码风格 |
-
-#### 10.2.4 OS-STD-GOV（治理规范）
-
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| OS-STD-GOV-001 | MAINTAINERS 文件为子系统归属单一事实源 | 07 治理（本文） |
-| OS-STD-GOV-002 | 每子仓须有主维护者与至少 1 名审查者 | 07 治理（本文） |
-| OS-STD-GOV-003 | 状态字段须如实标注 Experimental/Pilot/Stable/Deprecated | 07 治理（本文） |
-| OS-STD-GOV-004 | Co-developed-by 必须紧跟对应 Signed-off-by | 07 治理（本文） |
-| OS-STD-GOV-005 | 审查意见必须逐条响应 | 07 治理（本文） |
-| OS-STD-GOV-006 | 不响应审查是致命错误，重发应直接拒绝 | 07 治理（本文） |
-| OS-STD-GOV-007 | Andrew Morton 规则：未导致改动的审查意见转化为代码注释 | 07 治理（本文） |
-| OS-STD-GOV-008 | 信任链分层不可越级提交——补丁沿信任链逐层背书，上级不得绕过下级直接审查底层补丁 | 07 治理（本文）（重分类：原 OS-IRON-006 属治理标准而非工程铁律） |
-| OS-STD-GOV-009 | 组织 6 级成熟度 Level 2 为底线目标——与 agentrt-linux 深度合作的组织工程团队须达到 Level 2 | 07 治理（本文）（重分类：原 OS-IRON-010 属治理标准而非工程铁律） |
-
-#### 10.2.5 OS-STD 通用标准规则（无子域）
-
-> **说明**：依 §10.7 编号约定，子域为可选层级。以下规则采用无子域的 `OS-STD-NNN` 格式，因其规范内容横跨多个子域或属于通用工程标准。下表"分类"列给出描述性分类标签，便于检索。
-
-**已注册规则**：
-
-| 编号 | 规则 | 分类 | 来源文档 |
-|------|------|------|---------|
-| OS-STD-047 | 非函数语句块开括号置于控制语句行末，闭括号置于下一行行首（K&R 风格） | 格式 | 02 代码格式（新增，原 OS-KER-007 冲突消解） |
-| OS-STD-048 | agentrt-linux 子目录禁止修改上游 `Makefile`（顶层），新增子目录通过 `TARGETS +=` 单行追加 | 构建/测试 | 80 测试（新增，原 OS-KER-007 冲突消解） |
-| OS-STD-049 | 禁止在 `Makefile.airymaxos` 中放置除版本四元组以外的任何变量；特性开关必须走 `Kconfig` | 构建 | 70 构建系统（新增，原 OS-KER-007 冲突消解） |
-| OS-STD-233 | 所有 PR 必须通过 GitHub Actions 全部检查才能合并；任一检查失败的 PR 禁止合并（即使审查者已 ACK） | 流程/CI | 05 开发流程（新增注册，原"幽灵引用"消解——已在 05-development-process.md:525 本地定义但未注册 SSoT） |
-
-> **plain OS-STD-NNN 分类标签体系**：
+> **SSoT 声明（2026-07-12 重新设计）**：规则编号的**唯一权威来源**为 [09-ssot-registry.md](./09-ssot-registry.md)。该注册表统一登记 AirymaxOS 全部编号、规则与命名，任何文档不得私自定义规则编号。新规则须按 [09-ssot-registry.md §1.4](./09-ssot-registry.md) 流程申请注册。
 >
-> 经全量扫描，agentrt-linux 文档体系中实际使用 `OS-STD-NNN`（无子域）格式的规则达 130+ 条，远超此前统计的"21 条"。为便于检索与未来全量注册，按规范内容归类为以下描述性标签：
->
-> | 分类标签 | 涵盖范围 | 典型编号段 |
-> |---------|---------|-----------|
-> | 格式 | 缩进/行宽/大括号/空行/指针声明等视觉层规则 | 047、201-211、206 |
-> | 编码 | 命名/类型/typedef/错误处理等语义层规则 | 006-027 |
-> | 构建 | Makefile/Kbuild/Kconfig/版本号等构建系统规则 | 048-049、131-136 |
-> | 流程/CI | PR/补丁生命周期/CI 门禁/分支保护等流程规则 | 171-172、231-234、233 |
-> | 测试 | kselftest/KUnit/覆盖率门槛等测试规则 | 081-097 |
-> | 安全 | Landlock/capability/审计等安全规则 | 101-116、121-124 |
-> | 运维 | 配置/密钥/日志/监控等运维规则 | 141-158、206（运维侧） |
->
-> **已知跨文档冲突编号**（本文档为 SSoT，冲突消解计划在后续执行，不在本次文档体系范围）：
-> - `OS-STD-206`：在 02-code-format.md:348 定义为"连续空行最多保留 1 行"（格式类），在 100-operations/02-configuration.md:184 定义为"配置文件密钥必须引用形式"（运维类）——同编号两套语义，待消解。
-> - `OS-KER-001`~`OS-KER-052`（连续使用）+ 特殊编号（101/102/201-203/211/221）总计 61 个编号：多个编号在不同文档指代不同规则（如 `OS-KER-009` 在 4 份文档有 4 种定义、`OS-KER-010` 在 3 份文档有 3 种定义）。
-> - **冲突消解方案**：
->   1. `02-code-format.md` 的所有 OS-KER 编号重新编号为 `OS-KER-FMT-001~012`（格式专属前缀）
->   2. `01-coding-standards.md` 保留 OS-KER-xxx 编号，作为语义规则的权威来源
->   3. `10-coding-style/C_coding_style_standard.md` 中的重复编号改为引用 `01`/`02` 的编号
->   4. `10-coding-style/C_coding_style_standard_supplement.md` 中的重复编号改为引用 SSoT
->   5. 所有重新编号完成后，更新本注册表完成全量注册
-> 本注册表仅注册语义无冲突的编号：OS-STD-047/048/049（任务 1 新增）、OS-STD-233（单一干净定义）。其余冲突编号需按上述方案消解后再注册。
+> **模块前缀 SSoT 交叉引用**：函数与变量命名前缀（`are_`/`airy_`/`airy_core_`/`airy_` 及模块子前缀）的唯一权威来源（SSoT）为 [`10-coding-style/coding_conventions.md Part IV §4.4.3`](./10-coding-style/coding_conventions.md)。
 
-### 10.3 OS-KER 编号汇总（内核工程规则）
+本章不再镜像 09-ssot-registry.md 的完整内容（2026-07-12 SSoT 重新设计：取消三层镜像，消除 ~247 行重复）。请直接查阅 [09-ssot-registry.md](./09-ssot-registry.md) 获取：
 
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| OS-KER-001 | Linux 6.6 内核基线，不擅自提升基线版本（对应 BAN-361/IRON-010） | 04 工程思想 |
-| OS-KER-002 | 内核内部用 `u8/u16/u32/u64`，UAPI 用 `__u8/__u16/__u32/__u64` | 01 代码规范 |
-| OS-KER-003 | typedef 严格限制（仅 5 种例外） | 01 代码规范 |
-| OS-KER-004 | 禁止 `BUG()`/`BUG_ON()`，改用 `WARN()` 并提供恢复 | 01 代码规范 |
-| OS-KER-005 | 内核内部用 Tab 缩进，Tab 宽度 8 字符（同 OS-STD-FMT-001，但专指内核 C 代码） | 02 代码格式 |
-| OS-KER-006 | 内核内部 API 可在任何补丁中变更（同 OS-IRON-002，但聚焦 API 稳定性维度） | 04 工程思想 |
-| OS-KER-007 | 内核态禁止使用 float/double 类型（`-mno-80387`），改用 Q16.16 定点数 | 01 代码规范 |
-| OS-KER-008 | bool 仅用于函数返回值与栈变量，禁止用于结构体成员（结构体成员用 `u8`/bitfield） | 01 代码规范 |
-| OS-KER-053 | 共享数据必须用同步原语保护（spinlock/mutex/memory barrier/RCU），引用计数管理生命周期，两者不可互替 | 01 代码规范（新增，原 OS-KER-007 冲突消解） |
-| OS-KER-054 | ruleset 是策略载体，运行时不可变（Landlock 沙箱 K-4 可插拔策略） | 110 安全（新增，原 OS-KER-007 冲突消解） |
-| OS-KER-055 | Agent 跟踪模块必须使用 `trace_array_create()` 创建独立 instance，不得污染全局主缓冲 | 90 可观测性（新增，原 OS-KER-007 冲突消解） |
+- §2 OS-IRON 工程铁律（14 条）
+- §3 OS-KER 内核工程规则（001-155 + 211/221）
+- §4 OS-STD 标准规则（CODE/FMT/STY/GOV/DOC/CHK 子域）
+- §5 OS-BAN 禁止规则（11 条）
+- §6 OS-ABI 接口稳定性
+- §7 OS-ACC 验收标准
 
-> **编号冲突消解说明**：
-> - 历史 `OS-KER-001` 曾在 4 份文档中指代 4 条不同规则（u8/u16 类型 / Tab 缩进 / API 不稳定 / goto 出口），现统一拆分为 OS-KER-002 / OS-KER-005 / OS-KER-006 / OS-STD-CODE-002
-> - 历史 `OS-STD-001` 曾在 3 份文档中指代 3 条不同规则（描述性命名 / 0 警告 / L4 自由），现统一拆分为 OS-STD-CODE-001 / OS-STD-CODE-004 / OS-ABI-001（见 10.5）
-> - 历史 `OS-KER-007` 曾在 7 份文档中指代 6 条不同规则（内核态禁 float / 共享数据同步原语 / K&R 开括号 / 子目录 Makefile / Makefile.airymaxos 版本四元组 / ruleset 策略载体 / trace_array 独立 instance），消解：OS-KER-007 保留为"内核态禁 float"权威定义，其余 6 条分别拆分为 OS-KER-053 / OS-STD-047 / OS-STD-048 / OS-STD-049 / OS-KER-054 / OS-KER-055（见 10.2.5 与 10.3）
-
-### 10.4 OS-BAN 编号汇总（禁止规则）
-
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| OS-BAN-001 | 禁止匈牙利命名法 | 01 代码规范 |
-| OS-BAN-002 | 禁止敏感术语 master/slave、blacklist/whitelist | 01 代码规范 |
-| OS-BAN-003 | 禁止 `%p` 默认输出（须哈希化） | 01 代码规范 |
-| OS-BAN-004 | 禁止越级提交补丁绕过信任链 | 07 治理（本文） |
-| OS-BAN-005 | 禁止伪造 SoB 传播路径 | 07 治理（本文） |
-| OS-BAN-006 | 禁止以雇主利益为由打压他人审查 | 07 治理（本文） |
-
-### 10.5 OS-ABI 编号汇总（ABI 稳定性规则）
-
-| 编号 | 规则 | 来源文档 |
-|------|------|---------|
-| OS-ABI-001 | 4 层接口稳定性分级（L1 永久 / L2 弃用流程 / L3 版本协商 / L4 完全自由） | 04 工程思想 |
-
-### 10.6 OS-ACC 编号汇总（验收标准）
-
-| 编号 | 验收项 | 来源文档 |
-|------|--------|---------|
-| OS-ACC-001 | PR 通过 DCO bot 验证 | 07 治理（本文） |
-| OS-ACC-002 | PR 通过 7 层自动化验证全部 | 06 工具链 |
-| OS-ACC-003 | 补丁序列每个中点可编译运行 | 05 开发流程 |
-| OS-ACC-004 | regression 须在 72 小时内响应 | 07 治理（本文） |
-| OS-ACC-005 | 子系统状态字段须与实际生命周期一致 | 07 治理（本文） |
-
-### 10.7 编号申请流程
+### 10.1 编号申请流程
 
 新规则编号须经过以下流程注册：
 
 1. **RFC**：在 GitHub Discussions 发起 RFC，说明规则编号、规则文本、来源文档、适用范围。
 2. **评审**：经至少一名顶级子系统维护者审查，公示 14 天接受异议。
-3. **注册**：通过评审后，由总维护者将规则写入对应文档的编号汇总表，并更新本章注册表。
+3. **注册**：通过评审后，由总维护者将规则写入 [09-ssot-registry.md](./09-ssot-registry.md) 对应章节。
 
-编号命名约定：`OS-<前缀>-<子域>-<NNN>`（3 位数字序号），如 `OS-STD-GOV-008`。前缀取第 10.1~10.6 节所列之一，子域为可选层级（如 GOV/CODE/FMT/STY/KER/ABI）。
+> 完整编号申请流程见 [09-ssot-registry.md §1.4](./09-ssot-registry.md)。
+
+### 10.2 已废除的本地章节
+
+> **说明**（2026-07-12 SSoT 重新设计）：以下本地章节已废除，统一由 [09-ssot-registry.md](./09-ssot-registry.md) 承载，消除三层镜像重复：
+>
+> - 原 §10.1 OS-IRON 编号汇总（14 条完整表格）→ 见 09 §2
+> - 原 §10.2 OS-STD 编号汇总（CODE/FMT/STY/GOV/通用/DOC/CHK 全部子节）→ 见 09 §4
+> - 原 §10.3 OS-KER 编号汇总 → 见 09 §3
+> - 原 §10.4 OS-BAN 编号汇总（11 条）→ 见 09 §5
+> - 原 §10.5 OS-ABI 编号汇总 → 见 09 §6
+> - 原 §10.6 OS-ACC 编号汇总 → 见 09 §7
+> - 原 §10.7 编号申请流程 → 已合并至本节 §10.1
+
 
 ---
 
@@ -811,7 +684,9 @@ agentrt-linux 总维护者承担 BDFL（Benevolent Dictator For Life）角色。
 ### 12.2 agentrt-linux 工程标准
 
 - `50-engineering-standards/README.md`（工程标准主索引与总纲）
-- `50-engineering-standards/01-coding-standards.md` ~ `06-toolchain-and-automation.md`（前 6 篇主题文档）
+- `50-engineering-standards/01-coding-standards.md`（代码规范合集，6 Parts）
+- `50-engineering-standards/04-engineering-philosophy.md`（工程思想）
+- `50-engineering-standards/05-development-process.md`（开发流程合集，4 Parts）
 
 ### 12.3 参考材料
 

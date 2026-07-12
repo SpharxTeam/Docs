@@ -73,9 +73,9 @@ agentrt-linux 1.0.1 共定义约 110 项 OS-ACC 验收标准，覆盖 9 个 Part
 | 字段 | 说明 | 示例 |
 |------|------|------|
 | 编号 | OS-ACC-XXX | OS-ACC-001 |
-| 验收项 | 简短描述 | 50-engineering-standards/ 8 文档完成 |
+| 验收项 | 简短描述 | 50-engineering-standards/ 23 文档完成 |
 | 验证方法 | 可执行命令 | `find docs/AirymaxOS/50-engineering-standards/ -name "*.md" \| wc -l` |
-| 通过标准 | 量化阈值 | 8 |
+| 通过标准 | 量化阈值 | 23 |
 | 优先级 | P0 / P1 / P2 | P0 |
 | 适用里程碑 | M0-M8 | M0 |
 
@@ -85,16 +85,16 @@ agentrt-linux 1.0.1 共定义约 110 项 OS-ACC 验收标准，覆盖 9 个 Part
 
 | 编号 | 验收项 | 验证方法 | 通过标准 | 优先级 | 里程碑 |
 |------|--------|---------|---------|--------|--------|
-| OS-ACC-001 ★ | 50-engineering-standards/ 8 文档完成 | `find docs/AirymaxOS/50-engineering-standards/ -name "*.md" \| wc -l` | ≥8 | P0 | M0 |
-| OS-ACC-002 ★ | 文档行数 | `wc -l docs/AirymaxOS/50-engineering-standards/*.md` | 每个文档 ≥400 行 | P0 | M0 |
-| OS-ACC-003 ★ | 文档版权声明 | `grep -L "Copyright (c) 2025-2026 SPHARX" docs/AirymaxOS/50-engineering-standards/*.md` | 0 结果（全部包含） | P0 | M0 |
+| OS-ACC-001 ★ | 50-engineering-standards/ 23 文档完成 | `find docs/AirymaxOS/50-engineering-standards/ -name "*.md" \| wc -l` | ≥23 | P0 | M0 |
+| OS-ACC-002 ★ | 文档行数 | `find docs/AirymaxOS/50-engineering-standards/ -name "*.md" -exec wc -l {} +` | 每个文档 ≥400 行 | P0 | M0 |
+| OS-ACC-003 ★ | 文档版权声明 | `grep -rL "Copyright (c) 2025-2026 SPHARX" docs/AirymaxOS/50-engineering-standards/` | 0 结果（全部包含） | P0 | M0 |
 | OS-ACC-004 ★ | 无禁用关键词（其他 OS 发行版名 / 测试框架名 / 智能体框架名等，详见 50-engineering-standards 黑名单） | `grep -rEf docs/AirymaxOS/50-engineering-standards/forbidden-keywords.txt docs/AirymaxOS/50-engineering-standards/` | 0 结果 | P0 | M0 |
 | OS-ACC-005 ★ | OS-IRON 规则编号定义 | `grep -rE "OS-IRON-[0-9]+" docs/AirymaxOS/50-engineering-standards/ \| wc -l` | ≥10 项 | P0 | M0 |
 | OS-ACC-006 ★ | OS-STD 规则编号定义 | `grep -rE "OS-STD-[0-9]+" docs/AirymaxOS/50-engineering-standards/ \| wc -l` | ≥20 项 | P0 | M0 |
 | OS-ACC-007 ★ | OS-BAN 规则编号定义 | `grep -rE "OS-BAN-[0-9]+" docs/AirymaxOS/50-engineering-standards/ \| wc -l` | ≥30 项 | P0 | M0 |
-| OS-ACC-008 ★ | 五维原则映射 | `grep -rE "S-1\|S-2\|S-3\|S-4\|K-1\|K-2\|K-3\|K-4\|C-1\|C-2\|C-3\|C-4\|E-1\|E-2\|E-3\|E-4\|E-5\|E-6\|E-7\|E-8\|A-1\|A-2\|A-3\|A-4" docs/AirymaxOS/50-engineering-standards/*.md` | 每个文档包含映射 | P0 | M0 |
-| OS-ACC-009 | 代码示例 | `grep -rE "\`\`\`(c\|rust\|python\|ts\|bash)" docs/AirymaxOS/50-engineering-standards/*.md` | 每个文档 ≥5 个代码示例 | P0 | M0 |
-| OS-ACC-010 ★ | Mermaid 图表 | `grep -rE "\`\`\`mermaid" docs/AirymaxOS/50-engineering-standards/*.md` | 关键文档包含图表 | P0 | M0 |
+| OS-ACC-008 ★ | 五维原则映射 | `grep -rE "S-1\|S-2\|S-3\|S-4\|K-1\|K-2\|K-3\|K-4\|C-1\|C-2\|C-3\|C-4\|E-1\|E-2\|E-3\|E-4\|E-5\|E-6\|E-7\|E-8\|A-1\|A-2\|A-3\|A-4" docs/AirymaxOS/50-engineering-standards/` | 每个文档包含映射 | P0 | M0 |
+| OS-ACC-009 | 代码示例 | `grep -rE "\`\`\`(c\|rust\|python\|ts\|bash)" docs/AirymaxOS/50-engineering-standards/` | 每个文档 ≥5 个代码示例 | P0 | M0 |
+| OS-ACC-010 ★ | Mermaid 图表 | `grep -rE "\`\`\`mermaid" docs/AirymaxOS/50-engineering-standards/` | 关键文档包含图表 | P0 | M0 |
 | OS-ACC-011 | Linux 6.6 内核基线声明 | `grep -rE "Linux 6.6 内核基线\|Linux 6.6（Linux 6.6 内核基线）" docs/AirymaxOS/50-engineering-standards/` | 全部文档包含 | P0 | M0 |
 | OS-ACC-012 ★ | IRON-9 v2 同源且部分代码共享声明 | `grep -rE "IRON-9 v2 同源且部分代码共享" docs/AirymaxOS/50-engineering-standards/` | ≥3 处声明 | P0 | M0 |
 | OS-ACC-013 | 五维正交 24 原则声明 | `grep -rE "五维正交 24 原则\|五维正交" docs/AirymaxOS/50-engineering-standards/` | 全部文档包含 | P0 | M0 |

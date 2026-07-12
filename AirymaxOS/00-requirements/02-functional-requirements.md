@@ -28,14 +28,14 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 子仓 | 核心功能 | 同源 agentrt 模块 | 关键能力 |
 |---|---|---|---|
-| airymaxos-kernel | 内核调度、IPC、内存管理 | atoms/corekern (MicroCoreRT) | EEVDF + sched_ext + io_uring |
-| airymaxos-services | VFS、网络、驱动、daemons | daemons (12 daemons) | systemd + io_uring 消息传递 |
-| airymaxos-security | capability、LSM、国密 | cupolas | capability(seL4) + Landlock + 机密计算 |
-| airymaxos-memory | 记忆持久化、CXL、PMEM | heapstore + memoryrovol | MemoryRovol 内核态 + MGLRU |
-| airymaxos-cognition | 认知循环、Wasm、LLM 调度 | coreloopthree + frameworks | CoreLoopThree kthread + Wasm 3.0 |
-| airymaxos-cloudnative | K8s、containerd、OCI | gateway + sdk | K8s CRD + containerd shim |
-| airymaxos-system | 包管理、配置、shell | commons | RPM + dnf + DevStation |
-| airymaxos-tests-linux | 单元、集成、形式化 | 全模块测试 | agentrt-linux 集成测试框架 + seL4 风格验证 |
+| kernel | 内核调度、IPC、内存管理 | atoms/corekern (MicroCoreRT) | EEVDF + sched_ext + io_uring |
+| services | VFS、网络、驱动、daemons | daemons (12 daemons) | systemd + io_uring 消息传递 |
+| security | capability、LSM、国密 | cupolas | capability(seL4) + Landlock + 机密计算 |
+| memory | 记忆持久化、CXL、PMEM | heapstore + memoryrovol | MemoryRovol 内核态 + MGLRU |
+| cognition | 认知循环、Wasm、LLM 调度 | coreloopthree + frameworks | CoreLoopThree kthread + Wasm 3.0 |
+| cloudnative | K8s、containerd、OCI | gateway + sdk | K8s CRD + containerd shim |
+| system | 包管理、配置、shell | commons | RPM + dnf + DevStation |
+| tests-linux | 单元、集成、形式化 | 全模块测试 | agentrt-linux 集成测试框架 + seL4 风格验证 |
 
 ---
 
@@ -45,30 +45,30 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | agentrt 模块 | agentrt-linux 子仓 | 同源语义 | 同源红利 |
 |---|---|---|---|
-| atoms/corekern (MicroCoreRT) | airymaxos-kernel | 微核心基础：IPC/Mem/Task/Time | 调度语义同源，无适配层 |
-| atoms/corekern IPC | airymaxos-kernel | IPC 子系统：128B 消息头同源 | 协议同源，低延迟 |
-| daemons/llm_d | airymaxos-services | LLM 守护进程：模型管理 | 服务同源，行为一致 |
-| daemons/market_d | airymaxos-services | 市场守护进程：Agent 注册发现 | 服务同源 |
-| daemons/monit_d | airymaxos-services | 监控守护进程：可观测性 | 服务同源 |
-| daemons/sched_d | airymaxos-services | 调度守护进程：任务调度 | 服务同源 |
-| daemons/tool_d | airymaxos-services | 工具守护进程：执行单元 | 服务同源 |
-| cupolas (安全穹顶) | airymaxos-security | capability + LSM 安全模型 | 模型同源，安全内生 |
-| cupolas/permission | airymaxos-security | 权限裁决引擎：capability + 策略 | 模型同源（ADR-004 确立 capability-based 安全模型，RBAC 已被拒绝） |
-| cupolas/sanitizer | airymaxos-security | 输入净化管道：四阶段 | 模型同源 |
-| cupolas/audit | airymaxos-security | 审计追踪：SHA-256 哈希链 | 模型同源 |
-| heapstore | airymaxos-memory | 堆存储：持久化基础 | 存储同源 |
-| memoryrovol | airymaxos-memory | 记忆卷载：四层递进 | 记忆模型同源 |
-| coreloopthree | airymaxos-cognition | 三层认知循环：认知→执行→记忆 | 循环模型同源 |
-| frameworks | airymaxos-cognition | 框架层：Wasm + LLM 调度 | 框架同源 |
-| gateway | airymaxos-cloudnative | 网关层：HTTP/WebSocket/Stdio | 网关同源 |
-| sdk | airymaxos-cloudnative | SDK：开发者接口 | SDK 同源 |
-| commons | airymaxos-system | 统一基础库：error/logger/metrics | 基础库同源 |
+| atoms/corekern (MicroCoreRT) | kernel | 微核心基础：IPC/Mem/Task/Time | 调度语义同源，无适配层 |
+| atoms/corekern IPC | kernel | IPC 子系统：128B 消息头同源 | 协议同源，低延迟 |
+| daemons/llm_d | services | LLM 守护进程：模型管理 | 服务同源，行为一致 |
+| daemons/market_d | services | 市场守护进程：Agent 注册发现 | 服务同源 |
+| daemons/monit_d | services | 监控守护进程：可观测性 | 服务同源 |
+| daemons/sched_d | services | 调度守护进程：任务调度 | 服务同源 |
+| daemons/tool_d | services | 工具守护进程：执行单元 | 服务同源 |
+| cupolas (安全穹顶) | security | capability + LSM 安全模型 | 模型同源，安全内生 |
+| cupolas/permission | security | 权限裁决引擎：capability + 策略 | 模型同源（ADR-004 确立 capability-based 安全模型，RBAC 已被拒绝） |
+| cupolas/sanitizer | security | 输入净化管道：四阶段 | 模型同源 |
+| cupolas/audit | security | 审计追踪：SHA-256 哈希链 | 模型同源 |
+| heapstore | memory | 堆存储：持久化基础 | 存储同源 |
+| memoryrovol | memory | 记忆卷载：四层递进 | 记忆模型同源 |
+| coreloopthree | cognition | 三层认知循环：认知→执行→记忆 | 循环模型同源 |
+| frameworks | cognition | 框架层：Wasm + LLM 调度 | 框架同源 |
+| gateway | cloudnative | 网关层：HTTP/WebSocket/Stdio | 网关同源 |
+| sdk | cloudnative | SDK：开发者接口 | SDK 同源 |
+| commons | system | 统一基础库：error/logger/metrics | 基础库同源 |
 
 ---
 
 ## 4. 能力清单（FR-001 ~ FR-080）
 
-### 4.1 airymaxos-kernel 子仓（FR-001 ~ FR-010）
+### 4.1 kernel 子仓（FR-001 ~ FR-010）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -83,7 +83,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-009 | io_uring 零 syscall I/O | I/O 请求 | I/O 完成 | - | I/O 延迟降低 > 30% |
 | FR-010 | 内核可观测性（perf/ftrace） | 探针请求 | 探针数据 | - | 性能开销 < 5% |
 
-### 4.2 airymaxos-services 子仓（FR-011 ~ FR-020）
+### 4.2 services 子仓（FR-011 ~ FR-020）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -98,7 +98,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-019 | 时间守护进程 | 时间同步 | 时间状态 | - | NTP 同步精度 < 1ms |
 | FR-020 | 设备守护进程 | 设备事件 | 设备状态 | - | 设备事件实时响应 |
 
-### 4.3 airymaxos-security 子仓（FR-021 ~ FR-030）
+### 4.3 security 子仓（FR-021 ~ FR-030）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -113,7 +113,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-029 | 网络安全（出站过滤 + TLS） | 网络请求 | 过滤决策 | cupolas network | 出站过滤正确 |
 | FR-030 | 权限动态更新 | 策略变更 | 重新评估 | cupolas permission | 运行时策略生效 |
 
-### 4.4 airymaxos-memory 子仓（FR-031 ~ FR-040）
+### 4.4 memory 子仓（FR-031 ~ FR-040）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -128,7 +128,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-039 | 记忆检索（双路径） | 检索请求 | 检索结果 | memoryrovol | 检索延迟 < 50ms |
 | FR-040 | heapstore 堆存储 | 存储请求 | 存储结果 | heapstore | 堆存储持久化 |
 
-### 4.5 airymaxos-cognition 子仓（FR-041 ~ FR-050）
+### 4.5 cognition 子仓（FR-041 ~ FR-050）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -143,7 +143,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-049 | 具身智能 Claw 沙箱 | Claw 任务 | 沙箱结果 | - | Claw 沙箱安全隔离 |
 | FR-050 | 策略可插拔（运行时替换） | 策略切换 | 切换结果 | coreloopthree | 切换不影响运行任务 |
 
-### 4.6 airymaxos-cloudnative 子仓（FR-051 ~ FR-060）
+### 4.6 cloudnative 子仓（FR-051 ~ FR-060）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -158,7 +158,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-059 | 配置管理与热更新 | 配置变更 | 配置生效 | - | 热更新 < 1s |
 | FR-060 | 熔断降级与限流 | 流量请求 | 流控决策 | - | 熔断正确触发 |
 
-### 4.7 airymaxos-system 子仓（FR-061 ~ FR-070）
+### 4.7 system 子仓（FR-061 ~ FR-070）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -173,7 +173,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-069 | 多架构构建 | 构建配置 | 多架构包 | - | x86_64/ARM64 双构建 |
 | FR-070 | 系统初始化 | 初始化配置 | 初始化结果 | - | 初始化可重复 |
 
-### 4.8 airymaxos-tests-linux 子仓（FR-071 ~ FR-080）
+### 4.8 tests-linux 子仓（FR-071 ~ FR-080）
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
@@ -196,14 +196,14 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ```mermaid
 graph TB
-    KERNEL[airymaxos-kernel<br/>内核调度/IPC/内存]
-    SERVICES[airymaxos-services<br/>VFS/网络/daemons]
-    SECURITY[airymaxos-security<br/>capability/LSM/国密]
-    MEMORY[airymaxos-memory<br/>记忆/CXL/PMEM]
-    COGNITION[airymaxos-cognition<br/>认知循环/Wasm/LLM]
-    CLOUD[airymaxos-cloudnative<br/>K8s/containerd/OCI]
-    SYSTEM[airymaxos-system<br/>包管理/配置/shell]
-    TESTS[airymaxos-tests-linux<br/>测试/验证]
+    KERNEL[kernel<br/>内核调度/IPC/内存]
+    SERVICES[services<br/>VFS/网络/daemons]
+    SECURITY[security<br/>capability/LSM/国密]
+    MEMORY[memory<br/>记忆/CXL/PMEM]
+    COGNITION[cognition<br/>认知循环/Wasm/LLM]
+    CLOUD[cloudnative<br/>K8s/containerd/OCI]
+    SYSTEM[system<br/>包管理/配置/shell]
+    TESTS[tests-linux<br/>测试/验证]
 
     KERNEL --> SERVICES
     KERNEL --> SECURITY
@@ -293,6 +293,28 @@ flowchart TD
 | FR-061 RPM 兼容 | BR-007 Linux 企业级生态对齐 | NFR-C-002 RPM 兼容 |
 | FR-075 Soak Test | BR-003 工业控制 | NFR-R-001 7×24 稳定性 |
 
+### 6.1 反向追溯（BR → FR）
+
+下表展示业务需求到功能需求的反向追溯关系，与 §6 正向追溯表配合构成完整的双向追溯矩阵：
+
+| 业务需求 | 对应功能需求 | 覆盖子仓 |
+|---|---|---|
+| BR-001 科研 Agent | FR-001 内核调度 / FR-031 L1 原始卷 / FR-042 认知层 | kernel / memory / cognition |
+| BR-002 客服 Agent | FR-042 认知层 / FR-047 LLM 调度 | cognition |
+| BR-003 工业控制 | FR-001 内核调度 / FR-008 EEVDF 抢占 / FR-075 Soak Test | kernel / tests-linux |
+| BR-004 具身智能 | FR-049 Claw 沙箱 / FR-048 超节点 OS 沙箱 | cognition |
+| BR-005 AI 原生 | FR-003 IPC 子系统 / FR-009 io_uring / FR-047 LLM 调度 | kernel / cognition |
+| BR-006 云原生 | FR-051 K8s CRD / FR-053 containerd shim / FR-054 OCI | cloudnative |
+| BR-007 Linux 企业级生态对齐 | FR-021 capability / FR-022 LSM / FR-061 RPM / FR-062 dnf | security / system |
+
+### 6.2 追溯完整性说明
+
+- **正向追溯（FR → BR → NFR）**：§6 正向追溯表列出 9 条核心 FR（覆盖 8 子仓各 1-2 条关键能力），每条 FR 至少对应 1 条 BR 和 1 条 NFR，满足 §1.1 可追溯性要求。
+- **反向追溯（BR → FR）**：§6.1 反向追溯表列出 7 条 BR 到 FR 的映射，确保每条 BR 至少有 1 条 FR 支撑。
+- **完整 FR 清单**：§4.1-4.8 列出全部 80 条 FR（FR-001~FR-080），每条 FR 在表格中定义了输入、输出、同源 agentrt 模块和验收标准。
+- **完整 BR 清单**：详见 [01-business-requirements.md](01-business-requirements.md) §BR-001~BR-007。
+- **完整 NFR 清单**：详见 [03-non-functional-requirements.md](03-non-functional-requirements.md)，含性能（NFR-P）、安全（NFR-S）、可靠性（NFR-R）、兼容性（NFR-C）四类。
+
 ---
 
 ## 7. 功能需求优先级
@@ -316,12 +338,12 @@ flowchart TD
 
 | 验收类型 | 工具 | 覆盖目标 | 责任子仓 |
 |---|---|---|---|
-| 单元测试 | CUnit + CMock | 行覆盖率 > 90% | airymaxos-tests-linux |
-| 集成测试 | 自定义框架 | 接口覆盖率 > 80% | airymaxos-tests-linux |
-| 契约测试 | 契约测试框架 | 契约 100% 强制 | airymaxos-tests-linux |
-| 性能基准 | Locust + k6 + perf | SLA 达标率 > 99% | airymaxos-tests-linux |
-| 形式化验证 | seL4 风格验证 | 关键路径 100% | airymaxos-tests-linux |
-| 兼容性测试 | agentrt-linux 集成测试框架 | 兼容性矩阵 100% | airymaxos-tests-linux + system |
+| 单元测试 | CUnit + CMock | 行覆盖率 > 90% | tests-linux |
+| 集成测试 | 自定义框架 | 接口覆盖率 > 80% | tests-linux |
+| 契约测试 | 契约测试框架 | 契约 100% 强制 | tests-linux |
+| 性能基准 | Locust + k6 + perf | SLA 达标率 > 99% | tests-linux |
+| 形式化验证 | seL4 风格验证 | 关键路径 100% | tests-linux |
+| 兼容性测试 | agentrt-linux 集成测试框架 | 兼容性矩阵 100% | tests-linux + system |
 
 ---
 

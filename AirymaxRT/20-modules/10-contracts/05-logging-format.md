@@ -56,7 +56,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 术语定义
 
-本规范使用的术语定义见 [统一术语表](../10-terminology.md),关键术语包括：
+本规范使用的术语定义见 [统一术语表](../../TERMINOLOGY.md),关键术语包括：
 
 | 术语 | 简要定义 | 来源 |
 |------|---------|------|
@@ -950,7 +950,7 @@ class BatchHandler:
 | [通信协议规范](./protocol_contract.md) | 本规范要求所有通信过程记录日志，支持 TraceID 贯穿 |
 | [系统调用 API 规范](./syscall_api_contract.md) | 系统调用的错误处理和审计日志应遵循本规范 |
 | [日志打印规范](../30-coding-standard/10-log-standard.md) | 本规范定义日志格式，Log_standard.md 定义打印方法和最佳实践 |
-| [统一术语表](../10-terminology.md) | 本规范使用的术语定义和解释 |
+| [统一术语表](../../TERMINOLOGY.md) | 本规范使用的术语定义和解释 |
 | [架构设计原则](../../../10-architecture/00-architectural-principles.md) | 本规范的设计原则基于五维正交体系，是可观测性原则的具体实现 |
 
 ---
@@ -959,7 +959,7 @@ class BatchHandler:
 
 [1] Airymax 设计哲学。../../00-basic-theories/04-design-principles-cn.md  
 [2] 架构设计原则。../../../10-architecture/00-architectural-principles.md  
-[3] 统一术语表。../10-terminology.md  
+[3] 统一术语表。../../TERMINOLOGY.md  
 [4] OpenTelemetry Specification. https://opentelemetry.io/docs/specs/otel/  
 [5] Structured Logging Best Practices. https://github.com/open-telemetry/community/blob/main/cross-specification/stable/telemetry-specification.md  
 [6] ELK Stack Documentation. https://www.elastic.co/guide/index.html  

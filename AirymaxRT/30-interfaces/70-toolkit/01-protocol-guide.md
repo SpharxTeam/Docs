@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/70-toolkit/01-protocol-guide.md
+**路径**: docs/AirymaxRT/30-interfaces/70-toolkit/01-protocol-guide.md
 
 ## 目录
 
@@ -1212,10 +1212,10 @@ agentrt protocol test openai
 
 ## 相关文档
 
-- [统一接口规范](../interfaces/include/airy_protocol_interface.h)
-- [协议路由器设计](../protocols/core/router/include/protocol_router.h)
-- [转换器实现](../protocols/core/transformers/include/protocol_transformers.h)
-- [网关桥接 API](../gateway/include/gateway_protocol_bridge.h)
-- [OpenLab 协议绑定](../openlab/openlab/protocols/__init__.py)
+- 统一接口规范（`include/airy_protocol_interface.h`）
+- 协议路由器设计（`protocols/core/router/include/protocol_router.h`）
+- 转换器实现（`protocols/core/transformers/include/protocol_transformers.h`）
+- 网关桥接 API（`gateway/include/gateway_protocol_bridge.h`）
+- OpenLab 协议绑定（`openlab/openlab/protocols/__init__.py`）
 - [Airymax 架构](../../10-architecture/)
-- [快速入门指南](../../60-guides/01-getting-started.md)
+- [快速入门指南](../../140-application-development/01-getting-started.md)

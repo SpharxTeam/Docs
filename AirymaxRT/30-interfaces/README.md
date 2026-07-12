@@ -1,303 +1,120 @@
-# Airymax Capital API - 完整API参考文档
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-**最新**: 2026-06-09
+# AirymaxAgentRT 接口文档
+
+**最新更新**: 2026-07-11
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/README.md
+**路径**: `docs/AirymaxRT/30-interfaces/README.md`
+
 ---
 
 ## 📚 文档导航
 
-### 核心模块 API
-- [三层认知循环 (CoreLoopThree)](core/coreloop_api.md)
-  - 认知引擎 API
-  - 执行引擎 API
-  - 记忆引擎 API
-  - 主循环 API
-  
-- [内核系统 (CoreKern)（待编写）](core/corekern_api.md)
-  - 初始化与关闭
-  - 任务管理
-  - IPC通信
-  - 时间事件系统
-
-- [记忆系统 (MemoryRovol)（待编写）](core/memoryrovol_api.md)
-  - 四层记忆架构
-  - L1原始卷 API
-  - L2特征层 API
-  - L3结构层 API
-  - L4模式层 API
-  - 检索与遗忘 API
-
-- [任务流 (TaskFlow)（待编写）](core/taskflow_api.md)
-  - 任务定义
-  - 流程编排
-  - 依赖管理
-
-- [系统调用 (SysCall)（待编写）](core/syscall_api.md)
-  - 路由器
-  - 调用入口
-  - 权限控制
-
-### 用户态服务 API
-- [网关用户态服务 (gateway_d)](daemon/gateway_api.md)
-  - HTTP/WebSocket/Stdio网关
-  - 服务管理
-  - 配置接口
-
-- [LLM服务 (llm_d)（待编写）](daemon/llm_api.md)
-  - LLM调用接口
-  - Token计数
-  - 缓存管理
-  - 定价规则
-
-- [通道服务 (channel_d)（待编写）](daemon/channel_api.md)
-  - 通道管理
-  - 消息传递
-  - 线程安全保证
-
-- [调度器 (sched_d)（待编写）](daemon/scheduler_api.md)
-  - 调度策略
-  - 任务队列
-  - 优先级管理
-
-- [监控服务 (monit_d)（待编写）](daemon/monitoring_api.md)
-  - 指标收集
-  - 告警系统
-  - 追踪功能
-
-- [市场服务 (market_d)（待编写）](daemon/market_api.md)
-  - 代理注册
-  - 技能注册
-  - 安装器接口
-
-- [工具执行器 (tool_d)（待编写）](daemon/tool_api.md)
-  - 工具注册
-  - 执行引擎
-  - 验证器
-  - 缓存机制
-
-### 协议栈 API
-- [统一协议框架（待编写）](protocols/unified_protocol_api.md)
-  - 协议适配器接口
-  - 消息编解码
-  - 协议路由
-
-- [协议扩展框架（待编写）](protocols/protocol_extension_api.md)
-  - 适配器注册
-  - 中间件链
-  - 能力协商
-
-- [标准协议适配器（待编写）](protocols/adapters_api.md)
-  - MCP v1.0
-  - A2A v0.3
-  - OpenAI Enterprise
-
-- [第三方集成（待编写）](protocols/integrations_api.md)
-  - OpenClaw
-  - Claude
-  - LangChain
-  - AutoGen
-
-### 公共工具库 API
-- [字符串处理（待编写）](commons/string_api.md)
-- [内存管理（待编写）](commons/memory_api.md)
-- [日志系统（待编写）](commons/logging_api.md)
-- [错误处理（待编写）](commons/error_api.md)
-- [同步原语（待编写）](commons/sync_api.md)
-- [配置管理（待编写）](commons/config_api.md)
-- [UUID生成（待编写）](commons/uuid_api.md)
-
-### Docker部署
-- [Docker快速启动](docker/README.md)
-- [Dockerfile参考](docker/Dockerfile)
-- [docker-compose.yml（待编写）](docker/docker-compose.yml)
-- [环境变量配置（待编写）](docker/env_config.md)
-
-### 示例代码
-- [快速入门示例](examples/quickstart.md)
-- [完整Agent实现（待编写）](examples/full_agent_example.c)
-- [自定义协议适配器（待编写）](examples/custom_adapter_example.c)
-- [多Agent协作（待编写）](examples/multi_agent_example.c)
+本目录包含 agentrt 的全部对外接口文档，涵盖系统调用 API、运行时标准接口（ARE L1-L3）、IPC 协议、RPC API、服务发现、核心算法、多语言 SDK 等。
 
 ---
 
-## 🔑 快速查找常用API
+### 核心接口
 
-### 创建并运行一个完整的Agent循环
+- [**Gateway API 参考**](02-api-reference.md) — HTTP/WebSocket 端点 API（JSON-RPC 2.0 方法、REST 端点、协议适配器、错误码、速率限制）
+- [**CLI 命令参考**](03-cli-reference.md) — 统一命令行工具完整命令参考
+- [**Doxygen 指南**](01-doxygen-guide.md) — C 代码 Doxygen 文档生成指南
 
-```c
-#include "airy_rt.h"
-#include "loop.h"
+### 运行时标准接口（ARE L1-L3）
 
-int main() {
-    // 1. 初始化核心系统
-    airy_err_t err = airy_init();
-    if (err != AIRY_EOK) {
-        return -1;
-    }
+- [**L1 运行时接口**](05-runtime-interfaces/01-l1-runtime-interface.md) — 可移植运行时接口（IPC / 内存 / 同步 / 任务）
+- [**L2 服务协议**](05-runtime-interfaces/02-l2-service-protocol.md) — 服务层协议（Agent / Skill / Memory / Session）
+- [**L3 安全治理**](05-runtime-interfaces/03-l3-security-governance.md) — 安全治理接口（沙箱 / 权限 / 审计）
 
-    // 2. 创建三层循环
-    airy_core_loop_t* loop = NULL;
-    err = airy_loop_create(NULL, &loop);
-    if (err != AIRY_EOK) {
-        airy_shutdown();
-        return -1;
-    }
+### 通信协议
 
-    // 3. 启动循环（后台线程）
-    airy_loop_run(loop);
+- [**IPC 协议**](06-ipc/README.md) — 128B 消息头、payload 类型、请求-响应/发布-订阅模式
+- [**RPC API**](07-rpc-api/README.md) — JSON-RPC 2.0 接口规范
+- [**服务发现**](08-service-discovery/README.md) — 服务注册与发现机制
 
-    // 4. 提交任务
-    char* task_id = NULL;
-    const char* input = "分析这段文本的情感倾向";
-    err = airy_loop_submit(loop, input, strlen(input), &task_id);
-    
-    // 5. 等待结果
-    char* result = NULL;
-    size_t result_len = 0;
-    err = airy_loop_wait(loop, task_id, 30000, &result, &result_len);
-    
-    if (err == AIRY_EOK && result) {
-        printf("Agent响应: %.*s\n", (int)result_len, result);
-        AIRY_FREE(result);
-    }
-    
-    AIRY_FREE(task_id);
+### 系统 API
 
-    // 6. 清理资源
-    airy_loop_destroy(loop);
-    airy_shutdown();
-    
-    return 0;
-}
-```
+- [**CoreLoop API**](20-core/01-coreloop-api.md) — 核心循环 API（创建/销毁/提交/等待）
+- [**Daemon API**](30-daemon/01-api-documentation.md) — Daemon 接口文档
+- [**Gateway API**](30-daemon/02-gateway-api.md) — Gateway 服务 API
 
-### 使用记忆系统
+**系统调用 API**：
 
-```c
-#include "memoryrovol.h"
+| 模块 | 文档 |
+|------|------|
+| Agent 管理 | [01-agent.md](60-syscalls/01-agent.md) |
+| Memory 管理 | [02-memory.md](60-syscalls/02-memory.md) |
+| Session 管理 | [03-session.md](60-syscalls/03-session.md) |
+| Skill 管理 | [04-skill.md](60-syscalls/04-skill.md) |
+| Task 管理 | [05-task.md](60-syscalls/05-task.md) |
+| 遥测 | [06-telemetry.md](60-syscalls/06-telemetry.md) |
 
-// 创建四层记忆系统
-airy_mr_handle_t* memory = airy_mr_create();
+### 多语言 SDK
 
-// 写入记忆
-const char* content = "用户偏好：喜欢简洁的回复风格";
-airy_err_t err = airy_mr_add_memory(memory, content, strlen(content));
+| 语言 | 文档 |
+|------|------|
+| Go | [README.md](70-toolkit/10-go/README.md) |
+| Python | [README.md](70-toolkit/20-python/README.md) |
+| Rust | [README.md](70-toolkit/30-rust/README.md) |
+| TypeScript | [README.md](70-toolkit/40-typescript/README.md) |
 
-// 相似性检索
-airy_memory_query_t query = {
-    .memory_query_text = "用户喜欢什么样的回复？",
-    .memory_query_limit = 5,
-    .memory_query_include_raw = 1
-};
+- [**协议指南**](70-toolkit/01-protocol-guide.md) — 协议适配器开发指南
+- [**协议快速入门**](70-toolkit/02-protocol-quickstart.md) — 协议快速集成
 
-airy_memory_result_ext_t* result = NULL;
-err = airy_mr_query(memory, &query, &result);
+### 算法与示例
 
-if (result && result->memory_result_count > 0) {
-    for (size_t i = 0; i < result->memory_result_count; i++) {
-        printf("记忆 %zu: %s\n", i, 
-               result->memory_result_items[i]->memory_result_item_record->memory_record_data);
-    }
-}
-
-// 清理
-airy_memory_result_free(result);
-airy_mr_destroy(memory);
-```
-
-### 使用协议栈发送消息
-
-```c
-#include "unified_protocol.h"
-#include "mcp_v1_adapter.h"
-
-// 初始化MCP适配器
-const protocol_adapter_t* mcp = mcp_v1_get_adapter();
-if (mcp && mcp->init) {
-    mcp->init(mcp->context);
-}
-
-// 构建统一消息
-unified_message_t msg = {
-    .protocol = PROTOCOL_MCP_V1,
-    .message_type = MSG_TYPE_REQUEST,
-    .payload = "{\"method\":\"tools/list\"}",
-    .payload_size = strlen("{\"method\":\"tools/list\"}")
-};
-
-// 编码并发送
-void* encoded = NULL;
-size_t encoded_size = 0;
-if (mcp->encode) {
-    mcp->encode(mcp->context, &msg, &encoded, &encoded_size);
-    
-    // 通过handle_request发送
-    void* response = NULL;
-    mcp->handle_request(mcp->context, "send", encoded, &response);
-    
-    free(encoded);
-    free(response);
-}
-```
+- [**核心算法**](10-algorithms/README.md) — 文档处理 / 搜索索引 / 质量验证 / 性能优化
+- [**Docker 集成**](40-docker/README.md) — 容器化部署完整方案
+- [**快速入门**](50-examples/01-quickstart.md) — 5 分钟从零到 Hello World
 
 ---
 
-## 📖 API设计原则
+## 📖 API 设计原则
 
-### 1. 错误处理约定
-所有API函数返回 `airy_err_t` 类型：
-- `AIRY_EOK` (0): 成功
-- `AIRY_EINVAL` (-1): 无效参数
-- `AIRY_ENOMEM` (-2): 内存不足
-- `AIRY_ENOTINIT` (-3): 未初始化
-- `AIRY_ETIMEOUT` (-11): 操作超时
-- `AIRY_EBUSY` (-9): 资源忙
-- `AIRY_ENOENT` (-5): 不存在
+### 错误处理约定
 
-### 2. 内存管理约定
+所有 API 函数返回 `airy_err_t` 类型（`int32_t`）：
+
+| 错误码 | 值 | 含义 |
+|--------|---|------|
+| `AIRY_EOK` | 0 | 成功 |
+| `AIRY_EINVAL` | -1 | 无效参数 |
+| `AIRY_ENOMEM` | -2 | 内存不足 |
+| `AIRY_ENOTINIT` | -3 | 未初始化 |
+| `AIRY_ENOENT` | -5 | 不存在 |
+| `AIRY_EBUSY` | -9 | 资源忙 |
+| `AIRY_ETIMEOUT` | -11 | 操作超时 |
+
+### 内存管理约定
+
 - **分配**: 使用 `AIRY_MALLOC`, `AIRY_CALLOC`, `AIRY_STRDUP`
 - **释放**: 使用 `AIRY_FREE`
 - **规则**: 谁分配谁释放（除非文档明确说明转移所有权）
 
-### 3. 线程安全约定
+### 线程安全约定
+
 - 所有标记为 `_t` 的句柄类型都是线程安全的
 - 内部使用互斥锁保护共享状态
 - 回调函数会在独立的线程上下文中调用
 
-### 4. 命名规范
-- 函数: `module_action_object` (如 `airy_loop_create`)
-- 类型: `module_object_t` (如 `airy_core_loop_t`)
-- 常量: `MODULE_CONSTANT_NAME` (如 `AIRY_EOK`)
-- 枚举: `MODULE_TYPE_VALUE` (如 `TASK_STATUS_PENDING`)
+### 命名规范
+
+- 函数: `<module>_<action>_<object>`（如 `airy_loop_create`）
+- 类型: `<module>_<object>_t`（如 `airy_core_loop_t`）
+- 常量: `MODULE_CONSTANT_NAME`（如 `AIRY_EOK`）
+- 枚举: `MODULE_TYPE_VALUE`（如 `TASK_STATUS_PENDING`）
+
+> **详见**: [命名规范](../50-engineering-standards/10-coding-style/naming_conventions.md)
 
 ---
 
-## 🔄 版本历史
+## 🔗 相关文档
 
-| 版本 | 日期 | 主要变更 |
-|------|------|----------|
-| v0.0.4 | 2026-04-28 | Foundation Release - 完整API文档 |
-| v0.0.3 | 2026-04-25 | 协议栈v2.1.0集成 |
-| v0.0.2 | 2026-04-20 | 三层认知循环架构实现 |
-| v0.0.1 | 2026-04-15 | 初始版本 |
+- [架构设计](../10-architecture/) — 系统架构与设计原则
+- [模块设计](../20-modules/) — 契约规范
+- [工程标准](../50-engineering-standards/) — 共享工程标准
+- [应用开发](../140-application-development/) — 开发者指南
 
 ---
 
-## 📞 支持与反馈
-
-- **问题报告**: [GitHub Issues](https://github.com/spharx/AgentRT/issues)
-- **讨论社区**: [Discussions](https://github.com/spharx/AgentRT/discussions)
-- **API变更日志**: 见各模块文档末尾的"版本历史"章节
-
----
-
-## 📜 许可证
-
-```
-SPHARX Airymax v0.0.4
-Copyright (c) 2025-2026 SPHARX Ltd.
-SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
-```
-
-**注意**: 本文档描述的是Developer Preview版本，API可能在后续版本中调整。生产环境使用请等待正式Release版本。
+Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.

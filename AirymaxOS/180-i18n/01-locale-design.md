@@ -155,7 +155,7 @@ locale -a | grep -E "zh_CN|en_US|ja_JP|ko_KR"
 agentrt-linux 在 Linux 6.6 内核基线上扩展 printk，支持运行时 locale 切换的多语言消息。所有内核消息以 UTF-8 编码存储，禁止使用 `wchar_t`（内核态不支持）。
 
 ```c
-/* airymaxos-kernel/kernel/airy_i18n.c */
+/* kernel/kernel/airy_i18n.c */
 #include <linux/spinlock.h>
 #include <linux/string.h>
 #include <linux/types.h>
@@ -349,7 +349,7 @@ WantedBy=multi-user.target
 ### 4.2 locale 切换伪代码（运行时动态切换）
 
 ```c
-/* airymaxos-services/common/airy_locale.c */
+/* services/common/airy_locale.c */
 #include <locale.h>
 #include <libintl.h>
 #include <stdlib.h>

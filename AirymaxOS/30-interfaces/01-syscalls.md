@@ -120,7 +120,7 @@ agentrt-linux 专用系统调用采用 **12 核心 + 12 预留 = 24 槽位** 方
 
 ## 3. C 接口定义
 
-所有系统调用通过 `AIRY_API` 宏导出，遵循 Linux 内核编码规范（Tab=8, snake_case, kernel-doc 注释）。头文件位置：`airymaxos-kernel/include/uapi/airy_syscalls.h`。
+所有系统调用通过 `AIRY_API` 宏导出，遵循 Linux 内核编码规范（Tab=8, snake_case, kernel-doc 注释）。头文件位置：`kernel/include/uapi/airy_syscalls.h`。
 
 ### 3.1 导出宏
 
@@ -369,7 +369,7 @@ AIRY_API int airy_sys_notify(cap_t cap);
 | `perf stat` | 调度器与 cache 事件计数 | `perf stat -e sched:* airymaxctl bench ipc` |
 | `io_uring-bench` | io_uring IPC 吞吐基准 | `io_uring-bench --zerocopy --msg-size 128` |
 
-剖析结果通过 OpenTelemetry Metrics 导出，与 `airymaxos-cloudnative/observability` 集成，形成持续性能基线。
+剖析结果通过 OpenTelemetry Metrics 导出，与 `cloudnative/observability` 集成，形成持续性能基线。
 
 ### 5.5 优先级与延迟预算
 

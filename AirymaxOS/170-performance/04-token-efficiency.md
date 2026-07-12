@@ -115,7 +115,7 @@ Token/Dollar = Token 生成总量 / 总成本
 通过 Linux 6.6 RAPL（Running Average Power Limit）接口测量功耗：
 
 ```c
-/* airymaxos-kernel/perf/token_energy.c [IND] */
+/* kernel/perf/token_energy.c [IND] */
 
 /**
  * airy_measure_power - 测量当前 Agent 的功耗
@@ -203,7 +203,7 @@ double airy_calc_token_per_watt(uint64_t tokens,
 通过 ftrace 追踪 Token 生成的各阶段延迟：
 
 ```c
-/* airymaxos-kernel/perf/token_latency.c [IND] */
+/* kernel/perf/token_latency.c [IND] */
 
 typedef struct airy_token_latency {
     uint64_t prefill_ns;      /* prefill 阶段延迟 */
@@ -285,7 +285,7 @@ double airy_calc_token_per_latency(const airy_token_latency_t *latency)
 ### 5.1 成本核算模型
 
 ```c
-/* airymaxos-services/cost/token_cost.c [IND] */
+/* services/cost/token_cost.c [IND] */
 
 typedef struct airy_cost_model {
     double gpu_cost_per_hour;     /* GPU 每小时成本（美元） */
@@ -341,7 +341,7 @@ double airy_calc_token_cost(uint64_t tokens,
 Token 预算契约（参考 `140-application-development/04-token-budget.md`）与能效工程紧密关联：
 
 ```c
-/* airymaxos-kernel/sched/token_budget.c [IND] */
+/* kernel/sched/token_budget.c [IND] */
 
 /**
  * airy_budget_check_efficiency - 检查 Agent 能效是否达标
@@ -399,7 +399,7 @@ int airy_budget_check_efficiency(uint32_t agent_id)
 ### 7.2 阶段感知调度
 
 ```c
-/* airymaxos-kernel/sched/scx_agent.c [IND] */
+/* kernel/sched/scx_agent.c [IND] */
 
 /**
  * airy_sched_llm_phase - 根据推理阶段调整调度策略
@@ -474,7 +474,7 @@ void airy_optimize_coreloop(uint32_t agent_id)
 ### 9.1 异构加速器能效
 
 ```c
-/* airymaxos-kernel/sched/accel_scheduler.c [IND] */
+/* kernel/sched/accel_scheduler.c [IND] */
 
 typedef struct airy_accel_efficiency {
     uint32_t accel_id;
@@ -526,7 +526,7 @@ uint32_t airy_select_efficient_accel(uint32_t agent_id,
 ### 10.1 能效指标采集
 
 ```c
-/* airymaxos-services/observability/efficiency_metrics.c [IND] */
+/* services/observability/efficiency_metrics.c [IND] */
 
 typedef struct airy_efficiency_metrics {
     uint32_t agent_id;
@@ -817,7 +817,7 @@ agentctl efficiency top
 agentctl efficiency optimize --agent 9012
 
 # 检测能效回归
-agentctl efficiency regression --baseline v1.0.0 --current v1.0.1
+agentctl efficiency regression --baseline v0.1.1 --current v1.0.1
 ```
 
 ---

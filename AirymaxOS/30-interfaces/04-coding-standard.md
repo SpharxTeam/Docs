@@ -15,26 +15,26 @@ agentrt-linux 8 子仓的全部源代码严格遵循 `50-engineering-standards/1
 
 | # | 规范文件 | 适用范围 | agentrt-linux 遵循要点 |
 |---|---------|---------|-------------------|
-| 1 | `NAMING_CONVENTIONS.md` | 全部子仓 | `airy_` 前缀 + `<service>_d` daemon + `module_action_object()` |
-| 2 | `C_coding_style_standard.md` | kernel / security / memory | 4 空格 + snake_case + 1TBS |
-| 3 | `Cpp_coding_style_standard.md` | 部分服务 | PascalCase 类型 + RAII |
-| 4 | `Rust_coding_style_standard.md` | cognition / cloudnative | rustfmt + clippy |
-| 5 | `Go_coding_style_standard.md` | cloudnative / agentctl | gofmt + go vet |
-| 6 | `Python_coding_style_standard.md` | SDK / DevStation | PEP 8 + type hints |
-| 7 | `JavaScript_coding_style_standard.md` | SDK (TS) | ESLint + Prettier |
-| 8 | `Rust_secure_coding_standard.md` | cognition / cloudnative | unsafe 审查 + 类型安全 |
-| 9 | `C_Cpp_secure_coding_standard.md` | kernel / security / memory | 边界检查 + 内存安全 |
-| 10 | `Go_secure_coding_standard.md` | cloudnative | errcheck + race detector |
-| 11 | `Java_secure_coding_standard.md` | （预留） | - |
-| 12 | `Security_design_standard.md` | 全部子仓 | 最小权限 + capability |
-| 13 | `Log_standard.md` | 全部子仓 | ANSI 颜色 + log_write() |
-| 14 | `Code_comment_template.md` | 全部子仓 | Doxygen 模板 |
-| 15 | `Config_Audit_Log_standard.md` | 全部子仓 | 配置审计日志 |
+| 1 | `coding_conventions.md Part IV` | 全部子仓 | `airy_` 前缀 + `<service>_d` daemon + `module_action_object()` |
+| 2 | `C_Cpp_coding_style.md Part I` | kernel / security / memory | 4 空格 + snake_case + 1TBS |
+| 3 | `C_Cpp_coding_style.md Part III` | 部分服务 | PascalCase 类型 + RAII |
+| 4 | `Rust_coding_style.md Part I` | cognition / cloudnative | rustfmt + clippy |
+| 5 | `Go_coding_style.md Part I` | cloudnative / agentctl | gofmt + go vet |
+| 6 | `scripting_coding_style.md Part I` | SDK / DevStation | PEP 8 + type hints |
+| 7 | `scripting_coding_style.md Part II` | SDK (TS) | ESLint + Prettier |
+| 8 | `Rust_coding_style.md Part II` | cognition / cloudnative | unsafe 审查 + 类型安全 |
+| 9 | `C_Cpp_coding_style.md Part IV` | kernel / security / memory | 边界检查 + 内存安全 |
+| 10 | `Go_coding_style.md Part II` | cloudnative | errcheck + race detector |
+| 11 | `scripting_coding_style.md Part III` | （预留） | - |
+| 12 | `coding_conventions.md Part V` | 全部子仓 | 最小权限 + capability |
+| 13 | `coding_conventions.md Part III` | 全部子仓 | ANSI 颜色 + log_write() |
+| 14 | `coding_conventions.md Part I` | 全部子仓 | Doxygen 模板 |
+| 15 | `coding_conventions.md Part II` | 全部子仓 | 配置审计日志 |
 
 **遵循原则**:
 
-- **强制优先**: 本文件未覆盖的事项，以 15 个规范文件为准。
-- **agentrt-linux 专属约定**: 本文件第 2-5 章给出 agentrt-linux 专属的命名空间与风格补充，与 15 个规范文件叠加生效。
+- **强制优先**: 本文件未覆盖的事项，以 5 个合并规范文件为准。
+- **agentrt-linux 专属约定**: 本文件第 2-5 章给出 agentrt-linux 专属的命名空间与风格补充，与 5 个合并规范文件叠加生效。
 - **评审门槛**: 代码评审必须检查编码规范遵循情况，违反规范必须打回（对齐 ACC-OS03 验收标准）。
 
 ---
@@ -115,7 +115,7 @@ agentrt-linux 全部公共符号使用统一命名空间前缀，与 agentrt 同
 
 ## 3. C 代码风格
 
-C 代码风格遵循 `C_coding_style_standard.md`，agentrt-linux 补充约定如下。
+C 代码风格遵循 `C_Cpp_coding_style.md Part I`，agentrt-linux 补充约定如下。
 
 ### 3.1 缩进与括号
 
@@ -154,7 +154,7 @@ if (ret < 0) {
 
 ## 4. Rust 代码风格
 
-Rust 代码风格遵循 `Rust_coding_style_standard.md`，agentrt-linux 补充约定如下。
+Rust 代码风格遵循 `Rust_coding_style.md Part I`，agentrt-linux 补充约定如下。
 
 ### 4.1 工具链
 
@@ -189,7 +189,7 @@ pub async fn submit_task(&self, desc: TaskDesc) -> Result<i32, Error> {
 
 ## 5. 日志标准
 
-日志标准遵循 `Log_standard.md`，agentrt-linux 补充约定如下。
+日志标准遵循 `coding_conventions.md Part III`，agentrt-linux 补充约定如下。
 
 ### 5.1 ANSI 颜色
 
@@ -245,7 +245,7 @@ AIRY_API void log_write_va(int level, const char *fmt, va_list ap);
 
 ## 6. Doxygen 注释模板
 
-注释模板遵循 `Code_comment_template.md`，所有公共函数必须使用以下 Doxygen 模板。
+注释模板遵循 `coding_conventions.md Part I`，所有公共函数必须使用以下 Doxygen 模板。
 
 ### 6.1 函数注释模板
 
@@ -300,7 +300,7 @@ struct airy_ipc_msg_hdr {
 
 ## 7. 安全编码规范
 
-安全编码遵循 `Security_design_standard.md` + `C_Cpp_secure_coding_standard.md` + `Rust_secure_coding_standard.md`，agentrt-linux 补充约定如下。
+安全编码遵循 `coding_conventions.md Part V` + `C_Cpp_coding_style.md Part IV` + `Rust_coding_style.md Part II`，agentrt-linux 补充约定如下。
 
 ### 7.1 输入验证
 
@@ -325,7 +325,7 @@ AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
 
 ### 7.2 内存管理
 
-- 禁止 `strcpy` / `strcat`，必须使用 `strncpy` / `strncat` 并显式限制长度。
+- 禁止 `strcpy` / `strcat` / `strncpy` / `strncat`，必须使用 `strscpy` / `strscpy_pad`（对齐 OS-BAN-004，禁止 strncpy 因其不保证 NUL 终止）。
 - 禁止 `sprintf`，必须使用 `snprintf`。
 - 动态分配必须配对 `free`，推荐使用 RAII（C++）或 `Drop`（Rust）。
 - 所有堆分配必须检查返回值。

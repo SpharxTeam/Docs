@@ -3,12 +3,15 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux ARE Standards 总览
 
-> **最新**： 2026-07-07\
+> **最新**： 2026-07-12\
 > **版本**： 0.1.1\
 > **状态**： 草案\
 > **路径**： OpenAirymax/docs/AirymaxOS/50-engineering-standards/30-runtime-interfaces/README.md\
 > **父文档**： [工程标准规范手册](../00-engineering-standards-handbook.md)\
-> **理论根基**： 体系并行论、五维正交24原则、IRON-9 v2 同源且部分代码共享  
+> **编号权威**： [09-ssot-registry.md §3](../09-ssot-registry.md)\
+> **理论根基**： 体系并行论、五维正交24原则、IRON-9 v2 同源且部分代码共享
+
+> **SSoT 依赖声明**：本子目录的规则编号登记于 [09-ssot-registry.md §3](../09-ssot-registry.md)。ARE（Airymax Runtime Environment）标准接口的命名前缀权威为 [coding_conventions.md Part IV §1.10](../10-coding-style/coding_conventions.md)（`are_*` 前缀）。
 
 ---
 
@@ -152,7 +155,7 @@ L1 位于最底层，定义微核心原语，包括：
 
 L1 与 agentrt L1 在 IRON-9 v2 [SC] 层共享核心数据结构定义，在 [SS] 层保持语义一致，实现则根据 OS 环境独立。L1 的设计严格遵循五维正交24原则中 K-1（内核极简原则），只保留最必要的原子机制，所有策略性决策外移。
 
-完整规范参见 [L1_runtime_interface.md](./L1_runtime_interface.md)。
+完整规范参见 [runtime_interfaces.md Part I](./runtime_interfaces.md)。
 
 ### 2.3 L2 服务通信协议
 
@@ -165,7 +168,7 @@ L2 位于中间层，定义 OS 层服务间的通信协议，包括：
 
 L2 与 agentrt L2 在 IRON-9 v2 [SC] 层共享消息头布局，magic 编号和字段顺序完全一致。L2 增加了 OS 层特有的 daemon 命名空间规范，适配 systemd 集成场景。
 
-完整规范参见 [L2_service_protocol.md](./L2_service_protocol.md)。
+完整规范参见 [runtime_interfaces.md Part II](./runtime_interfaces.md)。
 
 ### 2.4 L3 安全与治理
 
@@ -180,7 +183,7 @@ L3 位于最上层，定义安全模型和治理规则，包括：
 
 L3 与 agentrt L3 在 IRON-9 v2 [SC] 层共享 `security_types.h` 数据结构，安全模型语义同源，但 OS 层需要额外集成 Linux 安全模块（LSM）框架，这部分属于 [IND] 完全独立层。
 
-完整规范参见 [L3_security_governance.md](./L3_security_governance.md)。
+完整规范参见 [runtime_interfaces.md Part III](./runtime_interfaces.md)。
 
 ---
 
@@ -191,9 +194,9 @@ ARE Standards 遵循渐进式标准化路线图，从草案到正式发布分四
 | 阶段 | 版本 | 时间范围 | 主要目标 | 验收标准 |
 |------|------|----------|----------|----------|
 | **草案** | v0.1.1 | 2026 Q2-Q3 | 完成文档体系结构，定义三层架构边界 | 所有核心规范文档完成初稿，架构清晰无逻辑矛盾 |
-| **试用** | v0.2.0 | 2026 Q3-Q4 | 参考实现验证，社区反馈收集 | 至少两个独立实现基于该规范开发，主要接口通过一致性测试 |
-| **候选** | v0.3.0 | 2027 Q1 | 根据反馈修订，进入稳定期 | 所有已知 issue 解决，测试覆盖率达到 90% 以上 |
-| **正式** | v1.0.0 | 2027 Q2 | 最终审定，正式发布 | 经过 6 个月稳定期，无破坏性变更需求 |
+| **试用** | v1.0.1 | 2026 Q3-Q4 | 参考实现验证，社区反馈收集 | 至少两个独立实现基于该规范开发，主要接口通过一致性测试 |
+| **候选** | v1.0.1 | 2027 Q1 | 根据反馈修订，进入稳定期 | 所有已知 issue 解决，测试覆盖率达到 90% 以上 |
+| **正式** | v1.0.1 | 2027 Q2 | 最终审定，正式发布 | 经过 6 个月稳定期，无破坏性变更需求 |
 
 当前版本为 **v0.1.1**，定义文档体系结构与三层架构边界，核心接口规范由本目录 L1/L2/L3 文档完整描述。
 
@@ -274,7 +277,7 @@ ARE Standards 采用语义版本命名：
 在 v0.1.1 草案阶段，ARE Standards 保留在 agentrt-linux 仓库的 `docs/AirymaxOS/50-engineering-standards/30-runtime-interfaces/` 目录下，不独立仓库。原因：
 - 标准尚未稳定，独立会增加变更成本
 - 当前共享模型（IRON-9 v2）已经解决大部分一致性问题
-- 等标准进入候选阶段（v0.3.0）后，再重新评估独立仓库的必要性
+- 等标准进入候选阶段（v1.0.1）后，再重新评估独立仓库的必要性
 
 如果未来 ARE Standards 被多个项目广泛采用，再考虑分离为独立仓库。
 

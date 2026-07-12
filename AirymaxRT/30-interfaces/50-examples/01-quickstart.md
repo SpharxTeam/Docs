@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/50-examples/01-quickstart.md
+**路径**: docs/AirymaxRT/30-interfaces/50-examples/01-quickstart.md
 ---
 
 ## 📋 前置要求
@@ -114,7 +114,7 @@ agentrt-llm-d --help
 
 ```bash
 # 进入项目目录
-cd AgentRT/Docker/30-api/docker
+cd AirymaxRT/30-interfaces/40-docker
 
 # 启动所有服务
 docker-compose up -d
@@ -556,18 +556,18 @@ airy_loop_create(&config, &loop);
 
 ### 初学者 (刚接触Airymax)
 1. ✅ 完成本快速入门
-2. 📖 阅读 [CoreLoopThree API](../core/coreloop_api.md)
+2. 📖 阅读 [CoreLoopThree API](../20-core/01-coreloop-api.md)
 3. 💡 尝试修改 `hello_agent.c` 的参数
-4. 🧪 运行更多 [examples](../examples/)
+4. 🧪 运行更多 [示例](./)
 
 ### 中级开发者
-1. 📖 学习 [用户态服务 API](../daemon/gateway_api.md)
-2. 🔧 实现 [自定义工具](../examples/custom_tool_example.c)
+1. 📖 学习 [用户态服务 API](../30-daemon/02-gateway-api.md)
+2. 🔧 实现自定义工具
 3. 🌐 集成外部LLM API
 4. 🧪 编写单元测试
 
 ### 高级开发者
-1. 📖 研究 [协议栈扩展（待编写）](../protocols/protocol_extension_api.md)
+1. 📖 研究协议栈扩展
 2. 🏗️ 开发自定义协议适配器
 3. 🔬 性能优化与调优
 4. 🤝 贡献代码到主仓库
@@ -579,7 +579,7 @@ airy_loop_create(&config, &loop);
 - **文档**: https://docs.agentrt.dev
 - **GitHub Issues**: https://github.com/spharx/AgentRT/issues
 - **Discussions**: https://github.com/spharx/AgentRT/discussions
-- **邮件列表**: dev@agentrt.dev (即将开放)
+- **邮件列表**: dev@agentrt.dev
 
 ---
 

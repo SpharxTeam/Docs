@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/10-architecture/50-services/01-daemon.md
+**路径**: docs/AirymaxRT/10-architecture/50-services/01-daemon.md
 ---
 
 ## 模块概述
@@ -13,7 +13,7 @@ Airymax Daemon 模块是用户空间用户态服务集合，负责提供 MicroCo
 
 ## 服务清单
 
-> **注**: 本文档 V7.0 原列 6 个核心服务。经源码审计确认实际存在 **12 个独立服务进程**（详见 10-terminology.md v3.0 裁决 #4，P4.8.2 补遗新增 hook_d / plugin_d）。以下为完整清单：
+> **注**: 本文档 V7.0 原列 6 个核心服务。经源码审计确认实际存在 **12 个独立服务进程**（详见 TERMINOLOGY.md v3.0 裁决 #4，P4.8.2 补遗新增 hook_d / plugin_d）。以下为完整清单：
 
 | 服务 | 端口 (TCP) | Unix Socket | 功能 |
 |------|-----------|-------------|------|

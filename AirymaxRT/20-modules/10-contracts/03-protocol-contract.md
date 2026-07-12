@@ -35,7 +35,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 术语定义
 
-本规范使用的术语定义见 [统一术语表](../10-terminology.md),关键术语包括：
+本规范使用的术语定义见 [统一术语表](../../TERMINOLOGY.md),关键术语包括：
 
 | 术语 | 简要定义 | 来源 |
 |------|---------|------|
@@ -491,7 +491,7 @@ Content-Type: application/json
 typedef int32_t airy_err_t;
 
 // 常见错误码（数值与 AirymaxOS 错误码体系对齐）
-#define AIRY_EOK         0    // 成功
+#define AIRY_OK         0    // 成功
 #define AIRY_EINVAL     -1    // 参数无效
 #define AIRY_ENOMEM     -2    // 内存不足
 #define AIRY_EBUSY      -9    // 资源忙
@@ -526,14 +526,14 @@ airy_err_t airy_sys_task_submit(
 
 #### 5.3.1 内核分配的内存
 
-内核分配的内存 (如 `out_result`) 由调用者通过 `free()` 释放：
+内核分配的内存 (如 `out_result`) 由调用者通过 `AIRY_FREE()` 释放（BAN 合规：禁止裸 C 标准库释放函数，必须使用 `AIRY_FREE` 宏）：
 
 ```c
 char* result = NULL;
 airy_err_t err = airy_sys_task_submit("...", 10, 30000, &result);
-if (err == AIRY_EOK) {
+if (err == AIRY_OK) {
     printf("Result: %s\n", result);
-    free(result);  // 必须释放
+    AIRY_FREE(result);  // 必须释放
 }
 ```
 
@@ -558,7 +558,7 @@ for (int i = 0; i < 10; i++) {
     char* result;
     airy_sys_task_submit(task[i], strlen(task[i]), 30000, &result);
     // 处理结果...
-    free(result);
+    AIRY_FREE(result);
 }
 ```
 
@@ -692,7 +692,7 @@ airy_request_total{method="llm.complete",status="success"} 1234
 
 | 错误码 | 值 | 说明 |
 |--------|-----|------|
-| `AIRY_EOK` | 0 | 成功 |
+| `AIRY_OK` | 0 | 成功 |
 | `AIRY_EINVAL` | -1 | 无效参数 |
 | `AIRY_ENOMEM` | -2 | 内存不足 |
 | `AIRY_ENOSYS` | -3 | 未实现 |
@@ -746,21 +746,21 @@ int main() {
 
     // 1. 创建会话
     char* session_id = NULL;
-    if (airy_sys_session_create("{\"user\":\"alice\"}", &session_id) != AIRY_EOK) {
+    if (airy_sys_session_create("{\"user\":\"alice\"}", &session_id) != AIRY_OK) {
         fprintf(stderr, "Failed to create session\n");
         return 1;
     }
     printf("Session created: %s\n", session_id);
-    free(session_id);
+    AIRY_FREE(session_id);
 
     // 2. 提交任务
     char* result = NULL;
     airy_err_t err = airy_sys_task_submit(
         "Develop a simple e-commerce product listing page",
         50, 30000, &result);
-    if (err == AIRY_EOK) {
+    if (err == AIRY_OK) {
         printf("Task result: %s\n", result);
-        free(result);
+        AIRY_FREE(result);
     } else {
         fprintf(stderr, "Task failed: %d\n", err);
     }
@@ -865,7 +865,7 @@ curl -X POST http://localhost:8080/rpc \
 | [系统调用 API 规范](./syscall_api_contract.md) | 本规范定义了系统调用的传输协议，syscall_api_contract.md 定义了具体的 API 接口 |
 | [日志格式规范](./logging_format.md) | 本规范要求所有组件使用统一的日志格式，支持 TraceID 贯穿 |
 | [日志打印规范](../30-coding-standard/10-log-standard.md) | 通信过程中的日志记录应遵循日志打印规范 |
-| [统一术语表](../10-terminology.md) | 本规范使用的术语定义和解释 |
+| [统一术语表](../../TERMINOLOGY.md) | 本规范使用的术语定义和解释 |
 
 ---
 
@@ -873,7 +873,7 @@ curl -X POST http://localhost:8080/rpc \
 
 [1] Airymax 设计哲学。../../00-basic-theories/04-design-principles-cn.md  
 [2] 架构设计原则。../../00-architectural-principles.md  
-[3] 统一术语表。../10-terminology.md  
+[3] 统一术语表。../../TERMINOLOGY.md  
 [4] JSON-RPC 2.0 Specification. https://www.jsonrpc.org/specification  
 [5] RFC 6455: The WebSocket Protocol. https://tools.ietf.org/html/rfc6455  
 [6] RFC 7231: Hypertext Transfer Protocol (HTTP/1.1). https://tools.ietf.org/html/rfc7231  

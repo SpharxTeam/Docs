@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）认知设计文档（airymaxos-cognition，极境认知）
+# agentrt-linux（AirymaxOS）认知设计文档（cognition，极境认知）
 
 > **子仓编号**：05\
 > **子仓代号**：极境认知（Airymax Cognition）\
@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-cognition` 是 agentrt-linux（AirymaxOS）的认知与 AI 推理子仓，承担以下核心职责：
+`cognition` 是 agentrt-linux（AirymaxOS）的认知与 AI 推理子仓，承担以下核心职责：
 
 1. **CoreLoopThree kthread 实现 [SS]**：将 agentrt 的 CoreLoopThree（三层认知循环）升级为 OS 级 kthread 实现，提供 Agent 认知循环的内核态加速。阶段枚举与上下文结构 [SC] 与 agentrt 共享。
 2. **Thinkdual 双思考系统内核态加速 [SS]**：将 agentrt 的 Thinkdual（双思考系统）通过内核态加速提升响应速度。模式枚举 [SC] 与 agentrt 共享。
@@ -58,7 +58,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 coreloopthree）与 agentrt-linux（内核态 airymaxos-cognition）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 coreloopthree）与 agentrt-linux（内核态 cognition）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 认知子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
@@ -68,7 +68,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（coreloopthree + frameworks） | agentrt-linux（airymaxos-cognition） | 同源标注 |
+| 维度 | agentrt（coreloopthree + frameworks） | agentrt-linux（cognition） | 同源标注 |
 |------|--------------------------------------|-------------------------------|----------|
 | 认知循环 | CoreLoopThree（用户态） | CoreLoopThree kthread（内核态） | [SS] |
 | 双思考 | Thinkdual（用户态） | Thinkdual 内核态加速 | [SS] |
@@ -91,7 +91,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 3. 目录结构
 
 ```
-airymaxos-cognition/
+cognition/
 ├── coreloopthree/          # CoreLoopThree kthread 实现 [SS]
 ├── thinkdual/             # Thinkdual 双思考系统内核态加速 [SS]
 ├── wasm-runtime/           # Wasm 3.0 runtime（安全沙箱）[IND]
@@ -293,7 +293,7 @@ typedef enum {
 - 内存隔离（线性内存模型）。
 - capability-based security（WASI capability）。
 - 资源限制（fuel metering）。
-- 与 `airymaxos-security/sandbox` 协作。
+- 与 `security/sandbox` 协作。
 
 ### 4.4 LLM 推理感知调度（基于 agentrt-linux 认知循环）[SS]
 
@@ -399,19 +399,19 @@ typedef struct airy_token_efficiency_metric {
 
 遵循微内核"机制在内核，策略在用户态"原则（Liedtke minimality principle）：
 - 内核提供 CoreLoopThree kthread 机制（调度、加速）[IND]。
-- 认知策略（思考模型、决策逻辑）在用户态（与 `airymaxos-services/daemons/llm_d` 协作）[SS]。
+- 认知策略（思考模型、决策逻辑）在用户态（与 `services/daemons/llm_d` 协作）[SS]。
 - 阶段枚举与上下文结构 [SC] 两端共享，确保语义一致。
 
 ### 5.2 算力调度解耦
 
 - 算力调度机制在内核（GPU/NPU 调度器，基于 `drm_sched` + `drivers/accel/`）[IND]。
-- 调度策略在用户态（与 `airymaxos-services/daemons/sched_d` 协作）[SS]。
+- 调度策略在用户态（与 `services/daemons/sched_d` 协作）[SS]。
 - GPU/NPU 能力描述符 [SC] 两端共享。
 
 ### 5.3 安全沙箱隔离
 
 - Wasm runtime 提供安全沙箱隔离 [IND]。
-- 与 `airymaxos-security/sandbox` 协作提供多层防护 [SS]。
+- 与 `security/sandbox` 协作提供多层防护 [SS]。
 - capability-based security 通过 [SC] 共享契约层与安全子系统对齐。
 
 ### 5.4 消息传递通信
@@ -536,13 +536,13 @@ sequenceDiagram
 
 | 协作子仓 | 协作内容 | 同源标注 |
 |---------|---------|----------|
-| `airymaxos-kernel` | 提供 CoreLoopThree kthread 机制、Wasm runtime 内核支持 | [SS] + [IND] |
-| `airymaxos-services` | 与 llm_d/sched_d 协作，调度策略在用户态 | [SS] |
-| `airymaxos-security` | 提供 Wasm 沙箱、LLM 推理 TEE 保护 | [SS] + [IND] |
-| `airymaxos-memory` | 提供 MemoryRovol 快照、超节点沙箱迁移 | [IND] |
-| `airymaxos-cloudnative` | 提供 Agent 容器化、超节点 OS 集成 | [IND] |
-| `airymaxos-system` | 提供认知监控工具 | [SS] |
-| `airymaxos-tests-linux` | 认知测试、性能基准 | [SS] |
+| `kernel` | 提供 CoreLoopThree kthread 机制、Wasm runtime 内核支持 | [SS] + [IND] |
+| `services` | 与 llm_d/sched_d 协作，调度策略在用户态 | [SS] |
+| `security` | 提供 Wasm 沙箱、LLM 推理 TEE 保护 | [SS] + [IND] |
+| `memory` | 提供 MemoryRovol 快照、超节点沙箱迁移 | [IND] |
+| `cloudnative` | 提供 Agent 容器化、超节点 OS 集成 | [IND] |
+| `system` | 提供认知监控工具 | [SS] |
+| `tests-linux` | 认知测试、性能基准 | [SS] |
 
 ---
 

@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/40-docker/README.md
+**路径**: docs/AirymaxRT/30-interfaces/40-docker/README.md
 ---
 
 ## 🎯 三种部署方式
@@ -13,7 +13,7 @@
 
 ```bash
 # 1. 进入docker目录
-cd Docs/30-api/docker
+cd docs/AirymaxRT/30-interfaces/40-docker
 
 # 2. 配置环境变量（可选）
 cp .env.example .env
@@ -103,7 +103,7 @@ services:
   dev:
     build:
       context: ../../
-      dockerfile: Docs/30-api/40-docker/Dockerfile.dev
+      dockerfile: docs/AirymaxRT/30-interfaces/40-docker/Dockerfile.dev
     volumes:
       - ../..:/workspace/Airymax
     working_dir: /workspace/AgentRT/build

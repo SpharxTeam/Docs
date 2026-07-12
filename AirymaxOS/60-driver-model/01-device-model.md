@@ -65,7 +65,7 @@ struct device {
 
 `struct bus_type`（节选自 Linux 6.6 `include/linux/device/bus.h` 第 80 行）核心字段：`name`、`match`、`uevent`、`probe`、`remove`、`shutdown`、`suspend`/`resume`、`dma_configure`、`pm`。`match` 回调是绑定入口，返回正数表示匹配成功。
 
-> **OS-STD-010**： 任何 agentrt-linux 内核态 driver 必须通过 `driver_register()` 注册，禁止绕过驱动核心直接调用 `probe`。
+> **OS-STD-DRV-010**： 任何 agentrt-linux 内核态 driver 必须通过 `driver_register()` 注册，禁止绕过驱动核心直接调用 `probe`。
 
 > **OS-DRV-003**： 自定义总线必须实现 `match` 回调；`probe`/`remove` 回调可委托给 driver 自身，但 `match` 不能为空。
 
@@ -294,7 +294,7 @@ module_platform_driver(my_driver);
 
 > **OS-DRV-007**： OF 匹配表最后一项必须是"全零 sentinel 项" `{ /* sentinel */ }`。`of_match_table` 的遍历循环依赖此项终止，缺失会导致越界读取。
 
-> **OS-STD-011**： `compatible` 字符串必须遵循 `<vendor>,<device>-<version>` 格式（如 `spharx,my-device-v2`）。vendor 必须是已注册的厂商前缀，device 名称短小且无下划线。
+> **OS-STD-DRV-011**： `compatible` 字符串必须遵循 `<vendor>,<device>-<version>` 格式（如 `spharx,my-device-v2`）。vendor 必须是已注册的厂商前缀，device 名称短小且无下划线。
 
 ### 4.3 ACPI 匹配与 DT/ACPI 双源回退
 
@@ -500,13 +500,13 @@ IRON-9 v2 将 agentrt daemons 设备访问模式与 agentrt-linux 内核 device 
  * SSoT struct airy_task_desc 物理宿主见 120-cross-project-code-sharing.md §2.6。
  * agent_id 为 [SS] 语义层扩展字段（Agent 实例 ↔ 内核设备匹配键），
  * 不在 [SC] struct 中定义，由 device_driver 匹配逻辑维护。 */
-#define AIRY_TASK_MAGIC   0x41475453   /* 'AGTS' —— Agent 任务描述符 magic（SSoT） */
+#define AIRY_TASK_MAGIC	0x41475453u	/* 'AGTS' —— Agent 任务描述符 magic（SSoT） */
 
 struct airy_task_desc {       /* [SC] SSoT，物理宿主 include/airymax/sched.h */
-    uint32_t magic;          /* AIRY_TASK_MAGIC，校验 Agent 任务 */
-    uint16_t prio;           /* 优先级 0-139（0 最高） */
-    uint16_t _pad;
-    int32_t  vtime;          /* Q16.16 定点虚拟时间 */
+	__u32		magic;		/* AIRY_TASK_MAGIC 0x41475453 'AGTS' */
+	__u16		prio;		/* 优先级 0-139（0 最高） */
+	__u16		_pad;
+	airy_vtime_t	vtime;		/* Q16.16 定点虚拟时间 */
     /* [SS] 语义层扩展：agent_id（Agent 实例 ID，用于 device_driver 匹配）
      * 不在此 [SC] struct 中定义，由驱动模型匹配逻辑维护 */
 };
@@ -553,7 +553,7 @@ graph LR
     style E fill:#fde68a,stroke:#b45309
 ```
 
-agentrt daemons 通过 [SC] 间接共享契约层读取 `include/airymax/sched.h` 任务描述符的 `agent_id` 字段，将 Agent 实例与 agentrt-linux 内核设备匹配，触发 `bus_type.match` → `driver probe` 探测链。两端通过 AgentsIPC 总线（128B 消息头，magic `0x41524531`）同步设备事件（uevent），无适配层。MicroCoreRT 极简内核契约要求（OS-KER-030）：内核态 device model 不得引入对用户态 daemon 的强依赖——`probe` 回调不得阻塞等待 daemon 响应；daemon 缺失时内核回退到默认行为，daemon 在 5 秒内未响应触发超时回退。
+agentrt daemons 通过 [SC] 间接共享契约层读取 `include/airymax/sched.h` 任务描述符的 `agent_id` 字段，将 Agent 实例与 agentrt-linux 内核设备匹配，触发 `bus_type.match` → `driver probe` 探测链。两端通过 AgentsIPC 总线（128B 消息头，magic `0x41524531`）同步设备事件（uevent），无适配层。MicroCoreRT 极简内核契约要求（OS-KER-149）：内核态 device model 不得引入对用户态 daemon 的强依赖——`probe` 回调不得阻塞等待 daemon 响应；daemon 缺失时内核回退到默认行为，daemon 在 5 秒内未响应触发超时回退。
 
 ### 8.3 IRON-9 v2 同源且部分代码共享的实践
 
@@ -565,11 +565,11 @@ agentrt daemons 通过 [SC] 间接共享契约层读取 `include/airymax/sched.h
 
 > **OS-DRV-013**： 用户态 `devm_airy_*` 资源族的释放顺序必须与内核态 `devm_` 一致——LIFO（后进先出）。这保证跨内核/用户态的"绑定链"按一致的顺序解构。
 
-> **OS-KER-030**： 内核态 device/driver/bus 模型不得引入任何对用户态 daemon 的强依赖——`probe` 回调不得阻塞等待 daemon 响应。需要 daemon 配合的场景必须通过 uevent 异步通知，daemon 缺失时内核回退到默认行为。这是 K-1 内核极简原则在驱动模型边界的硬性约束。
+> **OS-KER-149**： 内核态 device/driver/bus 模型不得引入任何对用户态 daemon 的强依赖——`probe` 回调不得阻塞等待 daemon 响应。需要 daemon 配合的场景必须通过 uevent 异步通知，daemon 缺失时内核回退到默认行为。这是 K-1 内核极简原则在驱动模型边界的硬性约束。
 
 ### 8.4 Agent 虚拟设备驱动深化
 
-Agent 虚拟设备驱动是 agentrt-linux 专属扩展的核心——它将 agentrt 用户态的 Agent 实例映射为符合 Linux 设备模型的虚拟设备，使 Agent 可通过标准 `device_register`/`driver_register`/`bus_type.match` API 统一管理。此扩展完全在用户态 daemon（`agentrt-bus`）中实现（OS-DRV-002），内核态仅提供 `kobject_uevent` 异步通知通道，不引入对 daemon 的强依赖（OS-KER-030）。
+Agent 虚拟设备驱动是 agentrt-linux 专属扩展的核心——它将 agentrt 用户态的 Agent 实例映射为符合 Linux 设备模型的虚拟设备，使 Agent 可通过标准 `device_register`/`driver_register`/`bus_type.match` API 统一管理。此扩展完全在用户态 daemon（`agentrt-bus`）中实现（OS-DRV-002），内核态仅提供 `kobject_uevent` 异步通知通道，不引入对 daemon 的强依赖（OS-KER-149）。
 
 #### 8.4.1 agent_device 结构定义
 
@@ -704,7 +704,7 @@ struct bus_type agent_bus_type = {
 
 > **OS-DRV-016**： `agent_bus_match` 必须校验 `agent_id` 范围（1 ≤ agent_id ≤ `MAC_MAX_AGENTS`=1024）。越界的 agent_id 指示 sched.h 任务描述符损坏，匹配必须失败以防止绑定到非法 Agent 实例。
 
-> **OS-DRV-017**： `agent_bus_type` 的 `probe`/`remove` 回调不得直接调用 daemon 的阻塞函数。它们通过 `kobject_uevent` 异步通知 daemon，daemon 在 5 秒内未响应时触发超时回退（OS-KER-030）。
+> **OS-DRV-017**： `agent_bus_type` 的 `probe`/`remove` 回调不得直接调用 daemon 的阻塞函数。它们通过 `kobject_uevent` 异步通知 daemon，daemon 在 5 秒内未响应时触发超时回退（OS-KER-149）。
 
 #### 8.4.4 Agent 设备生命周期与内核协作
 

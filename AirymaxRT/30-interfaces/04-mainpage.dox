@@ -20,7 +20,7 @@
  * | **MemoryRovol** | 记忆卷载：多层记忆存储与检索 | `memoryrovol.h`, `layer1_raw.h`, `retrieval.h`, `forgetting.h` |
  * | **Syscall** | 系统调用：Agent/Skill/Task/Session管理 | `syscalls.h` |
  * | **TaskFlow** | 任务流：图计算引擎与工作流 | `taskflow.h`, `graph_engine.h`, `pregel_engine.h` |
- * | **Frameworks** | 统一框架抽象：五大框架生命周期管理 | `agentrt_frameworks.h` |
+ * | **Frameworks** | 统一框架抽象：五大框架生命周期管理 | `airy_frameworks.h` |
  *
  * @subsection layer_commons 公共层 (Commons)
  * 跨模块共享的基础设施：

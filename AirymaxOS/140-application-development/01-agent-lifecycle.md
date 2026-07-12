@@ -443,7 +443,7 @@ struct airy_exit_info {
 /* 借鉴 seL4 include/object/structures.h */
 compile_assert(agent_state_size, sizeof(struct airy_agent_state) == 64);
 compile_assert(token_budget_alignment, IS_ALIGNED(sizeof(struct airy_token_budget), 16));
-compile_assert(agent_id_max, AIRY_MAX_AGENTS <= 1024);
+compile_assert(agent_id_max, MAC_MAX_AGENTS <= 1024);
 ```
 
 ---
@@ -458,7 +458,7 @@ compile_assert(agent_id_max, AIRY_MAX_AGENTS <= 1024);
 - [系统调用编号注册表](07-syscall-registry.md) — 应用层 API 到系统调用编号映射（第 5 章）
 - `30-interfaces/01-syscalls.md`（系统调用接口设计）
 - `30-interfaces/02-ipc-protocol.md`（AgentsIPC 协议）
-- `50-engineering-standards/20-contracts/syscall_api_contract.md`（系统调用 API 契约）
+- `50-engineering-standards/20-contracts/contracts.md`（系统调用 API 契约）
 - `20-modules/03-security.md`（Capability 安全模型）
 - `20-modules/05-cognition.md`（CoreLoopThree 认知循环）
 

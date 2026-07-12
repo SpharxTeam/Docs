@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/30-daemon/01-api-documentation.md
+**路径**: docs/AirymaxRT/30-interfaces/30-daemon/01-api-documentation.md
 ---
 
 ## 目录

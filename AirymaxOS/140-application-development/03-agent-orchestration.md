@@ -318,7 +318,7 @@ static struct airy_task_node nodes[] = {
 agentrt-linux 将 TaskFlow 引擎实现为内核 kthread，获得 OS 级调度优先级：
 
 ```c
-/* airymaxos-cognition/taskflow.c（内核态） */
+/* cognition/taskflow.c（内核态） */
 
 static struct task_struct *taskflow_kthread;
 

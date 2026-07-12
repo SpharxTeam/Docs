@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/kernel_tuning.md
+**路径**: docs/AirymaxRT/140-application-development/kernel_tuning.md
 ---
 
 ## 1. 概述

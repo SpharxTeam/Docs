@@ -52,7 +52,7 @@ Design → Early review → Wider review → Mainline → Stable release → Lon
 ```
 普通贡献者
     ↓ 提交 PR
-子系统维护者（airymaxos-kernel、airymaxos-services 等）
+子系统维护者（kernel、services 等）
     ↓ pull 请求
 顶级子系统维护者（airymaxos 总维护者）
     ↓ pull 请求

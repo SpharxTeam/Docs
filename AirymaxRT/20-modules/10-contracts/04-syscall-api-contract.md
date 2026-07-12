@@ -56,7 +56,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 术语定义
 
-本规范使用的术语定义见 [统一术语表](../10-terminology.md),关键术语包括：
+本规范使用的术语定义见 [统一术语表](../../TERMINOLOGY.md),关键术语包括：
 
 | 术语 | 简要定义 | 来源 |
 |------|---------|------|
@@ -1357,7 +1357,7 @@ ERROR_MAP = {
 | [架构设计原则](../../../10-architecture/00-architectural-principles.md) | 本规范是架构原则在系统调用层面的具体实现 |
 | [日志格式规范](./logging_format.md) | 系统调用的日志记录应遵循统一的日志格式 |
 | [日志打印规范](../30-coding-standard/10-log-standard.md) | 错误处理和审计日志的记录规范 |
-| [统一术语表](../10-terminology.md) | 本规范使用的术语定义和解释 |
+| [统一术语表](../../TERMINOLOGY.md) | 本规范使用的术语定义和解释 |
 
 ---
 
@@ -1365,7 +1365,7 @@ ERROR_MAP = {
 
 [1] Airymax 设计哲学。../../00-basic-theories/04-design-principles-cn.md  
 [2] 架构设计原则。../../../10-architecture/00-architectural-principles.md  
-[3] 统一术语表。../10-terminology.md  
+[3] 统一术语表。../../TERMINOLOGY.md  
 [4] Microkernel Architecture. https://en.wikipedia.org/wiki/Microkernel  
 [5] POSIX System Call Interface. https://pubs.opengroup.org/onlinepubs/9699919799/  
 

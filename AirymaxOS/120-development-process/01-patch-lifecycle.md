@@ -135,6 +135,8 @@ flowchart LR
 - **OS-DEV-111**：早期审查 PR 必须包含完整的补丁描述（问题描述、用户可见影响、量化权衡），禁止"占位描述"。
 - **OS-DEV-112**：早期审查阶段的所有审查意见必须在 PR 内联回复，禁止离线沟通。
 - **OS-DEV-113**：不同意审查意见必须解释技术理由，沉默忽略视为致命错误。
+- **OS-DEV-114**：每个 commit 必须包含 `Signed-off-by:` 行（使用 `git commit -s` 自动添加），表明贡献者签署 DCO 1.1（Developer Certificate of Origin），与 Linux 内核社区 `Documentation/process/submitting-patches.rst` §12 对齐。
+- **OS-DEV-115**：`Signed-off-by:` 必须使用真实姓名与有效邮箱，禁止匿名或角色邮箱；DCO 签名链必须反映补丁真实审查路径（作者 → 审查者 → 合并者）。
 
 ### 4.3 PR 提交示例
 
@@ -421,28 +423,28 @@ flowchart TD
 
 ```bash
 # 1. 先在 system 子仓提交协议变更 PR
-cd airymaxos-system
-git checkout -b feature/agentsipc-new-field
-git commit -s -m "system/agentsipc: add agent_priority field to 128B header
+cd system
+git checkout -b feature/airy_ipc-new-field
+git commit -s -m "system/airy_ipc: add agent_priority field to 128B header
 
 Add a new u8 agent_priority field at offset 120 of the AgentsIPC
 128B message header. ABI impact: L2 (backward compatible, padding
 bytes consumed).
 
 Signed-off-by: Author Name <author@example.com>"
-gh pr create --base develop --title "system/agentsipc: add agent_priority field"
+gh pr create --base develop --title "system/airy_ipc: add agent_priority field"
 
 # 2. system 子仓 PR 合并后，更新 kernel 子仓的 submodule 指针
 cd ../airymaxos-kernel
-git checkout -b feature/agentsipc-priority-support
-git submodule update --remote airymaxos-system
-git commit -s -m "kernel: consume agentsipc agent_priority field
+git checkout -b feature/airy_ipc-priority-support
+git submodule update --remote system
+git commit -s -m "kernel: consume airy_ipc agent_priority field
 
 Update MicroCoreRT IPC dispatch to read the new agent_priority
 field and route high-priority messages to the fast path.
 
 Signed-off-by: Author Name <author@example.com>"
-gh pr create --base develop --title "kernel: consume agentsipc agent_priority field"
+gh pr create --base develop --title "kernel: consume airy_ipc agent_priority field"
 ```
 
 ### 10.3 跨仓审查规则

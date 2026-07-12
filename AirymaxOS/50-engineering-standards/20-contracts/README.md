@@ -4,8 +4,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **文档定位**： agentrt-linux（AirymaxOS）OS 层契约规范体系的入口与索引\
 > **版本**： 0.1.1\
-> **最后更新**： 2026-07-07\
-> **父文档**： [agentrt-linux 设计文档](../../README.md)
+> **最后更新**： 2026-07-12\
+> **父文档**： [工程标准规范手册](../00-engineering-standards-handbook.md)\
+> **编号权威**： [09-ssot-registry.md §3](../09-ssot-registry.md)
+
+> **SSoT 依赖声明**：本子目录的规则编号登记于 [09-ssot-registry.md §3](../09-ssot-registry.md)。其中 `contracts.md`（Part III 日志格式契约）为日志格式与传输管道的唯一 SSoT。
 
 ---
 
@@ -132,9 +135,7 @@ graph TB
 | # | 文档 | 核心内容 | 契约类别 | 目标行数 |
 |---|------|---------|---------|---------|
 | 1 | [README.md](README.md) | 总览（本文件） | 元契约（索引与治理） | 400-700 |
-| 2 | [syscall_api_contract.md](syscall_api_contract.md) | 系统调用 API 契约 | syscall API | 400-700 |
-| 3 | [ipc_protocol_contract.md](ipc_protocol_contract.md) | IPC 协议契约 | IPC 协议 | 400-700 |
-| 4 | [logging_contract.md](logging_contract.md) | 日志格式契约 | 日志格式 | 400-700 |
+| 2 | [contracts.md](contracts.md) | 统一契约（IPC + Syscall + 日志） | 全部 | 1200-1500 |
 
 ### 3.2 契约分类矩阵
 

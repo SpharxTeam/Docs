@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/10-architecture/20-engineering/01-testing.md
+**路径**: docs/AirymaxRT/10-architecture/20-engineering/01-testing.md
 ---
 
 ## 📋 概述

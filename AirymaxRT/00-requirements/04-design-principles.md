@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09  
 **状态**: Release       
-**路径**: OpenAirymax/Docs/00-basic-theories/04-design-principles.md
+**路径**: docs/AirymaxRT/00-requirements/04-design-principles.md
 
 ## 1. Introduction
 

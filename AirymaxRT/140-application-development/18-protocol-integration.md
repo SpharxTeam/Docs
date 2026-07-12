@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/protocol_integration_guide.md
+**路径**: docs/AirymaxRT/140-application-development/protocol_integration_guide.md
 
 ## 概述
 

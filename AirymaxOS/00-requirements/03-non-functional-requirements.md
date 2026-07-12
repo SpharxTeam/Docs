@@ -582,19 +582,19 @@ airymaxos-monitor --resources --interval 60s --duration 7d
 
 ```prometheus
 # 性能指标
-airymaxos_task_latency_seconds{quantile="0.99"} 0.095
-airymaxos_ipc_throughput_msgs_per_second 125000
-airymaxos_error_rate 0.001
+airy_task_latency_seconds{quantile="0.99"} 0.095
+airy_ipc_throughput_msgs_per_second 125000
+airy_error_rate 0.001
 
 # 资源指标
-airymaxos_cpu_usage_percent 45.2
-airymaxos_memory_usage_bytes 536870912
-airymaxos_disk_io_bytes_per_second 1048576
+airy_cpu_usage_percent 45.2
+airy_memory_usage_bytes 536870912
+airy_disk_io_bytes_per_second 1048576
 
 # 业务指标
-airymaxos_agent_tasks_total 12345
-airymaxos_tokens_generated_total 9876543
-airymaxos_active_sessions 1500
+airy_agent_tasks_total 12345
+airy_tokens_generated_total 9876543
+airy_active_sessions 1500
 ```
 
 ### 6.2 NFR-O-002：Tracing 链路追踪
@@ -772,11 +772,11 @@ airymaxos_active_sessions 1500
 
 | NFR 系列 | 验收方法 | 验收工具 | 责任子仓 |
 |---|---|---|---|
-| NFR-P 性能 | 性能基准测试 | Locust + k6 + perf + ftrace | airymaxos-tests-linux |
-| NFR-S 安全 | 渗透测试 + 形式化验证 | seL4 风格验证 + 静态分析 | airymaxos-tests-linux + security |
-| NFR-R 可靠性 | Soak Test + 混沌工程 | Chaos Mesh + agentrt-linux 系统级测试套件 + ASan/TSan | airymaxos-tests-linux |
-| NFR-C 兼容性 | 兼容性测试矩阵 | agentrt-linux 集成测试框架 + K8s conformance | airymaxos-tests-linux + system |
-| NFR-O 可观测性 | 可观测性覆盖检查 | Prometheus + OpenTelemetry + 日志检查 | airymaxos-tests-linux |
+| NFR-P 性能 | 性能基准测试 | Locust + k6 + perf + ftrace | tests-linux |
+| NFR-S 安全 | 渗透测试 + 形式化验证 | seL4 风格验证 + 静态分析 | tests-linux + security |
+| NFR-R 可靠性 | Soak Test + 混沌工程 | Chaos Mesh + agentrt-linux 系统级测试套件 + ASan/TSan | tests-linux |
+| NFR-C 兼容性 | 兼容性测试矩阵 | agentrt-linux 集成测试框架 + K8s conformance | tests-linux + system |
+| NFR-O 可观测性 | 可观测性覆盖检查 | Prometheus + OpenTelemetry + 日志检查 | tests-linux |
 
 ---
 

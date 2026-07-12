@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09  
 **状态**: 正式发布  
-**路径**: OpenAirymax/Docs/00-basic-theories/02-cognition-design-cn.md  
+**路径**: docs/AirymaxRT/00-requirements/02-cognition-design-cn.md  
 
 ---
 

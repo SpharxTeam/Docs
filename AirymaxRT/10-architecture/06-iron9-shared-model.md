@@ -137,7 +137,7 @@ struct airy_ipc_msg_hdr {
 ```
 
 **关键约束**：
-1. 结构体名称为 `airy_ipc_msg_hdr`（**不是** `airy_ipc_msg_hdr` 或 `are_ipc_msg_header_t`）
+1. 结构体名称为 `airy_ipc_msg_hdr`（**不是** `airymaxos_ipc_msg_hdr` 或 `are_ipc_msg_header_t`）
 2. 使用 `__attribute__((packed))` 对齐（**不是** `aligned(64)` 或 `aligned(128)`）
 3. 使用内核 UAPI 类型 `__u32`/`__u16`/`__u64`/`__u8`（**不是** `uint32_t`/`uint16_t` 等）
 4. 字段顺序：magic / opcode / flags / trace_id / timestamp_ns / src_task / dst_task / payload_len / reserved[84]
@@ -265,7 +265,7 @@ agentrt 开发者在编写涉及 [SC] 共享契约层的代码时，必须遵守
 | 2 | **使用 UAPI 类型** | 使用 `__u32`/`__u16`/`__u64`/`__u8`，不使用 `uint32_t` 等 C 标准库类型 |
 | 3 | **不使用 `float`** | [SC] 头文件中禁止 `float` 类型，需改用定点数（Q16.16）或下沉用户态 |
 | 4 | **packed 对齐** | IPC 消息头使用 `__attribute__((packed))`，不使用 `aligned(64)` 或 `aligned(128)` |
-| 5 | **结构体命名** | 使用 `airy_` 前缀（如 `airy_ipc_msg_hdr`），不使用 `airy_` 或 `are_` 前缀 |
+| 5 | **结构体命名** | 使用 `airy_` 前缀（如 `airy_ipc_msg_hdr`），不使用 `airymaxos_` 或 `are_` 前缀 |
 | 6 | **magic 值一致** | IPC magic = `0x41524531`，任务描述符 magic = `0x41475453` |
 
 ### 4.2 文档约束

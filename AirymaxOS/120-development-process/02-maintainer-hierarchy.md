@@ -74,7 +74,7 @@ flowchart TD
 - **OS-DEV-201**：上层 maintainer 拉取下层分支时，必须执行 7 层自动化验证的 CI 门禁层；CI 不通过的拉取请求禁止合并。
 - **OS-DEV-202**：上层 maintainer 保留对下层补丁的最终否决权（NACK）；下层 maintainer 必须响应 NACK 并修改或撤回。
 - **OS-DEV-203**：信任链中任意一层断裂（如某层 maintainer 失联超过 30 天），上层 maintainer 可越级接管其分支，并启动维护者补选流程（详见第 8 节）。
-- **OS-KER-201**：涉及 MicroCoreRT 内核适配的补丁，必须额外经 system 子仓顶级维护者会签，因其影响同源 ABI。
+- **OS-STD-GOV-010**：涉及 MicroCoreRT 内核适配的补丁，必须额外经 system 子仓顶级维护者会签，因其影响同源 ABI。
 
 ---
 
@@ -104,22 +104,22 @@ agentrt-linux 继承 Linux 6.6 内核 `MAINTAINERS` 文件的 14 字段格式，
 ### 3.2 MAINTAINERS.md 示例
 
 ```
-AGENTSIPC PROTOCOL
+AIRY_IPC PROTOCOL
 M:	Alice Chen <alice@airymaxos.org>
 R:	Bob Li <bob@airymaxos.org>
 L:	https://github.com/agentrt-linux/airymaxos-system/issues
 S:	Maintained
 W:	docs/AirymaxOS/30-interfaces/
-Q:	https://github.com/orgs/agentrt-linux/projects/agentsipc
+Q:	https://github.com/orgs/agentrt-linux/projects/airy_ipc
 B:	https://github.com/agentrt-linux/airymaxos-system/issues/new?template=bug.md
-C:	matrix:#agentsipc
+C:	matrix:#airy_ipc
 P:	120-development-process/01-patch-lifecycle.md
 T:	git https://github.com/agentrt-linux/airymaxos-system.git develop
-F:	include/uapi/agentsipc/
-F:	kernel/ipc/agentsipc.c
-X:	kernel/ipc/agentsipc/test/
-N:	[^a-z]agentsipc
-K:	\b(agentsipc_send|agentsipc_recv)\b
+F:	include/uapi/airy_ipc/
+F:	kernel/ipc/airy_ipc.c
+X:	kernel/ipc/airy_ipc/test/
+N:	[^a-z]airy_ipc
+K:	\b(airy_ipc_send|airy_ipc_recv)\b
 
 MICROCORERT KERNEL ADAPTATION
 M:	Carol Wang <carol@airymaxos.org>
@@ -550,7 +550,7 @@ graph LR
  * 对齐 agentrt-linux §3 MAINTAINERS 文件 + OS-DEV-211 ~ OS-DEV-214
  */
 struct maintainer_entry {
-    const char *subsystem_name;   /* @field: 子系统名（首行标题，如 "AGENTSIPC PROTOCOL"） */
+    const char *subsystem_name;   /* @field: 子系统名（首行标题，如 "AIRY_IPC PROTOCOL"） */
 
     /* M: Mail patches to（维护者） */
     const char **maintainers;      /* @field: M: 维护者列表（"姓名 <邮箱>" 格式） */
@@ -798,7 +798,7 @@ int maintainers_parse(const char *file_path,
  * maintainers_lookup - 查找文件归属的维护者
  * @entries:    MAINTAINERS 条目数组
  * @count:      条目数量
- * @file_path:  要查找的文件路径（如 "kernel/ipc/agentsipc.c"）
+ * @file_path:  要查找的文件路径（如 "kernel/ipc/airy_ipc.c"）
  * @out_entry:  输出匹配的条目指针
  *
  * 匹配规则（按优先级）：
@@ -1035,7 +1035,7 @@ int emeritus_mark(const char *maintainer_name,
  * 对齐 §4.1 8 子仓同源 API 列
  */
 #define SAME_SOURCE_API_MICROCORERT    "MicroCoreRT"
-#define SAME_SOURCE_API_AGENTSIPC      "AgentsIPC"
+#define SAME_SOURCE_API_AIRY_IPC      "AgentsIPC"
 #define SAME_SOURCE_API_CUPOLAS        "Cupolas"
 #define SAME_SOURCE_API_MEMORYROVOL    "MemoryRovol"
 #define SAME_SOURCE_API_CORELOOPTHREE  "CoreLoopThree"

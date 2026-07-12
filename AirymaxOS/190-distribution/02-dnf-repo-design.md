@@ -190,7 +190,7 @@ done
 
 ```bash
 #!/bin/bash
-# airymaxos-system/repo_sign.sh [IND]
+# system/repo_sign.sh [IND]
 # 自动签名仓库 metadata
 
 set -euo pipefail
@@ -345,7 +345,7 @@ repomd.xml 是 metadata 的索引文件，定义了所有 metadata 文件的位�
 
 ```bash
 #!/bin/bash
-# airymaxos-system/repo_generate.sh [IND]
+# system/repo_generate.sh [IND]
 # 自动生成所有仓库的 metadata
 
 set -euo pipefail
@@ -379,7 +379,7 @@ generate_repo() {
     fi
 
     # 签名 metadata
-    airymaxos-system/repo_sign.sh "$repo_dir"
+    system/repo_sign.sh "$repo_dir"
 }
 
 # 生成所有仓库
@@ -516,7 +516,7 @@ failovermethod=priority
 仓库管理工具采用 `goto out_free_xxx` 集中错误处理：
 
 ```c
-int airymaxos_repo_publish(const char *repo_dir, const char *rpm_dir)
+int airy_repo_publish(const char *repo_dir, const char *rpm_dir)
 {
     struct repo_ctx *ctx;
     int err;

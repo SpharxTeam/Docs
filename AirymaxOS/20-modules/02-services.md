@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-services` 是 agentrt-linux（AirymaxOS）的用户态系统服务子仓，承担以下核心职责：
+`services` 是 agentrt-linux（AirymaxOS）的用户态系统服务子仓，承担以下核心职责：
 
 1. **用户态 VFS [IND]**：文件系统实现下放至用户态服务，内核仅保留虚拟文件系统层。
 2. **用户态网络栈 [IND]**：基于 DPDK/AF_XDP 实现高性能用户态网络协议栈。
@@ -55,17 +55,17 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 daemons）与 agentrt-linux（用户态 airymaxos-services）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 daemons）与 agentrt-linux（用户态 services）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 服务子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | IPC 消息头（magic 0x41524531 'ARE1'）、128B 消息头结构（`struct airy_ipc_msg_hdr`）、SQE/CQE 操作码与标志位、ring 创建/注册参数 | `include/airymax/ipc.h`（与 airymaxos-kernel 共享） |
+| **[SC] 共享契约层** | 完全共享代码 | IPC 消息头（magic 0x41524531 'ARE1'）、128B 消息头结构（`struct airy_ipc_msg_hdr`）、SQE/CQE 操作码与标志位、ring 创建/注册参数 | `include/airymax/ipc.h`（与 kernel 共享） |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | 12 daemons 语义（gateway_d/llm_d/tool_d/sched_d/market_d/monit_d/channel_d/info_d/notify_d/observe_d/hook_d/plugin_d）、io_uring IPC 通信原语（channel/socket/fifo/eventpair）、消息传递范式、capability 令牌传递语义、daemon 生命周期（init→run→stop）等 15+ 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | 用户态 VFS 实现（seL4 服务用户态化参考，ADR-014）、用户态网络栈（DPDK/AF_XDP）、用户态驱动框架（VFIO/libvfio）、systemd 集成、cgroup v2 资源管理、journald 日志聚合、具体文件系统实现（ext4/xfs/tmpfs/btrfs） | 各自独立仓库 |
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（daemons） | agentrt-linux（airymaxos-services） | 同源标注 |
+| 维度 | agentrt（daemons） | agentrt-linux（services） | 同源标注 |
 |------|-------------------|--------------------------------|----------|
 | 服务数量 | 12 daemons | 12 daemons + VFS/Net/Drivers | [SS] |
 | daemon 语义 | gateway_d/llm_d/tool_d/... | gateway_d/llm_d/tool_d/... | [SS] |
@@ -90,7 +90,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 3. 目录结构
 
 ```
-airymaxos-services/
+services/
 ├── vfs/                   # 用户态 VFS [IND]
 ├── net/                   # 用户态网络栈（DPDK/AF_XDP）[IND]
 ├── drivers/               # 用户态驱动框架（VFIO/libvfio）[IND]
@@ -134,13 +134,13 @@ airymaxos-services/
 - `libvfio/`：用户态驱动框架库 [IND]。
 - `pci-drivers/`：PCI 设备用户态驱动 [IND]。
 - `usb-drivers/`：USB 设备用户态驱动 [IND]。
-- `gpu-drivers/`：GPU 用户态驱动（与 `airymaxos-cognition/gpu-npu` 协作）[IND]。
+- `gpu-drivers/`：GPU 用户态驱动（与 `cognition/gpu-npu` 协作）[IND]。
 - `block-drivers/`：块设备用户态驱动 [IND]。
 
 ### 3.4 daemons/（12 daemons）[SS]
 
 每个 daemon 均注册为 systemd 服务（`.service` unit），具备：
-- capability 令牌（与 `airymaxos-security/capability` 协作）[SS]。
+- capability 令牌（与 `security/capability` 协作）[SS]。
 - io_uring IPC 通道（与其他 daemon 通信，消息头 [SC] 共享）[SS]。
 - 资源限制（cgroup v2）[IND]。
 - 日志输出（journald 集成）[IND]。
@@ -216,7 +216,7 @@ airymaxos-services/
 
 **优势**：
 - 驱动 bug 不影响内核 [IND]。
-- 可用 Rust 编写安全驱动（与 `airymaxos-kernel/patches/rust-drivers` 协作）[IND]。
+- 可用 Rust 编写安全驱动（与 `kernel/patches/rust-drivers` 协作）[IND]。
 - 可独立重启驱动服务 [IND]。
 
 ### 4.4 12 daemons 注册为 OS 级守护服务 [SS]
@@ -307,7 +307,7 @@ WantedBy=airymaxos.target
 
 ### 6.1 [SC] 共享契约层——`include/airymax/ipc.h`
 
-服务模块的 [SC] 层通过 `include/airymax/ipc.h` 与 agentrt 共享（与 airymaxos-kernel 共享同一头文件）：
+服务模块的 [SC] 层通过 `include/airymax/ipc.h` 与 agentrt 共享（与 kernel 共享同一头文件）：
 
 | 内容 | 说明 |
 |------|------|
@@ -464,13 +464,13 @@ graph TD
 
 | 协作子仓 | 协作内容 | 同源标注 |
 |---------|---------|----------|
-| `airymaxos-kernel` | 提供 VFS/网络/驱动用户态服务所需的内核侧接口 | [IND] |
-| `airymaxos-security` | 为每个服务颁发 capability 令牌 | [SS] |
-| `airymaxos-memory` | 提供 VFS 持久化层、MemoryRovol 卷载 | [IND] |
-| `airymaxos-cognition` | llm_d/sched_d 与认知循环协作 | [SS] |
-| `airymaxos-cloudnative` | gateway_d/sdk 与 K8s 集成 | [IND] |
-| `airymaxos-system` | systemd unit 管理、配置工具 | [IND] |
-| `airymaxos-tests-linux` | 服务集成测试、Soak Test | [SS] |
+| `kernel` | 提供 VFS/网络/驱动用户态服务所需的内核侧接口 | [IND] |
+| `security` | 为每个服务颁发 capability 令牌 | [SS] |
+| `memory` | 提供 VFS 持久化层、MemoryRovol 卷载 | [IND] |
+| `cognition` | llm_d/sched_d 与认知循环协作 | [SS] |
+| `cloudnative` | gateway_d/sdk 与 K8s 集成 | [IND] |
+| `system` | systemd unit 管理、配置工具 | [IND] |
+| `tests-linux` | 服务集成测试、Soak Test | [SS] |
 
 ---
 
@@ -523,10 +523,10 @@ graph TD
 
 ### 12.1 开源设计文档
 
-- [内核模块](01-kernel.md)：airymaxos-kernel 子仓（io_uring + sched_ext + eBPF）
-- [安全模块](03-security.md)：airymaxos-security 子仓（Cupolas）
-- [记忆模块](04-memory.md)：airymaxos-memory 子仓（MemoryRovol）
-- [认知模块](05-cognition.md)：airymaxos-cognition 子仓（CoreLoopThree）
+- [内核模块](01-kernel.md)：kernel 子仓（io_uring + sched_ext + eBPF）
+- [安全模块](03-security.md)：security 子仓（Cupolas）
+- [记忆模块](04-memory.md)：memory 子仓（MemoryRovol）
+- [认知模块](05-cognition.md)：cognition 子仓（CoreLoopThree）
 - [IPC 数据流](../40-dataflows/03-ipc-flow.md)：io_uring IPC 数据流
 - [IPC 协议接口](../30-interfaces/02-ipc-protocol.md)：AgentsIPC 协议
 - [SDK API](../30-interfaces/03-sdk-api.md)：SDK 接口
@@ -535,10 +535,10 @@ graph TD
 
 ### 12.2 同系列模块文档
 
-- [内核模块](01-kernel.md)：airymaxos-kernel 子仓
-- [安全模块](03-security.md)：airymaxos-security 子仓（Cupolas）
-- [记忆模块](04-memory.md)：airymaxos-memory 子仓（MemoryRovol）
-- [认知模块](05-cognition.md)：airymaxos-cognition 子仓（CoreLoopThree）
+- [内核模块](01-kernel.md)：kernel 子仓
+- [安全模块](03-security.md)：security 子仓（Cupolas）
+- [记忆模块](04-memory.md)：memory 子仓（MemoryRovol）
+- [认知模块](05-cognition.md)：cognition 子仓（CoreLoopThree）
 
 ---
 

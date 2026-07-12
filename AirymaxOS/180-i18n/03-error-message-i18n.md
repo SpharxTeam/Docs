@@ -240,7 +240,7 @@ agentrt-linux 提供 `airymaxos-error-gen` 工具，从 `include/airymax/error.h
 
 ```python
 #!/usr/bin/env python3
-# airymaxos-system/error_gen.py [IND]
+# system/error_gen.py [IND]
 """从 include/airymax/error.h 生成各语言错误码绑定"""
 
 import re
@@ -291,8 +291,8 @@ def gen_po(errors, out_path):
 
 if __name__ == "__main__":
     errors = parse_errors(ERROR_HEADER)
-    gen_python(errors, "airymaxos_sdk/python/agentrt/errors.py")
-    gen_po(errors, "po/airymaxos_errors.pot")
+    gen_python(errors, "agentrt/sdk/python/agentrt/errors.py")
+    gen_po(errors, "po/airy_errors.pot")
     print(f"生成 {len(errors)} 个错误码绑定")
 ```
 
@@ -301,7 +301,7 @@ if __name__ == "__main__":
 Python SDK 自动生成的错误码：
 
 ```python
-# airymaxos_sdk/python/agentrt/errors.py
+# agentrt/sdk/python/agentrt/errors.py
 # AUTO-GENERATED. DO NOT EDIT.
 # Source: include/airymax/error.h [SC]
 
@@ -352,7 +352,7 @@ class AgentrtError(IntEnum):
 ### 4.2 错误码 → msgid 映射
 
 ```c
-/* airymaxos-services/common/error_msgid.c [IND] */
+/* services/common/error_msgid.c [IND] */
 #include <airymax/error.h>
 
 const char *airy_err_to_msgid(airy_err_t err)
@@ -383,7 +383,7 @@ const char *airy_err_to_msgid(airy_err_t err)
 ### 4.3 错误码 → 本地化消息
 
 ```c
-/* airymaxos-services/common/error_i18n.c [IND] */
+/* services/common/error_i18n.c [IND] */
 #include <libintl.h>
 #include <airymax/error.h>
 
@@ -600,10 +600,10 @@ airymaxos-error-trace AIRY_IPC_ETIMEDOUT
 # 引入版本：1.0.1
 # 引入提交：a1b2c3d4 ("ipc: 新增超时错误码")
 # 影响范围：
-#   - airymaxos-kernel/ipc/ (5 处)
-#   - airymaxos-services/gateway_d/ (3 处)
-#   - airymaxos_sdk/python/agentrt/errors.py (1 处)
-#   - po/airymaxos_errors.pot (1 处 msgid)
+#   - kernel/ipc/ (5 处)
+#   - services/gateway_d/ (3 处)
+#   - agentrt/sdk/python/agentrt/errors.py (1 处)
+#   - po/airy_errors.pot (1 处 msgid)
 ```
 
 ---

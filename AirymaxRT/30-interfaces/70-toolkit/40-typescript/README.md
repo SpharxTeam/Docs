@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/70-toolkit/40-typescript/README.md
+**路径**: docs/AirymaxRT/30-interfaces/70-toolkit/40-typescript/README.md
 ---
 
 ## 🎯 概述
@@ -478,14 +478,14 @@ expect(mockClient.agents.create).toHaveBeenCalledTimes(1);
 
 | 文档 | 描述 |
 |------|------|
-| [Agent 管理 API](../../syscalls/agent.md) | Agent 生命周期管理 |
-| [Memory 管理 API](../../syscalls/memory.md) | 记忆系统操作 |
-| [Session 管理 API](../../syscalls/session.md) | 会话管理 |
-| [Telemetry API](../../syscalls/telemetry.md) | 可观测性 |
-| [Skill 管理 API](../../syscalls/skill.md) | 技能管理 |
-| [Go SDK](../go/README.md) | Go 语言 SDK |
-| [Python SDK](../python/README.md) | Python SDK |
-| [Rust SDK](../rust/README.md) | Rust SDK |
+| [Agent 管理 API](../../60-syscalls/agent.md) | Agent 生命周期管理 |
+| [Memory 管理 API](../../60-syscalls/memory.md) | 记忆系统操作 |
+| [Session 管理 API](../../60-syscalls/session.md) | 会话管理 |
+| [Telemetry API](../../60-syscalls/telemetry.md) | 可观测性 |
+| [Skill 管理 API](../../60-syscalls/skill.md) | 技能管理 |
+| [Go SDK](../10-go/README.md) | Go 语言 SDK |
+| [Python SDK](../20-python/README.md) | Python SDK |
+| [Rust SDK](../30-rust/README.md) | Rust SDK |
 
 ---
 

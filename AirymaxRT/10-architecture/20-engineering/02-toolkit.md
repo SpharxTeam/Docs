@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/10-architecture/20-engineering/02-toolkit.md
+**路径**: docs/AirymaxRT/10-architecture/20-engineering/02-toolkit.md
 
 ## 1. 设计理念
 

@@ -400,7 +400,7 @@ make CHECK_ABI=1 abidump
 
 # 对比两个版本的 ABI 快照
 abi-compliance-checker -l agentrt-linux \
-	-old abidump-1.0.0.xml \
+	-old abidump-0.1.1.xml \
 	-new abidump-1.0.1.xml
 
 # 输出兼容性报告
@@ -422,7 +422,7 @@ abi-compliance-checker -l agentrt-linux \
 
 ```bash
 # 运行 ABI 兼容性回归测试
-./test_abi_compat --old-version=1.0.0 --new-version=1.0.1
+./test_abi_compat --old-version=0.1.1 --new-version=1.0.1
 
 # 运行弃用接口回归测试
 ./test_deprecated --expect-warnings

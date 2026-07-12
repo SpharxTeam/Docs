@@ -197,7 +197,7 @@ typedef struct airy_ipc_handshake_resp {
 协商算法采用"最低共同支持版本"策略：
 
 ```c
-/* airymaxos-kernel/ipc/version_negotiate.c [IND] */
+/* kernel/ipc/version_negotiate.c [IND] */
 
 /**
  * airy_ipc_negotiate_version - 协商 IPC 协议版本
@@ -443,7 +443,7 @@ int airy_ipc_check_migration_compat(uint32_t src_version,
 内核维护一个全局版本注册表，记录支持的协议版本与特性：
 
 ```c
-/* airymaxos-kernel/ipc/version_registry.c [IND] */
+/* kernel/ipc/version_registry.c [IND] */
 
 static const struct {
     uint16_t version;
@@ -618,7 +618,7 @@ impl IpcNegotiator {
 ### 12.2 协商失败处理
 
 ```c
-/* airymaxos-kernel/ipc/handshake.c [IND] */
+/* kernel/ipc/handshake.c [IND] */
 
 int handle_handshake_failure(struct airy_ipc_connection *conn,
                              int error)

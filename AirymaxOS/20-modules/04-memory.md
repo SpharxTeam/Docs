@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）记忆设计文档（airymaxos-memory，极境记忆）
+# agentrt-linux（AirymaxOS）记忆设计文档（memory，极境记忆）
 
 > **子仓编号**：04\
 > **子仓代号**：极境记忆（Airymax Memory）\
@@ -32,13 +32,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-memory` 是 agentrt-linux（AirymaxOS）的记忆与存储子仓，承担以下核心职责：
+`memory` 是 agentrt-linux（AirymaxOS）的记忆与存储子仓，承担以下核心职责：
 
 1. **MemoryRovol 内核态实现 [SS]**：将 agentrt 的 MemoryRovol（记忆卷载）升级为内核态实现，提供 Agent 记忆的持久化与卷载能力。L1-L4 数据结构 [SC] 与 agentrt 共享。
 2. **CXL 内存分层与池化 [IND]**：利用 2026 年 CXL 3.0 硬件普及，实现内存分层与池化。
 3. **持久化内存（PMEM）[IND]**：基于 PMEM 提供非易失性内存支持。PMEM 持久化接口 [SC] 与 agentrt 共享。
 4. **MGLRU [SS]**：利用 Linux 6.6 多代 LRU 改进，优化内存回收策略。GFP 掩码语义 [SC] 与 agentrt 共享。
-5. **VFS 持久化层 [IND]**：为 `airymaxos-services/vfs` 提供持久化后端。
+5. **VFS 持久化层 [IND]**：为 `services/vfs` 提供持久化后端。
 6. **userfaultfd 用户态缺页处理 [SS]**：支持用户态缺页处理，用于记忆迁移与快照。
 7. **透明巨页（THP）优化 [IND]**：利用 Linux 6.6 THP 改进提升大页性能。
 
@@ -57,7 +57,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 memoryrovol）与 agentrt-linux（内核态 airymaxos-memory）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 memoryrovol）与 agentrt-linux（内核态 memory）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 记忆子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
@@ -67,7 +67,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（heapstore + memoryrovol） | agentrt-linux（airymaxos-memory） | 同源标注 |
+| 维度 | agentrt（heapstore + memoryrovol） | agentrt-linux（memory） | 同源标注 |
 |------|-----------------------------------|------------------------------|----------|
 | 记忆存储 | heapstore（用户态） | MemoryRovol 内核态 + heapstore 用户态 | [SS] |
 | 记忆卷载 | MemoryRovol（用户态） | MemoryRovol 内核态实现 | [SS] |
@@ -91,7 +91,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 3. 目录结构
 
 ```
-airymaxos-memory/
+memory/
 ├── memoryrovol/            # MemoryRovol 内核态实现（记忆卷载）[SS]
 ├── cxl/                    # CXL 内存分层与池化 [IND]
 ├── pmem/                   # 持久化内存 [IND]
@@ -111,7 +111,7 @@ airymaxos-memory/
 - `restore`：记忆恢复（基于 mmap + userfaultfd）[SS]。
 - `migrate`：记忆迁移（跨节点、跨 CXL 设备）[SS]。
 - `compress`：记忆压缩（zswap、zram 集成）[IND]。
-- `encrypt`：记忆加密（与 `airymaxos-security` 协作）[IND]。
+- `encrypt`：记忆加密（与 `security` 协作）[IND]。
 
 ### 3.2 cxl/（CXL 内存分层与池化）[IND]
 
@@ -143,7 +143,7 @@ PMEM 持久化接口 [SC] 与 agentrt 共享：
 
 ### 3.5 vfs-persist/（VFS 持久化层）[IND]
 
-为 `airymaxos-services/vfs` 提供持久化后端：
+为 `services/vfs` 提供持久化后端：
 
 - `backends/`：后端实现（PMEM、CXL、SSD、HDD）。
 - `journal`：日志系统（WAL）。
@@ -391,7 +391,7 @@ echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 
 ### 5.2 内存分层解耦
 
-- 内存分层策略在用户态（与 `airymaxos-cognition` 协作）[IND]。
+- 内存分层策略在用户态（与 `cognition` 协作）[IND]。
 - 内核仅提供分层机制（CXL、PMEM、DRAM tier）[IND]。
 - GFP 掩码 [SC] 两端共享，统一分配语义。
 
@@ -508,13 +508,13 @@ sequenceDiagram
 
 | 协作子仓 | 协作内容 | 同源标注 |
 |---------|---------|----------|
-| `airymaxos-kernel` | 提供 MemoryRovol、CXL、MGLRU 内核实现 | [SS] + [IND] |
-| `airymaxos-services` | 提供 VFS 持久化层、MemoryRovol 用户态服务 | [SS] |
-| `airymaxos-security` | 提供记忆加密、TEE 保护 | [IND] |
-| `airymaxos-cognition` | 提供 Agent 记忆管理、CoreLoopThree 协作 | [SS] |
-| `airymaxos-cloudnative` | 提供容器记忆卷载、迁移 | [IND] |
-| `airymaxos-system` | 提供内存监控工具 | [SS] |
-| `airymaxos-tests-linux` | 内存测试、Soak Test | [SS] |
+| `kernel` | 提供 MemoryRovol、CXL、MGLRU 内核实现 | [SS] + [IND] |
+| `services` | 提供 VFS 持久化层、MemoryRovol 用户态服务 | [SS] |
+| `security` | 提供记忆加密、TEE 保护 | [IND] |
+| `cognition` | 提供 Agent 记忆管理、CoreLoopThree 协作 | [SS] |
+| `cloudnative` | 提供容器记忆卷载、迁移 | [IND] |
+| `system` | 提供内存监控工具 | [SS] |
+| `tests-linux` | 内存测试、Soak Test | [SS] |
 
 ---
 

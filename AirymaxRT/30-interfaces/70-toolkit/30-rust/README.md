@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/30-api/70-toolkit/30-rust/README.md
+**路径**: docs/AirymaxRT/30-interfaces/70-toolkit/30-rust/README.md
 ---
 
 ## 🎯 概述
@@ -428,10 +428,10 @@ mod tests {
 
 ## 📚 相关文档
 
-- [系统调用 API](../../syscalls/) - 底层 C API 参考
-- [Python SDK](../python/README.md) - Python SDK 文档
-- [Go SDK](../go/README.md) - Go SDK 文档
-- [开发指南：创建 Agent](../../../../60-guides/24-create-agent.md) - Agent 开发教程
+- [系统调用 API](../../60-syscalls/) - 底层 C API 参考
+- [Python SDK](../20-python/README.md) - Python SDK 文档
+- [Go SDK](../10-go/README.md) - Go SDK 文档
+- [开发指南：创建 Agent](../../../../140-application-development/24-create-agent.md) - Agent 开发教程
 
 ---
 

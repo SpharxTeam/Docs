@@ -41,7 +41,7 @@ ftrace（function tracer）是 Linux 6.6 内核基线提供的官方跟踪框架
 
 **OS-OBS-001: ftrace 是 agentrt-linux 可观测性 L1 层的强制基线，不得移除或替换为第三方商业跟踪方案。**
 
-**OS-KER-001: airymaxos-kernel 的 defconfig 必须开启 CONFIG_FUNCTION_TRACER、CONFIG_FUNCTION_GRAPH_TRACER、CONFIG_TRACER_MAX_TRACE、CONFIG_DYNAMIC_FTRACE。**
+**OS-KER-101: kernel 的 defconfig 必须开启 CONFIG_FUNCTION_TRACER、CONFIG_FUNCTION_GRAPH_TRACER、CONFIG_TRACER_MAX_TRACE、CONFIG_DYNAMIC_FTRACE。**
 
 ### 1.2 框架组成
 
@@ -72,7 +72,7 @@ mount -t tracefs nodev /sys/kernel/tracing
 ln -s /sys/kernel/tracing /tracing
 ```
 
-**OS-KER-002: airymaxos-kernel 必须在 init 阶段完成 tracefs 挂载，挂载失败视为致命错误并 panic。**
+**OS-KER-102: kernel 必须在 init 阶段完成 tracefs 挂载，挂载失败视为致命错误并 panic。**
 
 ### 2.2 关键控制文件
 
@@ -124,7 +124,7 @@ graph LR
     style F fill:#fde68a,stroke:#b45309
 ```
 
-**OS-KER-003: ring buffer 默认大小 1408 KB/CPU（与上游一致），可通过 `buffer_size_kb` 调整；调整后必须验证无事件丢失（`cat per_cpu/cpu0/stats` 检查 `overrun`）。**
+**OS-KER-103: ring buffer 默认大小 1408 KB/CPU（与上游一致），可通过 `buffer_size_kb` 调整；调整后必须验证无事件丢失（`cat per_cpu/cpu0/stats` 检查 `overrun`）。**
 
 **OS-STD-002: 在 Agent 高负载场景下，ring buffer 必须扩容到至少 8192 KB/CPU，避免 Agent 决策事件被覆盖。**
 
@@ -157,7 +157,7 @@ echo global > trace_clock
 
 `function` tracer 依赖 `mcount`/`fentry` 钩子，配合 `CONFIG_DYNAMIC_FTRACE` 在启动时将未跟踪函数的钩子替换为 `nop`，跟踪时再恢复，实现零运行时开销。`function_graph` 在 `function` 基础上记录函数返回，可输出调用层次与耗时（如 `1) ! 2920.000 us | airy_cognition_process();`），通过 `max_graph_depth` 限制递归深度。`event` 是 tracepoint 静态埋点的集合，每个事件位于 `events/<子系统>/<事件名>/`，可独立 enable/disable。`hw_branches` 依赖架构特性（x86 BTS/LBR、ARM BRBE），仅性能调优阶段使用。`nop` 是空 tracer，不记录函数事件但仍可记录事件子系统事件，常用于配置准备。
 
-**OS-KER-004: airymaxos-kernel 必须为 Agent 核心路径打 tracepoint：`agentrt:cognition_enter`、`agentrt:planner_dag_update`、`agentrt:scheduler_dispatch`、`agentrt:execution_unit_run`。**
+**OS-KER-104: kernel 必须为 Agent 核心路径打 tracepoint：`agentrt:cognition_enter`、`agentrt:planner_dag_update`、`agentrt:scheduler_dispatch`、`agentrt:execution_unit_run`。**
 
 ### 4.2 current_tracer 切换语义
 
@@ -200,7 +200,7 @@ echo 1 > tracing_on
 
 **OS-OBS-005: agentrt-linux Agent 行为追踪输出必须包含 4 位标志位，用于区分 Agent 决策发生在硬中断、软中断还是进程上下文。**
 
-**OS-KER-005: Agent tracepoint 的 `print fmt` 必须以 `agent_id=0x%04x decision=%s` 起始，便于 `trace` 文件 grep 过滤。**
+**OS-KER-082: Agent tracepoint 的 `print fmt` 必须以 `agent_id=0x%04x decision=%s` 起始，便于 `trace` 文件 grep 过滤。**
 
 ### 5.2 trace 与 trace_pipe 区别
 
@@ -250,7 +250,7 @@ echo 2049 > set_ftrace_pid
 echo function-fork > trace_options
 ```
 
-**OS-KER-006: airymaxos-kernel 必须导出 Agent 路径函数符号至 kallsyms，确保 `available_filter_functions` 包含 `airy_*` 前缀函数。**
+**OS-KER-083: kernel 必须导出 Agent 路径函数符号至 kallsyms，确保 `available_filter_functions` 包含 `airy_*` 前缀函数。**
 
 ---
 
@@ -313,7 +313,7 @@ void log_agent_decision(u16 agent_id, const char *decision)
 }
 ```
 
-**OS-KER-055: airymaxos-kernel 的 Agent 跟踪模块必须使用 `trace_array_create()` 创建独立 instance，不得污染全局主缓冲。**
+**OS-KER-055: kernel 的 Agent 跟踪模块必须使用 `trace_array_create()` 创建独立 instance，不得污染全局主缓冲。**
 
 ---
 
@@ -354,7 +354,7 @@ echo 'airy_anomaly:stacktrace' > set_ftrace_filter
 
 ftrace 输出中的函数名依赖 `/proc/kallsyms` 与内核内建符号表。当 `CONFIG_KALLSYMS=y` 时 ftrace 可将地址反解为函数名，否则只输出十六进制地址。`available_filter_functions` 列出 ftrace 可跟踪的函数，源自 `__start_mcount_loc`/`__stop_mcount_loc` 段，由 `ftrace_process_locs()` 在启动时扫描填充。两者关系：kallsyms 提供地址→名称映射；available_filter_functions 提供"已被 ftrace 改造为可跟踪"的函数集合；两者交集即为可按名过滤的函数集。
 
-**OS-KER-008: airymaxos-kernel defconfig 必须开启 CONFIG_KALLSYMS、CONFIG_KALLSYMS_ALL、CONFIG_KALLSYMS_BASE_RELATIVE，确保 ftrace 输出可读。**
+**OS-KER-084: kernel defconfig 必须开启 CONFIG_KALLSYMS、CONFIG_KALLSYMS_ALL、CONFIG_KALLSYMS_BASE_RELATIVE，确保 ftrace 输出可读。**
 
 ### 9.2 内核内 API
 
@@ -382,7 +382,7 @@ int register_agent_hook(void)
 }
 ```
 
-**OS-KER-009: airymaxos-kernel 模块使用 `register_ftrace_function()` 时必须设置 `FTRACE_OPS_FL_SAVE_REGS_IF_SUPPORTED`，并为退出路径配对 `unregister_ftrace_function()`。**
+**OS-KER-073: kernel 模块使用 `register_ftrace_function()` 时必须设置 `FTRACE_OPS_FL_SAVE_REGS_IF_SUPPORTED`，并为退出路径配对 `unregister_ftrace_function()`。**
 
 ---
 
@@ -427,7 +427,7 @@ cat instances/agent_decision/trace_pipe
 
 MicroCoreRT 是 agentrt 的极简内核契约。agentrt-linux 的 ftrace 扩展遵循 MicroCoreRT 的"最小特权态代码"原则：所有 Agent 跟踪代码在 `kernel/trace/airy_trace.c` 单文件内，不污染核心调度路径。该设计体现 IRON-9 同源且部分代码共享（IRON-9 v2）原则——与 agentrt `commons/trace` 同源（语义层共享 trace_event 头布局），但实现独立（内核态 tracepoint vs 用户态 user_events）。
 
-**OS-KER-010: Agent 跟踪代码体积必须 < 8 KB（编译后 .text 段），超出则视为违反 MicroCoreRT 极简契约。**
+**OS-KER-105: Agent 跟踪代码体积必须 < 8 KB（编译后 .text 段），超出则视为违反 MicroCoreRT 极简契约。**
 
 ---
 
@@ -596,7 +596,7 @@ graph LR
 ### 13.1 相关文档与参考材料
 
 **同模块文档**：`90-observability/README.md`（体系主索引）、`02-ebpf-probes.md`（eBPF 探针 L2 层）、`03-perf-analysis.md`（perf L3 层，1.0.1 规划）、`05-debugfs-tracefs.md`（接口详解，1.0.1 规划）、`06-user-events.md`（用户态桥接，1.0.1 规划）、`08-agent-tracing.md`（Agent 行为追踪，1.0.1 规划）。
-**跨模块文档**：`20-modules/01-kernel.md`（airymaxos-kernel 子仓）、`50-engineering-standards/04-engineering-philosophy.md`（工程思想）。
+**跨模块文档**：`20-modules/01-kernel.md`（kernel 子仓）、`50-engineering-standards/04-engineering-philosophy.md`（工程思想）。
 **内核源码**：Linux 6.6 `kernel/trace/trace.c`（主框架）、`ring_buffer.c`（ring buffer）、`ftrace.c`（dynamic ftrace）、`trace_functions_graph.c`（function_graph）、`trace_events_trigger.c`（触发器）；`Documentation/trace/ftrace.rst`、`ring-buffer-design.rst`。
 
 ### 13.2 版本与维护
@@ -610,7 +610,7 @@ graph LR
 
 **OS-STD-008: OS-KER / OS-STD / OS-OBS 规则编号一经分配不得复用；废弃规则标记 `DEPRECATED` 但保留编号。**
 
-**维护责任**：文档负责人为 agentrt-linux 可观测性工程组；代码负责人为 airymaxos-kernel 维护者；每个 LTS 小版本发布前重新核对 ftrace 接口与规则编号有效性。
+**维护责任**：文档负责人为 agentrt-linux 可观测性工程组；代码负责人为 kernel 维护者；每个 LTS 小版本发布前重新核对 ftrace 接口与规则编号有效性。
 
 ---
 
@@ -917,7 +917,7 @@ int ftrace_set_filter(struct ftrace_ops *ops, unsigned char *buf,
 
 /**
  * register_ftrace_function - 注册函数钩子到 ftrace 框架
- * @ops:  操作集（须已设 flags，OS-KER-009 要求 SAVE_REGS_IF_SUPPORTED）
+ * @ops:  操作集（须已设 flags，OS-KER-073 要求 SAVE_REGS_IF_SUPPORTED）
  *
  * 返回: 0 成功；<0 失败（-ENOMEM / -EBUSY）
  *
@@ -926,7 +926,7 @@ int ftrace_set_filter(struct ftrace_ops *ops, unsigned char *buf,
 int register_ftrace_function(struct ftrace_ops *ops);
 
 /**
- * unregister_ftrace_function - 注销函数钩子（OS-KER-009 要求配对调用）
+ * unregister_ftrace_function - 注销函数钩子（OS-KER-073 要求配对调用）
  * @ops:  操作集
  *
  * 对齐 Linux 6.6 kernel/trace/ftrace.c
@@ -1036,7 +1036,7 @@ enum print_line_t {
  * FTRACE_OPS_FL_* - ftrace_ops 标志位
  *
  * 对齐 Linux 6.6 include/linux/ftrace.h
- * OS-KER-009: 注册时必须设 SAVE_REGS_IF_SUPPORTED，并配对 unregister。
+ * OS-KER-073: 注册时必须设 SAVE_REGS_IF_SUPPORTED，并配对 unregister。
  */
 #define FTRACE_OPS_FL_ENABLED             0x0001  /* 已启用 */
 #define FTRACE_OPS_FL_DYNAMIC             0x0002  /* 动态注册（经 set_ftrace_filter） */
@@ -1074,7 +1074,7 @@ enum print_line_t {
 
 ```c
 /**
- * ftrace 相关 Kconfig（airymaxos-kernel defconfig 必开，OS-KER-001/008）
+ * ftrace 相关 Kconfig（kernel defconfig 必开，OS-KER-101/008）
  *
  * 对齐 Linux 6.6 init/Kconfig 与 lib/Kconfig.debug
  */
@@ -1083,7 +1083,7 @@ enum print_line_t {
 /* CONFIG_TRACER_MAX_TRACE       - 快照/最大追踪（max_tr 双缓冲） */
 /* CONFIG_DYNAMIC_FTRACE         - 动态 ftrace（运行时改写 mcount） */
 /* CONFIG_FTRACE_MCOUNT_RECORD   - 记录 mcount 引用（_start_mcount_loc 段） */
-/* CONFIG_KALLSYMS               - 符号解析（OS-KER-008） */
+/* CONFIG_KALLSYMS               - 符号解析（OS-KER-084） */
 /* CONFIG_KALLSYMS_ALL           - 全符号（含 static） */
 /* CONFIG_KALLSYMS_BASE_RELATIVE - 相对基址编码（节省空间） */
 

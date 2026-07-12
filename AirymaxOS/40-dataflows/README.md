@@ -14,10 +14,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 agentrt-linux 数据流程设计层聚焦于「数据如何流动」，是「接口设计层（30-interfaces）」的动态补充。本文档体系以 Linux 6.6 为内核基线，围绕 8 子仓之间的数据流动路径，刻画 4 大核心数据流：
 
-1. **认知循环数据流（Cognition Flow）**：用户意图 → 认知层 → 规划 → 执行 → 记忆 → 反馈，对应 System 1 快思考 + System 2 慢思考双系统协同，落地于 `airymaxos-cognition` 子仓（同源 agentrt coreloopthree）。
-2. **记忆卷载数据流（Memory Flow）**：L1 原始 → L2 特征 → L3 结构 → L4 模式，四层递进 + 遗忘机制 + CXL/PMEM/MGLRU 多代 LRU（Linux 6.6）硬件协同，落地于 `airymaxos-memory` 子仓（同源 agentrt memoryrovol + heapstore）。
-3. **IPC 消息流（IPC Flow）**：进程 A → io_uring 零拷贝 → 进程 B，128B 定长消息头同源 agentrt AgentsIPC，落地于 `airymaxos-kernel`（同源 agentrt atoms/corekern IPC）。
-4. **调度数据流（Scheduling Flow）**：任务提交 → SCHED_AGENT → EEVDF → 执行，基于 sched_ext（agentrt-linux 内核增强，主线 6.12+）实现可插拔调度策略，落地于 `airymaxos-kernel`。
+1. **认知循环数据流（Cognition Flow）**：用户意图 → 认知层 → 规划 → 执行 → 记忆 → 反馈，对应 System 1 快思考 + System 2 慢思考双系统协同，落地于 `cognition` 子仓（同源 agentrt coreloopthree）。
+2. **记忆卷载数据流（Memory Flow）**：L1 原始 → L2 特征 → L3 结构 → L4 模式，四层递进 + 遗忘机制 + CXL/PMEM/MGLRU 多代 LRU（Linux 6.6）硬件协同，落地于 `memory` 子仓（同源 agentrt memoryrovol + heapstore）。
+3. **IPC 消息流（IPC Flow）**：进程 A → io_uring 零拷贝 → 进程 B，128B 定长消息头同源 agentrt AgentsIPC，落地于 `kernel`（同源 agentrt atoms/corekern IPC）。
+4. **调度数据流（Scheduling Flow）**：任务提交 → SCHED_AGENT → EEVDF → 执行，基于 sched_ext（agentrt-linux 内核增强，主线 6.12+）实现可插拔调度策略，落地于 `kernel`。
 
 4 大数据流通过 `trace_id` 贯穿 OpenTelemetry 全链路追踪，满足 NFR-O-002 Tracing 覆盖率与 NFR-O-001 Metrics 完整性。
 

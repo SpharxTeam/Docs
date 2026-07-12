@@ -35,7 +35,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 术语定义
 
-本规范使用的术语定义见 [统一术语表](../10-terminology.md),关键术语包括：
+本规范使用的术语定义见 [统一术语表](../../TERMINOLOGY.md),关键术语包括：
 
 | 术语 | 简要定义 | 来源 |
 |------|---------|------|
@@ -952,11 +952,11 @@ Skill 契约涉及两个版本概念，需明确区分：
 
 技能契约是 Airymax 技能市场的基石，它使技能可以像插件一样被动态发现、安装和执行。我们鼓励社区开发者遵循本规范，贡献高质量技能，共同构建丰富的技能生态。
 
-**展望未来:**
+**演进路径:**
 
-- **阶段 1(已完成)**: 制定 Skill Contract 规范，开发验证工具
-- **阶段 2(进行中)**: 开发参考实现 Skill，建立认证机制
-- **阶段 3(计划中)**: 实现跨平台技能市场，支持技能组合和编排
+- **阶段 1**: 制定 Skill Contract 规范，开发验证工具
+- **阶段 2**: 开发参考实现 Skill，建立认证机制
+- **阶段 3**: 实现跨平台技能市场，支持技能组合和编排
 
 ---
 
@@ -994,7 +994,7 @@ Skill 契约涉及两个版本概念，需明确区分：
 |---------|---------||
 | [Agent 契约规范](./agent_contract.md) | 本规范与 Agent 契约规范结构相似，两者共同构成 Airymax 的能力描述体系 |
 | [架构设计原则](../../00-architectural-principles.md) | 本规范是架构原则在技能管理方面的具体实现，特别是 MicroCoreRT 微核心思想和模块化原则 |
-| [统一术语表](../10-terminology.md) | 本规范使用的术语定义和解释，如 Skill、执行单元、契约等 |
+| [统一术语表](../../TERMINOLOGY.md) | 本规范使用的术语定义和解释，如 Skill、执行单元、契约等 |
 | [C&C++ 安全编程规范](../30-coding-standard/02-c-cpp-secure-coding.md) | 编译型技能的实现应遵循安全编程规范，特别是在内存管理和错误处理方面 |
 | [日志打印规范](../30-coding-standard/10-log-standard.md) | 技能运行时应遵循日志规范，记录关键操作和异常情况 |
 
@@ -1005,7 +1005,7 @@ Skill 契约涉及两个版本概念，需明确区分：
 [1] Airymax 设计哲学。../../00-basic-theories/04-design-principles-cn.md  
 [2] Airymax 认知层设计。../../00-basic-theories/02-cognition-design-cn.md  
 [3] 架构设计原则。../../00-architectural-principles.md  
-[4] 统一术语表。../10-terminology.md  
+[4] 统一术语表。../../TERMINOLOGY.md  
 [5] JSON Schema Draft-07 Specification. https://json-schema.org/draft-07/json-schema-release.html  
 [6] Semantic Versioning 2.0.0. https://semver.org/  
 

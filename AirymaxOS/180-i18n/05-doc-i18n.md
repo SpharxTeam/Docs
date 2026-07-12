@@ -133,7 +133,7 @@ agentrt-linux 提供 `airymaxos-doc-sync-check` 工具校验双语文档同步�
 
 ```python
 #!/usr/bin/env python3
-# airymaxos-system/doc_sync_check.py [IND]
+# system/doc_sync_check.py [IND]
 """校验英文与中文文档的结构同步性"""
 
 import re
@@ -219,7 +219,7 @@ jobs:
           while read en_doc; do
             zh_doc="${en_doc%.md}_zh.md"
             if [ -f "$zh_doc" ]; then
-              python3 airymaxos-system/doc_sync_check.py \
+              python3 system/doc_sync_check.py \
                 "$en_doc" "$zh_doc"
             fi
           done < changed_en_docs.txt
@@ -304,7 +304,7 @@ agentrt-linux 提供 `airymaxos-term-check` 工具校验文档术语合规：
 
 ```python
 #!/usr/bin/env python3
-# airymaxos-system/term_check.py [IND]
+# system/term_check.py [IND]
 """校验文档术语合规性"""
 
 import re
@@ -381,11 +381,11 @@ jobs:
       - name: Check terminology in docs
         run: |
           find docs/ -name "*.md" -exec \
-            python3 airymaxos-system/term_check.py {} +
+            python3 system/term_check.py {} +
       - name: Check terminology in code comments
         run: |
           find . -name "*.c" -o -name "*.h" | \
-            xargs python3 airymaxos-system/term_check.py
+            xargs python3 system/term_check.py
 ```
 
 ---
@@ -611,7 +611,7 @@ if __name__ == "__main__":
 当文档中使用了与 10-terminology.md 冲突的术语时，CI 阻塞 PR 合并：
 
 ```bash
-$ python3 airymaxos-system/term_check.py docs/example.md
+$ python3 system/term_check.py docs/example.md
 FAIL: docs/example.md 发现禁止术语
   - "主流 Linux 发行版" → 应使用 "主流 Linux 发行版"
   - "微内核原语" → 应使用 "微核心原语"

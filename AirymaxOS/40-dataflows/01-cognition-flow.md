@@ -12,7 +12,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 认知循环数据流概览
 
-认知循环数据流是 agentrt-linux 区别于通用操作系统的核心特征，落地于 `airymaxos-cognition` 子仓（同源 agentrt coreloopthree 模块）。该数据流借鉴 Kahneman 双系统思维理论：
+认知循环数据流是 agentrt-linux 区别于通用操作系统的核心特征，落地于 `cognition` 子仓（同源 agentrt coreloopthree 模块）。该数据流借鉴 Kahneman 双系统思维理论：
 
 - **System 1（快思考）**：处理简单、低风险、模板化任务，直接走「快速响应」路径，避免 LLM 调度开销，延迟 < 10ms（满足 NFR-P-001 实时反馈场景）。
 - **System 2（慢思考）**：处理复杂、高风险、需要规划的任务，走「认知层 → 增量规划 → 执行层 → 记忆卷载 → 反馈」完整闭环，延迟 < 100ms（满足 NFR-P-001 标准场景）。
@@ -23,9 +23,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 子仓 | 角色 | 同源 agentrt |
 |---|---|---|
-| airymaxos-cognition | 认知 / 规划 / 执行编排 | coreloopthree + frameworks |
-| airymaxos-memory | 记忆卷载 L1→L4 | memoryrovol + heapstore |
-| airymaxos-kernel | kthread 调度 + IPC + capability | atoms/corekern |
+| cognition | 认知 / 规划 / 执行编排 | coreloopthree + frameworks |
+| memory | 记忆卷载 L1→L4 | memoryrovol + heapstore |
+| kernel | kthread 调度 + IPC + capability | atoms/corekern |
 
 ---
 
@@ -86,7 +86,7 @@ flowchart TD
 
 - 步骤 1-3 在用户态 SDK 完成，通过 `airy_sys_call`（统一 capability invocation）系统调用进入内核。
 - 步骤 4-12 在内核态 CoreLoopThree kthread 中完成，避免上下文切换。
-- 步骤 7 的安全检查与步骤 9 的执行调度通过 io_uring IPC 异步解耦。
+- 步骤 7 的安全检查与步骤 9 的执行调度通过 kfifo 无锁环形队列异步解耦（kthread 间通信，非 io_uring）。
 
 ---
 
@@ -196,7 +196,7 @@ switching:
 
 | 异常类型 | 检测方式 | 处理策略 | 回退路径 |
 |---|---|---|---|
-| LLM 调用超时 | watchdog > 200ms | 重试 1 次，降级到本地模型 | 步骤 5 重试 |
+| LLM 调用超时 | watchdog > 200ms（L1 SLO 100ms 的 2 倍硬超时） | 重试 1 次，降级到本地模型 | 步骤 5 重试 |
 | DAG 节点执行失败 | 执行返回非零 | 调用补偿事务回滚 | 步骤 8 重新规划 |
 | 记忆卷载失败 | L1 写入失败 | 重试 3 次，告警 | 步骤 10 重试 |
 | 安全权限拒绝 | capability 检查失败 | 拒绝并审计，不重试 | 步骤 7 终止 |
@@ -303,19 +303,19 @@ trace_id: abc123def456
 
 ```prometheus
 # 认知循环延迟分布
-airymaxos_cognition_latency_seconds{quantile="0.50"} 0.045
-airymaxos_cognition_latency_seconds{quantile="0.99"} 0.095
-airymaxos_cognition_latency_seconds{quantile="0.999"} 0.180
+airy_cognition_latency_seconds{quantile="0.50"} 0.045
+airy_cognition_latency_seconds{quantile="0.99"} 0.095
+airy_cognition_latency_seconds{quantile="0.999"} 0.180
 
 # System 1/2 切换次数
-airymaxos_cognition_system1_hits_total 15420
-airymaxos_cognition_system2_hits_total 3580
+airy_cognition_system1_hits_total 15420
+airy_cognition_system2_hits_total 3580
 
 # 补偿事务触发次数
-airymaxos_cognition_compensation_total 42
+airy_cognition_compensation_total 42
 
 # DAG 平均深度
-airymaxos_cognition_dag_depth_avg 4.2
+airy_cognition_dag_depth_avg 4.2
 ```
 
 ### 8.4 结构化日志

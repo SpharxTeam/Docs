@@ -86,7 +86,7 @@ config AIRY_IPC
 
 - **OS-STD-143**（沿用 50 卷）：新增 `CONFIG_*` 选项默认 `off`（`default n` 或省略），仅安全核心可 `default y`；默认开启需经安全评审。
 - **OS-STD-144**（沿用 50 卷）：新增 `CONFIG_*` 选项必须有 `help` 文本，说明用途、依赖与风险。
-- **OS-KER-021**：`config` 名字必须以 `AIRY_` 或所属子系统前缀开头（如 `AIRY_IPC_`），禁止与上游 `CONFIG_*` 名字冲突（对齐 IRON-9 独立性）。
+- **OS-KER-155**：`config` 名字必须以 `AIRY_` 或所属子系统前缀开头（如 `AIRY_IPC_`），禁止与上游 `CONFIG_*` 名字冲突（对齐 IRON-9 独立性）。
 
 ### 2.2 menuconfig：可展开子菜单
 
@@ -438,9 +438,9 @@ make allnoconfig KCONFIG_ALLCONFIG=airymaxos-base.config
 
 ### 7.1 defconfig 与 allconfig 的关系
 
-`arch/$(SRCARCH)/configs/airymaxos_defconfig` 是架构默认配置，`make defconfig` 读取它生成 `.config`。`KCONFIG_ALLCONFIG` 与 `defconfig` 的区别：`defconfig` 是"用户起点配置"，`KCONFIG_ALLCONFIG` 是"全配置策略的保底基线"。二者配合：CI 用 `KCONFIG_ALLCONFIG` 保证极端配置下核心特性不丢，开发者用 `defconfig` 作为日常起点。
+`arch/$(SRCARCH)/configs/airy_defconfig` 是架构默认配置，`make defconfig` 读取它生成 `.config`。`KCONFIG_ALLCONFIG` 与 `defconfig` 的区别：`defconfig` 是"用户起点配置"，`KCONFIG_ALLCONFIG` 是"全配置策略的保底基线"。二者配合：CI 用 `KCONFIG_ALLCONFIG` 保证极端配置下核心特性不丢，开发者用 `defconfig` 作为日常起点。
 
-- **OS-BUILD-028**：每个支持架构（x86_64/aarch64/riscv64）必须有 `airymaxos_defconfig`；`defconfig` 与 `airymaxos-base.config` 必须一致——`defconfig` 中 `=y` 的项必须出现在 `airymaxos-base.config`，反之亦然。
+- **OS-BUILD-028**：每个支持架构（x86_64/aarch64/riscv64）必须有 `airy_defconfig`；`defconfig` 与 `airymaxos-base.config` 必须一致——`defconfig` 中 `=y` 的项必须出现在 `airymaxos-base.config`，反之亦然。
 
 ---
 
@@ -571,7 +571,7 @@ graph LR
 
 | 编号 | 规则 | 强制级别 |
 |------|------|---------|
-| OS-KER-021 | config 名字用 AIRY_/子系统前缀 | MUST |
+| OS-KER-155 | config 名字用 AIRY_/子系统前缀 | MUST |
 | OS-KER-022 | 互斥决策用 choice | MUST |
 | OS-KER-023 | select 目标的依赖须同时满足 | MUST |
 | OS-KER-024 | 可模块化子系统用 tristate | MUST |
@@ -613,7 +613,7 @@ graph LR
 - `50-engineering-standards/06-toolchain-and-automation.md`（OS-STD-032 CI 矩阵、OS-STD-143/144/145/146/147/148 Kconfig 规则来源）
 - `50-engineering-standards/04-engineering-philosophy.md`（IRON-9 同源且部分代码共享（IRON-9 v2）原则定义）
 - `10-architecture/02-five-dimensional-principles.md`（五维正交 24 原则定义）
-- `20-modules/01-kernel.md`（airymaxos-kernel 子仓配置）
+- `20-modules/01-kernel.md`（kernel 子仓配置）
 
 ### 11.3 参考材料
 

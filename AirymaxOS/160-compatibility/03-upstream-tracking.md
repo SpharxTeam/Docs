@@ -506,7 +506,7 @@ echo "=== MemoryRovol 测试 ==="
 ./test_memoryrovol --all
 
 echo "=== AgentsIPC 测试 ==="
-./test_agentsipc --all
+./test_airy_ipc --all
 
 echo "=== capability 系统测试 ==="
 ./test_capability --all

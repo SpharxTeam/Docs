@@ -98,7 +98,7 @@ type Shim interface {
 ### 2.2 airymaxos-shim 完整伪代码
 
 ```go
-// airymaxos-cloudnative/containerd-shim/shim.go
+// cloudnative/containerd-shim/shim.go
 package airymaxos
 
 import (
@@ -308,7 +308,7 @@ func (s *AirymaxosShim) Kill(ctx context.Context,
 shim 作为独立二进制运行，由 containerd 在容器创建时 fork：
 
 ```go
-// airymaxos-cloudnative/containerd-shim/main.go
+// cloudnative/containerd-shim/main.go
 package main
 
 import (

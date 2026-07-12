@@ -453,16 +453,16 @@ agentrt-linux 五维正交 24 原则在 Landlock 沙箱层的体现：
 |------|------|---------------------|
 | **E-1 安全内生** | OS-SEC-004 | 沙箱能力内置内核，无需外部依赖 |
 | **E-2 形式化验证** | OS-SEC-005 | 域的不可逆性、单调收紧性需形式化检查 |
-| **K-2 接口契约化** | OS-KER-005 | 三个 syscall 是稳定 ABI，永久支持 |
-| **K-3 服务隔离** | OS-KER-006 | 每个 Agent 独立 Landlock 域，进程级隔离 |
+| **K-2 接口契约化** | OS-KER-079 | 三个 syscall 是稳定 ABI，永久支持 |
+| **K-3 服务隔离** | OS-KER-080 | 每个 Agent 独立 Landlock 域，进程级隔离 |
 | **K-4 可插拔策略** | OS-KER-054 | ruleset 是策略载体，运行时可组合 |
-| **K-6 内核契约化** | OS-KER-008 | MicroCoreRT 锁定 Landlock syscall ABI |
+| **K-6 内核契约化** | OS-KER-079 | MicroCoreRT 锁定 Landlock syscall ABI（三 syscall 永久 ABI，同 K-2） |
 | **C-1 编译期检查** | OS-STD-006 | `BUILD_BUG_ON` 校验 ABI 结构体大小 |
 | **C-2 类型安全** | OS-STD-007 | `copy_min_struct_from_user` 校验用户缓冲区 |
 | **C-3 RAII** | OS-STD-008 | ruleset 通过 FD 引用计数管理生命周期 |
 | **C-5 不变量守护** | OS-STD-009 | 域一旦绑定即不可变，RCU 读侧安全 |
-| **A-1 诚实优先** | OS-STD-010 | `is_initialized()` 失败时清晰告知用户态 |
-| **A-4 完美主义** | OS-STD-011 | 沙箱施加失败必须中止而非降级 |
+| **A-1 诚实优先** | OS-STD-SEC-010 | `is_initialized()` 失败时清晰告知用户态 |
+| **A-4 完美主义** | OS-STD-SEC-011 | 沙箱施加失败必须中止而非降级 |
 | **IRON-9 v2 同源且部分代码共享** | OS-IRON-004 | Cupolas Workbench 与 agentrt 端沙箱同源且部分代码共享 |
 
 ---
@@ -632,7 +632,7 @@ Cupolas daemon 创建 ruleset 后按 L0→L1→L2 顺序追加规则并三次调
 | OS-SEC-012 | 安全规范 | Agent 沙箱必须至少 3 层域叠加（L0 全局 + L1 角色 + L2 实例），禁止少于 3 层 |
 | OS-SEC-013 | 安全规范 | 访问掩码合并必须用交集语义（`final_mask = L0 & L1 & L2`），禁止并集或最宽优先 |
 | OS-SEC-014 | 安全规范 | `landlock_restrict_self` 必须在 Agent 进程 `fork()` 后立即调用，禁止延迟施加 |
-| OS-SEC-015 | 安全规范 | 沙箱创建失败必须终止 Agent 启动，禁止降级运行（与 OS-STD-011 一致） |
+| OS-SEC-015 | 安全规范 | 沙箱创建失败必须终止 Agent 启动，禁止降级运行（与 OS-STD-SEC-011 一致） |
 
 上述规则在 IRON-9 v2 [SC] 共享契约层约束下，保证 agentrt 用户态 Cupolas Workbench 与 agentrt-linux 内核态 Landlock 沙箱的分层语义同源；任何对域叠加层数或合并算法的修改必须经 RFC 评审与五维原则映射检查（OS-STD-007）。
 
@@ -644,17 +644,17 @@ Cupolas daemon 创建 ruleset 后按 L0→L1→L2 顺序追加规则并三次调
 |----------|------|------|
 | OS-IRON-004 | 铁律 | Landlock 三个 syscall 是永久 ABI，永不破坏 |
 | OS-IRON-005 | 铁律 | Cupolas Workbench 与 agentrt 端沙箱同源且部分代码共享维护 |
-| OS-KER-005 | 内核契约 | `landlock_create_ruleset` / `landlock_add_rule` / `landlock_restrict_self` 三 syscall 由 MicroCoreRT 锁定 |
-| OS-KER-006 | 内核契约 | 每个 Agent 必须施加独立 Landlock 域 |
+| OS-KER-079 | 内核契约 | `landlock_create_ruleset` / `landlock_add_rule` / `landlock_restrict_self` 三 syscall 由 MicroCoreRT 锁定 |
+| OS-KER-080 | 内核契约 | 每个 Agent 必须施加独立 Landlock 域 |
 | OS-KER-054 | 内核契约 | ruleset 是策略载体，运行时不可变 |
-| OS-KER-008 | 内核契约 | `no_new_privs` 是 Agent 启动前必设标志 |
-| OS-KER-009 | 内核契约 | 网络规则为可选增强，缺失时回退默认拒绝 |
+| OS-KER-081 | 内核契约 | `no_new_privs` 是 Agent 启动前必设标志 |
+| OS-KER-072 | 内核契约 | 网络规则为可选增强，缺失时回退默认拒绝 |
 | OS-STD-006 | 工程标准 | ABI 结构体大小变化必须配套 `BUILD_BUG_ON` 校验 |
 | OS-STD-007 | 工程标准 | 用户缓冲区必须通过 `copy_min_struct_from_user` 校验 |
 | OS-STD-008 | 工程标准 | ruleset FD 通过引用计数管理生命周期，关闭即释放 |
 | OS-STD-009 | 工程标准 | 域绑定后红黑树冻结为不可变 |
-| OS-STD-010 | 工程标准 | `is_initialized()` 失败时必须返回 `-EOPNOTSUPP` |
-| OS-STD-011 | 工程标准 | 沙箱施加失败必须中止 Agent 启动 |
+| OS-STD-SEC-010 | 工程标准 | `is_initialized()` 失败时必须返回 `-EOPNOTSUPP` |
+| OS-STD-SEC-011 | 工程标准 | 沙箱施加失败必须中止 Agent 启动 |
 | OS-SEC-004 | 安全规范 | 沙箱能力内置内核，Agent 无需特权即可施加 |
 | OS-SEC-005 | 安全规范 | 域的不可逆性需通过形式化检查 |
 | OS-SEC-006 | 安全规范 | 沙箱施加前后必须通过 `AgentsIPC` 上报事件 |
@@ -1222,7 +1222,7 @@ void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
  * Landlock 系统调用号（对齐 Linux 6.6 arch/x86/entry/syscalls/syscall_64.tbl）
  *
  * agentrt-linux 在所有支持的架构上保留这三个 syscall 编号，
- * 由 MicroCoreRT 锁定为"用户空间稳定 ABI"（OS-IRON-004 / OS-KER-005）
+ * 由 MicroCoreRT 锁定为"用户空间稳定 ABI"（OS-IRON-004 / OS-KER-079）
  */
 #define __NR_landlock_create_ruleset  444
 #define __NR_landlock_add_rule         445

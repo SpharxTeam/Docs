@@ -701,7 +701,7 @@ agentctl bench compare baseline.json current.json
 
 # 输出:
 # === Benchmark Comparison ===
-# Baseline: v1.0.0 (abc123)
+# Baseline: v0.1.1 (abc123)
 # Current:  v1.0.1 (def456)
 #
 # bench_syscall_agent_create:

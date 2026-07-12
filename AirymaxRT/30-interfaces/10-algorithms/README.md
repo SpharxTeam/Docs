@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09  
 **状态**: 维护中  
-**路径**: OpenAirymax/Docs/30-api/10-algorithms/README.md  
+**路径**: docs/AirymaxRT/30-interfaces/10-algorithms/README.md  
 ---
 
 ## 🎯 概述

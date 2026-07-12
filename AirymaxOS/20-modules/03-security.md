@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）安全设计文档（airymaxos-security，极境安全）
+# agentrt-linux（AirymaxOS）安全设计文档（security，极境安全）
 
 > **子仓编号**：03\
 > **子仓代号**：极境安全（Airymax Security）\
@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-security` 是 agentrt-linux（AirymaxOS）的安全子仓，承担以下核心职责：
+`security` 是 agentrt-linux（AirymaxOS）的安全子仓，承担以下核心职责：
 
 1. **capability 系统 [SC]**：基于 seL4 风格的不可伪造令牌实现最小权限访问控制，capability ID 枚举与派生模型与 agentrt 共享。
 2. **LSM Hook [SS]**：agent_lsm 提供 Linux Security Module 钩子，调度机制与 agentrt cupolas 语义同源。
@@ -57,7 +57,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 cupolas）与 agentrt-linux（内核态 airymaxos-security）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 cupolas）与 agentrt-linux（内核态 security）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 安全子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
@@ -67,7 +67,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（cupolas） | agentrt-linux（airymaxos-security） | 同源标注 |
+| 维度 | agentrt（cupolas） | agentrt-linux（security） | 同源标注 |
 |------|-------------------|-------------------------------|----------|
 | LSM | Cupolas 用户态策略注入 | agent_lsm 内核态钩子注册 | [SS] |
 | 沙箱 | 进程沙箱（用户态） | Landlock + seccomp + capability（内核态强制） | [SS] |
@@ -90,7 +90,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 3. 目录结构
 
 ```
-airymaxos-security/
+security/
 ├── capability/             # capability 系统（seL4 风格）[SC]
 ├── lsm/                    # agent_lsm（LSM hook）[SS]
 ├── sandbox/               # Landlock + seccomp [SS]
@@ -238,6 +238,32 @@ typedef struct airy_capability {
 } airy_capability_t;
 ```
 
+**CNode + CSpace 派生树**（seL4 风格，Step 2.4 #1 补齐）：
+
+seL4 capability 空间由 CNode 树构成——每个进程持有一个根 CNode，CNode 节点可指向子 CNode（形成树状 capability 空间 CSpace），也可指向具体 capability（Endpoint/Thread/Frame 等）。agentrt-linux 借鉴此模型实现进程级 capability 空间隔离：
+
+| 概念 | seL4 原语 | agentrt-linux 实现 | 层次 |
+|------|-----------|-------------------|------|
+| CNode | capability 表节点（可嵌套） | `airy_cnode`（radix-tree，slot 数 = 2^n） | [IND] |
+| CSpace | 进程 capability 空间（CNode 树） | per-task `airy_cspace`（根 CNode 指针） | [IND] |
+| MDB | Mapping Database（全局派生关系） | `airy_cap_mdb`（全局 radix-tree，parent→children 链） | [IND] |
+| slot | CNode 中的 capability 槽位 | `airy_cap_slot`（cap_id + cnode 偏移） | [SC] |
+
+**MDB 派生树**：每个 capability 的 `parent_cap_id` 字段记录父 capability，内核维护全局 MDB（Mapping Database）跟踪所有派生关系。撤销操作通过 MDB 递归遍历子树，确保所有派生 capability 同步失效——这是 seL4 `cap_revoke` 语义在 agentrt-linux 的落地。
+
+```c
+/* MDB 节点：capability 派生关系的全局追踪（[IND] 实现独立） */
+struct airy_cap_mdb_node {
+    uint64_t cap_id;            /* 本 capability ID */
+    uint64_t parent_cap_id;     /* 父 capability ID（0 = 根） */
+    struct list_head children;  /* 子 capability 链表 */
+    struct list_head sibling;   /* 兄弟节点链表 */
+    uint32_t mint_depth;        /* 派生深度（0 = 原始） */
+};
+```
+
+**与 seL4 的差异**：seL4 的 CNode/MDB 实现完全在微内核中（形式化验证）；agentrt-linux 借鉴其设计思想，但实现基于 Linux radix-tree + RCU（性能优先，非形式化验证），属于 [IND] 实现独立层。capability ID 枚举与派生模型（mint/mintcopy/derive/revoke）的语义在 [SC] 层与 agentrt 共享。
+
 ### 4.2 agent_lsm（LSM hook，Cupolas 同源）[SS]
 
 **LSM Hook 点**（252 个钩子 ID 枚举 [SC]）：
@@ -334,7 +360,7 @@ typedef struct airy_vault_backend {
 - LLM 推理保护（模型权重、推理数据）。
 - 密钥管理（HSM 替代）。
 - 隐私计算（联邦学习）。
-- Agent 记忆加密（与 `airymaxos-memory` 协作）。
+- Agent 记忆加密（与 `memory` 协作）。
 
 ### 4.5 eBPF kfunc + dynamic pointer（6.6 原生特性）[SS]
 
@@ -555,13 +581,13 @@ sequenceDiagram
 
 | 协作子仓 | 协作内容 | 同源标注 |
 |---------|---------|----------|
-| `airymaxos-kernel` | 提供 capability 内核接口、LSM hook 注册点 | [SS] |
-| `airymaxos-services` | 为每个服务颁发 capability、应用 LSM 策略 | [SS] |
-| `airymaxos-memory` | 提供 MemoryRovol 加密、TEE 保护 | [IND] |
-| `airymaxos-cognition` | 提供 Wasm 沙箱、LLM 推理 TEE 保护 | [IND] |
-| `airymaxos-cloudnative` | 提供容器沙箱、零信任网络 | [IND] |
-| `airymaxos-system` | 提供安全配置工具 | [SS] |
-| `airymaxos-tests-linux` | 安全测试、形式化验证 | [SS] |
+| `kernel` | 提供 capability 内核接口、LSM hook 注册点 | [SS] |
+| `services` | 为每个服务颁发 capability、应用 LSM 策略 | [SS] |
+| `memory` | 提供 MemoryRovol 加密、TEE 保护 | [IND] |
+| `cognition` | 提供 Wasm 沙箱、LLM 推理 TEE 保护 | [IND] |
+| `cloudnative` | 提供容器沙箱、零信任网络 | [IND] |
+| `system` | 提供安全配置工具 | [SS] |
+| `tests-linux` | 安全测试、形式化验证 | [SS] |
 
 ---
 
@@ -599,7 +625,7 @@ sequenceDiagram
 | 2 | LSM 钩子 ID 枚举一致性 | 252 个钩子 ID | 252 个钩子 ID | PASS [SC] |
 | 3 | capability 派生模型一致性 | mint/mintcopy/derive/revoke | mint/mintcopy/derive/revoke | PASS [SC] |
 | 4 | Cupolas blob 布局一致性 | cred/inode/file/task | cred/inode/file/task | PASS [SC] |
-| 5 | Vault backend 抽象一致性 | 5 函数（init/seal/unseal/attest） | 5 函数（init/seal/unseal/attest） | PASS [SC] |
+| 5 | Vault backend 抽象一致性 | 4 函数指针（init/seal/unseal/attest） | 4 函数指针（init/seal/unseal/attest） | PASS [SC] |
 | 6 | 策略裁决结果一致性 | 4 值（ALLOW/DENY/AUDIT/LOG） | 4 值（ALLOW/DENY/AUDIT/LOG） | PASS [SC] |
 | 7 | `security_add_hooks()` 语义等价性 | 用户态注册 | 内核 `hlist_add_tail_rcu` | PASS [SS] |
 | 8 | `call_int_hook` 短路语义一致性 | first-deny | first-deny | PASS [SS] |

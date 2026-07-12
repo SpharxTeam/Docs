@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/21-best-practices.md
+**路径**: docs/AirymaxRT/140-application-development/21-best-practices.md
 
 ## 概述
 
@@ -341,7 +341,7 @@ SKIP_TESTS=1 ./scripts/release.sh 2.0.1 stable
 | 文档 | 路径 |
 |------|------|
 | 架构设计 | [10-architecture/](../10-architecture/) |
-| API参考 | [30-api/](../30-api/) |
+| API参考 | [30-interfaces/](../30-interfaces/) |
 | 编码规范 | [50-engineering-standards/](../50-engineering-standards/) |
 | 协议集成 | [protocol_integration_guide.md](protocol_integration_guide.md) |
 | 故障排查 | [troubleshooting_faq.md](troubleshooting_faq.md) |

@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/development_guide_manager.md
+**路径**: docs/AirymaxRT/140-application-development/development_guide_manager.md
 ---
 
 ## 📚 文档概述
@@ -415,7 +415,7 @@ CONFIG_SCHEMA_MAP['your_module/config.yaml'] = 'schema/your-module.schema.json'
 |------|------|---------|
 | Python语法检查 | 100%通过 | ✅ 11/11 (100%) |
 | 圈复杂度 | 平均<3, 最大<10 | ✅ 平均2.81, 最大~7 |
-| 代码重复率 | <8% (Manager内部) | ✅ ~8% (待进一步优化) |
+| 代码重复率 | <8% (Manager内部) | ✅ ~8% |
 | 测试覆盖率 | >80% | ✅ ~85-90% (预估) |
 | 文档完整性 | 所有公共API有docstring | ✅ 100% |
 

@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）测试设计文档（airymaxos-tests-linux，极境测试）
+# agentrt-linux（AirymaxOS）测试设计文档（tests-linux，极境测试）
 
 > **子仓编号**：08\
 > **子仓代号**：极境测试（Airymax Tests）\
@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-tests-linux` 是 agentrt-linux（AirymaxOS）的测试与验证子仓，承担以下核心职责：
+`tests-linux` 是 agentrt-linux（AirymaxOS）的测试与验证子仓，承担以下核心职责：
 
 1. **单元测试框架 [SS]**：为各子仓提供单元测试框架（Rust cargo test + Go testing + C googletest），与 agentrt 全模块测试语义同源。
 2. **集成测试框架 [IND]**：基于 agentrt-linux 系统级测试套件，提供集成测试框架（agentrt-linux 自研）。
@@ -59,7 +59,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态全模块测试）与 agentrt-linux（airymaxos-tests-linux）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态全模块测试）与 agentrt-linux（tests-linux）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 测试子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
@@ -69,7 +69,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（全模块测试） | agentrt-linux（airymaxos-tests-linux） | 同源标注 |
+| 维度 | agentrt（全模块测试） | agentrt-linux（tests-linux） | 同源标注 |
 |------|---------------------|------------------------------|----------|
 | 单元测试框架 | cargo test + go test + googletest | cargo test + go test + googletest | [SS] |
 | 集成测试 | 模块间集成测试 | 子仓间集成测试（agentrt-linux 自研） | [IND] |
@@ -514,13 +514,13 @@ graph TD
 
 | 协作子仓 | 协作内容 | 同源标注 |
 |---------|---------|----------|
-| `airymaxos-kernel` | 内核单元测试、形式化验证、Soak Test | [SC] |
-| `airymaxos-services` | 服务集成测试、混沌工程（进程杀死） | [SC] |
-| `airymaxos-security` | 安全测试、capability 形式化验证 | [SC] |
-| `airymaxos-memory` | 内存测试、MemoryRovol 验证 | [SC] |
-| `airymaxos-cognition` | 认知测试、LLM 性能基准 | [SC] |
-| `airymaxos-cloudnative` | 云原生测试、K8s 集成测试 | [IND] |
-| `airymaxos-system` | 系统工具测试、DevStation 验证 | [IND] |
+| `kernel` | 内核单元测试、形式化验证、Soak Test | [SC] |
+| `services` | 服务集成测试、混沌工程（进程杀死） | [SC] |
+| `security` | 安全测试、capability 形式化验证 | [SC] |
+| `memory` | 内存测试、MemoryRovol 验证 | [SC] |
+| `cognition` | 认知测试、LLM 性能基准 | [SC] |
+| `cloudnative` | 云原生测试、K8s 集成测试 | [IND] |
+| `system` | 系统工具测试、DevStation 验证 | [IND] |
 
 ---
 

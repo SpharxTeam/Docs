@@ -4,9 +4,12 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **文档定位**： agentrt-linux（AirymaxOS，极境智能体操作系统）与 agentrt（微核心用户态运行时）之间的 IRON-9 v2 三层代码共享模型落地规范。详细说明 \[SC] 共享契约层（6 个头文件）、\[SS] 语义同源层、\[IND] 完全独立层的实施细节，含双向 CI 校验机制与 magic 设计原理。\
 > **版本**： 0.1.1\
-> **最后更新**： 2026-07-09\
+> **最后更新**： 2026-07-12\
+> **编号权威**： [09-ssot-registry.md §3](./09-ssot-registry.md)\
 > **理论根基**： Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**： AGPL-3.0-or-later OR Apache-2.0
+
+> **SSoT 依赖声明**：本文件引用 IRON-9 v2 三层模型（[SC]/[SS]/[IND]）作为跨项目代码共享的权威框架。IPC magic 值（0x41524531 'ARE1'）与任务描述符 magic（0x41475453 'AGTS'）的权威定义登记于 [09-ssot-registry.md §3](./09-ssot-registry.md)。命名前缀隔离（`airy_*`/`airy_*`）引用 [10-coding-style/coding_conventions.md Part IV §4.4.2](./10-coding-style/coding_conventions.md)。
 
 ***
 
@@ -86,6 +89,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 #ifndef _AIRY_BPF_STRUCT_OPS_H
 #define _AIRY_BPF_STRUCT_OPS_H
 
+#include <airymax/uapi_compat.h>
+
 /**
  * struct airy_struct_ops_value - shared struct_ops state
  * @state: Operation state machine value.
@@ -111,6 +116,12 @@ enum airy_struct_ops_state {
 
 > **定位说明**：`bpf_struct_ops.h` 是 agentrt 与 agentrt-linux 之间的**补充共享文件**（SDK 网关状态管理共享结构），两端共享代码但**不属于 6 个 [SC] 核心头文件**。其 `struct airy_struct_ops_value` 和 `enum airy_struct_ops_state` 用于 agentrt 用户态 BPF loader 与 agentrt-linux 内核 struct_ops 框架之间的状态同步。
 
+### 2.2.1 跨平台 UAPI 类型兼容：uapi\_compat.h（辅助文件）
+
+所有 6 个 [SC] 核心头文件 + `bpf_struct_ops.h` 均通过 `#include <airymax/uapi_compat.h>` 获取 `__u8`/`__u16`/`__u32`/`__u64`/`__s32`/`__s64` 等 UAPI 类型。该辅助文件在 Linux 上直接包含 `<linux/types.h>`，在 macOS/Windows 上通过 `<stdint.h>` + typedef 提供等价类型，确保 [SC] 头文件在 agentrt 用户态跨平台（Linux/macOS/Windows）和 agentrt-linux 内核态均能逐字节相同地编译。
+
+> **设计约束**：[SC] 头文件中**禁止**直接 `#include <linux/types.h>`（macOS/Windows 无此头文件），**必须**通过 `<airymax/uapi_compat.h>` 间接获取 UAPI 类型。
+
 ### 2.3 头文件 1：memory\_types.h
 
 ```c
@@ -118,7 +129,7 @@ enum airy_struct_ops_state {
 #ifndef _AIRY_MEMORY_TYPES_H
 #define _AIRY_MEMORY_TYPES_H
 
-#include <linux/types.h>
+#include <airymax/uapi_compat.h>
 
 /* MemoryRovol L1-L4 hierarchy (shared semantics) */
 enum airy_mem_level {
@@ -128,11 +139,15 @@ enum airy_mem_level {
 	AIRY_MEM_L4_PMEM	= 3,	/* Persistent memory */
 };
 
-/* GFP mask semantics for memory tier selection */
-#define AIRY_GFP_HOT		(__GFP_HIGHMEM | __GFP_MOVABLE)
-#define AIRY_GFP_WARM	(__GFP_HIGHMEM)
-#define AIRY_GFP_COLD	(0)
-#define AIRY_GFP_PMEM	(__GFP_HIGH)
+/*
+ * GFP mask semantics for memory tier selection.
+ * Platform-independent semantic bitmask constants (NOT kernel __GFP_* flags).
+ * Each side translates AIRY_GFP_* to its own allocation mechanism internally.
+ */
+#define AIRY_GFP_HOT		(0x01u)	/* Hot: agent-local working set */
+#define AIRY_GFP_WARM		(0x02u)	/* Warm: node-local */
+#define AIRY_GFP_COLD		(0x04u)	/* Cold: node-remote */
+#define AIRY_GFP_PMEM		(0x08u)	/* Persistent memory */
 
 #endif /* _AIRY_MEMORY_TYPES_H */
 ```
@@ -144,7 +159,7 @@ enum airy_mem_level {
 #ifndef _AIRY_SECURITY_TYPES_H
 #define _AIRY_SECURITY_TYPES_H
 
-#include <linux/types.h>
+#include <airymax/uapi_compat.h>
 
 /* POSIX capability 41 IDs (subset shown) */
 #define AIRY_CAP_AGENT_SPAWN		41	/* Agent spawn capability (Airymax 专属，从 41 开始避免与 Linux 0-40 冲突) */
@@ -177,17 +192,17 @@ enum airy_cap_op {
 #endif /* _AIRY_SECURITY_TYPES_H */
 ```
 
-### 2.5 头文件 4：cognition\_types.h
+### 2.5 头文件 3：cognition\_types.h
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
 #ifndef _AIRY_COGNITION_TYPES_H
 #define _AIRY_COGNITION_TYPES_H
 
-#include <linux/types.h>
+#include <airymax/uapi_compat.h>
 
 /* Q16.16 fixed-point: required because -mno-80387 (no FPU) */
-typedef int32_t airy_q16_t;
+typedef __s32 airy_q16_t;
 #define AIRY_Q16_ONE		(1 << 16)
 
 /* CoreLoopThree phases */
@@ -213,7 +228,7 @@ enum airy_think_mode {
 #ifndef _AIRY_SCHED_H
 #define _AIRY_SCHED_H
 
-#include <linux/types.h>
+#include <airymax/uapi_compat.h>
 
 /* SCHED_EXT=7 (Linux 6.6 内核基线 内置, include/uapi/linux/sched.h:121)
  * 禁止定义 SCHED_AGENT 宏, 复用 SCHED_EXT 调度类编号。 */
@@ -222,7 +237,7 @@ enum airy_think_mode {
 #define AIRY_TASK_MAGIC	0x41475453u
 
 /* vtime type: Q16.16 fixed-point (no FPU) */
-typedef int32_t airy_vtime_t;
+typedef __s32 airy_vtime_t;
 
 /* Priority range: 0 (highest) - 139 (lowest), compatible with Linux */
 #define AIRY_PRIO_MIN	0
@@ -235,6 +250,13 @@ typedef int32_t airy_vtime_t;
 #define AIRY_WEIGHT_MIN	1
 #define AIRY_WEIGHT_MAX	10000
 
+/*
+ * MAC_MAX_AGENTS: hard limit for concurrent agent scheduling.
+ * SSoT value: 1024 (validated by benchmark to 1000 concurrent).
+ * All modules MUST reference this constant instead of local MAX_AGENTS.
+ */
+#define MAC_MAX_AGENTS	1024
+
 /**
  * airy_vtime_decay - Compute vtime after slice consumption
  * @vtime: Current virtual time (Q16.16 fixed-point).
@@ -244,7 +266,7 @@ typedef int32_t airy_vtime_t;
  * Return: New vtime after decay.
  */
 static inline airy_vtime_t
-airy_vtime_decay(airy_vtime_t vtime, u64 consumed_slice, u32 weight)
+airy_vtime_decay(airy_vtime_t vtime, __u64 consumed_slice, __u32 weight)
 {
 	return vtime + (airy_vtime_t)(consumed_slice * 100 / weight);
 }
@@ -268,14 +290,14 @@ struct airy_task_desc {
 #endif /* _AIRY_SCHED_H */
 ```
 
-### 2.7 头文件 6：ipc.h
+### 2.7 头文件 5：ipc.h
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
 #ifndef _AIRY_IPC_H
 #define _AIRY_IPC_H
 
-#include <linux/types.h>
+#include <airymax/uapi_compat.h>
 
 /* IPC magic: 0x41524531 = 'ARE1' (Airymax Runtime Engine v1) */
 #define AIRY_IPC_MAGIC	0x41524531u
@@ -330,6 +352,9 @@ struct airy_ipc_msg_hdr {
 	__u8	reserved[84];		/* offset 44, 84 bytes */
 } __attribute__((packed));
 
+_Static_assert(sizeof(struct airy_ipc_msg_hdr) == 128,
+	"IPC message header must be exactly 128 bytes");
+
 #endif /* _AIRY_IPC_H */
 ```
 
@@ -341,36 +366,36 @@ struct airy_ipc_msg_hdr {
 #define _AIRY_SYSCALLS_H
 
 /*
-	 * Agent syscall architecture: 12 core + 12 reserved = 24 slots total
-	 *
-	 * Core 12:
-	 *   IPC Primitives (8): Call/Send/Recv/NBSend/NBRecv/ReplyRecv/Yield/Reply
-	 *   Control Primitives (3): RovolCtl/SchedCtl/CltNotify
-	 *   Notification (1): Notify
-	 *
-	 * LsmCtl and WasmLoad are subsumed under Call via capability invocation:
-	 *   - LSM policy load → airy_sys_call(security_cap, &msg)
-	 *   - Wasm module load → airy_sys_call(module_cap, &msg)
-	 *
-	 * Inspired by seL4's 8-activity syscall model — all capability
-	 * operations are encoded in IPC messages, not as separate syscalls.
-	 * Data plane I/O is handled by io_uring (zero syscall).
-	 * Reply completes the seL4 8-activity set (Reply without Recv).
-	 * Notify provides async inter-agent signaling (seL4 Notification).
-	 */
-	#define AIRY_SYS_CALL	0	/* Unified capability invocation */
-	#define AIRY_SYS_SEND	1	/* Blocking synchronous send */
-	#define AIRY_SYS_RECV	2	/* Blocking synchronous receive */
-	#define AIRY_SYS_NBSEND	3	/* Non-blocking send */
-	#define AIRY_SYS_NBRECV	4	/* Non-blocking receive */
-	#define AIRY_SYS_REPLY_RECV	5	/* Reply and wait for next */
-	#define AIRY_SYS_YIELD	6	/* Yield CPU */
-	#define AIRY_SYS_ROVOL_CTL	7	/* Memory snapshot/restore/tier */
-	#define AIRY_SYS_SCHED_CTL	8	/* Scheduling policy config */
-	#define AIRY_SYS_CLT_NOTIFY	9	/* CoreLoopThree phase + kthread */
-	#define AIRY_SYS_REPLY	10	/* Standalone reply (no wait) */
-	#define AIRY_SYS_NOTIFY	11	/* Async notification signal */
-	/* Reserved slots 12-23 for future expansion */
+ * Agent syscall architecture: 12 core + 12 reserved = 24 slots total
+ *
+ * Core 12:
+ *   IPC Primitives (8): Call/Send/Recv/NBSend/NBRecv/ReplyRecv/Yield/Reply
+ *   Control Primitives (3): RovolCtl/SchedCtl/CltNotify
+ *   Notification (1): Notify
+ *
+ * LsmCtl and WasmLoad are subsumed under Call via capability invocation:
+ *   - LSM policy load -> airy_sys_call(security_cap, &msg)
+ *   - Wasm module load -> airy_sys_call(module_cap, &msg)
+ *
+ * Inspired by seL4's 8-activity syscall model — all capability
+ * operations are encoded in IPC messages, not as separate syscalls.
+ * Data plane I/O is handled by io_uring (zero syscall).
+ * Reply completes the seL4 8-activity set (Reply without Recv).
+ * Notify provides async inter-agent signaling (seL4 Notification).
+ */
+#define AIRY_SYS_CALL		0	/* Unified capability invocation */
+#define AIRY_SYS_SEND		1	/* Blocking synchronous send */
+#define AIRY_SYS_RECV		2	/* Blocking synchronous receive */
+#define AIRY_SYS_NBSEND	3	/* Non-blocking send */
+#define AIRY_SYS_NBRECV	4	/* Non-blocking receive */
+#define AIRY_SYS_REPLY_RECV	5	/* Reply and wait for next */
+#define AIRY_SYS_YIELD	6	/* Yield CPU */
+#define AIRY_SYS_ROVOL_CTL	7	/* Memory snapshot/restore/tier */
+#define AIRY_SYS_SCHED_CTL	8	/* Scheduling policy config */
+#define AIRY_SYS_CLT_NOTIFY	9	/* CoreLoopThree phase + kthread */
+#define AIRY_SYS_REPLY	10	/* Standalone reply (no wait) */
+#define AIRY_SYS_NOTIFY	11	/* Async notification signal */
+/* Reserved slots 12-23 for future expansion */
 
 #endif /* _AIRY_SYSCALLS_H */
 ```
@@ -385,12 +410,28 @@ struct airy_ipc_msg_hdr {
 | ASCII | `'ARE1'`      | Airymax Runtime Engine v1 |
 | 用途    | IPC 消息头 magic | 验证 IPC 协议版本与消息完整性         |
 
+**SSoT 权威定义**：`#define AIRY_IPC_MAGIC 0x41524531u`（[SC] `include/airymax/ipc.h`）
+
 **设计原理**：
 
 1. **可识别性**：'ARE1' 是人类可读的 ASCII，便于 hexdump 调试时识别 IPC 消息
 2. **版本化**：末尾 '1' 表示协议版本 1，未来 breaking change 升级为 'ARE2'
 3. **跨端一致**：agentrt 与 agentrt-linux 两端字节相同，无字节序转换（host byte order 内部传输）
 4. **不可变更**：magic 一经发布即冻结，变更必须升级版本号
+
+**P0-05 收敛（0.1.1）**：agentrt 内全部 IPC 传输层 magic 统一引用 `AIRY_IPC_MAGIC`，禁止本地硬编码十六进制值。收敛映射表：
+
+| 层 | 原独立定义 | 收敛后 | 文件 |
+| - | -------- | --- | --- |
+| [SC] 共享契约 | `AIRY_IPC_MAGIC 0x41524531u` | **SSoT（不变）** | `include/airymax/ipc.h` |
+| L2 corekern IPC | `ARE_IPC_MAGIC 0x41524531u` | `#define ARE_IPC_MAGIC AIRY_IPC_MAGIC` | `atoms/corekern/include/are_ipc.h` |
+| 应用层 IPC | `IPC_MAGIC 0x49504300` ❌ | `#define IPC_MAGIC AIRY_IPC_MAGIC` | `commons/utils/ipc/include/ipc_common.h` |
+| 服务总线 | `IPC_BUS_MESSAGE_MAGIC 0x49534200` ❌ | `#define IPC_BUS_MESSAGE_MAGIC AIRY_IPC_MAGIC` | `commons/utils/ipc/include/ipc_service_bus.h` |
+| airy_types | 注释 `0x414F5350 'AOSP'` ❌ | 注释改为 `AIRY_IPC_MAGIC = 0x41524531 'ARE1'` | `commons/include/airy_types.h` |
+
+> **注意**：`IPC_RPC_MAGIC 0x52504300`（'RPC\0'）不在收敛范围——它是 payload 侧 RPC 子协议标识符（`ipc_rpc_header_t`），不是 IPC 传输层 magic，保留独立值。
+>
+> **L2 布局声明（[IND] 独立层）**：`ARE_IPC_MAGIC` 与 `AIRY_IPC_MAGIC` 共享同源 magic 值，但 L2 消息头布局 `are_ipc_message_header_t`（128B，14 字段）与 [SC] `struct airy_ipc_msg_hdr`（128B，9 字段）字段布局不同，属 IRON-9 [IND] 层——magic 同源、布局独立。
 
 ### 3.2 任务描述符 magic 0x41475453 ('AGTS')
 

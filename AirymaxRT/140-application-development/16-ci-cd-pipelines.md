@@ -2,7 +2,7 @@
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/Docs/60-guides/ci_cd_documentation.md
+**路径**: docs/AirymaxRT/140-application-development/ci_cd_documentation.md
 ---
 
 ## 1. 架构概述

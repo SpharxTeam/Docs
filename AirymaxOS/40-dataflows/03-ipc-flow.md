@@ -12,7 +12,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. IPC 消息流概览
 
-IPC 消息流是 agentrt-linux 进程间通信的核心数据流，落地于 `airymaxos-kernel` 子仓，并贯穿 `airymaxos-services` 的 12 daemons。该数据流基于 Linux 6.6 内核基线原生的 io_uring 子系统实现零拷贝、零 syscall 的高性能消息传递。
+IPC 消息流是 agentrt-linux 进程间通信的核心数据流，落地于 `kernel` 子仓，并贯穿 `services` 的 12 daemons。该数据流基于 Linux 6.6 内核基线原生的 io_uring 子系统实现零拷贝、零 syscall 的高性能消息传递。
 
 **核心特征**：
 
@@ -123,6 +123,42 @@ sequenceDiagram
 
     Note over A,B: trace_id 贯穿全程<br/>OpenTelemetry 追踪
 ```
+
+### 2.5 io_uring SETUP 标志完整清单
+
+agentrt-linux IPC 基于 Linux 6.6 内核基线 `include/uapi/linux/io_uring.h` 的 io_uring 子系统实现。下表列出 Linux 6.6 支持的全部 `IORING_SETUP_*` 标志（19 项）及 agentrt-linux IPC 启用策略：
+
+| # | IORING_SETUP_ 标志 | 引入版本 | agentrt-linux 启用 | 用途 | 关联规则 |
+|---|--------------------|---------|---------------------|------|---------|
+| 1 | `IOPOLL` | 5.1 | ❌ | 轮询模式（存储设备 HDD/SSD 专用） | 不适用 IPC（IPC 无块设备 I/O） |
+| 2 | `SQPOLL` | 5.11 | ✅ | 内核轮询线程，零 syscall 提交 | OS-IPC-002 |
+| 3 | `SQ_AFF` | 5.11 | ✅ | SQPOLL 线程 CPU 亲和性绑定 | OS-IPC-002（性能调优） |
+| 4 | `CQSIZE` | 5.11 | ✅ | 自定义 CQ ring 大小 | 默认 CQ = 2×SQ |
+| 5 | `CLAMP` | 5.12 | ✅ | 限制 SQ/CQ 不超过 MAX_ENTRIES | 资源保护 |
+| 6 | `ATTACH_WQ` | 5.12 | ❌ | 复用已存在 io_wq（多 ring 共享） | 不适用 IPC（每 daemon 独立 io_wq） |
+| 7 | `R_DISABLED` | 5.13 | ❌ | ring 创建后处于 R_DISABLED 状态 | 不适用 IPC（立即可用） |
+| 8 | `SUBMIT_ALL` | 5.18 | ✅ | `io_uring_enter` 持续提交直到 SQ 空 | 提升吞吐 |
+| 9 | `COOP_TASKRUN` | 5.19 | ✅ | 避免任务上下文异步切换 | 与 DEFER_TASKRUN 二选一 |
+| 10 | `TASKRUN_FLAG` | 5.19 | ✅ | 设置 IORING_SQ_TASKRUN 标志 | 配合 COOP_TASKRUN |
+| 11 | `SQE128` | 5.18 | ❌ | 128 字节 SQE（扩展字段） | IPC 用 64B SQE 足够 |
+| 12 | `CQE32` | 5.18 | ❌ | 32 字节 CQE（扩展字段） | IPC 用 16B CQE 足够 |
+| 13 | `SINGLE_ISSUER` | 6.0 | ✅ | 单一提交者约束（DEFER_TASKRUN 前置） | OS-IPC-003 |
+| 14 | `DEFER_TASKRUN` | 6.0 | ✅ | task_work 延迟到 `enter` 执行 | OS-IPC-003 |
+| 15 | `NO_MMAP` | 6.0 | ✅ | daemon 主动分配 ring 内存 | 走 MemoryRovol 管理 |
+| 16 | `REGISTERED_FD_ONLY` | 6.0 | ❌ | ring fd 固定（无 `io_uring_register`） | daemon 用动态 fd |
+| 17 | `NO_SQARRAY` | 6.6 | ✅ | 取消 sq_array 间接寻址 | 简化提交路径 |
+| 18 | `NO_IEC` | 6.6 | ✅ | 禁用内部完整事件计数 | 性能优化 |
+| 19 | `DEFER_INIT` | 6.7 | ⚠️ 延后 | 延迟初始化 ring 资源 | 留待 1.0.1 评估 |
+
+**启用策略**：
+
+- **必须启用**（12 项）：`SQPOLL` / `SQ_AFF` / `CQSIZE` / `CLAMP` / `SUBMIT_ALL` / `COOP_TASKRUN` / `TASKRUN_FLAG` / `SINGLE_ISSUER` / `DEFER_TASKRUN` / `NO_MMAP` / `NO_SQARRAY` / `NO_IEC`——覆盖零 syscall（OS-IPC-002）、零拷贝（OS-IPC-003）、低延迟三大场景。
+- **不启用**（6 项）：`IOPOLL` / `ATTACH_WQ` / `R_DISABLED` / `SQE128` / `CQE32` / `REGISTERED_FD_ONLY`——不适用于 IPC 场景（块设备 I/O / 多 ring 共享 / 立即禁用 / 扩展 SQE-CQE / 固定 fd）。
+- **延后启用**（1 项）：`DEFER_INIT`——留待 1.0.1 评估（0.1.1 文档级，IRON-4 最小可用原则）。
+
+> **OS-IPC-009**：agentrt-linux IPC 必须显式启用上述 12 个 `IORING_SETUP_*` 标志，禁止启用 `IOPOLL` / `ATTACH_WQ` / `R_DISABLED` / `SQE128` / `CQE32` / `REGISTERED_FD_ONLY`（不适用于 IPC 场景）。`DEFER_INIT` 留待 1.0.1 评估（与 OS-IRON-004 渐进式开发原则一致）。
+
+> **与本文档已有提及对齐**：`SQPOLL`（§2.4 / §4 / §10.3）/ `SQ_AFF`（§10.3）/ `DEFER_TASKRUN`（§5）/ `NO_MMAP`（§12.3 [IND]）——本文档前述章节已分散提及 4 项，本表补全至 Linux 6.6 全量 19 项，确保 io_uring SETUP 标志清单的完整性与对齐性。
 
 ---
 
@@ -347,6 +383,27 @@ daemon 侧（使用 BUFFER_SELECT）：
 ## 7. 5 种 payload 协议数据流
 
 IPC 消息根据 `type` 字段分为 5 种 payload 协议，每种对应不同的通信模式与数据流。
+
+### 7.0 5 种 payload 协议 ↔ 6 个 io_uring OP 映射表
+
+下表明确 **5 种 payload 协议**（应用语义层，由 payload 体首字段携带，见 §3 / [30-interfaces/02-ipc-protocol.md §3](../30-interfaces/02-ipc-protocol.md)）与 **6 个 io_uring OP**（传输机制层，agentrt-linux 在 io_uring 注册的固定 OP，见 §4.4 / §8 / §9.4）的映射关系。两层分属不同抽象层级，不可混淆：
+
+| 应用语义层（5 种 payload 协议） | 传输机制层（6 个 io_uring OP） | 映射关系 |
+|--------------------------------|-------------------------------|---------|
+| REQUEST（0x01） | `IORING_OP_IPC_SEND` + `IORING_OP_IPC_RECV` | 1:N（一个 REQUEST 跨 SEND/RECV 两个 OP 完成） |
+| RESPONSE（0x02） | `IORING_OP_IPC_SEND` + `IORING_OP_IPC_RECV` | 1:N（同 REQUEST，反向数据流） |
+| EVENT（0x03） | `IORING_OP_IPC_SEND` + `IORING_OP_MSG_RING` | 1:N（EVENT 可走 SEND 单播或 MSG_RING 跨 ring 多播） |
+| STREAM（0x04） | `IORING_OP_IPC_SEND` + `IORING_OP_SEND_ZC`（跨节点） | 1:N（本地走 SEND，跨节点走 SEND_ZC 零拷贝） |
+| CONTROL（0x05） | `IORING_OP_IPC_SEND` + `IORING_OP_MSG_RING` | 1:N（CONTROL 可走 SEND 或 MSG_RING 跨 ring 传递） |
+| （跨机制） | `IORING_OP_IPC_REGISTER_RING` / `IORING_OP_IPC_DEREGISTER_RING` | N:0（资源管理 OP，不承载 payload 协议，仅注册/注销跨进程 ring） |
+
+**映射规则**：
+
+1. **应用语义层与传输机制层正交**：5 种 payload 协议描述"消息语义"（RPC/事件/流/控制），6 个 io_uring OP 描述"传输机制"（发送/接收/注册/注销/跨 ring/零拷贝）。同一 payload 协议可走多个 OP，同一 OP 可承载多种 payload 协议。
+2. **`opcode` ≠ `type`**：消息头 `opcode`（传输层 SQE/CQE 操作码）与 payload 体首 `type`（应用语义层 payload 协议类型）分属不同字段、不同层次——见 [30-interfaces/02-ipc-protocol.md §2.1](../30-interfaces/02-ipc-protocol.md) 字段语义表与 §3 payload 协议说明。
+3. **资源管理 OP 不承载 payload**：`IPC_REGISTER_RING` / `IPC_DEREGISTER_RING` 是资源管理 OP，不承载 payload 协议数据，仅用于建立/拆除跨进程 ring 通道。
+
+> **OS-IPC-010**：agentrt-linux IPC 实现必须严格遵守 5 种 payload 协议（应用语义层）与 6 个 io_uring OP（传输机制层）的正交映射关系。禁止在传输层 OP 中嵌入应用语义，禁止在 payload 协议中假设传输机制。
 
 ### 7.1 REQUEST（请求-响应）
 
@@ -637,39 +694,39 @@ trace_id: ipc_abc123def456
 
 ```prometheus
 # IPC 吞吐
-airymaxos_ipc_throughput_msgs_per_second 250000
-airymaxos_ipc_throughput_bytes_per_second 32000000
+airy_ipc_throughput_msgs_per_second 250000
+airy_ipc_throughput_bytes_per_second 32000000
 
 # IPC 延迟分布
-airymaxos_ipc_latency_seconds{quantile="0.50"} 0.0000035
-airymaxos_ipc_latency_seconds{quantile="0.99"} 0.0000042
-airymaxos_ipc_latency_seconds{quantile="0.999"} 0.0000085
+airy_ipc_latency_seconds{quantile="0.50"} 0.0000035
+airy_ipc_latency_seconds{quantile="0.99"} 0.0000042
+airy_ipc_latency_seconds{quantile="0.999"} 0.0000085
 
 # 消息类型分布
-airymaxos_ipc_messages_total{type="REQUEST"} 1250000
-airymaxos_ipc_messages_total{type="RESPONSE"} 1250000
-airymaxos_ipc_messages_total{type="EVENT"} 850000
-airymaxos_ipc_messages_total{type="STREAM"} 120000
-airymaxos_ipc_messages_total{type="CONTROL"} 5000
+airy_ipc_messages_total{type="REQUEST"} 1250000
+airy_ipc_messages_total{type="RESPONSE"} 1250000
+airy_ipc_messages_total{type="EVENT"} 850000
+airy_ipc_messages_total{type="STREAM"} 120000
+airy_ipc_messages_total{type="CONTROL"} 5000
 
 # 错误统计
-airymaxos_ipc_errors_total{type="timeout"} 12
-airymaxos_ipc_errors_total{type="payload_invalid"} 3
-airymaxos_ipc_retries_total 8
+airy_ipc_errors_total{type="timeout"} 12
+airy_ipc_errors_total{type="payload_invalid"} 3
+airy_ipc_retries_total 8
 
 # 跨节点统计
-airymaxos_ipc_cross_node_total{link="CXL"} 45000
-airymaxos_ipc_cross_node_total{link="RDMA"} 28000
-airymaxos_ipc_cross_node_total{link="NVLINK"} 15000
+airy_ipc_cross_node_total{link="CXL"} 45000
+airy_ipc_cross_node_total{link="RDMA"} 28000
+airy_ipc_cross_node_total{link="NVLINK"} 15000
 
 # io_uring 队列深度
-airymaxos_io_uring_sq_depth 128
-airymaxos_io_uring_cq_depth 256
+airy_io_uring_sq_depth 128
+airy_io_uring_cq_depth 256
 
 # io_uring 健康指标
-airymaxos_io_uring_cq_overflow 0
-airymaxos_io_uring_sq_dropped 0
-airymaxos_io_uring_sqpoll_wakeups 15
+airy_io_uring_cq_overflow 0
+airy_io_uring_sq_dropped 0
+airy_io_uring_sqpoll_wakeups 15
 ```
 
 ### 11.3 结构化日志

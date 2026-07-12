@@ -1,6 +1,6 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）系统设计文档（airymaxos-system，极境系统）
+# agentrt-linux（AirymaxOS）系统设计文档（system，极境系统）
 
 > **子仓编号**：07\
 > **子仓代号**：极境系统（Airymax System）\
@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 1. 子仓职责
 
-`airymaxos-system` 是 agentrt-linux（AirymaxOS）的系统管理工具子仓，承担以下核心职责：
+`system` 是 agentrt-linux（AirymaxOS）的系统管理工具子仓，承担以下核心职责：
 
 1. **包管理 [IND]**：基于 RPM + dnf 的包管理系统（agentrt-linux 标准），支持 GPG 签名验证与模块化。
 2. **配置工具 [IND]**：系统配置工具（sysctl、systemd-config、network-config、kernel-config）。
@@ -59,17 +59,17 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 同源关系（IRON-9 v2 三层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 commons）与 agentrt-linux（airymaxos-system）通过三层共享模型协作：
+依据 IRON-9 v2 决策，agentrt（用户态 commons）与 agentrt-linux（system）通过三层共享模型协作：
 
 | 层次 | 共享程度 | 系统子系统内容 | 组织方式 |
 |------|---------|---------------|---------|
-| **[SC] 共享契约层** | 完全共享代码 | airymaxmon 读取的 struct_ops 状态机（INIT/REGISTERED/ACTIVE/DRAINING）+ common_value；SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）+ task_desc（magic 0x41475453 'AGTS'）+ vtime 类型；MemoryRovol L1-L4 数据结构 + GFP 掩码语义；capability 41 ID 枚举（安全配置工具引用）；IPC 消息头（magic 0x41524531 'ARE1'）+ 128B msg_hdr（DevStation 通信）；CoreLoopThree 阶段枚举 + Thinkdual 模式枚举（DevStation 调用 LLM 引用） | `include/airymax/` 6 个头文件（与 airymaxos-kernel/services/security/memory/cognition 共享） |
-| **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | commons 公共工具语义（agentrt commons → airymaxos-system 工具）、监控 API（agentrt monitoring → top/htop/perf/airymaxmon）、配置管理语义（agentrt config → sysctl/systemd-config）、AI 助手语义（agentrt assistant → DevStation）、日志语义（agentrt log_write → journald/syslog）等 8+ 项 | 各自独立实现 |
+| **[SC] 共享契约层** | 完全共享代码 | airymaxmon 读取的 struct_ops 状态机（INIT/REGISTERED/ACTIVE/DRAINING）+ common_value；SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）+ task_desc（magic 0x41475453 'AGTS'）+ vtime 类型；MemoryRovol L1-L4 数据结构 + GFP 掩码语义；capability 41 ID 枚举（安全配置工具引用）；IPC 消息头（magic 0x41524531 'ARE1'）+ 128B msg_hdr（DevStation 通信）；CoreLoopThree 阶段枚举 + Thinkdual 模式枚举（DevStation 调用 LLM 引用） | `include/airymax/` 6 个头文件（与 kernel/services/security/memory/cognition 共享） |
+| **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | commons 公共工具语义（agentrt commons → system 工具）、监控 API（agentrt monitoring → top/htop/perf/airymaxmon）、配置管理语义（agentrt config → sysctl/systemd-config）、AI 助手语义（agentrt assistant → DevStation）、日志语义（agentrt log_write → journald/syslog）等 8+ 项 | 各自独立实现 |
 | **[IND] 完全独立层** | 完全独立 | RPM + dnf 包管理实现、glibc + musl 基础库实现、bash/fish/zsh shell 实现、sysctl/systemd-config 实现细节、top/htop/perf/bpftrace/sysstat 工具实现、DevStation OS 级实现（auto-fix/code-gen/knowledge-base） | 各自独立仓库 |
 
 ### 2.1 维度对比
 
-| 维度 | agentrt（commons） | agentrt-linux（airymaxos-system） | 同源标注 |
+| 维度 | agentrt（commons） | agentrt-linux（system） | 同源标注 |
 |------|--------------------|-------------------------------|----------|
 | 公共工具 | commons（应用层） | 系统管理工具（OS 级） | [SS] |
 | 监控 API | 应用层监控 | top/htop/perf/airymaxmon | [SS] |
@@ -97,7 +97,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 3. 目录结构
 
 ```
-airymaxos-system/
+system/
 ├── package-manager/        # 包管理（RPM + dnf）[IND]
 ├── config/                 # 配置工具 [IND]
 ├── shell/                  # shell（bash + fish）[IND]
@@ -254,7 +254,7 @@ net.ipv4.tcp_max_syn_backlog = 65535
 - MemoryRovol L1-L4 分级内存指标（GFP 掩码语义）[SC]。
 - capability 41 ID 安全状态监控 [SC]。
 - CoreLoopThree 认知循环阶段监控（PERCEPTION/THINKING/ACTION）[SC]。
-- 与 `airymaxos-cloudnative/observability` 集成 [IND]。
+- 与 `cloudnative/observability` 集成 [IND]。
 
 ### 4.6 DevStation（基于 agentrt-linux AI 智能助手）[SS]
 
@@ -263,7 +263,7 @@ DevStation 与 agentrt commons AI 助手语义同源 [SS]，通过 io_uring IPC 
 - 知识库：集成 agentrt-linux 文档 [IND]。
 - 自动修复：常见问题自动诊断与修复 [IND]。
 - 代码生成：基于 LLM 生成配置脚本、systemd unit 等 [IND]。
-- 与 `airymaxos-cognition` 协作，调用 LLM 推理（引用 CoreLoopThree 阶段枚举 [SC]）[SS]。
+- 与 `cognition` 协作，调用 LLM 推理（引用 CoreLoopThree 阶段枚举 [SC]）[SS]。
 
 **DevStation io_uring IPC 通信** [SC]（`include/airymax/ipc.h`，与 agentrt 共享）：
 
@@ -313,7 +313,7 @@ DevStation: 检测到 agent.slice 内存使用达到上限。
 ### 5.3 AI 原生工具 [SS]
 
 - DevStation 引入 AI 智能助手，体现 AI 原生 OS 设计 [SS]。
-- 与 `airymaxos-cognition` 协作，调用 LLM 能力（引用 CoreLoopThree 阶段枚举 [SC]）[SS]。
+- 与 `cognition` 协作，调用 LLM 能力（引用 CoreLoopThree 阶段枚举 [SC]）[SS]。
 - 工具智能化，降低运维门槛 [IND]。
 
 ### 5.4 共享契约层监控 [SC]
@@ -416,7 +416,7 @@ graph TD
         IPC_HDR[ipc.h<br/>128B msg_hdr + magic ARE1]
     end
     subgraph SS["[SS] 语义同源层"]
-        COMMONS[commons 公共工具语义<br/>agentrt commons → airymaxos-system]
+        COMMONS[commons 公共工具语义<br/>agentrt commons → system]
         MONITOR[监控 API<br/>agentrt monitoring → top/htop/perf/airymaxmon]
         CONFIG[配置管理<br/>agentrt config → sysctl/systemd]
         ASSIST[AI 助手<br/>agentrt assistant → DevStation]
@@ -473,13 +473,13 @@ graph TD
 
 | 协作子仓 | 协作内容 | 同源标注 |
 |---------|---------|----------|
-| `airymaxos-kernel` | 提供内核配置工具所需接口 | [IND] |
-| `airymaxos-services` | 提供 systemd unit 管理 | [SS] |
-| `airymaxos-security` | 提供安全配置工具（capability 41 ID） | [SC] |
-| `airymaxos-memory` | 提供内存监控工具（MemoryRovol L1-L4） | [SC] |
-| `airymaxos-cognition` | DevStation 调用 LLM 能力（CoreLoopThree 阶段） | [SC] |
-| `airymaxos-cloudnative` | 提供云原生监控集成 | [IND] |
-| `airymaxos-tests-linux` | 提供测试工具 | [IND] |
+| `kernel` | 提供内核配置工具所需接口 | [IND] |
+| `services` | 提供 systemd unit 管理 | [SS] |
+| `security` | 提供安全配置工具（capability 41 ID） | [SC] |
+| `memory` | 提供内存监控工具（MemoryRovol L1-L4） | [SC] |
+| `cognition` | DevStation 调用 LLM 能力（CoreLoopThree 阶段） | [SC] |
+| `cloudnative` | 提供云原生监控集成 | [IND] |
+| `tests-linux` | 提供测试工具 | [IND] |
 
 ---
 

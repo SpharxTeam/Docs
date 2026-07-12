@@ -60,7 +60,7 @@ flowchart TB
     D --> F
     G -.->|串行/并行调度| D
     subgraph "agentrt-linux 扩展层（独立子目录）"
-        H["airy_agentsipc/<br/>AgentsIPC 协议系统测试"]
+        H["airy_ipc/<br/>AgentsIPC 协议系统测试"]
         I["airy_microcorert/<br/>MicroCoreRT 调度系统测试"]
         J["airy_agent_contract/<br/>Agent 契约系统测试"]
     end
@@ -94,7 +94,7 @@ flowchart TB
 
 **OS-STD-006**：所有 agentrt-linux 扩展子目录必须有 `config` 文件列出依赖 CONFIG_*；缺失 `config` 导致测试在 CI 上无法启用的，禁止合入。
 
-**OS-STD-007**：子目录命名必须与被测子系统对齐（如 `airy_agentsipc` 测 `airymaxos-kernel/airymaxos/agentsipc/`）；禁止用模糊命名如 `airy_misc`。
+**OS-STD-007**：子目录命名必须与被测子系统对齐（如 `airy_ipc` 测 `kernel/airymaxos/airy_ipc/`）；禁止用模糊命名如 `airy_misc`。
 
 ---
 
@@ -257,7 +257,7 @@ flowchart LR
 
 **OS-TEST-017**：KUnit 测试与 kselftest 测试不可相互替代；每个 agentrt-linux 子系统必须同时有 KUnit 白盒测试（覆盖函数）与 kselftest 系统级测试（覆盖系统调用接口）。
 
-**OS-KER-008**：禁止将 KUnit 与 kselftest 混编于同一文件；KUnit 是 `.c` 内核内文件（`*_test.c`），kselftest 是用户态文件（`tools/testing/selftests/`），二者编译目标不同。
+**OS-KER-085**：禁止将 KUnit 与 kselftest 混编于同一文件；KUnit 是 `.c` 内核内文件（`*_test.c`），kselftest 是用户态文件（`tools/testing/selftests/`），二者编译目标不同。
 
 ---
 
@@ -267,7 +267,7 @@ flowchart LR
 
 ```bash
 sudo apt install build-essential python3 iproute2 tcpdump jq bpftool ethtool
-cd /path/to/airymaxos-kernel && make defconfig && make
+cd /path/to/kernel && make defconfig && make
 make -C tools/testing/selftests
 # 部分测试需要 root（CPU 热插拔、cgroup、namespace）：
 sudo make -C tools/testing/selftests run_tests          # 在 root 下运行全部
@@ -289,7 +289,7 @@ virtme-run --kdir=$PWD --script='cd /tmp && \
 每个子目录可放 `settings` 文件声明运行配置：
 
 ```
-# tools/testing/selftests/airy_agentsipc/settings
+# tools/testing/selftests/airy_ipc/settings
 timeout=30
 ```
 
@@ -311,10 +311,10 @@ int main(void)
 {
     ksft_print_header();
     ksft_set_plan(3);
-    ksft_test_result(access("/proc/agentsipc/version", F_OK) == 0,
-                     "agentsipc_version_exists\n");
-    ksft_test_result_skip("agentsipc_dram_test\n");
-    ksft_test_result_fail("agentsipc_overflow_test\n");
+    ksft_test_result(access("/proc/airy_ipc/version", F_OK) == 0,
+                     "airy_ipc_version_exists\n");
+    ksft_test_result_skip("airy_ipc_dram_test\n");
+    ksft_test_result_fail("airy_ipc_overflow_test\n");
     ksft_finished();
 }
 ```
@@ -325,26 +325,26 @@ int main(void)
 
 ```c
 #include "../kselftest_harness.h"
-TEST(agentsipc_version) {
-    EXPECT_EQ(0, access("/proc/agentsipc/version", F_OK));
+TEST(airy_ipc_version) {
+    EXPECT_EQ(0, access("/proc/airy_ipc/version", F_OK));
 }
-TEST(agentsipc_header_size) {
-    EXPECT_EQ(128, sizeof(struct agentsipc_header));
+TEST(airy_ipc_header_size) {
+    EXPECT_EQ(128, sizeof(struct airy_ipc_msg_hdr));
 }
-FIXTURE(agentsipc_channel) { int fd; };
-FIXTURE_SETUP(agentsipc_channel) {
-    self->fd = open("/dev/agentsipc0", O_RDWR);
+FIXTURE(airy_ipc_channel) { int fd; };
+FIXTURE_SETUP(airy_ipc_channel) {
+    self->fd = open("/dev/airy_ipc0", O_RDWR);
     ASSERT_GE(self->fd, 0);
 }
-FIXTURE_TEARDOWN(agentsipc_channel) {
+FIXTURE_TEARDOWN(airy_ipc_channel) {
     if (self->fd >= 0) close(self->fd);
 }
-TEST_F(agentsipc_channel, roundtrip_request) {
-    struct agentsipc_header req = { .type = AGENTSIPC_TYPE_REQUEST };
-    struct agentsipc_header rsp;
+TEST_F(airy_ipc_channel, roundtrip_request) {
+    struct airy_ipc_msg_hdr req = { .type = AIRY_IPC_TYPE_REQUEST };
+    struct airy_ipc_msg_hdr rsp;
     ASSERT_EQ(sizeof(req), write(self->fd, &req, sizeof(req)));
     ASSERT_EQ(sizeof(rsp), read(self->fd, &rsp, sizeof(rsp)));
-    EXPECT_EQ(AGENTSIPC_TYPE_RESPONSE, rsp.type);
+    EXPECT_EQ(AIRY_IPC_TYPE_RESPONSE, rsp.type);
 }
 TEST_HARNESS_MAIN
 ```
@@ -353,7 +353,7 @@ TEST_HARNESS_MAIN
 
 **OS-TEST-019**：agentrt-linux 扩展测试优先使用 `kselftest_harness.h`（高层 API）；仅在需要精细控制 TAP 输出格式时使用 `kselftest.h`（低层 API）。
 
-**OS-STD-010**：每个 `TEST_F` 必须有对应 `FIXTURE_SETUP` 与 `FIXTURE_TEARDOWN`；资源在 setup 中获取，在 teardown 中释放，禁止在 `TEST_F` 体中分配而不释放。
+**OS-STD-TEST-010**：每个 `TEST_F` 必须有对应 `FIXTURE_SETUP` 与 `FIXTURE_TEARDOWN`；资源在 setup 中获取，在 teardown 中释放，禁止在 `TEST_F` 体中分配而不释放。
 
 ---
 
@@ -403,18 +403,18 @@ TEST_F(agent_sdk, cognition_roundtrip_via_ioctl) {
 }
 
 TEST_F(agent_sdk, ipc_128b_header_protocol) {
-    struct agentsipc_header hdr = { .type = AGENTSIPC_TYPE_REQUEST, .payload_len = 64 };
-    ASSERT_EQ(0, ioctl(self->agent_fd, AIRY_IOCTL_AGENTSIPC_SEND, &hdr));
+    struct airy_ipc_msg_hdr hdr = { .type = AIRY_IPC_TYPE_REQUEST, .payload_len = 64 };
+    ASSERT_EQ(0, ioctl(self->agent_fd, AIRY_IOCTL_IPC_SEND, &hdr));
     EXPECT_EQ(128, (int)sizeof(hdr));
 }
 TEST_HARNESS_MAIN
 ```
 
-配套文件：`settings` 声明 `timeout=45`；`Makefile` 用 `CFLAGS += -I../../../../include/uapi/airymaxos` + `TEST_GEN_PROGS := agent_sdk_contract` + `include ../lib.mk`；`config` 列出 `CONFIG_AIRY_AGENT=y`/`CONFIG_AGENTSIPC=y`/`CONFIG_AIRY_COGNITION=y`。
+配套文件：`settings` 声明 `timeout=45`；`Makefile` 用 `CFLAGS += -I../../../../include/uapi/airymaxos` + `TEST_GEN_PROGS := agent_sdk_contract` + `include ../lib.mk`；`config` 列出 `CONFIG_AIRY_AGENT=y`/`CONFIG_AIRY_IPC=y`/`CONFIG_AIRY_COGNITION=y`。
 
 **OS-TEST-020**：agentrt-linux Agent SDK 的每个公共 ioctl 必须有 kselftest 系统级测试；契约覆盖正常路径 + `EINVAL`/`ENOMEM`/`EBUSY` 各一例异常路径。
 
-**OS-KER-009**：agentrt-linux Agent 契约的系统级测试与 KUnit 契约测试必须共享同一份契约规范文档（`docs/agents/contract.md`），二者实现由 CI 第 7 层检查契约一致性。
+**OS-KER-071**：agentrt-linux Agent 契约的系统级测试与 KUnit 契约测试必须共享同一份契约规范文档（`docs/agents/contract.md`），二者实现由 CI 第 7 层检查契约一致性。
 
 ---
 
@@ -427,9 +427,9 @@ TEST_HARNESS_MAIN
 | **E-8 可测试性** | kselftest 框架本身体现"系统级可测"；每特性必有套件（OS-TEST-013） |
 | **S-1 反馈闭环** | QEMU CI 自动运行 + TAP 解析 + PR 阻断（OS-STD-008） |
 | **A-4 完美主义** | root/非 root 双矩阵 + 退出码严格（OS-TEST-015/018） |
-| **K-3 协议优先** | AgentsIPC 128B 协议系统级契约（OS-KER-009） |
+| **K-3 协议优先** | AgentsIPC 128B 协议系统级契约（OS-KER-071） |
 | **K-6 调度优先** | MicroCoreRT 调度策略系统级时间片测量（OS-TEST-016） |
-| **IRON-9 v2 同源且部分代码共享** | agentrt-linux 扩展子目录独立注入，不改上游（OS-STD-048/OS-KER-008） |
+| **IRON-9 v2 同源且部分代码共享** | agentrt-linux 扩展子目录独立注入，不改上游（OS-STD-048/OS-KER-085） |
 
 > Airymax 五维正交 24 原则要求各维度强制规则两两正交无重叠，kselftest 卷规则（OS-TEST-013 至 OS-TEST-022）按原则维度分组，避免一条规则同时承担多个原则检查。
 
@@ -439,7 +439,7 @@ TEST_HARNESS_MAIN
 - **独立**：agentrt-linux 扩展子目录以 `airy_*` 前缀命名，独立 `config`/`settings`/`Makefile`，独立 Kconfig 依赖。
 - **互操作**：agentrt-linux 套件与上游套件共享同一 `run_kselftest.sh` 调度器，CI 通过 `--filter` 选择性运行。
 
-**OS-KER-010**：agentrt-linux 子目录禁止引入对上游测试集源码的依赖（`#include "../sched_ext/..."` 等）；扩展测试自包含，避免上游重构时被破坏。
+**OS-KER-098**：agentrt-linux 子目录禁止引入对上游测试集源码的依赖（`#include "../sched_ext/..."` 等）；扩展测试自包含，避免上游重构时被破坏。
 
 ### 9.2 IRON-9 v2 三层共享模型
 
@@ -541,9 +541,9 @@ agentrt 7 层验证与本卷的对应关系：
 | L6 形式化 | 关键路径证明 | 10-formal-verification（非本卷） |
 | L7 模糊 | 输入边界 | 09-fuzz-testing（非本卷） |
 
-**OS-KER-011**：agentrt L2（系统级）的所有用例必须用 kselftest 实现；与上游 kselftest 共享同一 `tools/testing/selftests/` 目录与 `run_kselftest.sh` 调度器，禁止 agentrt-linux 自建独立调度器。
+**OS-KER-099**：agentrt L2（系统级）的所有用例必须用 kselftest 实现；与上游 kselftest 共享同一 `tools/testing/selftests/` 目录与 `run_kselftest.sh` 调度器，禁止 agentrt-linux 自建独立调度器。
 
-**OS-KER-012**：agentrt 与 agentrt-linux 之间的 kselftest 子目录命名空间必须正交（`airy_*` vs `airy_*` 前缀）；命名冲突由 CI 第 7 层（静态检查）在 PR 阶段检测。
+**OS-KER-100**：agentrt 与 agentrt-linux 之间的 kselftest 子目录命名空间必须正交（`airy_*` vs `airy_*` 前缀）；命名冲突由 CI 第 7 层（静态检查）在 PR 阶段检测。
 
 ---
 
@@ -556,7 +556,7 @@ CI 矩阵覆盖 `arch: [x86_64, arm64, riscv64] × role: [root, non_root]`，简
 ```bash
 make defconfig && make -j$(nproc)
 make -C tools/testing/selftests \
-     TARGETS="sched_ext net airy_agentsipc airy_microcorert airy_agent_contract"
+     TARGETS="sched_ext net airy_ipc airy_microcorert airy_agent_contract"
 virtme-run --kdir=$PWD \
   --script='./run_kselftest.sh --summary --role=${ROLE}' \
   2>&1 | tee kselftest-${ARCH}-${ROLE}.tap
@@ -569,7 +569,7 @@ kselftest 输出 TAP（version 13），形如 `ok <num> <suite>:<case>` / `not o
 
 **OS-TEST-021**：CI 必须解析 kselftest TAP 输出并上传至测试报告系统；新增/删除测试集必须使总用例数单调变化，PR 评审需显式确认。
 
-**OS-STD-011**：CI 总时长不得超过 60 分钟（与 06-toolchain-and-automation 的 OS-STD-033 对齐）；超时的子集必须拆分或缓存优化。
+**OS-STD-TEST-011**：CI 总时长不得超过 60 分钟（与 06-toolchain-and-automation 的 OS-STD-033 对齐）；超时的子集必须拆分或缓存优化。
 
 ### 11.3 失败重试
 

@@ -339,7 +339,7 @@ int airy_cap_check(uint32_t agent_id, uint32_t cap_id,
 
 ### 5.1 令牌状态机
 
-对齐 [syscall_api_contract.md](../50-engineering-standards/20-contracts/syscall_api_contract.md) 第 6.2 节的 capability 令牌生命周期状态机：
+对齐 [contracts.md](../50-engineering-standards/20-contracts/contracts.md) 第 6.2 节的 capability 令牌生命周期状态机：
 
 ```mermaid
 stateDiagram-v2
@@ -1010,7 +1010,7 @@ static void test_cap_revoke_recursive(struct kunit *test)
 
 - [01-lsm-framework.md](01-lsm-framework.md) — LSM 框架详解（第 7 章 LSM 与 capability 共存）
 - [02-landlock-sandbox.md](02-landlock-sandbox.md) — Landlock 用户态沙箱
-- [50-engineering-standards/20-contracts/syscall_api_contract.md](../50-engineering-standards/20-contracts/syscall_api_contract.md) — 系统调用 API 契约（第 6 章 Cupolas 安全）
+- [50-engineering-standards/20-contracts/contracts.md](../50-engineering-standards/20-contracts/contracts.md) — 系统调用 API 契约（第 6 章 Cupolas 安全）
 - [140-application-development/01-agent-lifecycle.md](../140-application-development/01-agent-lifecycle.md) — Agent 生命周期（第 5.2 节 Capability 撤销）
 
 ### 16.2 实现方案文档（本系列）

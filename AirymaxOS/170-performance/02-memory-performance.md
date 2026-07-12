@@ -304,7 +304,7 @@ agentrt-linux 内存层级带宽与延迟模型：
 ### 4.2 内存 tiering 自动迁移策略
 
 ```c
-/* airymaxos-memory/airy_memory_tiering.c */
+/* memory/airy_memory_tiering.c */
 #include <linux/kfifo.h>
 #include <linux/wait.h>
 #include <airymax/memory_types.h>

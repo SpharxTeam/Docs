@@ -16,7 +16,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 agentrt-linux（AirymaxOS）RPM 打包设计旨在为发行版构建提供可重现、可追溯、可验证的包管理标准。本设计聚焦三大目标：
 
-1. **完整覆盖 8 子仓与 12 daemon**：将 airymaxos-kernel、airymaxos-services 等 8 子仓及其衍生的 12 个 daemon 完整打包为 RPM 包
+1. **完整覆盖 8 子仓与 12 daemon**：将 kernel、services 等 8 子仓及其衍生的 12 个 daemon 完整打包为 RPM 包
 2. **spec 文件规范统一**：所有 spec 文件遵循 K&R 风格 + Tab=8 缩进 + strscpy + goto out_free_xxx 的内核编码规范
 3. **dnf 仓库可重现构建**：所有 RPM 包基于相同源码与构建环境可重现生成（reproducible build），SHA-256 一致
 
@@ -391,11 +391,11 @@ msgfmt ../po/zh_CN.po -o \
 # agentrt-linux 官方仓库结构
 /var/www/airymaxos-repo/
 ├── 1.0/                          # 1.0 系列
-│   ├── 1.0.0/                    # 1.0.0 版本
+│   ├── 1.0.1/                    # 1.0.1 版本（首个开发版本）
 │   │   ├── BaseOS/
 │   │   │   ├── x86_64/
 │   │   │   │   ├── Packages/
-│   │   │   │   │   ├── airymaxos-kernel-1.0.0-1.x86_64.rpm
+│   │   │   │   │   ├── airymaxos-kernel-1.0.1-1.x86_64.rpm
 │   │   │   │   │   └── ...
 │   │   │   │   └── repodata/
 │   │   │   │       ├── repomd.xml
@@ -404,7 +404,7 @@ msgfmt ../po/zh_CN.po -o \
 │   │   │       └── ...
 │   │   ├── AppStream/
 │   │   └── updates/
-│   └── 1.0.1/                    # 1.0.1 版本
+│   └── 1.0.2/                    # 1.0.2 版本（补丁版本）
 │       └── ...
 ├── 1.0-lts/                      # 1.0 LTS 长期支持
 │   └── ...
