@@ -1,14 +1,19 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# AirymaxOS 全局规则编号注册表（SSoT）
+# Airymax 全局规则 SSoT 注册表
 
-> **文档定位**：AirymaxOS（agentrt-linux）全部编号、规则、命名的**唯一权威来源（Single Source of Truth）**。任何文档不得私自定义规则编号；所有规则编号必须在此注册表中登记后方可使用。
+> **文档定位**：Airymax 全项目（agentrt 用户态运行时 + AirymaxOS/agentrt-linux 操作系统）全部编号、规则、命名的**唯一权威来源（Single Source of Truth）**。任何文档不得私自定义规则编号；所有规则编号必须在此注册表中登记后方可使用。
 >
 > **版本**：0.1.1\
-> **最后更新**：2026-07-14\
+> **最后更新**：2026-07-15\
 > **权威性声明**：本注册表是 Airymax 全部规则编号的 SSoT。当任何文档与本注册表冲突时，以本注册表为准。各主题文档可包含规则的详细说明与代码示例，但必须引用本注册表中的编号——**禁止在主题文档中私自定义新编号**。新增规则编号必须通过 RFC 流程在本注册表登记。
 >
-> **历史**：本注册表于 2026-07-12 创建，替代此前分散在 00-engineering-standards-handbook.md §3 与 07-maintainers-and-governance.md §10 中的碎片化注册表。创建原因：历史演进中各主题文档独立编号累积，导致同一编号在不同文档指代不同规则（42 个 OS-KER 编号存在冲突、OS-ACC-001~005 在不同文件指代完全不同的验收项），必须建立单一权威注册表根除此问题。
+> **双编号体系声明（2026-07-15 升级）**：本注册表覆盖两套同源但独立的规则编号体系：
+> - **AirymaxOS 规则**（第 2-9 章）：使用 `OS-` 前缀（如 `OS-IRON-001`、`OS-KER-001`、`OS-BAN-001`），适用于 agentrt-linux 全部 8 子仓。权威定义散布于 `50-engineering-standards/` 各主题文档。
+> - **agentrt 规则**（第 10 章）：不使用 `OS-` 前缀（如 `IRON-1`、`BAN-001`、`STD-01`），适用于 agentrt 用户态运行时全部模块。权威定义为 `docs-closed/agentrt/agentrt工程标准规范手册.md` v29.0。
+> - 两套编号体系遵循 IRON-9 v2 三层共享模型：[SC] 共享契约层 + [SS] 语义同源层 + [IND] 完全独立层。agentrt IRON-9 与 AirymaxOS OS-IRON-009 同源但独立。
+>
+> **历史**：本注册表于 2026-07-12 创建，替代此前分散在 00-engineering-standards-handbook.md §3 与 07-maintainers-and-governance.md §10 中的碎片化注册表。创建原因：历史演进中各主题文档独立编号累积，导致同一编号在不同文档指代不同规则（42 个 OS-KER 编号存在冲突、OS-ACC-001~005 在不同文件指代完全不同的验收项），必须建立单一权威注册表根除此问题。2026-07-15 升级为 Airymax 全局 SSoT，合并 agentrt 17 类规则编号体系（IRON/BAN/STD/ACC/FOUND/SPLIT/PROD/ARC/LC/PRT/LOG/PATH-BAN/L/CROSS/REQ/W/SP）。
 
 ---
 
@@ -23,6 +28,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [第 7 章 OS-ABI 接口稳定性](#第-7-章-os-abi-接口稳定性)
 - [第 8 章 命名规范](#第-8-章-命名规范)
 - [第 9 章 OS-SEC 安全工程规则](#第-9-章-os-sec-安全工程规则)
+- [第 10 章 agentrt 规则编号体系](#第-10-章-agentrt-规则编号体系)
 
 ---
 
@@ -30,19 +36,24 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 核心原则
 
-**每个技术点只能有一个权威编号。** 本注册表是全部规则编号的唯一分配者；主题文档是规则详细说明的载体，但编号的分配权仅属于本注册表。
+**每个技术点只能有一个权威编号。** 本注册表是全部规则编号的唯一分配者；主题文档是规则详细说明的载体，但编号的分配权仅属于本注册表。本注册表覆盖两套同源但独立的编号体系：AirymaxOS `OS-*` 前缀规则（第 2-9 章）与 agentrt 无 `OS-` 前缀规则（第 10 章）。
 
 ### 1.2 使用规则
 
 | 规则 | 说明 |
 |------|------|
-| **编号分配权** | 所有 OS-\* 编号的分配权仅属于本注册表。主题文档不得自行创建新编号。 |
+| **编号分配权** | 所有编号（AirymaxOS `OS-*` + agentrt 无前缀）的分配权仅属于本注册表。主题文档不得自行创建新编号。 |
 | **引用义务** | 主题文档使用规则编号时，必须引用本注册表中已登记的编号。若该编号不存在，须先通过 RFC 流程在本注册表登记。 |
 | **详细说明** | 主题文档可包含规则的详细说明、代码示例、checkpatch 映射等，但编号须与本注册表一致。 |
 | **冲突解决** | 当任何文档与本注册表冲突时，以本注册表为准。 |
 | **语义去重** | 同一技术点在多个文档中出现时，应使用同一个编号（交叉引用），而非各自定义新编号。 |
+| **编号体系隔离** | AirymaxOS `OS-*` 编号与 agentrt 无前缀编号属于不同编号空间，禁止混用（如禁止将 `OS-IRON-001` 与 `IRON-1` 视为同一编号）。跨体系引用时须标注来源体系。 |
 
 ### 1.3 编号格式
+
+本注册表包含两套编号格式：
+
+**AirymaxOS 编号格式**（第 2-9 章）：
 
 ```
 OS-<前缀>-<子域>-<NNN>
@@ -61,6 +72,14 @@ OS-<前缀>-<子域>-<NNN>
 | BAN | — | 禁止规则 |
 | ACC | — | 验收标准 |
 | ABI | — | 接口稳定性 |
+
+**agentrt 编号格式**（第 10 章，无 `OS-` 前缀）：
+
+```
+<前缀>-<NN>
+```
+
+agentrt 17 类规则前缀详见 [第 10 章](#第-10-章-agentrt-规则编号体系)。
 
 ### 1.4 新增编号流程
 
@@ -89,7 +108,8 @@ OS-<前缀>-<子域>-<NNN>
 | OS-IRON-011 | 双源边界声明（01Reference/ 仅本地参考） | 04 §12 | — |
 | OS-IRON-012 | seL4 借鉴仅限架构层（ES-SEL4-1~5） | 04 §12 | — |
 | OS-IRON-013 | 8 子仓独立 git 仓库 + submodule | 04 §13 | S-2 |
-| OS-IRON-014 | [SC] 共享契约层 6 头文件单一数据源 | 120 跨项目代码共享 | E-7 |
+| OS-IRON-014 | [SC] 共享契约层 6 核心头文件 + 2 补充共享头文件（bpf_struct_ops.h + error.h）单一数据源 | 120 跨项目代码共享 | E-7 |
+| OS-IRON-015 | 编号管理元规则——OS-KER / OS-STD / OS-OBS / OS-DRV 等所有规则编号一经分配不得复用；废弃规则标记 `DEPRECATED` 但保留编号 | 90-observability/02-ebpf-probes.md §14.2 | S-1 |
 
 ### 2.1 ES-SEL4 编号范围声明
 
@@ -344,6 +364,10 @@ OS-<前缀>-<子域>-<NNN>
 
 | 编号 | 规则 |
 |------|------|
+| OS-STD-010 | 内核态禁 float，强制 airy_q16_t（2026-07-12 从 OS-KER-007 迁移） |
+| OS-STD-011 | bool 仅用于返回值与栈变量（2026-07-12 从 OS-KER-008 迁移） |
+| OS-STD-CODE-031 | snake_case 命名规则（函数名/变量名 snake_case，常量宏 UPPER_SNAKE_CASE，结构体不 typedef）—— 10-coding-style/C_Cpp_coding_style.md §3.2 权威定义 |
+| OS-STD-CODE-032 | 内核内部用 u8/u32 及有符号变体；UAPI 结构体用 __u8/__u32（2026-07-15 从 OS-STD-CODE-031 让位消解——OS-STD-CODE-031 被 C_Cpp_coding_style.md §3.2 snake_case 命名规则占用，整数类型选择规则让位至 OS-STD-CODE-032；OS-STD-CODE-0xx 系列避免子系统 OS-STD-0xx 跨域冲突） |
 | OS-STD-FMT-030 | 配置即代码——每条格式规则必须有对应格式化工具配置项 |
 
 ### 4.3 OS-STD-STY 风格规范
@@ -665,6 +689,337 @@ OS-<前缀>-<子域>-<NNN>
 | OS-SEC-246 | Kani 验证器——Rust 形式化验证 | Rust §7.1 | OS-SEC-046 |
 | OS-SEC-247 | Creusot 验证器——Rust 规范验证 | Rust §7.2 | OS-SEC-047 |
 
+### 9.4 跨子系统 OS-STD-0xx 编号登记（2026-07-15 消解跨域冲突）
+
+> **背景**：原 OS-STD-0xx 编号被 110-security/60-driver-model/90-observability/05-development-process 多个子系统文档独立占用，造成跨域编号冲突。2026-07-15 消解：110-security 保留 OS-STD-001~009 权威定义；05-development-process 保留 OS-STD-012 权威定义；60-driver-model 改用 OS-STD-DRV-0xx 系列；90-observability 改用 OS-STD-OBS-0xx 系列；OS-STD-017 编号管理元规则提升为 OS-IRON-015（因 OS-IRON-013 已被"8 子仓 submodule"占用而改用 OS-IRON-015）。
+
+| 编号 | 规则 | 权威定义文档 |
+|------|------|-------------|
+| OS-STD-001 | blob 大小变化必须配套 `BUILD_BUG_ON` 校验 | 110-security/01-lsm-framework.md §C-1 |
+| OS-STD-002 | 钩子回调签名严格由 `LSM_HOOK` 宏决定 | 110-security/01-lsm-framework.md §C-2 |
+| OS-STD-003 | blob 生命周期由 kmem_cache 自动管理 | 110-security/01-lsm-framework.md §C-3 |
+| OS-STD-004 | `init_debug` 默认开启，便于启动审计 | 110-security/01-lsm-framework.md §A-1 |
+| OS-STD-005 | 拒绝路径必须通过 AgentsIPC 上报可读原因 | 110-security/01-lsm-framework.md §A-3 |
+| OS-STD-006 | ABI 结构体大小变化必须配套 `BUILD_BUG_ON` 校验 | 110-security/02-landlock-sandbox.md §C-1 |
+| OS-STD-007 | 用户缓冲区必须通过 `copy_min_struct_from_user` 校验 | 110-security/02-landlock-sandbox.md §C-2 |
+| OS-STD-008 | ruleset FD 通过引用计数管理生命周期，关闭即释放 | 110-security/02-landlock-sandbox.md §C-3 |
+| OS-STD-009 | 域绑定后红黑树冻结为不可变 | 110-security/02-landlock-sandbox.md §C-5 |
+| OS-STD-012 | 新增代码引入新的 sparse/Smatch 警告禁止合并 | 50-engineering-standards/05-development-process.md §1.2 |
+| OS-STD-DRV-012 | sysfs `show` 回调必须使用 `sysfs_emit()` 而非 `sprintf()`/`snprintf()` | 60-driver-model/01-device-model.md §5.3 |
+| OS-STD-DRV-013 | `show` 回调返回值是写入的字节数（含换行符） | 60-driver-model/01-device-model.md §5.3 |
+| OS-STD-DRV-014 | `device_register()` 后必须调用 `put_device()` 平衡引用计数 | 60-driver-model/01-device-model.md §6.2 |
+| OS-STD-DRV-015 | driver 必须在 `MODULE_AUTHOR`/`MODULE_DESCRIPTION`/`MODULE_LICENSE` 三处填充完整元数据 | 60-driver-model/01-device-model.md §6.4 |
+| OS-STD-OBS-012 | BPF 程序加载失败时必须记录验证器日志，含程序名、失败指令偏移、错误原因三要素 | 90-observability/02-ebpf-probes.md §6.3 |
+| OS-STD-OBS-013 | BPF map 创建必须显式设置 `max_entries`，ringbuf ≥1MB，hash/array ≥1024 条目 | 90-observability/02-ebpf-probes.md §8.3 |
+| OS-STD-OBS-014 | BPF 程序 .o 文件必须随 airymaxos-kernel 发布包分发 | 90-observability/02-ebpf-probes.md §11.2 |
+| OS-STD-OBS-015 | agentrt-linux eBPF 与 agentrt 共享 `include/airymax/bpf_struct_ops.h`，struct_ops state 枚举值两端必须一致 | 90-observability/02-ebpf-probes.md §13.2 |
+| OS-STD-OBS-016 | 文档中引用的 BPF 程序类型、map 类型、kfunc 名必须与 Linux 6.6 内核基线 `include/uapi/linux/bpf.h` 保持一致 | 90-observability/02-ebpf-probes.md §14.1 |
+
+> **交叉引用说明**：原 OS-STD-017"编号管理元规则"于 2026-07-15 提升为 OS-IRON-015，权威登记已迁移至 [§2 IRON 工程铁律](#第-2-章-iron-工程铁律不可妥协)。此处保留交叉引用以追溯迁移路径，避免在 §4.4 表格内重复登记。
+
+> **编号空间声明**：
+> - `OS-STD-001~011`：110-security + 05-development-process + 工程标准总纲（已登记）
+> - `OS-STD-012`：构建规则权威定义（05-development-process）
+> - `OS-STD-013~029`：保留扩展空间
+> - `OS-STD-030~099`：Rust 编码规则（见 §4.5）
+> - `OS-STD-DRV-0xx`：驱动模型子域规则（60-driver-model 权威定义）
+> - `OS-STD-OBS-0xx`：可观测性子域规则（90-observability 权威定义）
+> - `OS-STD-CODE-0xx`：编码规范子域规则（见 §4.1）
+> - `OS-STD-FMT-0xx`：格式规范子域规则（见 §4.2）
+> - `OS-STD-STY-0xx`：风格规范子域规则（见 §4.3）
+
+---
+
+## 第 10 章 agentrt 规则编号体系
+
+> **权威定义文档**：`docs-closed/agentrt/agentrt工程标准规范手册.md` v29.0（2026-07-15）
+>
+> **适用范围**：agentrt 用户态运行时全部模块（atoms/cupolas/daemons/gateway/heapstore/protocols/commons/sdk/ecosystem）。不适用于 AirymaxOS（agentrt-linux）8 子仓——后者使用 `OS-*` 前缀规则（第 2-9 章）。
+>
+> **编号体系隔离声明**：agentrt 规则编号不使用 `OS-` 前缀（如 `IRON-1`、`BAN-001`），与 AirymaxOS `OS-*` 编号属于不同编号空间。两套体系遵循 IRON-9 v2 三层共享模型同源但独立，禁止编号混用。
+>
+> **17 类规则总览**：
+
+| # | 前缀 | 类别 | 编号区间 | 数量 | 权威定义章节 | 登记方式 |
+|---|------|------|---------|------|------------|---------|
+| 1 | IRON | 工程铁律 | IRON-1~10 | 10 | §35.10 + §36.1 + §38.1 + §38.10 | §10.1 全量登记 |
+| 2 | BAN | 禁止规则 | BAN-001~361 | 361 | §3-§38 各章 | §10.2 摘要登记 |
+| 3 | STD | 开放标准规范 | STD-01~08 | 8 | §34.1~§34.8 | §10.3 全量登记 |
+| 4 | ACC | 验收标准 | ACC-001~149 + ACC-SP01~SP12 + ACC-OS04 | 149 | 130-roadmap/06-acceptance-criteria.md | §10.4 摘要登记 |
+| 5 | FOUND | 奠基性版本工程规范 | FOUND-01~10 | 10 | §35.1~§35.10 | §10.5 全量登记 |
+| 6 | SPLIT | 38 仓 git 拆分工程规范 | SPLIT-01~08 | 8 | §36.2~§36.9 | §10.6 全量登记 |
+| 7 | PROD | 生产就绪工程规范 | PROD-01~06 | 6 | §37.1~§37.6 | §10.7 全量登记 |
+| 8 | ARC | 微内核架构规范 | ARC-01~08 | 8 | §33.1~§33.8 | §10.8 全量登记 |
+| 9 | LC | 开源许可证规范 | LC-01~08 | 8 | §32.1~§32.8 | §10.9 全量登记 |
+| 10 | PRT | 统一打印系统规范 | PRT-01~18 | 18 | §29.2~§29.4 | §10.10 摘要登记 |
+| 11 | LOG | 统一日志系统规范 | LOG-01~26 | 26 | §30.1~§30.6 | §10.11 摘要登记 |
+| 12 | PATH-BAN | 路径硬编码禁止规则 | PATH-BAN-1~5 | 5 | §3.5 | §10.12 全量登记 |
+| 13 | L | 历史教训 | L-01~53 | 53 | §2.1~§2.2 | §10.13 摘要登记 |
+| 14 | CROSS | 跨平台规范 | CROSS-01~06 | 6 | §4.6 | §10.14 全量登记 |
+| 15 | REQ | 需求规则 | REQ-01~08 | 8 | §4.7 | §10.15 全量登记 |
+| 16 | W | 工作任务 | W01-W30 | 30 | 130-roadmap/01-development-strategy.md | §10.16 摘要登记 |
+| 17 | SP | 29 仓拆分工作 | SP01-SP37 | 37 | 130-roadmap/01-development-strategy.md | §10.17 摘要登记 |
+
+### 10.1 agentrt IRON 工程铁律（IRON-1~10）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §35.10（IRON-1~5）+ §36.1（IRON-6~8）+ §38.1（IRON-9）+ §38.10（IRON-10）
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **IRON-1** | 禁止新特性：0.1.1 不引入任何新功能，仅修复 + 集成 + 标准化 | §35.10 |
+| **IRON-2** | 禁止桩函数/桩文件：所有功能必须真实实现，禁止 no-op / TODO / FIXME | §35.10 |
+| **IRON-3** | 禁止绕开功能限制的编译/集成：禁止 `#ifdef DISABLE_*` 绕过检查 | §35.10 |
+| **IRON-4** | 禁止简化功能：不允许"为了 0.1.1 先简化，1.0.1 再完善" | §35.10 |
+| **IRON-5** | 禁止未实现的功能设计：文档中的设计必须有对应实现 | §35.10 |
+| **IRON-6** | 禁止跨层耦合残留：0.1.1 拆仓前必须完成 5 处跨层耦合解耦（SP02-SP06），任何残留即拆仓失败 | §36.1 |
+| **IRON-7** | 禁止版本过渡：0.1.1 之后直接 1.0.1，禁止 0.1.2/0.2.0/0.3.0/1.0.0 中间版本，禁止兼容别名头/兼容层/双轨制 | §36.1 |
+| **IRON-8** | 禁止生产就绪降级：SP32-SP37 生产就绪 6 项全部必须达标，未达标禁止发布 0.1.1 | §36.1 |
+| **IRON-9** | agentrt 和 AirymaxOS 同源且部分代码共享（IRON-9 v2）：三层共享模型 [SC]+[SS]+[IND]，agentrt 保持跨平台用户态纯净，AirymaxOS 是完整发行版 | §38.1 |
+| **IRON-10** | 禁止引用 Linux 7.0 专属特性作为 6.6 原生能力：AirymaxOS 基于 Linux 6.6，禁止 PREEMPT_LAZY/Rust 正式转正/MGLRU 2.0 等误引用 | §38.10 |
+
+### 10.2 agentrt BAN 禁止规则（BAN-001~361）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §3-§38 各章
+>
+> **登记方式**：BAN 规则共 361 条，数量庞大，本节仅登记分类摘要与编号区间。完整规则清单以 `agentrt工程标准规范手册.md` 第二十章（BAN 规则完整汇总）为唯一权威来源。
+
+| 编号区间 | 类别 | 数量 | 权威定义章节 |
+|---------|------|------|------------|
+| BAN-001~030 | 内存管理（禁止裸 malloc/free、溢出检查、null 终止） | 30 | §4.1 |
+| BAN-031~059 | 其他编码规范 | 29 | §4.x |
+| BAN-060~072 | 日志系统（统一 SVC_LOG_*/AIRY_LOG_*、禁止 printf） | 13 | §4.3 |
+| BAN-073~085 | 错误处理（禁止 return -1、错误上下文传播） | 13 | §4.2 |
+| BAN-080~099 | Python 规范（禁止 print()、裸 except、assert） | 20 | §5.1 |
+| BAN-100~110 | 桩函数禁止 | 11 | §4.4 |
+| BAN-111~150 | 其他编码规范 | 40 | §4.x |
+| BAN-151~162 | 内存安全（溢出检查、strncpy null 终止、memcpy 前置校验） | 12 | §4.1 |
+| BAN-163~190 | 其他编码规范 | 28 | §4.x |
+| BAN-191~245 | v0.1.1 新增规则（CI/CD/安全/测试/配置/构建） | 55 | §3-§14 |
+| BAN-246~290 | v0.1.1 扩展（内存安全增强/部署工程/跨层耦合） | 45 | §4.1+§28.3 |
+| BAN-291~310 | 统一打印/日志 BAN 规则 | 20 | §31 |
+| BAN-311~327 | 微内核架构/开放标准 BAN 规则 | 17 | §33+§34 |
+| BAN-328~340 | v3.5 唯一奠基版本 BAN 规则（CoreKern 精简/taskflow/SDK/许可证/静态分析） | 13 | §35.11 |
+| BAN-341~356 | v4.0 38 仓拆分 BAN 规则（改名彻底/拆分顺序/构建/生产就绪） | 16 | §11.6+§36+§37 |
+| BAN-357~361 | v4.1 AirymaxOS BAN 规则（仓库占位/文档分离/内核态污染/子仓命名/Linux 7.0 特性） | 5 | §38.9+§38.10 |
+
+### 10.3 agentrt STD 开放标准规范（STD-01~08）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §34.1~§34.8
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **STD-01** | SDK 双层 API 规范：Manager 层（向后兼容）+ 嵌套资源 API 层（对齐 OpenAI），四语言 SDK 同步实现 CognitionClient/SafetyClient/ToolClient/ChatClient | §34.1 |
+| **STD-02** | IPC Bus 统一消息头规范：所有 IPC 消息必须使用 128 字节 `struct airy_ipc_msg_hdr`（[SC] 共享契约层，magic 0x41524531 'ARE1'） | §34.2 |
+| **STD-03** | 服务发现多后端适配器规范：支持 etcd/Consul/内置 KV 多后端，统一 `airy_service_resolver_t` 接口 | §34.3 |
+| **STD-04** | JSON-RPC 方法命名空间规范：`airymax.<domain>.<method>` 命名空间隔离 | §34.4 |
+| **STD-05** | 统一错误码规范：`airy_err_t`（int32_t）统一错误码体系，分段注册 | §34.5 |
+| **STD-06** | ARE Standards 三层标准：L1 C ABI / L2 语言原生包装 / L3 协议层（独立版本号，不违反 IRON-7） | §34.6 |
+| **STD-07** | 独立仓库可行性：agentrt 可作为独立 git 仓库克隆构建，无外部硬依赖 | §34.7 |
+| **STD-08** | 开放标准 BAN 规则：禁止违反 STD-01~07 的实现，由 CI 强制 | §34.8 |
+
+### 10.4 agentrt ACC 验收标准（149 项）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §37.6（PROD-06 发布验收）+ §11.6.2（改名验证）+ §38.10（AirymaxOS 兼容性）+ 各主题章节
+>
+> **登记方式**：ACC 验收标准共 149 项，按类别使用不同前缀（非连续编号）。agentrt 手册 §37.6 明确：149 项 = ACC-FOUND01~08（8 项奠基验收）+ ACC-SP01~SP12（12 项仓库拆分验收）+ 其他 129 项基础验收（含 ACC-OP/ACC-LOG 等类别前缀）。ACC-OS04 为 v4.2 新增的 AirymaxOS 兼容性特殊编号。本节仅登记分类摘要，完整验收清单以 `agentrt工程标准规范手册.md` §37.6 为唯一权威来源。
+
+| 编号前缀 | 类别 | 数量 | 权威定义章节 |
+|---------|------|------|------------|
+| ACC-FOUND01~08 | 奠基验收（CoreKern 精简 + taskflow 修复 + SDK + 双许可证 + 静态分析 + 铁律） | 8 | §35 + §37.6 |
+| ACC-SP01~SP12 | 29 仓拆分验收（改名 + 拆分顺序 + 构建系统 + submodule + CI） | 12 | §11.6.2 + §37.6 |
+| ACC-OS04 | AirymaxOS Linux 6.6 内核兼容性验证（v4.2 新增，无 Linux 7.0 专属特性误引） | 1 | §38.10 |
+| ACC-OP/ACC-LOG/其他 | 基础验收（CI/CD + 日志 + 内存 + 安全 + IPC + 调度等各主题验收，按类别前缀分组） | 128 | 各主题章节 |
+| **总计** | | **149** | §37.6 PROD-06 强制 149/149 全部 PASS |
+
+> **注**：ACC-OS04 为 v4.2 新增特殊编号，计入 149 项总数（8+12+128+1=149）。BAN-355 禁止 149 项验收有 1 项 FAIL，发布前必须 149/149 全部 PASS。
+
+### 10.5 agentrt FOUND 奠基性版本工程规范（FOUND-01~10）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §35.1~§35.10
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **FOUND-01** | CoreKern 精简方案 C：从 7,522 行精简至 ~4,000 行（±200 容差），0.1.1 内完成 | §35.1 |
+| **FOUND-02** | CoreKern 6 类 BUG 修复规范：必须在 0.1.1 内全部修复，ASan/LSan 全量验证 | §35.2 |
+| **FOUND-03** | taskflow 双引擎协同规范：保留在 atoms，按 A/B 类语义重新分类，0.1.1 内采用双引擎协同方案 | §35.3 |
+| **FOUND-04** | taskflow 6 类 BUG 修复规范：必须在 0.1.1 内全部修复，5 个测试文件 ctest 全绿 | §35.4 |
+| **FOUND-05** | SDK 双层 API 4 语言规范：0.1.1 内完成 Python + Rust + Go + TypeScript 4 语言 × 4 嵌套资源 API，共 16 个嵌套客户端 | §35.5 |
+| **FOUND-06** | SDK L1 C ABI 接口规范：4 语言 SDK 必须严格遵循 L1 C ABI 接口规范，CTS 一致性测试套件全绿 | §35.6 |
+| **FOUND-07** | AGPL v3 + Apache 2.0 双许可证规范：全项目 `AGPL-3.0-or-later OR Apache-2.0`，版权人 SPHARX Ltd. | §35.7 |
+| **FOUND-08** | 静态分析基线规范：lizard v1.23.0 + 重复检测器基线阈值，CCN>100 函数数 ≤ 5，重复率 < 15% | §35.8 |
+| **FOUND-09** | 静态分析操作规范：先基线后优化，禁止无基线的盲目拆分 | §35.9 |
+| **FOUND-10** | 唯一奠基版本工程铁律：0.1.1 后直接 1.0.1，无中间过渡版本（IRON-1~10 集合载体） | §35.10 |
+
+### 10.6 agentrt SPLIT 38 仓 git 拆分工程规范（SPLIT-01~08）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §36.2~§36.9
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **SPLIT-01** | 38 仓目录结构工程规范：1 伞仓 + 5 管理仓 + 29 叶子仓 + 3 顶层仓，结构必须与 §11.7.1 完全一致 | §36.2 |
+| **SPLIT-02** | 仓库命名工程规范：C 层叶子仓裸名 + SDK 子仓 `sdk-xx` 命名 + 全部目录名小写 | §36.3 |
+| **SPLIT-03** | git 历史保留工程规范：agentrt 管理仓继承原 AgentRT 仓库 `git@atomgit.com:openairymax/agentos.git` 保留全部 git 历史 | §36.4 |
+| **SPLIT-04** | 7 阶段拆分顺序工程规范：必须按 SP01-SP07 顺序拆分，跨仓依赖未就绪禁止拆分 | §36.5 |
+| **SPLIT-05** | 5 处跨层耦合解耦工程规范：coreloopthree←daemons/common + coreloopthree←cupolas + coreloopthree←daemons/hook_d + protocols←daemons/common + cupolas←gateway | §36.6 |
+| **SPLIT-06** | 拆分验证工程规范：4 构建系统（CMake + Python + Rust + Go）全部通过 + submodule 一致性 + CI 集成 | §36.7 |
+| **SPLIT-07** | submodule 同步与 CI 集成工程规范：`.gitmodules` 全部裸名 + feature/official-hubs-01 分支 + 跨仓 CI 触发 | §36.8 |
+| **SPLIT-08** | 跨平台构建工程规范：Linux/macOS/Windows 三平台构建脚本 + CMake 跨平台抽象 | §36.9 |
+
+### 10.7 agentrt PROD 生产就绪工程规范（PROD-01~06）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §37.1~§37.6
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **PROD-01** | CI/CD 全仓流水线规范：38 仓全部接入 GitHub Actions，9 矩阵（3 架构 × 3 配置） | §37.1 |
+| **PROD-02** | SBOM 供应链安全规范：SPDX SBOM 生成 + 依赖完整性校验 + 漏洞扫描 | §37.2 |
+| **PROD-03** | 跨平台二进制打包规范：Linux（deb/rpm/tar）+ macOS（pkg/tar）+ Windows（msi/zip） | §37.3 |
+| **PROD-04** | 性能 Soak Test 规范：分层执行 L1（PR 4h）/ L2（周级 24h）/ L3（发布前 72h） | §37.4 |
+| **PROD-05** | 安全审计规范：静态分析 + 依赖扫描 + 密钥泄露检测 + 容器镜像扫描 | §37.5 |
+| **PROD-06** | 发布验收规范：GPG 签名 + 模块签名 + SHA-256 校验 + 149 项 ACC 全部 PASS | §37.6 |
+
+### 10.8 agentrt ARC 微内核架构规范（ARC-01~08）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §33.1~§33.8
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **ARC-01** | atoms 层语义边界定义：三类模块（真正微核心原语 / 应用语义层 / 商业隔离层），物理位置不变，通过 ops 接口隔离 | §33.1 |
+| **ARC-02** | 反向依赖禁止：atoms 层禁止依赖任何上层模块（daemons/gateway/heapstore 等） | §33.2 |
+| **ARC-03** | atoms 可独立编译：`cmake --build build --target agentrt_atoms_standalone` 必须成功，构建产物不含 daemons 符号 | §33.3 |
+| **ARC-04** | 层级倒置修复——接口反转（方案 A）：通过 ops 抽象表 + daemons init 时注入消除反向依赖，atoms 文件物理位置不变 | §33.4 |
+| **ARC-05** | airy_core_init() 初始化链完整：必须初始化所有必要 atoms 子系统，通过适配器注入点接受 daemons 层初始化 | §33.5 |
+| **ARC-06** | 微内核遵循性验证（方案 A）：atoms 层必须满足 5 项验证标准（无反向依赖 / 可独立编译 / 接口隔离 / 初始化链完整 / ops 注入降级） | §33.6 |
+| **ARC-07** | 三权分立与合约文件强化：同一文件只属于一个团队，交叉点通过接口契约解耦 | §33.7 |
+| **ARC-08** | 架构规范 BAN 规则：禁止 atoms 反向依赖 / 禁止跨层编译绑定 / 禁止绕过 ops 注入 | §33.8 |
+
+### 10.9 agentrt LC 开源许可证规范（LC-01~08）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §32.1~§32.8
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **LC-01** | 双许可证体系总览：OpenAirymax 主仓库内所有源代码统一使用 `AGPL-3.0-or-later OR Apache-2.0`，禁止引入第三种许可证 | §32.1 |
+| **LC-02** | SPDX 标识符强制规范：所有源码文件头部必须包含 SPDX 标识符，禁止单一许可证 / 禁止 All Rights Reserved / 禁止省略 Copyright 字段 | §32.2 |
+| **LC-03** | 子目录许可证路由：主仓库内所有子目录统一使用双许可证（不再区分运行时核心与工具链） | §32.3 |
+| **LC-04** | 许可证矛盾消除规范：禁止 SPHARX-Proprietary / CC-BY-SA-4.0 作为主仓库内文件 SPDX 标识符 | §32.4 |
+| **LC-05** | 非源码文件许可证字段：配置文件/文档/数据文件也必须包含许可证声明 | §32.5 |
+| **LC-06** | CI 许可证合规扫描：`[LICENSE-SCAN]` 自动扫描全部文件 SPDX 标识符，违规阻断合并 | §32.6 |
+| **LC-07** | 贡献者许可协议 CLA：所有贡献者必须签署 CLA，DCO + Signed-off-by 强制 | §32.7 |
+| **LC-08** | MemoryRovol 独立闭源仓库隔离规范：MemoryRovol 不在双许可证体系内，由自有商业 EULA 治理 | §32.8 |
+
+### 10.10 agentrt PRT 统一打印系统规范（PRT-01~18）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §29.2~§29.4
+>
+> **登记方式**：PRT 规则共 18 条，本节登记关键规则摘要。完整规则以 §29 为唯一权威来源。
+
+| 编号区间 | 类别 | 数量 | 权威定义 |
+|---------|------|------|---------|
+| PRT-01~08 | 运行时统一打印 API 规范（`airy_print()` 系列 + 分级打印 + 格式化约束） | 8 | §29.2 |
+| PRT-09~15 | 违规打印整改清单（禁止 printf/fprintf/puts 等裸打印函数） | 7 | §29.3 |
+| PRT-16~18 | 遗留模块迁移规范（protocols/atoms/memory/heapstore_migration 模块打印统一迁移） | 3 | §29.4 |
+
+### 10.11 agentrt LOG 统一日志系统规范（LOG-01~26）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §30.1~§30.6
+>
+> **登记方式**：LOG 规则共 26 条，本节登记关键规则摘要。完整规则以 §30 为唯一权威来源。
+
+| 编号区间 | 类别 | 数量 | 权威定义 |
+|---------|------|------|---------|
+| LOG-01~05 | 核心 API 规范（`airy_log()` 系列 + 7 级日志 + 结构化字段） | 5 | §30.1 |
+| LOG-06~10 | 兼容层规范（旧 SVC_LOG_*/AIRY_LOG_* 兼容映射） | 5 | §30.2 |
+| LOG-11~18 | 关键环节增强日志覆盖（IPC/调度/内存/安全/Plugin/Hook/LLM/SSE 路径日志） | 8 | §30.3 |
+| LOG-19~20 | 日志配置与运维规范（日志级别运行时配置 + 日志轮转） | 2 | §30.4 |
+| LOG-21~25 | v3.2 新增日志系统加固规范（异步日志连通 + JSON 格式化 + syslog 后端 + 时间轮转 + 监控数据采集） | 5 | §30.5 |
+| LOG-26 | v3.4 新增全功能统一打印/日志系统定义（统一率 98.2% + 打印完整度 82% + 日志完整度 62%） | 1 | §30.6 |
+
+### 10.12 agentrt PATH-BAN 路径硬编码禁止规则（PATH-BAN-1~5）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §3.5
+
+| 编号 | 规则 | 检测方式 |
+|------|------|---------|
+| **PATH-BAN-1** | 禁止在源代码中硬编码形如 `/home/<user>/`、`C:\Users\<user>\`、`D:\SPHARX-CN\` 的绝对路径 | CI grep 扫描（`quality-gate.sh` 的 `[PATH-SCAN]` 步骤） |
+| **PATH-BAN-2** | 所有运行时路径必须通过 `agentrt.yaml` 配置或 `commons/path_manager.h` 获取，禁止硬编码 | Code review |
+| **PATH-BAN-3** | CMake 跨子仓库引用必须使用 `get_filename_component` 相对推导，不得硬编码 `../agentrt/` 等 | CI CMake 审计 |
+| **PATH-BAN-4** | 禁止在 git commit 中包含本机用户名或主机名 | pre-commit hook |
+| **PATH-BAN-5** | `.env` 和 `.env.example` 中的路径必须使用相对路径或环境变量占位符 | pre-commit hook |
+
+### 10.13 agentrt L 历史教训（L-01~53）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §2.1~§2.2
+>
+> **登记方式**：历史教训共 53 条（L-01~L-38 为 v0.1.0 继承，L-39~L-53 为 v0.1.1 新增），本节仅登记分类摘要。完整教训清单以 §2 为唯一权威来源。每条教训对应至少一条 BAN/IRON/ACC 规则。
+
+| 编号区间 | 类别 | 数量 | 权威定义 |
+|---------|------|------|---------|
+| L-01~L-38 | v0.1.0 教训继承（宣称完成/CI 全绿假象/集成谎言/桩函数/内存安全等） | 38 | §2.1 |
+| L-39~L-53 | v0.1.1 新增教训（源码审计/阶段依赖/验收覆盖/非交叉原则/Hook fail-open/LLM 错误分类/SecretRef/Plugin 权限/记忆原子性/SSE 背压/.gitignore/改名同步/SDK 包名/任务状态一致/品牌统一） | 15 | §2.2 |
+
+### 10.14 agentrt CROSS 跨平台规范（CROSS-01~06）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §4.6
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **CROSS-01** | 禁止直接使用 POSIX 线程 API：必须通过 `commons/platform/thread.h` 抽象层 | §4.6 |
+| **CROSS-02** | 禁止使用 C99 VLA 变长数组：必须使用固定大小数组或动态分配 | §4.6 |
+| **CROSS-03** | 禁止直接使用 POSIX 时间函数：必须通过 `commons/platform/time.h` 抽象层 | §4.6 |
+| **CROSS-04** | 禁止使用 GCC 扩展语法：必须使用标准 C11/C17 | §4.6 |
+| **CROSS-05** | Windows 头文件保护：`#ifdef _WIN32` 隔离 Windows 特定代码 | §4.6 |
+| **CROSS-06** | MSVC /WX 级别零警告：Windows 构建必须零警告零错误 | §4.6 |
+
+### 10.15 agentrt REQ 需求规则（REQ-01~08）
+
+> **权威定义文档**：`agentrt工程标准规范手册.md` §4.7
+
+| 编号 | 规则 | 定义章节 |
+|------|------|---------|
+| **REQ-01** | 所有公共 API 必须使用 Doxygen 风格注释，明确 ownership、线程语义、错误语义 | §4.7 |
+| **REQ-02** | 返回值优先使用 `airy_err_t`（int32_t），或返回指针（失败返回 NULL 并记录日志） | §4.7 |
+| **REQ-03** | 所有资源按 create/destroy 成对管理，API 文档中明确释放责任 | §4.7 |
+| **REQ-04** | 优先使用 C11 atomics（`stdatomic.h`），避免遗留 `_sync*` | §4.7 |
+| **REQ-05** | 热路径优先无锁/原子实现，并提供锁保护的安全回退（System 2） | §4.7 |
+| **REQ-06** | 日志格式使用结构化 JSON，最小字段：timestamp/level/module/function/trace_id/request_id/message/err_code | §4.7 |
+| **REQ-07** | 追踪采用 W3C Trace Context（`traceparent`），请求入口生成 `trace_id` | §4.7 |
+| **REQ-08** | 指标采用 Prometheus exposition 格式，提供 `/metrics`、`/healthz`、`/readyz` 端点 | §4.7 |
+
+### 10.16 agentrt W 工作任务（W01-W30）
+
+> **权威定义文档**：`docs-closed/agentrt/` → `130-roadmap/01-development-strategy.md`
+>
+> **登记方式**：W 工作任务共 30 项（W01-W30），是 0.1.1 唯一奠基版本的核心工作包分解。本节仅登记分类摘要。完整任务清单以 `130-roadmap/01-development-strategy.md` 为唯一权威来源。
+
+| 编号区间 | 类别 | 数量 | 权威定义 |
+|---------|------|------|---------|
+| W01-W10 | 核心引擎工作（atoms/corekern 精简 + taskflow 修复 + CoreLoopThree 集成） | 10 | 130-roadmap/01-development-strategy.md |
+| W11-W20 | 生态层工作（SDK 4 语言 + gateway + protocols + ecosystem） | 10 | 130-roadmap/01-development-strategy.md |
+| W21-W30 | 基础设施工作（CI/CD + 测试 + 部署 + 文档 + MemoryRovol） | 10 | 130-roadmap/01-development-strategy.md |
+
+### 10.17 agentrt SP 29 仓拆分工作（SP01-SP37）
+
+> **权威定义文档**：`docs-closed/agentrt/` → `130-roadmap/01-development-strategy.md`
+>
+> **登记方式**：SP 工作包共 37 项（SP01-SP37），是 0.1.1 三大支柱之"29 仓拆分 + 生产就绪"的工作分解。本节仅登记分类摘要。完整任务清单以 `130-roadmap/01-development-strategy.md` 为唯一权威来源。
+
+| 编号区间 | 类别 | 数量 | 权威定义 |
+|---------|------|------|---------|
+| SP01-SP06 | 5 处跨层耦合解耦（coreloopthree←daemons/common + coreloopthree←cupolas + coreloopthree←daemons/hook_d + protocols←daemons/common + cupolas←gateway） | 6 | 130-roadmap/01-development-strategy.md |
+| SP07-SP31 | 29 仓 git 拆分（7 阶段拆分顺序 + submodule 同步 + CI 集成） | 25 | 130-roadmap/01-development-strategy.md |
+| SP32-SP37 | 生产就绪 6 项（CI/CD 全仓 + SBOM + 跨平台打包 + Soak Test + 安全审计 + 发布验收） | 6 | 130-roadmap/01-development-strategy.md |
+
+### 10.18 agentrt 规则编号新增流程
+
+agentrt 规则编号新增须遵循以下流程（与 AirymaxOS `OS-*` 编号流程一致）：
+
+1. **RFC**：在 GitHub Discussions 发起 RFC，说明规则编号、规则文本、来源文档、适用范围。
+2. **评审**：经至少一名顶级子系统维护者审查，公示 14 天接受异议。
+3. **注册**：通过评审后，由总维护者将规则写入 `agentrt工程标准规范手册.md` 对应章节，并在本注册表第 10 章对应小节追加登记条目。
+
+> **双编号体系同步声明**：当 agentrt 新增规则与 AirymaxOS 存在语义同源关系时，须同时在 AirymaxOS `OS-*` 编号体系中登记对应规则（通过 IRON-9 v2 [SS] 语义同源层关联），确保两端编号体系语义一致。
+
 ---
 
 ## 附录 A 变更日志
@@ -694,3 +1049,9 @@ OS-<前缀>-<子域>-<NNN>
 | 2026-07-14 | 0.1.1 | **v1.0-P1 修复：消解 ES-SEL4-9/10 状态分类模糊**——闭源总纲 §12.8 引言文本区分"ES-SEL4-7/9/10 已在 0.1.1 阶段提前落地（已落地）"与"ES-SEL4-6/8 作为 1.0.1 阶段增量待落地（待落地）"；表格新增"状态"列明确标注每项落地状态，消除"P2 增强建议在 1.0.1 阶段增量落地"引言与"已落地"正文之间的语义冲突 | SPHARX 工程标准组 |
 | 2026-07-14 | 0.1.1 | **v1.0-P1 修复：补齐 OS-KER-007/008 跳号废弃说明**——§3.1 新增 OS-KER-007（原"内核态禁 float，强制 q16.16 定点"，2026-07-12 迁移至 OS-STD-010）+ OS-KER-008（原"函数例外：开括号在下一行行首（K&R）"，2026-07-12 与 OS-STD-047 合并迁移至 OS-STD-FMT-009）废弃说明条目；与 01-coding-standards.md Part II §0.2.1 迁移映射表一致，消除 OS-KER-001~010 区间的跳号未标注问题，SSoT 内部一致性完整 | SPHARX 工程标准组 |
 | 2026-07-14 | 0.1.1 | **v1.0-P0 修复：消除 DEFER_INIT 设计层面延期至 1.0.1 的表述**——40-dataflows/03-ipc-flow.md §2.5 io_uring SETUP 标志表 L151/L158/L160 共 3 处"留待 1.0.1 评估"表述违反"不能有任何设计往后迁移"硬约束。修复为明确版本路线声明：`DEFER_INIT` 设计决策已在 0.1.1 完成（0.1.1 阶段不启用——Linux 6.6 基线不支持 ADR-001；1.0.1 阶段启用——升级 Linux 7.1 后 ADR-013），属版本路线规划非设计延期。OS-IPC-009 规则同步更新，启用策略分类由"延后启用"改为"版本路线" | SPHARX 工程标准组 |
+| 2026-07-14 | 0.1.1 | **v1.0-P2 修复：清除 tests 简写残留**——在指代 tests-linux 子仓的上下文中，将 "tests" 简写改为全称 "tests-linux"。修复 10 个文件共 15 处：120-development-process/01-patch-lifecycle.md（L27/L389 共 3 处）、02-maintainer-hierarchy.md（L179）、README.md（L150）、10-architecture/04-engineering-baseline.md（L145）、05-adrs.md（L212/L234/L251）、130-roadmap/01-development-strategy.md（L182）、02-milestones-and-timeline.md（L113）、00-requirements/README.md（L17）、50-engineering-standards/00-engineering-standards-handbook.md（L55）、05-development-process.md（L174）、50-project-erp/README.md（L24）、50-project-erp/project_erp.md（L1518）。验证 grep 确认零残留 | SPHARX 工程标准组 |
+| 2026-07-14 | 0.1.1 | **v1.0-P0 修复：消解 OS-STD-010 编号三重含义冲突**——01-coding-standards.md 中 OS-STD-010 存在三重含义：(1) L329 §6.2 整数类型选择 (u8/u32 vs __u8/__u32)；(2) L778 §0.2.1 迁移映射表"内核态禁 float"（从 OS-KER-007 迁移）；(3) L785 typedef 限制（从 OS-KER-003 扩展）。冲突消解：OS-STD-010 权威含义确定为"内核态禁 float，强制 airy_q16_t"（与 SSoT §3.1 + C_Cpp_coding_style.md 一致）；整数类型选择 + typedef 限制迁移至新编号 OS-STD-CODE-032（初稿曾用 OS-STD-012，因 OS-STD-012 已被 60-driver-model/90-observability/05-development-process 三子系统跨域占用而放弃）；05-development-process.md L1861-1862 的 typedef 引用同步修正为 OS-STD-CODE-020 | SPHARX 工程标准组 |
+| 2026-07-15 | 0.1.1 | **v1.0-P0 修复：消解 OS-STD-CODE-031 命名冲突**——OS-STD-CODE-031 被 01-coding-standards.md §6.2（整数类型选择，2026-07-14 从 OS-STD-010 让位引入）与 10-coding-style/C_Cpp_coding_style.md §3.2（snake_case 命名规则，更早存在）双重占用。消解方案：OS-STD-CODE-031 权威定义确定为 snake_case 命名规则（C_Cpp_coding_style.md §3.2 权威定义源）；整数类型选择规则让位至 OS-STD-CODE-032。修改 4 处：01-coding-standards.md §6.2 L329 规则定义 + §0 速查表 L656 + §0.2.1 迁移映射表 L784/L785（共 4 处 OS-STD-CODE-031→OS-STD-CODE-032）；09-ssot-registry.md §4.2 L349 新增 OS-STD-CODE-031（snake_case 命名规则）与 OS-STD-CODE-032（整数类型选择）双编号登记 | SPHARX 工程标准组 |
+| 2026-07-15 | 0.1.1 | **v1.0-P0 修复：消解跨子系统 OS-STD-0xx 编号冲突**——OS-STD-0xx 编号被 4 个子系统文档独立占用未在 SSoT 登记，造成系统性 SSoT 违规：(1) OS-STD-001~009 被 110-security 两个文件重复定义（LSM/Landlock）；(2) OS-STD-012 被 60-driver-model（sysfs_emit）/90-observability（BPF 验证器日志）/05-development-process（sparse 警告）三处独立占用；(3) OS-STD-013/014/015 被 60-driver-model 与 90-observability 跨域冲突；(4) OS-STD-016/017 被 90-observability 独立占用。消解方案：① 110-security 保留 OS-STD-001~009 权威定义并登记 SSoT；② 05-development-process 保留 OS-STD-012 权威定义（构建规则）并登记 SSoT；③ 60-driver-model 的 OS-STD-012~015 → OS-STD-DRV-012~015（驱动模型子域）；④ 90-observability 的 OS-STD-012~016 → OS-STD-OBS-012~016（可观测性子域）；⑤ OS-STD-017（编号管理元规则）提升为 OS-IRON-013（全局元规则归入 IRON 系列）。新增 §9.4 跨子系统 OS-STD-0xx 编号登记章节登记全部 20 个编号；§9.4 末尾新增编号空间声明明确各前缀子域归属。修改文件：60-driver-model/01-device-model.md（5 处 OS-STD-0xx→OS-STD-DRV-0xx）、90-observability/02-ebpf-probes.md（6 处 OS-STD-0xx→OS-STD-OBS-0xx + 1 处 OS-STD-017→OS-IRON-013）、09-ssot-registry.md（新增 §9.4 章节 + 编号空间声明） | SPHARX 工程标准组 |
+| 2026-07-15 | 0.1.1 | **v2.0-P0 修复：消解 OS-IRON-013 双重登记冲突**——2026-07-15 提升 OS-STD-017 → OS-IRON-013 时，未检测到 §2 表格 L91 已登记"OS-IRON-013 = 8 子仓独立 git 仓库 + submodule"（来源 04 §13），导致同一编号被两条规则同时占用：(1) §2 L91 = 8 子仓 submodule（正确登记，与 04 工程思想 + 00 手册镜像一致）；(2) §4.4 OS-STD-OBS 表格 L697 = 编号管理元规则（重复登记）。消解方案：保留 §2 L91 的"8 子仓 submodule"含义不变，将 L697 的"编号管理元规则"重新编号为 **OS-IRON-015**（紧接 OS-IRON-014 之后，连续编号），§2 表格 L92 之后新增 OS-IRON-015 登记行；§4.4 OS-STD-OBS 表格 L697 的重复表格行改为"交叉引用说明"块（不再以表格行形式登记），消除同一编号在两处表格重复登记的 SSoT 违规。本次修复与上一条记录（2026-07-15 v1.0-P0）的对应关系：上一条记录中的"⑤ OS-STD-017 提升为 OS-IRON-013"实际执行为"提升为 OS-IRON-015"（因 OS-IRON-013 已被占用），上一条记录的描述文本不再修改但以本条记录为准 | SPHARX 工程标准组 |
+| 2026-07-15 | 0.1.1 | **SSoT 升级：AirymaxOS → Airymax 全局**——标题从"AirymaxOS 全局规则编号注册表"升级为"Airymax 全局规则 SSoT 注册表"；文档定位扩展为"Airymax 全项目（agentrt 用户态运行时 + AirymaxOS/agentrt-linux 操作系统）"；头部新增双编号体系声明（AirymaxOS `OS-*` 前缀第 2-9 章 + agentrt 无前缀第 10 章）+ IRON-9 v2 三层共享模型引用；§1.1-§1.3 扩展核心原则/使用规则/编号格式覆盖双编号体系，§1.2 新增"编号体系隔离"规则禁止 `OS-IRON-001` 与 `IRON-1` 混用，§1.3 新增 agentrt 编号格式 `<前缀>-<NN>` 声明；新增第 10 章 agentrt 规则编号体系（§10.1-§10.18 共 18 节），全量登记 17 类规则：IRON-1~10（10 条全量）/BAN-001~361（摘要 16 区间）/STD-01~08（8 条全量，含 STD-02 IPC 128 字节消息头）/ACC 149 项（摘要 6 区间）/FOUND-01~10（10 条全量）/SPLIT-01~08（8 条全量）/PROD-01~06（6 条全量）/ARC-01~08（8 条全量，含方案 A 接口反转）/LC-01~08（8 条全量，含 AGPL+Apache 双许可证）/PRT-01~18（摘要 3 区间）/LOG-01~26（摘要 6 区间）/PATH-BAN-1~5（5 条全量）/L-01~53（摘要 2 区间）/CROSS-01~06（6 条全量）/REQ-01~08（8 条全量）/W01-W30（摘要 3 区间）/SP01-SP37（摘要 3 区间）；小类全量登记 10 类共 77 条（IRON 10/STD 8/FOUND 10/SPLIT 8/PROD 6/ARC 8/LC 8/PATH-BAN 5/CROSS 6/REQ 8）+ 大类摘要登记 7 类共 674 条（BAN 361/ACC 149/PRT 18/LOG 26/L 53/W 30/SP 37）= 总计 17 类 751 条 agentrt 规则；§10.18 新增 agentrt 规则编号新增流程（RFC→评审→注册三步）+ 双编号体系同步声明（agentrt 新增规则与 AirymaxOS 存在语义同源关系时须同时登记 `OS-*` 编号） | SPHARX 工程标准组 |

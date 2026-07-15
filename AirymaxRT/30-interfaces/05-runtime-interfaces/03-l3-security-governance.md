@@ -301,7 +301,7 @@ commons/utils/error/include/error.h
 
 错误码类型为 `int32_t`（`airy_err_t` / `are_error_t`），成功为 0，错误为负值。分段如下：
 
-> **SSoT 声明**：通用段错误码权威定义位于 `include/airymax/error.h`（[SC] 共享契约层，agentrt 与 agentrt-linux 共享同一物理头文件）。类型 `airy_err_t = int32_t` 定义于 `airy_types.h:41`。本表通用段示例与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致；`ARE_*` 与 `AIRY_*` 值空间一致（成功为 `ARE_OK = AIRY_EOK = 0`）。
+> **SSoT 声明**：通用段错误码权威定义位于 `agentrt/commons/include/airy_types.h`（`airy_err_t` 类型 + `AIRY_E*` POSIX 码）和 `agentrt/commons/utils/error/include/error.h`（`AIRY_ERR_*` 扩展码）。`include/airymax/error.h` 为规划中的 [SC] 共享路径，当前尚未创建。类型 `airy_err_t = int32_t` 定义于 `airy_types.h:41`。本表通用段示例与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致；`ARE_*` 与 `AIRY_*` 值空间一致（成功为 `ARE_OK = AIRY_EOK = 0`）。
 
 | 段 | 范围 | 类别 | 示例宏 | 值 | 含义 |
 |----|------|------|--------|----|------|

@@ -9,7 +9,7 @@ FROM ubuntu:22.04 AS builder
 LABEL maintainer="SPHARX Ltd. <dev@spharx.com>"
 LABEL version="0.1.0"
 LABEL description="AgentRT - AI Agent Operating System Foundation Release"
-LABEL org.opencontainers.image.source="https://github.com/spharx/AgentRT"
+LABEL org.opencontainers.image.source="https://github.com/spharx/agentrt"
 
 ARG DEBIAN_FRONTEND=noninteractive
 

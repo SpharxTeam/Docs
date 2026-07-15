@@ -533,7 +533,7 @@ graph LR
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集维护者层级制度所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核 `MAINTAINERS` 文件格式（14 字段）、Lieutenant System 信任链模型、DCO 1.1 标准，以及 agentrt-linux 8 子仓维护者分配专属契约（`include/airymax/maintainer_types.h`）。
+> **附录定位**： 本附录汇集维护者层级制度所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核 `MAINTAINERS` 文件格式（14 字段）、Lieutenant System 信任链模型、DCO 1.1 标准，以及 agentrt-linux 8 子仓维护者分配专属契约（`include/airymax/maintainer_types.h`，agentrt-linux 内核内部头文件，[IND] 独立层，agentrt 用户态不共享）。
 
 ### A.1 核心数据结构
 

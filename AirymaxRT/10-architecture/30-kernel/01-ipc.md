@@ -244,7 +244,7 @@ airy_err_t airy_shm_create(
                       MAP_SHARED, fd, 0);
     
     // 填充结构体
-    airy_shared_memory_t* shm = malloc(sizeof(*shm));
+    airy_shared_memory_t* shm = AIRY_MALLOC(sizeof(*shm));
     shm->name = strdup(name);
     shm->size = size;
     shm->address = addr;
@@ -427,8 +427,8 @@ airy_err_t airy_mq_send(
     airy_mtx_lock(mq->lock);
     
     // 创建消息
-    airy_message_t* msg = malloc(sizeof(*msg));
-    msg->data = malloc(len);
+    airy_message_t* msg = AIRY_MALLOC(sizeof(*msg));
+    msg->data = AIRY_MALLOC(len);
     memcpy(msg->data, data, len);
     msg->len = len;
     msg->priority = priority;
@@ -531,7 +531,7 @@ int main() {
     printf("Received: %.*s\n", (int)recv_len, recv_msg);
     
     // 清理
-    free(recv_msg);
+    AIRY_FREE(recv_msg);
     airy_ipc_channel_destroy(channel);
     
     return 0;
@@ -997,7 +997,7 @@ int main() {
     airy_ipc_recv(channel, (void**)&recv_msg, &len, 1000);
     
     // 清理
-    free(recv_msg);
+    AIRY_FREE(recv_msg);
     airy_ipc_channel_destroy(channel);
     
     return 0;
@@ -1013,7 +1013,7 @@ int main() {
 airy_ipc_send(channel, data, len, 1000);  // 1 秒超时
 
 // 2. 及时释放资源
-free(recv_msg);
+AIRY_FREE(recv_msg);
 airy_ipc_channel_destroy(channel);
 
 // 3. 错误处理

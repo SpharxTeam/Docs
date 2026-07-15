@@ -326,7 +326,7 @@ typedef struct airy_task *task_ptr_t;  /* 坏：掩盖类型 */
 
 ### 6.2 内核原生类型
 
-> **OS-STD-010**： 内核内部用 `u8/u16/u32/u64` 及有符号变体；用户空间可见的 UAPI 结构体用 `__u8/__u16/__u32/__u64`。
+> **OS-STD-CODE-032**： 内核内部用 `u8/u16/u32/u64` 及有符号变体；用户空间可见的 UAPI 结构体用 `__u8/__u16/__u32/__u64`（2026-07-15 从 OS-STD-CODE-031 让位消解，OS-STD-CODE-031 权威定义为 C_Cpp_coding_style.md §3.2 snake_case 命名规则）。
 
 ```c
 struct airy_task {        u32 id; u64 deadline_ns; };          /* 内核内部 */
@@ -653,7 +653,7 @@ config AIRY_DEVMEM_RW
 | OS-STD-CODE-018 | 标准  | 多语句宏 do-while(0)                        |
 | OS-STD-CODE-019 | 标准  | inline 优于宏                              |
 | OS-STD-CODE-020 | 标准  | typedef 仅 5 种例外                         |
-| OS-STD-010      | 标准  | 内部 u8/u32，UAPI \_\_u32                  |
+| OS-STD-CODE-032 | 标准  | 内部 u8/u32，UAPI \_\_u32                  |
 | OS-STD-011      | 标准  | bool 仅返回值与栈变量                           |
 | OS-STD-CODE-021 | 标准  | 多布尔值合并 bitfield / flags                 |
 | OS-KER-001      | 内核  | goto 集中出口模式                             |
@@ -781,8 +781,8 @@ config AIRY_DEVMEM_RW
 > **SSoT 对齐声明（2026-07-12 OS-KER-001~008 消解完成）**：历史公开编号 OS-KER-001~008 已全部迁移至 SSoT 编号，OS-KER-001/002/003 复用为 SSoT 内部编号。以下编号的权威定义见 [09-ssot-registry.md §3](./09-ssot-registry.md)，本卷不重新定义：
 >
 > - `OS-KER-001`：SSoT 内部复用，权威定义为"goto 集中出口模式"（01 §7.1 承载）。历史公开编号 OS-KER-001（Linux 6.6 内核基线）已迁移至 OS-IRON-010。
-> - `OS-KER-002`：SSoT 内部复用，权威定义为"禁止 #if 桩函数模式"（补标，由 IRON-1 涵盖）。历史公开编号 OS-KER-002（u8/u16）已迁移至 OS-STD-010。
-> - `OS-KER-003`：SSoT 内部复用，权威定义为"条件编译必须用 IS_ENABLED()"（补标；用法见 OS-STD-CODE-025，01 §9.2）。历史公开编号 OS-KER-003（typedef）已并入 OS-STD-010（扩展）。
+> - `OS-KER-002`：SSoT 内部复用，权威定义为"禁止 #if 桩函数模式"（补标，由 IRON-1 涵盖）。历史公开编号 OS-KER-002（u8/u16）已迁移至 OS-STD-CODE-032。
+> - `OS-KER-003`：SSoT 内部复用，权威定义为"条件编译必须用 IS_ENABLED()"（补标；用法见 OS-STD-CODE-025，01 §9.2）。历史公开编号 OS-KER-003（typedef）已并入 OS-STD-CODE-032（扩展）。
 > - 历史 OS-KER-004（BUG）→ OS-BAN-002；OS-KER-005（sizeof）→ OS-BAN-003；OS-KER-006（API unstable）→ OS-IRON-002；OS-KER-007（float）→ OS-STD-010；OS-KER-008（bool）→ OS-STD-011。
 > - OS-KER-010/020/021/022/030/031/040/041/050/060 等保留为内核态专属规则，权威定义见 04 工程思想。
 

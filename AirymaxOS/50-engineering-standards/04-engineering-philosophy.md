@@ -8,7 +8,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**： 2026-07-12\
 > **理论根基**： Linux 6.6 内核基线工程思想 + Airymax 体系并行论（Multibody Cybernetic Intelligent System）\
 > **同源映射**： `docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）+ agentrt 17 类规则编号体系（IRON-9 v2 同源且部分代码共享）\
-> **SSoT 声明**： OS-IRON 铁律编号的唯一权威来源为 [09-ssot-registry.md §2](./09-ssot-registry.md)（14 条铁律）。本文档第 5-10 章中标注的历史 OS-IRON-003~006 编号与 SSoT 存在语义偏移（详见下方 §0 对齐映射表）。正文中保留的历史编号仅作章节内引用，**规则定义以 SSoT 为准**；本文档与 SSoT 的任何冲突，以 SSoT 为准。
+> **SSoT 声明**： OS-IRON 铁律编号的唯一权威来源为 [09-ssot-registry.md §2](./09-ssot-registry.md)（15 条铁律，含 OS-IRON-015 编号管理元规则，2026-07-15 提升）。本文档第 5-10 章中标注的历史 OS-IRON-003~006 编号与 SSoT 存在语义偏移（详见下方 §0 对齐映射表）。正文中保留的历史编号仅作章节内引用，**规则定义以 SSoT 为准**；本文档与 SSoT 的任何冲突，以 SSoT 为准。
 
 ---
 
@@ -30,7 +30,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 0. IRON 铁律编号 SSoT 对齐映射表
 
-> 本文档历史上的 OS-IRON-003~006 标签与 SSoT（[09-ssot-registry.md §2](./09-ssot-registry.md) 14 条铁律）存在语义偏移：§3-§4 的章节内容与 SSoT 的 IRON-003/004 一致但缺少铁律标签；§5-§10 的铁律标签比 SSoT 偏移 2-3 位。正文中所有 IRON 标签已对齐至 SSoT 定义，下表作为历史映射记录保留。
+> 本文档历史上的 OS-IRON-003~006 标签与 SSoT（[09-ssot-registry.md §2](./09-ssot-registry.md) 15 条铁律）存在语义偏移：§3-§4 的章节内容与 SSoT 的 IRON-003/004 一致但缺少铁律标签；§5-§10 的铁律标签比 SSoT 偏移 2-3 位。正文中所有 IRON 标签已对齐至 SSoT 定义，下表作为历史映射记录保留。
 
 ### 0.1 编号对齐映射
 
@@ -79,7 +79,7 @@ agentrt-linux 工程思想建立在三大支柱之上，缺一不可：
 |------|------|------------------|
 | **Linux 6.6 内核基线工程思想** | Linux 6.6 内核源代码（Linux 6.6 内核基线）深度研究提炼 | 双层稳定性、渐进式开发、regression 不可接受、审查优先、不破坏用户空间 |
 | **Airymax 五维正交 24 原则** | `00-architectural-principles.md`（S/K/C/E/A 五维） | 每条工程思想必须映射到至少一条五维原则 |
-| **agentrt 17 类规则编号体系** | `0.1.1工程标准规范手册.md`（IRON/BAN/STD/ACC 等） | 核心铁律赋予 OS-IRON / OS-KER 编号 |
+| **agentrt 17 类规则编号体系** | `agentrt工程标准规范手册.md` v29.0（IRON/BAN/STD/ACC 等 17 类 751 条） | 核心铁律赋予 OS-IRON / OS-KER 编号 |
 
 Linux 内核工程思想提供严肃性基底，五维正交 24 原则提供 Airymax 自身的设计语言，17 类规则编号体系提供可执行性骨架。三者并非简单叠加，而是**正交耦合**：Linux 工程思想回答"内核工程的普遍规律"，五维原则回答"Airymax 在这些规律上的立场"，规则编号回答"这些立场如何被强制执行"。
 

@@ -415,7 +415,7 @@ l1:
 
 # L2: 短期记忆 (Short-term Memory)
 l2:
-  storage_backend: "postgresql+faiss"
+  storage_backend: "postgresql+hnsw"
   database:
     host: "${POSTGRES_HOST:-postgres}"
     port: ${POSTGRES_PORT:-5432}
@@ -423,11 +423,12 @@ l2:
     password: "${POSTGRES_PASSWORD}"
     dbname: "${POSTGRES_DB:-agentrt}"
   vector_index:
-    engine: "faiss"            # faiss, hnswlib, milvus
-    index_type: "ivf_flat"     # ivf_flat, ivf_pq, hnsw
+    engine: "hnswlib"          # hnswlib, milvus
+    index_type: "hnsw"         # hnsw
     dimension: 768             # 向量维度（与embedding模型匹配）
-    nlist: 1024                # IVF分区数
-    nprobe: 32                 # 探测数（越大越精确但越慢）
+    M: 16                      # 每个节点最大连接数
+    ef_construction: 200       # 构建时搜索宽度（越大越精确但越慢）
+    ef_search: 64              # 查询时搜索宽度（越大越精确但越慢）
     metric: "inner_product"    # inner_product, l2, cosine
   config:
     ttl_seconds: 86400         # 保持时间：24小时

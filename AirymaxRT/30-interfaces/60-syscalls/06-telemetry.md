@@ -95,7 +95,7 @@ if (err == AIRY_EOK) {
 ## 注意事项
 
 1. **输出所有权**：所有 `out_*` 参数由调用者通过 `airy_sys_free()` 释放。
-2. **错误码**：返回值使用 [error.h](../../agentrt/commons/utils/error/include/error.h) 定义的负整数错误码（`AIRY_EOK=0`, `AIRY_EINVAL=-22` 等，对齐 POSIX errno 负值；权威定义位于 `include/airymax/error.h`，[SC] 共享契约层）。
+2. **错误码**：返回值使用 [error.h](../../agentrt/commons/utils/error/include/error.h) 定义的负整数错误码（`AIRY_EOK=0`, `AIRY_EINVAL=-22` 等，对齐 POSIX errno 负值；权威定义位于 `agentrt/commons/include/airy_types.h`（`AIRY_E*` POSIX 码）+ `agentrt/commons/utils/error/include/error.h`（`AIRY_ERR_*` 扩展码），[SC] 实际权威源；`include/airymax/error.h` 为规划中的 [SC] 共享路径，当前尚未创建）。
 3. **可观测性后端**：指标和追踪的实际采集、存储、导出一由 [observe_d](../../agentrt/daemons/observe_d/) 负责，具体日志格式见 [日志格式规范](../../20-modules/10-contracts/05-logging-format.md)。
 
 ---

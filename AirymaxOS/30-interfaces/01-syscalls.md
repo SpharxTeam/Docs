@@ -389,7 +389,7 @@ AIRY_API int airy_sys_notify(cap_t cap);
 ### 5.3 性能回归保护
 
 - 每次提交运行 `tests-linux/benchmark/sched-latency` 微基准。
-- 与基线对比，调度延迟退化 > 5% 自动打回（详见 [20-modules/08-tests.md](../20-modules/08-tests.md) 第 4.6 节）。
+- 与基线对比，调度延迟退化 > 5% 自动打回（详见 [20-modules/08-tests-linux.md](../20-modules/08-tests-linux.md) 第 4.6 节）。
 
 ### 5.4 性能剖析方法
 

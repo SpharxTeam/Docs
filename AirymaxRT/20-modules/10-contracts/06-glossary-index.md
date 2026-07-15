@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/docs/AirymaxRT/20-modules/10-contracts/06-glossary-index.md
+**路径**: docs/AirymaxRT/20-modules/10-contracts/06-glossary-index.md
 ---
 
 ## 使用说明
@@ -20,58 +20,58 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 主题 | 章节 | 位置 |
 |------|------|------|
-| Agent ID 格式 | agent_contract.md - 3.1 节 | [Agent ID](../../TERMINOLOGY.md#agent-id-智能体标识) |
-| 能力描述 | agent_contract.md - 第 4 章 | [Capability](../../TERMINOLOGY.md#capability-能力) |
-| 成本画像 | agent_contract.md - 3.7 节 | [Cost Profile](../../TERMINOLOGY.md#cost-profile-成本画像) |
-| 信任度量 | agent_contract.md - 3.8 节 | [Trust Metrics](../../TERMINOLOGY.md#trust-metrics-信任度量) |
-| 模型配置 | agent_contract.md - 2.3.2 节 | [Cognitive Engine](../../TERMINOLOGY.md#cognitive-engine-认知引擎) |
-| 权限要求 | agent_contract.md - 3.6 节 | [Permission](../../TERMINOLOGY.md#permission-权限) |
-| 验证工具 | agent_contract.md - 第 7 章 | [Validation](../../TERMINOLOGY.md#validation-验证) |
+| Agent ID 格式 | 01-agent-contract.md - 3.1 节 | [Agent ID](../../TERMINOLOGY.md#agent-id-智能体标识) |
+| 能力描述 | 01-agent-contract.md - 第 4 章 | [Capability](../../TERMINOLOGY.md#capability-能力) |
+| 成本画像 | 01-agent-contract.md - 3.7 节 | [Cost Profile](../../TERMINOLOGY.md#cost-profile-成本画像) |
+| 信任度量 | 01-agent-contract.md - 3.8 节 | [Trust Metrics](../../TERMINOLOGY.md#trust-metrics-信任度量) |
+| 模型配置 | 01-agent-contract.md - 2.3.2 节 | [Cognitive Engine](../../TERMINOLOGY.md#cognitive-engine-认知引擎) |
+| 权限要求 | 01-agent-contract.md - 3.6 节 | [Permission](../../TERMINOLOGY.md#permission-权限) |
+| 验证工具 | 01-agent-contract.md - 第 7 章 | [Validation](../../TERMINOLOGY.md#validation-验证) |
 
 ### Skill 契约相关
 
 | 主题 | 章节 | 位置 |
 |------|------|------|
-| Skill 类型 | skill_contract.md - 3.1 节 | [Skill Type](../../TERMINOLOGY.md#skill-type-技能类型) |
-| 依赖声明 | skill_contract.md - 3.3 节 | [Dependency Declaration](../../TERMINOLOGY.md#dependency-declaration-依赖声明) |
-| 工具定义 | skill_contract.md - 第 4 章 | [Tool Skill](../../TERMINOLOGY.md#tool-skill-工具技能) |
-| 权限配置 | skill_contract.md - 第 5 章 | [Permission](../../TERMINOLOGY.md#permission-权限) |
-| 验证工具 | skill_contract.md - 第 7 章 | [Validation](../../TERMINOLOGY.md#validation-验证) |
+| Skill 类型 | 02-skill-contract.md - 3.1 节 | [Skill Type](../../TERMINOLOGY.md#skill-type-技能类型) |
+| 依赖声明 | 02-skill-contract.md - 3.3 节 | [Dependency Declaration](../../TERMINOLOGY.md#dependency-declaration-依赖声明) |
+| 工具定义 | 02-skill-contract.md - 第 4 章 | [Tool Skill](../../TERMINOLOGY.md#tool-skill-工具技能) |
+| 权限配置 | 02-skill-contract.md - 第 5 章 | [Permission](../../TERMINOLOGY.md#permission-权限) |
+| 验证工具 | 02-skill-contract.md - 第 7 章 | [Validation](../../TERMINOLOGY.md#validation-验证) |
 
 ### 通信协议相关
 
 | 主题 | 章节 | 位置 |
 |------|------|------|
-| 协议分层 | protocol_contract.md - 第 2 章 | [Protocol Stack](../../TERMINOLOGY.md#protocol-stack-协议栈) |
-| HTTP 网关 | protocol_contract.md - 3.1 节 | [Habitat Gateway](../../TERMINOLOGY.md#habitat-gateway-habitat-网关) |
-| WebSocket | protocol_contract.md - 3.2 节 | [WebSocket](../../TERMINOLOGY.md#websocket) |
-| stdio | protocol_contract.md - 3.3 节 | [Stdio Gateway](../../TERMINOLOGY.md#stdio-gateway-stdio-网关) |
-| 认证机制 | protocol_contract.md - 3.4 节 | [Bearer Token](../../TERMINOLOGY.md#bearer-token-持有者令牌) |
-| JSON-RPC | protocol_contract.md - 第 4 章 | [JSON-RPC 2.0](../../TERMINOLOGY.md#json-rpc-20) |
-| 错误码 | protocol_contract.md - 第 7 章 | [JSON-RPC Error](../../TERMINOLOGY.md#json-rpc-error-json-rpc-错误) |
+| 协议分层 | 03-protocol-contract.md - 第 2 章 | [Protocol Stack](../../TERMINOLOGY.md#protocol-stack-协议栈) |
+| HTTP 网关 | 03-protocol-contract.md - 3.1 节 | [Habitat Gateway](../../TERMINOLOGY.md#habitat-gateway-habitat-网关) |
+| WebSocket | 03-protocol-contract.md - 3.2 节 | [WebSocket](../../TERMINOLOGY.md#websocket) |
+| stdio | 03-protocol-contract.md - 3.3 节 | [Stdio Gateway](../../TERMINOLOGY.md#stdio-gateway-stdio-网关) |
+| 认证机制 | 03-protocol-contract.md - 3.4 节 | [Bearer Token](../../TERMINOLOGY.md#bearer-token-持有者令牌) |
+| JSON-RPC | 03-protocol-contract.md - 第 4 章 | [JSON-RPC 2.0](../../TERMINOLOGY.md#json-rpc-20) |
+| 错误码 | 03-protocol-contract.md - 第 7 章 | [JSON-RPC Error](../../TERMINOLOGY.md#json-rpc-error-json-rpc-错误) |
 
 ### 系统调用相关
 
 | 主题 | 章节 | 位置 |
 |------|------|------|
-| 初始化 | syscall_api_contract.md - 3.1 节 | [Syscall Initialization](../../TERMINOLOGY.md#syscall-initialization-系统调用初始化) |
-| 任务管理 | syscall_api_contract.md - 3.2 节 | [Task Management](../../TERMINOLOGY.md#task-management-任务管理) |
-| 记忆管理 | syscall_api_contract.md - 3.3 节 | [Memory Management](../../TERMINOLOGY.md#memory-management-记忆管理) |
-| 会话管理 | syscall_api_contract.md - 3.4 节 | [Session Management](../../TERMINOLOGY.md#session-management-会话管理) |
-| 可观测性 | syscall_api_contract.md - 3.5 节 | [Telemetry](../../TERMINOLOGY.md#telemetry-遥测) |
-| 错误处理 | syscall_api_contract.md - 第 4 章 | [Error Handling](../../TERMINOLOGY.md#error-handling-错误处理) |
-| 性能考虑 | syscall_api_contract.md - 第 5 章 | [Performance Optimization](../../TERMINOLOGY.md#performance-optimization-性能优化) |
+| 初始化 | 04-syscall-api-contract.md - 3.1 节 | [Syscall Initialization](../../TERMINOLOGY.md#syscall-initialization-系统调用初始化) |
+| 任务管理 | 04-syscall-api-contract.md - 3.2 节 | [Task Management](../../TERMINOLOGY.md#task-management-任务管理) |
+| 记忆管理 | 04-syscall-api-contract.md - 3.3 节 | [Memory Management](../../TERMINOLOGY.md#memory-management-记忆管理) |
+| 会话管理 | 04-syscall-api-contract.md - 3.4 节 | [Session Management](../../TERMINOLOGY.md#session-management-会话管理) |
+| 可观测性 | 04-syscall-api-contract.md - 3.5 节 | [Telemetry](../../TERMINOLOGY.md#telemetry-遥测) |
+| 错误处理 | 04-syscall-api-contract.md - 第 4 章 | [Error Handling](../../TERMINOLOGY.md#error-handling-错误处理) |
+| 性能考虑 | 04-syscall-api-contract.md - 第 5 章 | [Performance Optimization](../../TERMINOLOGY.md#performance-optimization-性能优化) |
 
 ### 日志格式相关
 
 | 主题 | 章节 | 位置 |
 |------|------|------|
-| 日志字段 | logging_format.md - 第 2 章 | [Structured Logging](../../TERMINOLOGY.md#structured-logging-结构化日志) |
-| 日志级别 | logging_format.md - 3.1 节 | [Log Level](../../TERMINOLOGY.md#log-level-日志级别) |
-| 存储策略 | logging_format.md - 第 4 章 | [Log Retention](../../TERMINOLOGY.md#log-retention-日志保留) |
-| 分布式追踪 | logging_format.md - 第 5 章 | [Distributed Tracing](../../TERMINOLOGY.md#distributed-tracing-分布式追踪) |
-| 安全审计 | logging_format.md - 第 6 章 | [Audit Log](../../TERMINOLOGY.md#audit-log-审计日志) |
-| 最佳实践 | logging_format.md - 第 7 章 | [Logging Best Practices](../../TERMINOLOGY.md#logging-best-practices-日志最佳实践) |
+| 日志字段 | 05-logging-format.md - 第 2 章 | [Structured Logging](../../TERMINOLOGY.md#structured-logging-结构化日志) |
+| 日志级别 | 05-logging-format.md - 3.1 节 | [Log Level](../../TERMINOLOGY.md#log-level-日志级别) |
+| 存储策略 | 05-logging-format.md - 第 4 章 | [Log Retention](../../TERMINOLOGY.md#log-retention-日志保留) |
+| 分布式追踪 | 05-logging-format.md - 第 5 章 | [Distributed Tracing](../../TERMINOLOGY.md#distributed-tracing-分布式追踪) |
+| 安全审计 | 05-logging-format.md - 第 6 章 | [Audit Log](../../TERMINOLOGY.md#audit-log-审计日志) |
+| 最佳实践 | 05-logging-format.md - 第 7 章 | [Logging Best Practices](../../TERMINOLOGY.md#logging-best-practices-日志最佳实践) |
 
 ---
 
@@ -81,41 +81,41 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 示例 | 位置 |
 |------|------|
-| 产品经理 Agent 完整契约 | [agent_contract.md - 附录 B](./agent_contract.md) |
-| 能力定义示例 | [agent_contract.md - 4.1 节](./agent_contract.md) |
-| 成本画像示例 | [agent_contract.md - 3.7 节](./agent_contract.md) |
+| 产品经理 Agent 完整契约 | [01-agent-contract.md - 附录 B](./01-agent-contract.md) |
+| 能力定义示例 | [01-agent-contract.md - 4.1 节](./01-agent-contract.md) |
+| 成本画像示例 | [01-agent-contract.md - 3.7 节](./01-agent-contract.md) |
 
 ### Skill 契约示例
 
 | 示例 | 位置 |
 |------|------|
-| GitHub 集成技能完整契约 | [skill_contract.md - 附录 B](./skill_contract.md) |
-| 工具定义示例 | [skill_contract.md - 4.1 节](./skill_contract.md) |
-| 依赖声明示例 | [skill_contract.md - 3.3 节](./skill_contract.md) |
+| GitHub 集成技能完整契约 | [02-skill-contract.md - 附录 B](./02-skill-contract.md) |
+| 工具定义示例 | [02-skill-contract.md - 4.1 节](./02-skill-contract.md) |
+| 依赖声明示例 | [02-skill-contract.md - 3.3 节](./02-skill-contract.md) |
 
 ### 通信协议示例
 
 | 示例 | 位置 |
 |------|------|
-| HTTP 请求示例 | [protocol_contract.md - 8.2 节](./protocol_contract.md) |
-| WebSocket 流式示例 | [protocol_contract.md - 8.3 节](./protocol_contract.md) |
-| 系统调用示例 | [protocol_contract.md - 8.1 节](./protocol_contract.md) |
+| HTTP 请求示例 | [03-protocol-contract.md - 8.2 节](./03-protocol-contract.md) |
+| WebSocket 流式示例 | [03-protocol-contract.md - 8.3 节](./03-protocol-contract.md) |
+| 系统调用示例 | [03-protocol-contract.md - 8.1 节](./03-protocol-contract.md) |
 
 ### 系统调用示例
 
 | 示例 | 位置 |
 |------|------|
-| 任务提交示例 | [syscall_api_contract.md - 3.2.1 节](./syscall_api_contract.md) |
-| 记忆搜索示例 | [syscall_api_contract.md - 3.3.2 节](./syscall_api_contract.md) |
-| 会话创建示例 | [syscall_api_contract.md - 3.4.1 节](./syscall_api_contract.md) |
+| 任务提交示例 | [04-syscall-api-contract.md - 3.2.1 节](./04-syscall-api-contract.md) |
+| 记忆搜索示例 | [04-syscall-api-contract.md - 3.3.2 节](./04-syscall-api-contract.md) |
+| 会话创建示例 | [04-syscall-api-contract.md - 3.4.1 节](./04-syscall-api-contract.md) |
 
 ### 日志格式示例
 
 | 示例 | 位置 |
 |------|------|
-| 基本日志格式 | [logging_format.md - 2.1 节](./logging_format.md) |
-| 审计日志格式 | [logging_format.md - 6.2 节](./logging_format.md) |
-| Span 层级示例 | [logging_format.md - 5.2 节](./logging_format.md) |
+| 基本日志格式 | [05-logging-format.md - 2.1 节](./05-logging-format.md) |
+| 审计日志格式 | [05-logging-format.md - 6.2 节](./05-logging-format.md) |
+| Span 层级示例 | [05-logging-format.md - 5.2 节](./05-logging-format.md) |
 
 ### 编码风格与安全编码示例
 
@@ -134,28 +134,28 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 实践 | 位置 |
 |------|------|
-| 明确能力边界 | [agent_contract.md - 6.1 节](./agent_contract.md) |
-| 提供清晰示例 | [agent_contract.md - 6.2 节](./agent_contract.md) |
-| 合理预估成本 | [agent_contract.md - 6.3 节](./agent_contract.md) |
-| 定期审计更新 | [agent_contract.md - 6.4 节](./agent_contract.md) |
+| 明确能力边界 | [01-agent-contract.md - 6.1 节](./01-agent-contract.md) |
+| 提供清晰示例 | [01-agent-contract.md - 6.2 节](./01-agent-contract.md) |
+| 合理预估成本 | [01-agent-contract.md - 6.3 节](./01-agent-contract.md) |
+| 定期审计更新 | [01-agent-contract.md - 6.4 节](./01-agent-contract.md) |
 
 ### Skill 契约最佳实践
 
 | 实践 | 位置 |
 |------|------|
-| 单一职责 | [skill_contract.md - 7.1 节](./skill_contract.md) |
-| 精确权限限定 | [skill_contract.md - 7.2 节](./skill_contract.md) |
-| 完整依赖声明 | [skill_contract.md - 7.3 节](./skill_contract.md) |
-| 详细文档注释 | [skill_contract.md - 7.4 节](./skill_contract.md) |
+| 单一职责 | [02-skill-contract.md - 7.1 节](./02-skill-contract.md) |
+| 精确权限限定 | [02-skill-contract.md - 7.2 节](./02-skill-contract.md) |
+| 完整依赖声明 | [02-skill-contract.md - 7.3 节](./02-skill-contract.md) |
+| 详细文档注释 | [02-skill-contract.md - 7.4 节](./02-skill-contract.md) |
 
 ### 日志最佳实践
 
 | 实践 | 位置 |
 |------|------|
-| 结构化消息 | [logging_format.md - 7.1 节](./logging_format.md) |
-| 控制日志量 | [logging_format.md - 7.2 节](./logging_format.md) |
-| 使用上下文管理器 | [logging_format.md - 7.3 节](./logging_format.md) |
-| 异步日志 | [logging_format.md - 7.4 节](./logging_format.md) |
+| 结构化消息 | [05-logging-format.md - 7.1 节](./05-logging-format.md) |
+| 控制日志量 | [05-logging-format.md - 7.2 节](./05-logging-format.md) |
+| 使用上下文管理器 | [05-logging-format.md - 7.3 节](./05-logging-format.md) |
+| 异步日志 | [05-logging-format.md - 7.4 节](./05-logging-format.md) |
 
 ### 安全编码工具宏
 
@@ -170,7 +170,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 系统调用错误码
 
-> **SSoT 声明**：错误码权威定义位于 `include/airymax/error.h`（[SC] 共享契约层，agentrt 与 agentrt-linux 共享同一物理头文件）。类型 `airy_err_t = int32_t` 定义于 `airy_types.h:41`。C 内核值与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致；成功码统一为 `AIRY_EOK = 0`。
+> **SSoT 声明**：错误码权威定义位于 `agentrt/commons/include/airy_types.h`（`airy_err_t` 类型 + `AIRY_E*` POSIX 码）和 `agentrt/commons/utils/error/include/error.h`（`AIRY_ERR_*` 扩展码）。`include/airymax/error.h` 为规划中的 [SC] 共享路径，当前尚未创建。类型 `airy_err_t = int32_t` 定义于 `airy_types.h:41`。C 内核值与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致；成功码统一为 `AIRY_EOK = 0`。
 
 | 错误码 | C 内核值 | SDK 十六进制值 | 说明 |
 |--------|---------|--------------|------|
@@ -182,9 +182,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | AIRY_ETIMEDOUT | -110 | 0x0006 | 操作超时（对齐 POSIX ETIMEDOUT） |
 
 > **📝 双错误码体系说明**  
-> Airymax 采用双错误码体系：C 内核使用负整数（权威定义于 `include/airymax/error.h`，[SC] 共享契约层；`airy_err_t` 类型定义于 `airy_types.h:41`），SDK 使用十六进制值。完整映射关系参见 [error_code_reference.md](../../50-engineering-standards/50-project-erp/error_code_reference.md)。
+> Airymax 采用双错误码体系：C 内核使用负整数（权威定义于 `agentrt/commons/include/airy_types.h`（`AIRY_E*` POSIX 码）+ `agentrt/commons/utils/error/include/error.h`（`AIRY_ERR_*` 扩展码），[SC] 实际权威源；`include/airymax/error.h` 为规划中的 [SC] 共享路径，当前尚未创建；`airy_err_t` 类型定义于 `airy_types.h:41`），SDK 使用十六进制值。完整映射关系参见 [error_code_reference.md](../../50-engineering-standards/50-project-erp/error_code_reference.md)。
 
-**完整列表**: [syscall_api_contract.md - 第 7 章](./04-syscall-api-contract.md) | [error_code_reference.md](../../50-engineering-standards/50-project-erp/error_code_reference.md)
+**完整列表**: [04-syscall-api-contract.md - 第 7 章](./04-syscall-api-contract.md) | [error_code_reference.md](../../50-engineering-standards/50-project-erp/error_code_reference.md)
 
 ### JSON-RPC 错误码
 
@@ -196,7 +196,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | -32602 | Invalid params |
 | -32603 | Internal error |
 
-**完整列表**: [protocol_contract.md - 4.3 节](./protocol_contract.md)
+**完整列表**: [03-protocol-contract.md - 4.3 节](./03-protocol-contract.md)
 
 ---
 
@@ -220,7 +220,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 参考文献与理论基础
 
 [1] Airymax 统一术语表。../../TERMINOLOGY.md  
-[2] 架构设计原则。../../00-architectural-principles.md  
+[2] 架构设计原则。../../10-architecture/00-architectural-principles.md  
 [3] 《工程控制论》. 科学出版社. 1954  
 [4] 《论系统工程》. 湖南科学技术出版社. 1982  
 [5] 《思考，快与慢》. 中信出版社. 2012  

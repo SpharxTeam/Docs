@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/docs/AirymaxRT/20-modules/10-contracts/02-skill-contract.md
+**路径**: docs/AirymaxRT/20-modules/10-contracts/02-skill-contract.md
 ---
 
 ## 编制说明
@@ -992,8 +992,8 @@ Skill 契约涉及两个版本概念，需明确区分：
 
 | 引用规范 | 关系说明 |
 |---------|---------||
-| [Agent 契约规范](./agent_contract.md) | 本规范与 Agent 契约规范结构相似，两者共同构成 Airymax 的能力描述体系 |
-| [架构设计原则](../../00-architectural-principles.md) | 本规范是架构原则在技能管理方面的具体实现，特别是 MicroCoreRT 微核心思想和模块化原则 |
+| [Agent 契约规范](./01-agent-contract.md) | 本规范与 Agent 契约规范结构相似，两者共同构成 Airymax 的能力描述体系 |
+| [架构设计原则](../../10-architecture/00-architectural-principles.md) | 本规范是架构原则在技能管理方面的具体实现，特别是 MicroCoreRT 微核心思想和模块化原则 |
 | [统一术语表](../../TERMINOLOGY.md) | 本规范使用的术语定义和解释，如 Skill、执行单元、契约等 |
 | [C&C++ 安全编程规范](../../50-engineering-standards/10-coding-style/C_Cpp_coding_style.md) | 编译型技能的实现应遵循安全编程规范，特别是在内存管理和错误处理方面 |
 | [日志打印规范](../../50-engineering-standards/10-coding-style/coding_conventions.md) | 技能运行时应遵循日志规范，记录关键操作和异常情况 |
@@ -1004,7 +1004,7 @@ Skill 契约涉及两个版本概念，需明确区分：
 
 [1] Airymax 设计哲学。../../00-requirements/04-design-principles-cn.md  
 [2] Airymax 认知层设计。../../00-requirements/02-cognition-design-cn.md  
-[3] 架构设计原则。../../00-architectural-principles.md  
+[3] 架构设计原则。../../10-architecture/00-architectural-principles.md  
 [4] 统一术语表。../../TERMINOLOGY.md  
 [5] JSON Schema Draft-07 Specification. https://json-schema.org/draft-07/json-schema-release.html  
 [6] Semantic Versioning 2.0.0. https://semver.org/  

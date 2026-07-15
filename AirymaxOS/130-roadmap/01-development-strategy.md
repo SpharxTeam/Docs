@@ -76,7 +76,7 @@ agentrt-linux 开发方案由三大支柱构成。三大支柱对应"标准 → 
 
 **与 agentrt 工程标准的关系（IRON-9 v2 同源且部分代码共享）**:
 
-- **同源**: 与 agentrt `0.1.1工程标准规范手册.md`（v28.0）共享 17 类规则编号体系骨架（IRON/BAN/STD/ACC 等）；共享五维正交 24 原则作为顶层设计哲学；共享 E-7 文档即代码、E-6 错误可追溯等核心工程观。
+- **同源**: 与 agentrt `agentrt工程标准规范手册.md` v29.0 共享 17 类规则编号体系骨架（IRON/BAN/STD/ACC 等 751 条）；共享五维正交 24 原则作为顶层设计哲学；共享 E-7 文档即代码、E-6 错误可追溯等核心工程观。
 - **独立**: agentrt-linux 是 OS 发行版，工程标准必须独立处理内核 ABI 稳定性、内核内部 API 不稳定性、补丁生命周期、维护者层级制度等 agentrt 不涉及的领域；同时为内核态特有场景（驱动模型、构建系统、可观测性、安全 LSM）制定专门规范。
 - **新增编号前缀**: OS-IRON / OS-BAN / OS-STD / OS-ACC（继承 agentrt）+ OS-KER / OS-DRV / OS-BUILD / OS-TEST / OS-OBS / OS-SEC / OS-ABI（全新，agentrt 不涉及）。
 

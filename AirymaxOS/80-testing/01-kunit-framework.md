@@ -528,10 +528,10 @@ graph LR
 
 #### 11.3.1 Agent 角色 × 行为 枚举契约
 
-角色枚举（`include/airymax/cognition_types.h`）与行为枚举（`include/airymax/agent_types.h`）均属 [SC] 共享契约层，两端字节级一致：
+角色枚举与行为枚举均定义于 [SC] 共享契约层头文件 `include/airymax/cognition_types.h`（Agent 角色枚举 + Agent 行为枚举合并于 [SC] 核心，两端字节级一致）：
 
 ```c
-/* include/airymax/cognition_types.h — Agent 角色枚举（[SC] 共享契约层） */
+/* include/airymax/cognition_types.h — Agent 角色枚举 + 行为枚举（[SC] 共享契约层） */
 enum airy_role {
     AIRY_ROLE_LLM     = 0,  /* 大语言模型推理角色 */
     AIRY_ROLE_TOOL    = 1,  /* 工具执行角色 */
@@ -539,7 +539,6 @@ enum airy_role {
     AIRY_ROLE_OBSERVE = 3,  /* 观测角色 */
 };
 
-/* include/airymax/agent_types.h — Agent 行为枚举（[SC] 共享契约层） */
 enum airy_action {
     AIRY_ACTION_PROBE          = 0,  /* 探测 Agent 可用性 */
     AIRY_ACTION_BIND           = 1,  /* 绑定资源 */
@@ -554,7 +553,7 @@ enum airy_action {
 
 #### 11.3.2 完整测试矩阵表
 
-4 角色 × 8 行为 = 32 个测试用例。`AGENT_STATE_*` 状态名对齐 `include/airymax/agent_types.h`：
+4 角色 × 8 行为 = 32 个测试用例。`AGENT_STATE_*` 状态名对齐 `include/airymax/cognition_types.h` 中的 `enum airy_action`：
 
 | Agent 角色 | 测试行为 | 预期返回值 | 预期状态变更 | 预期副作用 |
 |-----------|---------|-----------|-------------|-----------|
@@ -685,7 +684,7 @@ static void tool_terminate_test(struct kunit *test)
 - `80-testing/03-kernel-selftests.md`（`lib/test_*` 内核自检，待创建）
 - `50-engineering-standards/06-toolchain-and-automation.md`（7 层验证体系，本卷属第 7 层）
 - `50-engineering-standards/01-coding-standards.md`（错误处理强制，KUnit 断言与之对齐）
-- `20-modules/08-tests.md`（tests-linux 子仓设计，agentrt-linux 测试代码组织）
+- `20-modules/08-tests-linux.md`（tests-linux 子仓设计，agentrt-linux 测试代码组织）
 - `110-security/README.md`（安全测试，复用 KUnit 框架）
 
 ### 12.1 上游参考

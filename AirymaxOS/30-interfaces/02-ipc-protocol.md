@@ -434,7 +434,7 @@ IPC 性能约束对齐非功能性需求 NFR-P-002（详见 [00-requirements/03-
 ### 6.3 性能回归保护
 
 - 每次提交运行 `tests-linux/benchmark/ipc-latency` 与 `ipc-throughput` 微基准。
-- 与基线对比，吞吐退化 > 5% 或延迟退化 > 10% 自动打回（详见 [20-modules/08-tests.md](../20-modules/08-tests.md) 第 4.6 节）。
+- 与基线对比，吞吐退化 > 5% 或延迟退化 > 10% 自动打回（详见 [20-modules/08-tests-linux.md](../20-modules/08-tests-linux.md) 第 4.6 节）。
 - Soak Test 72 小时持续 IPC 负载，验证无内存泄漏、无性能衰减。
 
 ---

@@ -187,38 +187,39 @@ find "$BACKUP_DIR" -name "*.aof.gz" -mtime +7 -delete
 echo "[$(date)] Redis backup completed"
 ```
 
-### 4. FAISS 索引备份
+### 4. HNSW 索引备份
 
 ```python
 #!/usr/bin/env python3
-# backup_faiss.py - FAISS 向量索引备份
+# backup_hnsw.py - HNSW 向量索引备份
 
-import faiss
+import hnswlib
 import os
 import shutil
 from datetime import datetime
 import hashlib
 
-def backup_faiss_index(index_path: str, backup_dir: str):
-    """备份 FAISS 索引"""
+def backup_hnsw_index(index_path: str, backup_dir: str, dim: int = 768):
+    """备份 HNSW 索引"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = os.path.join(backup_dir, f"faiss_{timestamp}")
+    backup_path = os.path.join(backup_dir, f"hnsw_{timestamp}")
 
-    print(f"[{datetime.now()}] Loading FAISS index from {index_path}")
-    index = faiss.read_index(index_path)
+    print(f"[{datetime.now()}] Loading HNSW index from {index_path}")
+    index = hnswlib.Index(space='l2', dim=dim)
+    index.load_index(index_path)
 
-    print(f"[{datetime.now()}] Index stats: {index.ntotal} vectors")
+    print(f"[{datetime.now()}] Index stats: {index.element_count} vectors")
 
     # 保存到备份目录
     os.makedirs(backup_path, exist_ok=True)
-    backup_file = os.path.join(backup_path, "faiss_index.index")
-    faiss.write_index(index, backup_file)
+    backup_file = os.path.join(backup_path, "hnsw_index.bin")
+    index.save_index(backup_file)
 
     # 生成元数据
     metadata = {
         'original_path': index_path,
-        'vector_count': index.ntotal,
-        'dimension': index.d,
+        'vector_count': index.element_count,
+        'dimension': dim,
         'backup_time': timestamp.isoformat(),
         'checksum': file_checksum(backup_file),
         'size_bytes': os.path.getsize(backup_file)
@@ -229,8 +230,9 @@ def backup_faiss_index(index_path: str, backup_dir: str):
         json.dump(metadata, f, indent=2)
 
     # 验证备份完整性
-    verify_index = faiss.read_index(backup_file)
-    assert verify_index.ntotal == index.ntotal, "Vector count mismatch!"
+    verify_index = hnswlib.Index(space='l2', dim=dim)
+    verify_index.load_index(backup_file)
+    assert verify_index.element_count == index.element_count, "Vector count mismatch!"
 
     print(f"[{datetime.now()}] Backup verified and saved to {backup_path}")
     return backup_path
@@ -246,10 +248,10 @@ def file_checksum(filepath: str) -> str:
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 3:
-        print("Usage: python backup_faiss.py <index_path> <backup_dir>")
+        print("Usage: python backup_hnsw.py <index_path> <backup_dir>")
         sys.exit(1)
 
-    backup_faiss_index(sys.argv[1], sys.argv[2])
+    backup_hnsw_index(sys.argv[1], sys.argv[2])
 ```
 
 ### 5. 配置文件备份
@@ -375,9 +377,9 @@ echo "[Step 4/7] Restoring L1 memory data..."
 rm -rf /data/kernel/memory/l1/*
 rsync -av /backup/agentrt/l1/${BACKUP_DATE}/ /data/kernel/memory/l1/
 
-# Step 5: 恢复 FAISS 索引
-echo "[Step 5/7] Restoring L2 FAISS index..."
-cp /backup/agentrt/faiss/faiss_${BACKUP_DATE}/faiss_index.index /data/kernel/memory/l2/
+# Step 5: 恢复 HNSW 索引
+echo "[Step 5/7] Restoring L2 HNSW index..."
+cp /backup/agentrt/hnsw/hnsw_${BACKUP_DATE}/hnsw_index.bin /data/kernel/memory/l2/
 
 # Step 6: 恢复配置文件
 echo "[Step 6/7] Restoring configuration files..."

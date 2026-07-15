@@ -39,15 +39,15 @@ git clone https://atomgit.com/openairymax/agentrt.git
 cd agentrt
 
 # 源外构建（BAN-33 强制要求）
-cmake -B ../AgentRT-build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build ../AgentRT-build --parallel $(nproc)
+cmake -B ../agentrt-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build ../agentrt-build --parallel $(nproc)
 ```
 
 ### 2.2 验证安装
 
 ```bash
 # 运行测试套件
-cd ../AgentRT-build && ctest --output-on-failure
+cd ../agentrt-build && ctest --output-on-failure
 ```
 
 ### 2.3 Docker 快速启动（可选）

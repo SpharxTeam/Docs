@@ -666,7 +666,7 @@ graph TB
 - [架构决策记录](05-adrs.md)：14 个核心 ADR（含 ADR-011\~014 新增决策）
 - [内核模块设计](../20-modules/01-kernel.md)：kernel 子仓详细设计
 - [安全模块设计](../20-modules/03-security.md)：security capability 子系统
-- [测试模块设计](../20-modules/08-tests.md)：tests-linux 形式化验证框架
+- [测试模块设计](../20-modules/08-tests-linux.md)：tests-linux 形式化验证框架
 - seL4 源代码深度研读报告：54 条 ES-SEL4 工程思想（2,187 行）
 - Linux 7.1 内核技术检索报告：2.x.x 前瞻性设计输入（338 行）
 

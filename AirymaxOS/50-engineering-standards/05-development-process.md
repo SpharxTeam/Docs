@@ -1858,8 +1858,8 @@ if [ "$VIOLATIONS_CAMEL" -gt 0 ]; then
     echo "WARN: $VIOLATIONS_CAMEL potential camelCase identifiers found (seL4 style, violates OS-IRON-012)"
 fi
 
-# 检查 3：禁止 seL4 编码风格——重度 typedef（typedef 仅限 5 种例外，见 OS-STD-010）
-# 注：此检查与 OS-STD-010（原 OS-KER-003 typedef 限制）重叠，此处为 seL4 借鉴范围专项检查
+# 检查 3：禁止 seL4 编码风格——重度 typedef（typedef 仅限 5 种例外，见 OS-STD-CODE-020）
+# 注：此检查与 OS-STD-CODE-020（typedef 仅限 5 种例外）重叠，此处为 seL4 借鉴范围专项检查
 
 echo "OK: seL4 scope check passed (only ES-SEL4-1~5 architecture layer allowed)"
 ```

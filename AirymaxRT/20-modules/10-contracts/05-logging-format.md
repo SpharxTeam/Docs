@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/docs/AirymaxRT/20-modules/10-contracts/05-logging-format.md
+**路径**: docs/AirymaxRT/20-modules/10-contracts/05-logging-format.md
 ---
 
 ## 编制说明
@@ -60,7 +60,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 术语 | 简要定义 | 来源 |
 |------|---------|------|
-| TraceID | 分布式追踪的唯一标识 | [通信协议规范](./protocol_contract.md) |
+| TraceID | 分布式追踪的唯一标识 | [通信协议规范](./03-protocol-contract.md) |
 | SpanID | 追踪跨度的唯一标识 | 本规范 |
 | 结构化日志 | JSON 格式的机器可读日志 | 本规范 |
 
@@ -298,7 +298,7 @@ openlab/app/ecommerce/api.py
 | `error` | string | 错误信息 | 错误日志 | `"Connection timeout"` |
 | `error_code` | integer \| string | 错误码 | 错误日志 | `-22` (C 内核 AIRY_EINVAL) 或 `"0x0003"` (SDK AIRY_ERROR_INVALID_PARAMETER) |
 
-> **双错误码体系说明**: `error_code` 字段接受两种格式：C 内核层使用负整数（如 `-22`，对齐 POSIX errno 负值，权威定义于 `include/airymax/error.h`，[SC] 共享契约层；`airy_err_t` 类型定义于 `airy_types.h:41`），SDK/外部层使用十六进制字符串（如 `"0x0003"`，定义于 error_code_reference.md）。同一语义错误在两种体系中的值不同（如"参数无效"在 C 内核为 `-22`，在 SDK 为 `"0x0003"`）。日志消费者应根据值的类型（整数 vs 字符串）判断其所属体系。
+> **双错误码体系说明**: `error_code` 字段接受两种格式：C 内核层使用负整数（如 `-22`，对齐 POSIX errno 负值，权威定义于 `agentrt/commons/include/airy_types.h`（`AIRY_E*` POSIX 码）+ `agentrt/commons/utils/error/include/error.h`（`AIRY_ERR_*` 扩展码），[SC] 实际权威源；`include/airymax/error.h` 为规划中的 [SC] 共享路径，当前尚未创建；`airy_err_t` 类型定义于 `airy_types.h:41`），SDK/外部层使用十六进制字符串（如 `"0x0003"`，定义于 error_code_reference.md）。同一语义错误在两种体系中的值不同（如"参数无效"在 C 内核为 `-22`，在 SDK 为 `"0x0003"`）。日志消费者应根据值的类型（整数 vs 字符串）判断其所属体系。
 
 | `duration_ms` | number | 操作耗时 (毫秒) | 性能日志 | `125.5` |
 | `agent_id` | string | Agent ID | Agent 相关日志 | `"com.agentrt.pm.v1"` |
@@ -947,18 +947,18 @@ class BatchHandler:
 
 | 引用规范 | 关系说明 |
 |---------|---------|
-| [通信协议规范](./protocol_contract.md) | 本规范要求所有通信过程记录日志，支持 TraceID 贯穿 |
-| [系统调用 API 规范](./syscall_api_contract.md) | 系统调用的错误处理和审计日志应遵循本规范 |
+| [通信协议规范](./03-protocol-contract.md) | 本规范要求所有通信过程记录日志，支持 TraceID 贯穿 |
+| [系统调用 API 规范](./04-syscall-api-contract.md) | 系统调用的错误处理和审计日志应遵循本规范 |
 | [日志打印规范](../../50-engineering-standards/10-coding-style/coding_conventions.md) | 本规范定义日志格式，coding_conventions.md Part III 定义打印方法和最佳实践 |
 | [统一术语表](../../TERMINOLOGY.md) | 本规范使用的术语定义和解释 |
-| [架构设计原则](../../../10-architecture/00-architectural-principles.md) | 本规范的设计原则基于五维正交体系，是可观测性原则的具体实现 |
+| [架构设计原则](../../10-architecture/00-architectural-principles.md) | 本规范的设计原则基于五维正交体系，是可观测性原则的具体实现 |
 
 ---
 
 ## 参考文献
 
 [1] Airymax 设计哲学。../../00-requirements/04-design-principles-cn.md  
-[2] 架构设计原则。../../../10-architecture/00-architectural-principles.md  
+[2] 架构设计原则。../../10-architecture/00-architectural-principles.md  
 [3] 统一术语表。../../TERMINOLOGY.md  
 [4] OpenTelemetry Specification. https://opentelemetry.io/docs/specs/otel/  
 [5] Structured Logging Best Practices. https://github.com/open-telemetry/community/blob/main/cross-specification/stable/telemetry-specification.md  

@@ -2379,18 +2379,18 @@ Cognition（认知）→ Planning（规划）→ Action（执行）
 
 #### 1.6 Cupolas
 
-**Cupolas** = 穹顶（复数），即"安全穹顶"。命名灵感来源于大教堂建筑顶部的穹顶结构（Cupola），寓意每个 Cupola 是一个独立、自包含、向上拱起的安全服务单元。
+**Cupolas** = 穹顶（复数），即"安全穹顶"。命名灵感来源于大教堂建筑顶部的穹顶结构（Cupola），寓意每个 Cupolas 是一个独立、自包含、向上拱起的安全服务单元。
 
-- 每个 Cupola 是一个独立的服务进程，通过 IPC Bus 与 CoreKern 通信
-- Cupola 之间相互隔离，通过消息传递进行协作
-- 典型的 Cupola 包括：llm_d、tool_d、info_d、observe_d 等
+- 每个 Cupolas 是一个独立的服务进程，通过 IPC Bus 与 CoreKern 通信
+- Cupolas 之间相互隔离，通过消息传递进行协作
+- 典型的 Cupolas 包括：llm_d、tool_d、info_d、observe_d 等
 - 目录名为 `cupolas/`（小写），代码前缀为 `cupolas_`
 
 #### 1.7 TaskFlow
 
 **TaskFlow** = **Task** + **Flow**，即"任务编排流水线"。它表示任务在系统中的流动和处理过程。
 
-- 任务从入口经过 CoreKern 调度，流经各个 Cupola 服务
+- 任务从入口经过 CoreKern 调度，流经各个 Cupolas 服务
 - 每个阶段对任务进行特定的加工和处理
 - 支持串行、并行、条件分支等编排模式
 - 目录名为 `taskflow/`（小写），代码前缀为 `taskflow_`

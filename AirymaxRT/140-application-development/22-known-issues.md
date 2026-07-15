@@ -91,7 +91,7 @@ SELECT state, count(*) FROM pg_stat_activity GROUP BY state;
 
 ---
 
-### ISSUE-002: FAISS 索引在向量数 >100万时查询延迟飙升
+### ISSUE-002: HNSW 索引在向量数 >100万时查询延迟飙升
 
 **影响范围**: L2 记忆检索性能
 
@@ -101,28 +101,28 @@ SELECT state, count(*) FROM pg_stat_activity GROUP BY state;
 - 内存占用增加
 
 **根本原因**:
-- IVF 索引的 `nprobe` 参数未随数据量动态调整
-- 未使用 HNSW 或 PQ 量化优化
+- HNSW 索引的 `ef_search` 参数未随数据量动态调整
+- `M` 参数过小导致图连通性不足，未启用 PQ 量化优化
 
 **临时解决方案**:
 
 ```python
-# 动态调整 nprobe 参数
-def adaptive_nprobe(index_size):
-    """根据索引大小自适应调整探测数"""
+# 动态调整 ef_search 参数
+def adaptive_ef_search(index_size):
+    """根据索引大小自适应调整搜索宽度"""
     if index_size < 100000:
-        return int(index_size ** 0.25)
+        return 64
     elif index_size < 1000000:
-        return 256
+        return 128
     else:
-        return min(512, int(index_size ** 0.15))
+        return min(512, int(index_size ** 0.2))
 
-index.nprobe = adaptive_nprobe(index.ntotal)
+index.set_ef(adaptive_ef_search(index.element_count))
 ```
 
 **永久解决方案**:
 
-1. 升级到 **HNSW + IVFPQ 混合索引**
+1. 调优 **HNSW 索引参数（M、ef_construction）并启用 PQ 量化**
 2. 实现自动索引重建和参数调优机制
 3. 引入近似搜索精度与速度权衡配置
 

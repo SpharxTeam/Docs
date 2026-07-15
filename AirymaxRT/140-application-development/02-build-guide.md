@@ -22,7 +22,7 @@
 **Airymax严格遵循"源码和产物分离"原则：**
 
 1. ✅ **源码目录 (`agentrt/`)** - 仅包含源代码、配置文件和脚本
-2. ✅ **构建目录 (`AgentRT-build/`)** - 所有构建产物统一输出到此目录
+2. ✅ **构建目录 (`agentrt-build/`)** - 所有构建产物统一输出到此目录
 3. ✅ **禁止在源码目录内进行任何构建操作**
 
 ### ❌ 禁止行为
@@ -39,7 +39,7 @@ mkdir build && cd build     # 禁止！
 
 ```bash
 # ✅ 正确：使用外部构建目录
-cd AgentRT-build            # 切换到构建目录
+cd agentrt-build            # 切换到构建目录
 cmake ../Airymax            # 指向源码目录
 make -j$(nproc)             # 编译
 ```
@@ -65,7 +65,7 @@ OpenAirymax/
 │   ├── tests/                  # 测试代码
 │   └── [配置文件]               # CMakeLists.txt等
 │
-├── AgentRT-build/              ← 唯一构建输出目录（不纳入版本控制）
+├── agentrt-build/              ← 唯一构建输出目录（不纳入版本控制）
 │   ├── CMakeCache.txt          # CMake缓存
 │   ├── CMakeFiles/             # 构建临时文件
 │   ├── Makefile                # 自动生成的Makefile
@@ -90,7 +90,7 @@ OpenAirymax/
 ```bash
 # 设置项目根目录变量（根据实际路径修改）
 export AIRY_ROOT="$(pwd)"        # 假设当前在 Airymax 目录
-export BUILD_DIR="../AgentRT-build"  # 或使用绝对路径
+export BUILD_DIR="../agentrt-build"  # 或使用绝对路径
 
 # 1. 创建构建目录（如不存在）
 mkdir -p ${BUILD_DIR}
@@ -119,7 +119,7 @@ make package
 
 ```bash
 # 从 OpenAirymax 目录执行
-mkdir -p AgentRT-build && cd AgentRT-build
+mkdir -p agentrt-build && cd agentrt-build
 cmake ../Airymax -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 ctest --output-on-failure -j$(nproc)
@@ -129,7 +129,7 @@ ctest --output-on-failure -j$(nproc)
 
 ```bash
 # 直接进入已有构建目录
-cd AgentRT-build
+cd agentrt-build
 
 # 重新编译（仅编译变更部分）
 make -j$(nproc)
@@ -139,8 +139,8 @@ make -j$(nproc)
 
 ```bash
 # 完全清理构建目录（从 OpenAirymax 目录执行）
-rm -rf AgentRT-build
-mkdir AgentRT-build && cd AgentRT-build
+rm -rf agentrt-build
+mkdir agentrt-build && cd agentrt-build
 
 # 重新配置和编译
 cmake ../Airymax -DCMAKE_BUILD_TYPE=Release
@@ -150,7 +150,7 @@ make -j$(nproc)
 ### 方式4: Debug模式
 
 ```bash
-cd AgentRT-build
+cd agentrt-build
 cmake ../Airymax \
     -DCMAKE_BUILD_TYPE=Debug \
     -DAIRY_SANITIZE=ON \
@@ -176,7 +176,7 @@ Airymax 提供了自动清理脚本 `scripts/release/cleanup_builds.sh`：
 - ✅ 清理 build/, _build/ 等构建目录
 - ✅ 清理 Python 缓存（__pycache__, *.pyc）
 - ✅ 清理编译产物（*.so, *.so.*）
-- ✅ 保留 AgentRT-build/ 目录（外部构建目录）
+- ✅ 保留 agentrt-build/ 目录（外部构建目录）
 
 ### 手动清理命令
 
@@ -211,7 +211,7 @@ Airymax 的 `.gitignore` 已包含以下关键规则（版本号 9.0.0+）：
 # CMake构建目录（所有层级）
 build/
 _build/
-AgentRT-build/
+agentrt-build/
 
 # 子目录中的构建产物（关键！）
 **/build/
@@ -263,7 +263,7 @@ git check-ignore -v agentrt/toolkit/rust/target
 - 测试脚本错误配置构建路径
 
 **解决**：
-- 始终使用 `AgentRT-build` 目录
+- 始终使用 `agentrt-build` 目录
 - 在 IDE 中配置 "Build directory" 为外部路径
 - 修改测试脚本使用正确的构建路径
 
@@ -285,7 +285,7 @@ git clean -fdX    # 删除所有 .gitignore 匹配的文件/目录
 **CLion 配置**：
 ```
 File → Settings → Build, Execution, Deployment → CMake
-- Build directory: /path/to/AgentRT-build
+- Build directory: /path/to/agentrt-build
 - 取消勾选 "Reload CMake project on editing CMakeLists.txt"
 ```
 
@@ -293,7 +293,7 @@ File → Settings → Build, Execution, Deployment → CMake
 ```json
 // .vscode/settings.json
 {
-    "cmake.buildDirectory": "${workspaceFolder}/../AgentRT-build",
+    "cmake.buildDirectory": "${workspaceFolder}/../agentrt-build",
     "cmake.configureOnOpen": false
 }
 ```
@@ -320,23 +320,23 @@ find . -type d \( -name "build" -o -name "_build" -o -name "CMakeFiles" \) \
 ```
 OpenAirymax/
 ├── agentrt/                  ← 源码
-├── AgentRT-build/           ← Release 构建
-├── AgentRT-build-debug/     ← Debug 构建
-└── AgentRT-build-coverage/  ← Coverage 构建
+├── agentrt-build/           ← Release 构建
+├── agentrt-build-debug/     ← Debug 构建
+└── agentrt-build-coverage/  ← Coverage 构建
 ```
 
 每个构建目录独立配置：
 ```bash
 # Release 构建
-mkdir AgentRT-build && cd AgentRT-build
+mkdir agentrt-build && cd agentrt-build
 cmake ../Airymax -DCMAKE_BUILD_TYPE=Release
 
 # Debug 构建
-mkdir AgentRT-build-debug && cd AgentRT-build-debug
+mkdir agentrt-build-debug && cd agentrt-build-debug
 cmake ../Airymax -DCMAKE_BUILD_TYPE=Debug
 
 # Coverage 构建
-mkdir AgentRT-build-coverage && cd AgentRT-build-coverage
+mkdir agentrt-build-coverage && cd agentrt-build-coverage
 cmake ../Airymax -DCMAKE_BUILD_TYPE=Debug -DAIRY_COVERAGE=ON
 ```
 
@@ -359,23 +359,23 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Create build directory
-      run: mkdir -p ../AgentRT-build
+      run: mkdir -p ../agentrt-build
     
     - name: Configure CMake
       run: |
-        cd ../AgentRT-build
+        cd ../agentrt-build
         cmake $GITHUB_WORKSPACE/Airymax \
           -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_TESTING=ON
     
     - name: Build
       run: |
-        cd ../AgentRT-build
+        cd ../agentrt-build
         make -j$(nproc)
     
     - name: Test
       run: |
-        cd ../AgentRT-build
+        cd ../agentrt-build
         ctest --output-on-failure
 ```
 

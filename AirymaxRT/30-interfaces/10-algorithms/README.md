@@ -1,7 +1,7 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 "From data intelligence emerges."
 
-# Manuals 核心算法与实现逻辑  
+# Algorithms 核心算法与实现逻辑  
 
 **最新**: 2026-06-09  
 **状态**: 维护中  
@@ -990,7 +990,7 @@ class SemanticSearchEngine:
 ### 2.3 向量索引算法
 
 #### 算法描述
-基于 FAISS 的向量索引算法，支持 IVF（倒排文件索引）和 HNSW（层次导航小世界图）两种索引类型。
+向量索引算法，默认基于 HNSW（层次导航小世界图），同时兼容 IVF（倒排文件索引）索引类型。
 
 #### 实现逻辑
 

@@ -2,188 +2,397 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）系统性目录结构设计
 
-> **文档定位**：agentrt-linux（AirymaxOS）源码目录结构 SSoT\
-> **版本**：0.1.1（文档体系完成）/ 1.0.1 M1（代码落地）\
-> **最后更新**：2026-07-13\
+> **文档定位**：agentrt-linux（AirymaxOS）源码目录结构设计文档\
+> **版本**：0.2.4（对齐闭源 v0.2.4 生产级修正版）/ 1.0.1 M1（代码落地）\
+> **最后更新**：2026-07-15\
 > **父文档**：[10-architecture/README.md](README.md)\
-> **来源**：基于 OLK-6.6 源码参考 + seL4 源码参考 + 8 子仓架构\
-> **铁律依据**：IRON-9 v2 三层模型 + ES-OLK-1~13 工程思想 + ADR-014 微内核来源单一化
+> **来源**：基于 Linux 6.6 内核基线源码参考 + seL4 源码参考 + 8 子仓架构\
+> **铁律依据**：IRON-9 v2 三层模型 + ES-OLK-1~13 工程思想 + ADR-014 微内核来源单一化 + OS-IRON-013 8 子仓 submodule + OS-IRON-014 [SC] 共享契约层单一数据源 + OS-IRON-015 编号管理元规则\
+> **SSoT 依赖声明**：本文档涉及的所有规则编号（OS-IRON-001~015、OS-KER-xxx、OS-STD-xxx 等）的**唯一权威来源**为 [`50-engineering-standards/09-ssot-registry.md`](../50-engineering-standards/09-ssot-registry.md)。本文档不是规则编号 SSoT，仅作为目录结构设计的技术阐述载体。当本文档与 SSoT 注册表冲突时，以 SSoT 注册表为准。
 
 ---
 
 ## 1. 设计原则
 
-agentrt-linux 源码目录结构遵循五大设计原则，每条原则都有源码级标杆依据：
+agentrt-linux 源码目录结构遵循六大设计原则，每条原则都有源码级标杆依据：
 
 | # | 原则 | 来源 | 标杆证据 |
 |---|------|------|---------|
-| 1 | ES-OLK-1 关注点分离 | OLK-6.6 `mm/`/`kernel/`/`fs/`/`net/` 分离 | B1 §1.1 + OLK-6.6 顶层目录 |
-| 2 | ES-OLK-2 架构正交 | OLK-6.6 `arch/` 是唯一架构相关根目录 | B1 §1.2 + `arch/x86/`/`arch/arm64/`/`arch/riscv/` |
-| 3 | ES-OLK-3/6 UAPI 分离 | OLK-6.6 `include/uapi/` 是用户空间 ABI 唯一来源 | B1 §1.3 + `include/uapi/linux/` |
-| 4 | seL4 单编译单元（可选） | seL4 `kernel_all.c` 拼接模式 | B2 §1.1 + `CMakeLists.txt:355-363` |
-| 5 | IRON-9 v2 三层模型 | [SC] 共享契约层物理隔离 | `50-engineering-standards/120-cross-project-code-sharing.md` §1.1 |
+| 1 | ES-OLK-1 关注点分离 | Linux 6.6 内核基线 `mm/`/`kernel/`/`fs/`/`net/` 分离 | 顶层目录各司其职 |
+| 2 | ES-OLK-2 架构正交 | Linux 6.6 内核基线 `arch/` 是唯一架构相关根目录 | `arch/x86/`/`arch/arm64/`/`arch/riscv/` |
+| 3 | ES-OLK-3/6 UAPI 分离 | Linux 6.6 内核基线 `include/uapi/` 是用户空间 ABI 唯一来源 | `include/uapi/linux/` |
+| 4 | seL4 单编译单元（可选） | seL4 `kernel_all.c` 拼接模式 | `CMakeLists.txt:355-363` |
+| 5 | IRON-9 v2 三层模型 | [SC] 共享契约层物理隔离 | [50-engineering-standards/120-cross-project-code-sharing.md §1.1](../50-engineering-standards/120-cross-project-code-sharing.md) |
+| 6 | **OS-IRON-013 8 子仓 submodule 管理** | 拆分为 8 个独立 leaf 仓，由管理仓通过 submodule 统一管理 | [04-engineering-philosophy.md §13](../50-engineering-standards/04-engineering-philosophy.md) |
 
 **关键约束**：
-- [SC] 头文件必须 Tab 8 缩进（OLK-6.6 §1，对齐 `01-kernel.md` 源码品味）
-- [SC] 头文件必须最小 typedef（OLK-6.6 §5，仅 5 种例外）
-- [SC] 头文件变更必须双向 CI 校验（IRON-9 v2）
-- [SC] 头文件物理宿主为 `120-cross-project-code-sharing.md` SSoT
 
-> **代码组织模型（v0.2.4 裁决）**：AirymaxOS 采用"**直接写入上游源码树**"模型 —— 所有 Airymax 代码直接放置在 Linux 6.6 内核源码树对应子系统中（如 `kernel/airy_syscall.c`、`mm/airy_rovol.c`），而非通过 `patches/` 隔离层管理。这与 openEuler OLK-6.6 的完整 fork 实践一致（参考 `mm/dynamic_pool.c` 直接写入）。`20-modules/01-kernel.md` 中展示的 `patches/` 目录树为早期设计稿的概念分组，**不作为物理落地路径**。开发者应以下方树为准。
+- **OS-IRON-014（[SC] 单一数据源）**：[SC] 6 个头文件**唯一物理宿主**于 `kernel/include/airymax/`，其他子仓通过 `-I../kernel/include` 引用，**禁止物理副本**。
+- [SC] 头文件必须 Tab 8 缩进（OS-FMT-001，对齐 Linux 6.6 内核基线 `01-kernel.md` 源码品味）。
+- [SC] 头文件必须最小 typedef（OS-STD-CODE-020，仅 5 种例外）。
+- [SC] 头文件变更必须双向 CI 校验（OS-IRON-008）。
+- **生产级价值标准（v0.2.4 核心声明）**：一切以"生产级的 Linux 发行版"为价值标准——kernel/ 子仓采用**模型 A（完整 Linux 6.6 fork）**，含完整 Linux 6.6 源码树（~60K 文件 1.6GB），Airymax 修改**直接写入上游目录**（如 `mm/airymax_mm.c`），不使用 `patches/` 隔离层。
+
+> **代码组织模型（v0.2.4 裁决）**：AirymaxOS 采用"**直接写入上游源码树**"模型——所有 Airymax 代码直接放置在 Linux 6.6 内核源码树对应子系统中，对齐生产级 Linux 发行版实践（参考 `mm/dynamic_pool.c` 直接写入的工程惯例）。`20-modules/01-kernel.md` 中展示的 `patches/` 目录树为早期设计稿的概念分组，**不作为物理落地路径**。开发者应以下方树为准。
 
 ---
 
-## 2. 顶层目录结构
+## 2. 管理仓 agentrt-linux 目录结构
+
+管理仓（非 leaf 仓）聚合 8 个子模块，自身不含实现代码，仅含治理与文档索引。
+
+**OS-IRON-013**：agentrt-linux 拆分为 8 个独立 git 仓库（leaf 仓），由 agentrt-linux 管理仓通过 `.gitmodules` + submodule 统一管理。8 子仓的目录结构设计基于 Linux 6.6 内核基线（24 顶层目录）+ seL4（`src/{api,kernel,object,fastpath,arch,machine,plat}`）+ Airymax 同源（atoms/corekern 复用）三大设计支柱。
 
 ```
-agentrt-linux/
-├── arch/                          # 架构相关代码（ES-OLK-2）
-│   ├── x86/
-│   │   ├── include/
-│   │   ├── kernel/
-│   │   └── mm/
-│   ├── arm64/
-│   │   ├── include/
-│   │   ├── kernel/
-│   │   └── mm/
-│   └── riscv/
-│       ├── include/
-│       ├── kernel/
-│       └── mm/
+agentrt-linux/                    # 管理仓（main 分支）
+├── README.md                     # 英文 README（8 子仓矩阵 + 架构层次图）
+├── README_zh.md                  # 中文 README
+├── LICENSE                       # AGPL-3.0 + Apache-2.0 双许可证
+├── NOTICE                        # 版权、商标、第三方声明
+├── CONTRIBUTING.md               # 贡献指南
+├── .gitmodules                   # 8 子模块定义（feature/official-hubs-01 分支）
+├── .gitignore
 │
-├── kernel/                        # 内核核心子系统
-│   ├── airy_syscall.c            # syscall 分发（12 核心 + 12 预留）
-│   ├── airy_cspace.c             # capability 空间（CNode 7 操作）
-│   ├── airy_cnode.c              # CNode 操作实现
-│   ├── airy_endpoint.c           # IPC endpoint（3 状态机 Idle/Send/Recv）
-│   ├── airy_notification.c       # Notification（3 状态 + bitwise OR badge）
-│   ├── airy_thread.c             # TCB 管理（含 reply/caller slot）
-│   ├── airy_sched.c              # 调度器（EEVDF + sched_ext）
-│   ├── airy_fastpath.c           # Fastpath（POINT OF NO RETURN 模式）
-│   ├── airy_zombie.c             # Zombie 能力增量清理
-│   └── airy_preemption.c         # 抢占点（work-unit 计数器）
+├── kernel/                       # [submodule] kernel（裸名，对齐 .gitmodules）
+├── services/                     # [submodule] services（裸名）
+├── security/                     # [submodule] security（裸名）
+├── memory/                       # [submodule] memory（裸名）
+├── cognition/                    # [submodule] cognition（裸名）
+├── cloudnative/                  # [submodule] cloudnative（裸名）
+├── system/                       # [submodule] system（裸名）
+├── tests-linux/                  # [submodule] tests-linux（裸名）
 │
-├── mm/                            # 内存管理子系统
-│   ├── airy_rovol.c              # MemoryRovol L1-L4
-│   ├── airy_mglru.c              # MGLRU 适配
-│   ├── airy_cxl.c                # CXL 内存池化
-│   └── airy_page.c               # 页面管理
+├── tools/                        # 跨子仓工具聚合
+│   ├── checkpatch-airymax.sh     # 引用 kernel/scripts/checkpatch.pl 的聚合入口
+│   ├── build-all.sh              # 跨 8 子仓统一构建脚本
+│   └── README.md                 # 工具索引（各子仓 scripts/ 清单）
 │
-├── ipc/                           # IPC 子系统
-│   ├── airy_ipc_msg.c            # IPC 消息处理（Layout C 128B）
-│   ├── airy_ipc_transfer.c       # IPC 消息传输
-│   └── airy_io_uring.c           # io_uring 数据面（零拷贝优化）
+└── docs/                         # 软链接/引用 → umbrella docs/AirymaxOS/
+                                  # （设计文档维护在 umbrella 仓库，管理仓仅引用）
+```
+
+**说明**：
+
+- 管理仓的 `docs/` 是对 umbrella 仓库 `docs/AirymaxOS/` 的引用（软链接或文档指针），避免设计文档与代码分离维护。
+- 管理仓的 `tools/` 是**跨子仓工具聚合入口**，对齐 Linux 6.6 内核基线顶层 `tools/` 实践——各子仓内部工具在自身 `scripts/`，管理仓 `tools/` 仅提供聚合入口与索引（如 `checkpatch-airymax.sh` 调用 `kernel/scripts/checkpatch.pl`），不重复实现。
+- agentrt-linux 管理仓本身不创建 feature 分支（`main` only），所有子仓开发在 `feature/official-hubs-01` 分支进行。
+
+### 2.1 8 子仓公共骨架
+
+每个子仓根目录必须包含以下公共文件（双许可证 + 治理 + 元信息）：
+
+```
+<submodule>/
+├── README.md              # 英文 README
+├── README_zh.md           # 中文 README
+├── LICENSE                # AGPL-3.0 + Apache-2.0 双许可证全文
+├── NOTICE                 # 版权、商标、第三方声明
+├── MAINTAINERS            # 维护者制度（R-03 落地，ES-OLK-8）
+├── .gitignore
+├── .clang-format          # C 代码格式（OS-FMT-001 Tab 8，仅 kernel/security/memory/cognition）
+├── .editorconfig          # 编辑器统一配置
+└── CONTRIBUTING.md        # 贡献指南（DCO + Signed-off-by + 审查流程）
+```
+
+**含 Rust 代码的子仓**（cognition + cloudnative）必须额外包含 `rustfmt.toml`（OS-FMT-001 4 空格）。
+
+### 2.2 8 子仓类型与构建系统
+
+8 子仓按代码形态分为 4 类，每类对应不同构建系统：
+
+| 类型 | 子仓 | 构建系统 | 依据 |
+|------|------|---------|------|
+| 内核态 C | kernel / security / memory / cognition（kthread 部分） | Kbuild + Kconfig + Makefile（三者并存） | ES-OLK-7（与 Linux 6.6 内核基线一致） |
+| 用户态 C | services（daemons） | Meson（推荐，现代用户态构建） | ES-SEL4-10 现代构建系统借鉴 |
+| 用户态多语言 | cloudnative（Go/Rust/TS） / cognition（Wasm/Rust） / system（Rust/Python） | Cargo + Go Modules + tsc + Meson（按语言） | 各语言生态主流 |
+| 测试 | tests-linux | CTest + Cargo + Go + Shell | 多语言测试聚合 |
+
+---
+
+## 3. kernel/ 子仓目录结构（模型 A 完整 fork）
+
+### 3.1 设计依据与模型 A 声明
+
+**OS-IRON-013 落地**：kernel 子仓是 8 个 leaf 仓之一，通过 git submodule 接入管理仓。
+
+**模型 A（完整 Linux 6.6 fork）**：kernel/ 子仓采用**完整 fork 模型**——含完整 Linux 6.6 源码树（~60K 文件 1.6GB），Airymax 修改**直接写入上游目录**，不使用 `patches/` 隔离层。
+
+| 维度 | 模型 A 含义 | 工程实践 |
+|------|------------|---------|
+| 子仓内容 | 完整 Linux 6.6 源码树 + Airymax 修改直接写入上游目录 | kernel/ 含 `fs`/`net`/`block`/`drivers`/`mm`/`security`/`sound`/`certs`/`ipc`/`samples`/`usr`/`virt` 等全部上游子系统 |
+| Airymax 专属代码 | `corekern/`（新增子目录）+ `include/airymax/`（[SC] 头文件）+ `arch/<arch>/` 扩展 | Airymax 修改直接写入对应上游目录（如 `mm/airymax_mm.c`） |
+| patches/ | **删除**（模型 A 不需要补丁隔离层） | Airymax 修改直接写入上游目录 |
+| Makefile.airymaxos | **保留**（定义 AIRYMAX_LTS/MAJOR/MINOR/RELEASE 版本四元组） | 对齐 Linux 6.6 内核基线的版本管理惯例 |
+| 构建自包含性 | `make` 即可构建，无需外部基线源码树 | 子仓内自包含全部依赖 |
+| 上游同步 | git rebase / merge 上游 release tag | 标准 fork 维护流程 |
+
+### 3.2 kernel/ 顶层目录树
+
+```
+kernel/                           # kernel 子仓（feature/official-hubs-01 分支）
+├── README.md                     # 英文 README
+├── README_zh.md                  # 中文 README
+├── LICENSE                       # AGPL-3.0 + Apache-2.0
+├── NOTICE
+├── MAINTAINERS                   # 维护者制度（R-03）
+├── CONTRIBUTING.md
+├── .gitignore
+├── .clang-format                 # OS-FMT-001 Tab 8
+├── .editorconfig
 │
-├── security/                      # 安全子系统
-│   ├── airy_capability.c         # capability 系统（MDB 派生树）
-│   ├── airy_lsm.c                # LSM 钩子（250 个）
-│   └── airy_cupolas.c            # Cupolas blob
+├── Kbuild                        # 顶层 Kbuild（递归构建入口）
+├── Kconfig                       # 顶层 Kconfig（特性配置入口）
+├── Makefile                      # 顶层 Makefile（构建规则）
+├── Makefile.airymaxos            # AirymaxOS 版本四元组定义
+│                                 # 定义：AIRYMAX_LTS / AIRYMAX_MAJOR / AIRYMAX_MINOR / AIRYMAX_RELEASE
 │
-├── cognition/                     # 认知子系统
-│   ├── airy_clt.c                # CoreLoopThree
-│   ├── airy_kthread.c            # kthread 管理（kfifo 通信）
-│   └── airy_wasm.c               # Wasm 模块加载
+├── arch/                         # 架构相关代码（ES-OLK-2 + ES-SEL4-7）
+│   ├── x86/                      # x86/x86_64 架构
+│   │   ├── Kbuild
+│   │   ├── Kconfig
+│   │   ├── configs/              # x86 defconfig
+│   │   │   └── airymax_x86_64_defconfig
+│   │   ├── include/              # x86 架构相关头文件
+│   │   ├── kernel/               # x86 内核执行逻辑
+│   │   ├── mm/                   # x86 内存管理
+│   │   ├── entry/                # x86 系统调用/中断入口
+│   │   ├── machine/              # x86 架构相关机器原语
+│   │   │   ├── capdl.c           # capability 分布描述（架构特定版）
+│   │   │   ├── fpu.c             # 浮点单元
+│   │   │   ├── registerset.c     # 寄存器集
+│   │   │   └── hardware.c        # 硬件探测
+│   │   ├── lib/                  # x86 特定库函数
+│   │   └── boot/                 # x86 启动引导
+│   ├── arm64/                    # ARM64 架构（结构同 x86/）
+│   └── riscv/                    # RISC-V 架构（结构同 x86/）
 │
-├── include/                       # 内核内部头文件
-│   ├── uapi/                      # 用户空间 ABI（ES-OLK-3/6）
-│   │   ├── airymax/              # [SC] 共享契约层 6 头文件
-│   │   │   ├── syscalls.h        # [SC] 12 核心 syscall 编号
-│   │   │   ├── ipc.h             # [SC] IPC magic + 128B 消息头
-│   │   │   ├── sched.h           # [SC] SCHED_EXT + 任务描述符 magic
-│   │   │   ├── security_types.h  # [SC] POSIX capability + LSM 钩子
-│   │   │   ├── memory_types.h    # [SC] MemoryRovol L1-L4 + GFP 掩码
-│   │   │   └── cognition_types.h # [SC] CoreLoopThree + LLM 推理
-│   │   └── airy_syscall.xml      # syscall 编号 XML 源（C-C04）
-│   ├── kernel/
-│   │   ├── airy_cspace.h
-│   │   ├── airy_cnode.h
-│   │   ├── airy_endpoint.h
-│   │   ├── airy_notification.h
-│   │   ├── airy_thread.h
-│   │   └── airy_fastpath.h
-│   ├── mm/
-│   ├── ipc/
-│   ├── security/
-│   └── cognition/
+├── include/                      # 公共头文件（ES-OLK-3 / ES-OLK-6）
+│   ├── uapi/                     # 用户空间 ABI（永久稳定，OS-IRON-001）
+│   │   └── airymax/
+│   │       ├── syscall.h         # 系统调用号定义（冻结）
+│   │       ├── syscall.xml       # 系统调用契约源定义（R-01）
+│   │       ├── ipc.h              # IPC UAPI（128B 消息头用户可见部分）
+│   │       ├── sched.h            # 调度 UAPI
+│   │       ├── memory.h          # 内存 UAPI
+│   │       ├── security.h       # 安全 UAPI
+│   │       └── cognition.h      # 认知 UAPI
+│   ├── airymax/                  # 内核内部头文件（[SC] 唯一物理宿主，OS-IRON-014）
+│   │   ├── bpf_struct_ops.h      # [SC] struct_ops 状态机（唯一物理副本）
+│   │   ├── memory_types.h        # [SC] MemoryRovol L1-L4（唯一物理副本）
+│   │   ├── security_types.h      # [SC] capability 41 ID + LSM 钩子 252 ID（唯一物理副本）
+│   │   ├── cognition_types.h     # [SC] CoreLoopThree + Thinkdual（唯一物理副本）
+│   │   ├── sched.h               # [SC] 任务描述符（AGTS）+ vtime（唯一物理副本）
+│   │   ├── ipc.h                 # [SC] IPC magic 0x41524531 + 128B 消息头（唯一物理副本）
+│   │   ├── structures_32.bf      # 32-bit 位域定义（R-02）
+│   │   ├── structures_64.bf      # 64-bit 位域定义（R-02）
+│   │   ├── corekern.h            # 微核心原语内部头
+│   │   └── airymax_kernel.h      # 总头文件
+│   └── asm-generic/              # 通用汇编默认实现（ES-OLK-2）
 │
-├── tools/                         # 工具链
-│   ├── bitfield_gen.py            # 位域 DSL 生成器（C-C02，fork seL4）
-│   ├── syscall_header_gen.py     # syscall 头文件生成器（C-C04）
-│   └── checkpatch.pl             # 代码规范检查（80 偏好 / 100 硬阈值）
+├── kernel/                       # 上游内核核心 [模型 A 完整继承上游]
+│                                 # 含 22 个子目录：bpf/cgroup/debug/dma/entry/events/
+│                                 # futex/gcov/irq/kcsan/livepatch/locking/module/pgo/
+│                                 # power/printk/rcu/sched/time/trace/xsched 等
+│                                 # Airymax 增强直接写入对应子目录（如 kernel/sched/airymax_sched_ext.c）
 │
-├── scripts/                       # 构建脚本
+├── corekern/                     # Airymax 微核心抽象层 [ES-SEL4-1 极简原则]
+│                                 # 定位：Airymax 专属原语组织层，不替代上游 kernel/
 │   ├── Kbuild
 │   ├── Kconfig
-│   ├── Makefile
-│   ├── Makefile.oever             # openEuler 扩展（C-D01）
-│   └── missing-syscalls           # syscall 完整性检查（C-D04）
+│   ├── api/                      # 系统调用分发
+│   │   ├── syscall_dispatch.c
+│   │   └── faults.c
+│   ├── sched/                    # 调度原语（sched_ext 策略，非 SCHED_AGENT 宏）
+│   │   ├── airymax_agent_sched.c
+│   │   ├── core_sched.c
+│   │   └── ext.c
+│   ├── ipc/                      # IPC 原语（io_uring 用户态-内核态 + kfifo kthread 间）
+│   │   ├── io_uring_ipc.c
+│   │   ├── kfifo_ipc.c
+│   │   └── fastpath.c            # IPC fastpath 优化（ES-SEL4-4 借鉴）
+│   ├── taskflow/                 # 任务流原语
+│   │   ├── graph_engine.c
+│   │   └── task_descriptor.c     # 任务描述符（magic 0x41475453）
+│   ├── memory/                   # 内存原语接口（实现移入 memory 子仓）
+│   ├── time/                     # 时间原语
+│   ├── object/                   # 内核对象（cnode/tcb/endpoint/notification）
+│   ├── locking/                  # 锁机制与同步原语
+│   ├── irq/                      # 中断处理
+│   └── bpf/                      # eBPF 可编程内核（kfunc + dynamic pointer + struct_ops）
+│       └── struct_ops/
+│           └── airymax_sched_ops.c
 │
-├── Documentation/                 # 文档（ES-OLK-13 文档即代码）
-│   ├── process/
-│   │   ├── coding-style.rst
-│   │   ├── submitting-patches.rst
-│   │   └── stable-kernel-rules.rst
-│   └── admin-guide/
+├── init/                         # 内核初始化（main.c + do_initcalls.c + version.c）
+├── lib/                          # 通用库函数（string.c / ctype.c / bitmap.c / radix-tree.c）
+├── machine/                      # 架构无关通用机器原语层（capdl/fpu/io/registerset/profiler）
 │
-├── MAINTAINERS                    # 维护者制度（ES-OLK-8）
-├── Kconfig                        # 顶层配置（ES-OLK-4/7）
-├── Makefile                       # 顶层构建
-├── .clang-format                  # 格式化规范（80 列偏好）
-└── .rustfmt.toml                  # Rust 格式化（C-D05）
+├── crypto/                       # 加密算法库（含 sm2-sm4/ 国密 + aes/ + sha/）
+├── io_uring/                     # 异步 I/O（ES-OLK-1 独立子系统）
+│
+├── fs/                           # 文件系统层 [模型 A 完整继承上游]
+├── net/                          # 网络协议栈 [模型 A 完整继承上游]
+├── block/                        # 块设备层 [模型 A 完整继承上游]
+├── drivers/                      # 设备驱动 [模型 A 完整继承上游]
+│
+├── mm/                           # 核心内存管理 [模型 A 完整继承上游]
+│                                 # 含 20+ 扁平 .c 文件（backing-dev.c/compaction.c/cma.c 等）+ damon/
+│                                 # Airymax 修改直接写入（如 mm/airymax_mm.c）
+│                                 # 边界：上游内核态内存管理实现在此；memory 子仓含 Airymax 专属
+│                                 # 内核态扩展模块（rovol-kmod）+ 用户态工具，通过 hooks 接入上游 mm/
+│
+├── security/                     # LSM 框架 [模型 A 完整继承上游]
+│                                 # 含 12 扁平 LSM 顶层目录（apparmor/bpf/integrity/keys/landlock/...）
+│                                 # Airymax agent_lsm 直接写入 kernel/security/agent_lsm/
+│                                 # 边界：security 子仓的 agent_lsm/ 是 Airymax 专属 LSM 策略 + 用户态工具
+│
+├── sound/                        # 音频子系统 [模型 A 完整继承上游]
+├── certs/                        # 证书管理 [模型 A 完整继承上游]
+├── ipc/                          # System V IPC [模型 A 完整继承上游]
+├── samples/                      # 示例代码 [模型 A 完整继承上游]
+├── usr/                          # 用户空间构建 [模型 A 完整继承上游]
+├── virt/                         # 虚拟化 [模型 A 完整继承上游]
+├── LICENSES/                     # 许可证文本 [模型 A 完整继承上游]
+├── rust/                         # Rust 内核支持 [模型 A 完整继承上游]
+│
+├── Documentation/                # 文档即代码（ES-OLK-13）
+│   ├── ABI/                      # ABI 文档（OS-IRON-001）
+│   ├── airymax/                  # airymax 专属文档
+│   └── process/                  # 开发流程文档
+│
+├── scripts/                     # 构建与检查脚本（ES-OLK-9）
+│   ├── checkpatch.pl             # 编码规范检查
+│   ├── syscall_gen.py            # syscall.xml → C 代码生成（R-01）
+│   ├── bitfield_gen.py           # structures.bf → C 代码生成（R-02）
+│   ├── kbuild_check.py           # Kbuild/Kconfig 规范检查
+│   ├── maintainer_check.py       # MAINTAINERS 完整性检查（R-03）
+│   └── dts/                      # 设备树源文件
+│
+├── tools/                       # 内核工具与测试基础设施 [模型 A 完整继承上游]
+│   ├── testing/                  # 上游测试基础设施
+│   │   ├── kunit/                # KUnit 框架
+│   │   ├── selftests/            # kselftest 框架
+│   │   └── fault-injection/     # 故障注入框架
+│   ├── perf/                     # 性能剖析工具
+│   ├── build/                    # 构建工具
+│   └── scripts/                  # 内核构建辅助脚本
+│
+└── tests/                        # Airymax 专属测试用例
+    └── airymax/                  # Airymax 专属测试用例（跨子仓集成测试在 tests-linux/integration/）
 ```
+
+### 3.3 [SC] 头文件子仓引用方式（禁止物理副本）
+
+**OS-IRON-014 落地**：其他子仓**不得**在自身 `include/` 下创建 [SC] 头文件的物理副本，**必须**通过构建系统 include path 引用 kernel 子仓的物理宿主：
+
+```makefile
+# 各子仓 Makefile / Kbuild 中的引用方式（示例）
+# security/Makefile:
+ccflags-y += -I$(srctree)/../kernel/include
+
+# memory/Kbuild:
+ccflags-y += -I$(srctree)/../kernel/include
+
+# cognition/Kbuild:
+ccflags-y += -I$(srctree)/../kernel/include
+```
+
+### 3.4 子仓内部头文件命名规范（避免与 [SC] 混淆）
+
+子仓自身的 `include/airymax/<sub>/` 目录**只存放该子仓内部头文件**（非 [SC]），命名以 `_internal.h` 后缀区分：
+
+| 子仓 | 内部头文件目录 | 内容（均为非 [SC] 内部头） |
+|------|--------------|--------------------------|
+| security | `security/include/airymax/security/` | capability_internal.h / lsm_internal.h / cupolas_internal.h |
+| memory | `memory/include/airymax/memory/` | memoryrovol_internal.h / cxl_internal.h / pmem_internal.h |
+| cognition | `cognition/include/airymax/cognition/` | clt_internal.h / llm_internal.h / thinkdual_internal.h |
+
+**关键区分**：[SC] 头文件无 `_internal` 后缀（如 `security_types.h`），子仓内部头文件有 `_internal` 后缀（如 `capability_internal.h`）。任何子仓的 `include/airymax/<sub>/` 下**禁止出现** [SC] 头文件名。
 
 ---
 
-## 3. [SC] 共享契约层物理隔离
+## 4. 其他 7 子仓目录结构概要
 
-### 3.1 物理宿主
+> **OS-STD-062**：其余 7 子仓的完整目录结构详见各自模块设计文档（`20-modules/`）。每个子仓必须包含 MAINTAINERS 文件（R-03）和 Documentation/ 目录（ES-OLK-13）。
 
-`include/uapi/airymax/` 目录是 [SC] 共享契约层的物理宿主，6 个头文件：
+| 子仓 | 关键目录 | 构建系统 | seL4 借鉴点 | 设计要点 |
+|------|---------|---------|------------|---------|
+| services | userland-{vfs,net,drivers}/ + 12 daemons | Meson | ES-SEL4-3 服务用户态化 | userland-* 通过 FUSE/VFIO/AF_UNIX 接入上游 |
+| security | agent_lsm/ + common/ + integrity/ + keys/ + capability/ + cupolas/ | Kbuild + Meson | ES-SEL4-2 capability 单一模型 | 方案 A 扁平 + 新增 integrity/keys |
+| memory | memoryrovol/ + cxl/ + pmem/ + mglru/ + vfs-persist-kern/ | Kbuild | Linux 6.6 内核基线 mm/ | 三方边界声明（上游 mm/ + corekern/ + memory 子仓） |
+| cognition | CoreLoopThree + Thinkdual + LLM + compute-accel/ | Cargo | Airymax 同源 | compute-accel 边界声明 |
+| cloudnative | k8s-crd + containerd-shim + cni + sdk/ | Go Modules | ES-SEL4-9 libsel4 独立 API 库 | sdk/ 按语言组织，非四级 include |
+| system | systemd 适配 + init + commons + devstation/ | Kbuild + Meson | Linux 6.6 内核基线 init/ | devstation/ AI 边界（cognition 前端消费者） |
+| tests-linux | kunit/ + selftests/ + fault-injection/ + formal-verification/ | KUnit + kselftest + Isabelle/HOL | ES-SEL4-5 形式化验证 | unit/→kunit/，对齐 Linux 6.6 内核基线 tools/testing/ |
 
-| 头文件 | 内容 | 共享对象 | 物理宿主 SSoT |
-|--------|------|---------|---------------|
-| `syscalls.h` | 12 核心 syscall 编号 + 12 预留槽位 | agentrt + agentrt-linux | `120-cross-project-code-sharing.md` §2.3 |
-| `ipc.h` | IPC magic 0x41524531 + 128B 消息头（Layout C） | agentrt + agentrt-linux | `120-cross-project-code-sharing.md` §2.7 |
-| `sched.h` | SCHED_EXT + 任务描述符 magic 0x41475453 | agentrt + agentrt-linux | `120-cross-project-code-sharing.md` §2.6 |
-| `security_types.h` | POSIX capability + LSM 钩子 + Cupolas blob | agentrt + agentrt-linux | `120-cross-project-code-sharing.md` §2.4 |
-| `memory_types.h` | MemoryRovol L1-L4 + GFP 掩码 | agentrt + agentrt-linux | `120-cross-project-code-sharing.md` §2.5 |
-| `cognition_types.h` | CoreLoopThree + Thinkdual + LLM 推理 | agentrt + agentrt-linux | `120-cross-project-code-sharing.md` §2.8 |
+### 4.1 形式化验证工程标准（tests-linux 子仓）
 
-### 3.2 [SC] 头文件铁律
+**OS-TEST-010**：tests-linux 子仓必须包含 `formal-verification/` 目录，采用 seL4 三段式结构（ES-SEL4-5）：
+
+```
+formal-verification/
+├── spec/        # 抽象规约（内核"应该做什么"的数学描述）
+├── proof/       # Isabelle/HOL 证明（C 实现满足抽象规约）
+└── capdl/       # capability 分布语言（系统初始 capability 状态描述）
+```
+
+形式化验证范围（1.0.1 阶段）：仅覆盖关键路径（调度器核心、IPC fastpath、capability 派生模型），不覆盖全部内核代码。
+
+---
+
+## 5. [SC] 共享契约层物理隔离
+
+### 5.1 物理宿主（OS-IRON-014 落地）
+
+`kernel/include/airymax/` 目录是 [SC] 共享契约层的**唯一物理宿主**，6 个核心头文件 + 2 个补充共享文件：
+
+| 头文件 | 内容 | 共享对象 | 落地路径 |
+|--------|------|---------|---------|
+| `syscalls.h` | 12 核心 syscall 编号 + 12 预留槽位 | agentrt + agentrt-linux | `kernel/include/airymax/syscalls.h` |
+| `ipc.h` | IPC magic 0x41524531 + 128B 消息头（Layout C） | agentrt + agentrt-linux | `kernel/include/airymax/ipc.h` |
+| `sched.h` | SCHED_EXT + 任务描述符 magic 0x41475453 | agentrt + agentrt-linux | `kernel/include/airymax/sched.h` |
+| `security_types.h` | POSIX capability + LSM 钩子 + Cupolas blob | agentrt + agentrt-linux | `kernel/include/airymax/security_types.h` |
+| `memory_types.h` | MemoryRovol L1-L4 + GFP 掩码 | agentrt + agentrt-linux | `kernel/include/airymax/memory_types.h` |
+| `cognition_types.h` | CoreLoopThree + Thinkdual + LLM 推理 | agentrt + agentrt-linux | `kernel/include/airymax/cognition_types.h` |
+| `bpf_struct_ops.h` | struct_ops 状态机（补充共享文件 1，非 [SC] 核心） | agentrt + agentrt-linux | `kernel/include/airymax/bpf_struct_ops.h` |
+| `error.h` | 错误码 SSoT（补充共享文件 2，非 [SC] 核心）——AIRY_E* POSIX 负值 + AIRY_ERR_* 扩展码 + airy_err_t 类型 | agentrt + agentrt-linux | `kernel/include/airymax/error.h`（规划中，当前权威源 `agentrt/commons/utils/error/include/error.h`） |
+
+> **SSoT 依赖声明**：[SC] 头文件清单与共享内容的权威定义登记于 [`50-engineering-standards/120-cross-project-code-sharing.md §2`](../50-engineering-standards/120-cross-project-code-sharing.md)，规则编号权威登记于 [`50-engineering-standards/09-ssot-registry.md §2 OS-IRON-014`](../50-engineering-standards/09-ssot-registry.md)。本表为镜像，与上述 SSoT 冲突时以 SSoT 为准。
+
+### 5.2 [SC] 头文件铁律
 
 1. **逐字节相同**：agentrt 与 agentrt-linux 两端 [SC] 头文件必须逐字节一致（IRON-9 v2）。
-2. **Tab 8 缩进**：[SC] 头文件必须 Tab 8 缩进（对齐 OLK-6.6 §1，对齐 `.clang-format IndentWidth: 8`）。
-3. **最小 typedef**：[SC] 头文件必须最小 typedef（对齐 OLK-6.6 §5，仅 5 种例外：`airy_vtime_t`/`airy_cap_op`/`airy_struct_ops_state`/`airy_ipc_msg_type`/`airy_err_t`）。
-4. **双向 CI 校验**：[SC] 头文件变更必须通过 agentrt 与 agentrt-linux 双向 CI 校验。
-5. **SSoT 物理宿主**：[SC] 头文件物理宿主为 `50-engineering-standards/120-cross-project-code-sharing.md`，本目录头文件为物理落地。
+2. **Tab 8 缩进**：[SC] 头文件必须 Tab 8 缩进（OS-FMT-001，对齐 `.clang-format IndentWidth: 8`）。
+3. **最小 typedef**：[SC] 头文件必须最小 typedef（OS-STD-CODE-020，仅 5 种例外：`airy_vtime_t`/`airy_cap_op`/`airy_struct_ops_state`/`airy_ipc_msg_type`/`airy_err_t`）。
+4. **双向 CI 校验**：[SC] 头文件变更必须通过 agentrt 与 agentrt-linux 双向 CI 校验（OS-IRON-008）。
+5. **SSoT 物理宿主**：[SC] 头文件物理宿主为 `kernel/include/airymax/`，规则编号登记于 [09-ssot-registry.md §2 OS-IRON-014](../50-engineering-standards/09-ssot-registry.md)。
 6. **变更流程**：任何 [SC] 变更必须先更新 SSoT，再双向同步两端代码 + CI 验证。
 
-### 3.3 [SS] 语义同源层与 [IND] 独立层
+### 5.3 [SS] 语义同源层与 [IND] 独立层
 
 | 层 | 物理位置 | 共享方式 | 变更约束 |
 |----|---------|---------|---------|
-| [SC] 共享契约层 | `include/uapi/airymax/*.h` | 逐字节相同 | 双向 CI |
-| [SS] 语义同源层 | `include/kernel/airy_*.h` + agentrt 对应头 | API 签名独立演进，语义一致 | 文档化语义契约 |
-| [IND] 独立层 | `kernel/`/`mm/`/`ipc/`/`security/`/`cognition/` 实现 | 完全独立 | 无约束（遵循 OLK-6.6 代码品味） |
+| [SC] 共享契约层 | `kernel/include/airymax/*.h` | 逐字节相同 | 双向 CI（OS-IRON-008） |
+| [SS] 语义同源层 | `kernel/include/kernel/airy_*.h` + agentrt 对应头 | API 签名独立演进，语义一致 | 文档化语义契约 |
+| [IND] 独立层 | `kernel/`/`mm/`/`ipc/`/`security/`/`cognition/` 实现 | 完全独立 | 无约束（遵循 Linux 6.6 内核基线代码品味） |
 
 ---
 
-## 4. 与 AirymaxOS 8 子仓的映射
+## 6. 与 AirymaxOS 8 子仓的映射
 
 agentrt-linux 8 子仓架构（详见 [10-architecture/README.md §2](README.md)）与源码目录的映射：
 
 | AirymaxOS 子仓 | 源码目录 | 物理范围 | 说明 |
 |---------------|---------|---------|------|
-| kernel | `kernel/` + `arch/` + `include/kernel/` + `include/uapi/` | 内核核心 + 架构相关 + UAPI | 微内核改造落点 |
-| services | `ipc/` + `cognition/` 部分 + 用户态守护进程目录（独立） | IPC 子系统 + 认知服务 + 12 daemons | 服务子系统 |
-| security | `security/` + `include/security/` | capability + LSM + Cupolas | 安全子系统 |
-| memory | `mm/` + `include/mm/` | MemoryRovol + CXL + MGLRU | 内存管理 |
-| cognition | `cognition/` + `include/cognition/` | CoreLoopThree kthread + Wasm | 认知子系统 |
-| cloudnative | （独立目录，1.0.1 M2+ 评估） | K8s + containerd shim | 云原生适配 |
-| system | `Documentation/` + `MAINTAINERS` + `Kconfig` + `Makefile` + `scripts/` | 系统集成 + 构建系统 | 系统集成 |
-| tests-linux | `tools/testing/` | 测试框架 | 测试 |
+| kernel | `kernel/`（含 `arch/` + `include/` + `corekern/` + 完整 Linux 6.6 源码树） | 内核核心 + 架构相关 + UAPI + 微核心抽象 | 模型 A 完整 fork 落点 |
+| services | `services/`（userland-{vfs,net,drivers}/ + 12 daemons） | 服务子系统 | VFS 用户态化 + 12 daemons |
+| security | `security/`（agent_lsm/ + common/ + integrity/ + keys/ + capability/ + cupolas/） | 安全子系统 | capability + LSM + Cupolas |
+| memory | `memory/`（memoryrovol/ + cxl/ + pmem/ + mglru/ + vfs-persist-kern/） | 内存管理 | MemoryRovol + CXL + MGLRU |
+| cognition | `cognition/`（CoreLoopThree + Thinkdual + LLM + compute-accel/） | 认知子系统 | CoreLoopThree kthread + Wasm |
+| cloudnative | `cloudnative/`（k8s-crd + containerd-shim + cni + sdk/） | 云原生适配 | K8s + containerd shim |
+| system | `system/`（systemd 适配 + init + commons + devstation/） | 系统集成 + 构建系统 | RPM + dnf + DevStation |
+| tests-linux | `tests-linux/`（kunit/ + selftests/ + fault-injection/ + formal-verification/） | 测试框架 | 单元 + 集成 + 形式化 + Soak |
 
-### 4.1 子仓间的依赖关系
+### 6.1 子仓间的依赖关系
 
 ```
 kernel (L2)
@@ -200,6 +409,7 @@ kernel (L2)
 ```
 
 **层次纪律**（S-2）：
+
 1. 每层只依赖其直接下层的抽象接口，禁止越级访问
 2. 同层之间通过 IPC 通信，禁止直接函数调用
 3. 层次之间的接口契约通过 `30-interfaces/` 文档定义
@@ -207,66 +417,66 @@ kernel (L2)
 
 ---
 
-## 5. ES-OLK 工程思想映射
+## 7. ES-OLK 工程思想映射
 
-### 5.1 ES-OLK-1~13 落地证据
+### 7.1 ES-OLK-1~13 落地证据
 
 | ES-OLK | 工程思想 | 落地目录 | 落地证据 |
 |--------|---------|---------|---------|
-| ES-OLK-1 | 关注点分离 | `kernel/`/`mm/`/`ipc/`/`security/`/`cognition/` 顶层分离 | 5 大子系统目录独立 |
-| ES-OLK-2 | 架构正交 | `arch/{x86,arm64,riscv}/` | 唯一架构相关根目录 |
-| ES-OLK-3 | UAPI 分离 | `include/uapi/airymax/` | 用户空间 ABI 唯一来源 |
+| ES-OLK-1 | 关注点分离 | 8 子仓顶层划分 + `kernel/`/`mm/`/`ipc/`/`security/`/`cognition/` 顶层分离 | 8 子仓 + 5 大子系统目录独立 |
+| ES-OLK-2 | 架构正交 | `kernel/arch/{x86,arm64,riscv}/` | 唯一架构相关根目录 |
+| ES-OLK-3 | UAPI 分离 | `kernel/include/uapi/airymax/` | 用户空间 ABI 唯一来源 |
 | ES-OLK-4 | 特性可配置 | `Kconfig` + `scripts/Kconfig` | 顶层配置入口 |
 | ES-OLK-5 | 条件编译规范化 | `#ifdef CONFIG_*` 配置项 | 与 Kconfig 配合 |
-| ES-OLK-6 | UAPI 物理隔离 | `include/uapi/` 物理独立目录 | 与 `include/kernel/` 分离 |
-| ES-OLK-7 | 声明式配置 + 命令式构建分离 | `Kconfig`（声明）+ `Makefile`（命令）+ `Makefile.oever`（openEuler 扩展，C-D01） | 三层分离 |
-| ES-OLK-8 | 维护者制度 | `MAINTAINERS` | 文件级维护者登记 |
-| ES-OLK-9 | 规范可执行 | `tools/checkpatch.pl` + `.clang-format` | 80 偏好 / 100 硬阈值（C-D07） |
-| ES-OLK-10 | regression 零容忍 | `tools/testing/`（tests-linux 子仓） | 回归测试 |
-| ES-OLK-11 | ABI 永久稳定 | `include/uapi/airymax/syscalls.h` | syscall 编号 MAJOR 版本内不可变更 |
-| ES-OLK-12 | 运行时可加载 | `scripts/Kbuild` 模块构建 | 模块化 |
-| ES-OLK-13 | 文档即代码 | `Documentation/process/*.rst` | 与源码同仓库 |
+| ES-OLK-6 | UAPI 物理隔离 | `kernel/include/uapi/` 物理独立目录 | 与 `kernel/include/airymax/` 分离 |
+| ES-OLK-7 | 声明式配置 + 命令式构建分离 | `Kconfig`（声明）+ `Makefile`（命令）+ `Makefile.airymaxos`（AirymaxOS 扩展） | 三层分离 |
+| ES-OLK-8 | 维护者制度 | 每子仓根 `MAINTAINERS` | 文件级维护者登记（R-03） |
+| ES-OLK-9 | 规范可执行 | `kernel/scripts/checkpatch.pl` + `.clang-format` | 80 偏好 / 100 硬阈值 |
+| ES-OLK-10 | regression 零容忍 | `kernel/tools/testing/` + `tests-linux/` | 回归测试 |
+| ES-OLK-11 | ABI 永久稳定 | `kernel/include/uapi/airymax/syscalls.h` | syscall 编号 MAJOR 版本内不可变更 |
+| ES-OLK-12 | 运行时可加载 | `kernel/scripts/Kbuild` 模块构建 | 模块化 |
+| ES-OLK-13 | 文档即代码 | `kernel/Documentation/process/*.rst` | 与源码同仓库 |
 
-### 5.2 OLK-6.6 工程实践对齐（B1 新发现）
+### 7.2 Linux 6.6 内核基线工程实践对齐
 
-| OLK-6.6 实践 | agentrt-linux 落地 | 差距编号 | 优先级 |
-|-------------|------------------|---------|--------|
-| `Makefile.oever` openEuler 扩展 | `scripts/Makefile.oever` | C-D01 | P1 |
-| `lib/Kconfig.openeuler` openEuler Kconfig 扩展 | `scripts/Kconfig` | C-D02 | P1 |
+| Linux 6.6 内核基线实践 | agentrt-linux 落地 | 差距编号 | 优先级 |
+|----------------------|------------------|---------|--------|
+| `Makefile.oever` 版本四元组扩展 | `kernel/Makefile.airymaxos` | C-D01 | P1 |
+| `lib/Kconfig.distro` 发行版 Kconfig 扩展 | `kernel/scripts/Kconfig` | C-D02 | P1 |
 | `arch/*/include/asm/atomic.h` SHA1 校验 | 待引入 | C-D03 | P2 |
-| `scripts/missing-syscalls` syscall 完整性检查 | `scripts/missing-syscalls` | C-D04 | P2 |
-| `.rustfmt.toml` Rust 格式化 | `.rustfmt.toml` | C-D05 | P2 |
+| `scripts/missing-syscalls` syscall 完整性检查 | `kernel/scripts/missing-syscalls` | C-D04 | P2 |
+| `.rustfmt.toml` Rust 格式化 | `cognition/rustfmt.toml` + `cloudnative/rustfmt.toml` | C-D05 | P2 |
 | `EXPORT_TRACEPOINT_SYMBOL_GPL` tracepoint 导出 | 待引入 | C-D06 | P2 |
-| `checkpatch.pl max_line_length=100` 100 列硬阈值 | `tools/checkpatch.pl` | C-D07 | P1 |
+| `checkpatch.pl max_line_length=100` 100 列硬阈值 | `kernel/scripts/checkpatch.pl` | C-D07 | P1 |
 | `lockdep_assert_*_held` 锁断言 | 待引入 | C-D08 | P2 |
 
 ---
 
-## 6. seL4 微内核思想映射
+## 8. seL4 微内核思想映射
 
-### 6.1 seL4 设计模式对齐（B2 验证）
+### 8.1 seL4 设计模式对齐
 
 | seL4 设计模式 | agentrt-linux 落地 | 差距编号 | 优先级 |
 |-------------|------------------|---------|--------|
-| Liedtke 最小性原则 | `kernel/airy_*.c` 微核心原语 | — | ✅ 已对齐 |
-| Capability 系统（CNode 7 操作 + MDB 派生树） | `kernel/airy_cspace.c` + `security/airy_capability.c` | C-C08 | P2 |
-| Endpoint 3 状态机（`EPState_Idle/Send/Recv`） | `kernel/airy_endpoint.c` | — | ✅ 已对齐 |
-| Reply 原子性（`doReplyTransfer` 临界区串行） | `kernel/airy_endpoint.c` `airy_ipc_reply()` | C-C07 | P2 |
-| Notification（bitwise OR badge + 3 状态） | `kernel/airy_notification.c` | C-C01 | P1 |
-| Fastpath（POINT OF NO RETURN + 12 项前置检查） | `kernel/airy_fastpath.c` | — | ✅ 已对齐（D2 修复） |
-| Zombie 能力增量清理（`reduceZombie` + preemptionPoint） | `kernel/airy_zombie.c` | C-C05 | P2 |
-| 极简错误码（11 种 + 哨兵 + 内部 exception 分层） | `airy_err_t`（v0.2.5 已收敛：`typedef int32_t airy_err_t`，定义于 airy_types.h:41 [SC] 头文件，详见 120-cross-project-code-sharing.md §2.1） | C-C03 | ✅ 已收敛 |
+| Liedtke 最小性原则 | `kernel/corekern/` 微核心原语 | — | ✅ 已对齐 |
+| Capability 系统（CNode 7 操作 + MDB 派生树） | `kernel/corekern/object/cnode.c` + `security/capability/` | C-C08 | P2 |
+| Endpoint 3 状态机（`EPState_Idle/Send/Recv`） | `kernel/corekern/object/endpoint.c` | — | ✅ 已对齐 |
+| Reply 原子性（`doReplyTransfer` 临界区串行） | `kernel/corekern/object/endpoint.c` `airy_ipc_reply()` | C-C07 | P2 |
+| Notification（bitwise OR badge + 3 状态） | `kernel/corekern/object/notification.c` | C-C01 | P1 |
+| Fastpath（POINT OF NO RETURN + 12 项前置检查） | `kernel/corekern/ipc/fastpath.c` | — | ✅ 已对齐 |
+| Zombie 能力增量清理（`reduceZombie` + preemptionPoint） | `kernel/corekern/object/` | C-C05 | P2 |
+| 极简错误码（POSIX errno 负值方案） | `airy_err_t`（详见 120-cross-project-code-sharing.md §2.1） | C-C03 | ✅ 已收敛 |
 | 单编译单元（`kernel_all.c` 拼接 + `-ffreestanding -nostdinc`） | 待评估 | C-C06 | P2 |
-| 位域 DSL（`bitfield_gen.py` + Isabelle/HOL 同源） | `tools/bitfield_gen.py`（fork seL4，移除 HOL 部分） | C-C02 | P1 |
-| syscall XML 化（`syscall.xml` + 生成脚本） | `include/uapi/airy_syscall.xml` + `tools/syscall_header_gen.py` | C-C04 | P1 |
-| TCB 内嵌 reply slot（`tcbCaller`/`tcbReply`） | `kernel/airy_thread.c`（待引入） | C-C07 | P2 |
+| 位域 DSL（`bitfield_gen.py` + Isabelle/HOL 同源） | `kernel/scripts/bitfield_gen.py`（fork seL4，移除 HOL 部分） | C-C02 | P1 |
+| syscall XML 化（`syscall.xml` + 生成脚本） | `kernel/include/uapi/airymax/syscall.xml` + `kernel/scripts/syscall_gen.py` | C-C04 | P1 |
+| TCB 内嵌 reply slot（`tcbCaller`/`tcbReply`） | `kernel/corekern/object/tcb.c`（待引入） | C-C07 | P2 |
 
-### 6.2 6 项新发现 seL4 设计模式（B2 新发现）
+### 8.2 6 项 seL4 设计模式深度借鉴
 
 | seL4 设计模式 | 来源 | agentrt-linux 落地建议 | 优先级 |
 |-------------|------|---------------------|--------|
 | prune + 生成头文件分离构建 | seL4 `tools/bitfield_gen.py` | 1.0.1 M2+ 评估 | P2 |
-| preemptionPoint 精细化（work-unit 计数器） | seL4 `src/kernel/thread.c` | `kernel/airy_preemption.c` 吸收 | P1 |
+| preemptionPoint 精细化（work-unit 计数器） | seL4 `src/kernel/thread.c` | `kernel/corekern/` 吸收 | P1 |
 | 三态 IRQ 状态机（IRQInactive/IRQSignal/IRQTimer/IRQIPI） | seL4 `include/object/structures.h` | 1.0.1 M2+ 评估 | P2 |
 | 调度 bitmap 二级索引 + 倒序优化 | seL4 `src/kernel/sched.c` | 1.0.1 M3+ 评估 | P2 |
 | `field_ptr(N)` 类型标记技巧 | seL4 `include/object/structures.h` | 1.0.1 M2+ 评估 | P2 |
@@ -274,9 +484,9 @@ kernel (L2)
 
 ---
 
-## 7. 文件命名规范
+## 9. 文件命名规范
 
-### 7.1 命名约定
+### 9.1 命名约定
 
 | 类型 | 命名规则 | 示例 |
 |------|---------|------|
@@ -285,9 +495,9 @@ kernel (L2)
 | [SC] UAPI 头文件 | `<语义域>.h`（无 `airy_` 前缀） | `syscalls.h`、`ipc.h`、`sched.h` |
 | 架构相关文件 | `arch/<arch>/<子系统>/` | `arch/x86/kernel/airy_syscall.c` |
 | 工具脚本 | `<工具名>_<类型>.py`/`.pl` | `bitfield_gen.py`、`checkpatch.pl` |
-| 构建脚本 | `<构建系统>.<扩展>` | `Makefile`、`Kconfig`、`Kbuild`、`Makefile.oever` |
+| 构建脚本 | `<构建系统>.<扩展>` | `Makefile`、`Kconfig`、`Kbuild`、`Makefile.airymaxos` |
 
-### 7.2 函数前缀规范
+### 9.2 函数前缀规范
 
 - **内核函数**：`airy_<子系统>_<功能>()`，例如 `airy_ipc_send()`、`airy_endpoint_recv()`
 - **[SC] 共享函数**：`airy_<语义域>_<功能>()`，例如 `airy_vtime_decay()`（agentrt 与 agentrt-linux 共享）
@@ -295,9 +505,9 @@ kernel (L2)
 
 ---
 
-## 8. 与现有文档的关系
+## 10. 与现有文档的关系
 
-### 8.1 文档体系映射
+### 10.1 文档体系映射
 
 | 文档 | 目录结构关注点 |
 |------|-------------|
@@ -308,51 +518,64 @@ kernel (L2)
 | [20-modules/](../20-modules/) | 8 子仓详细模块设计 |
 | [30-interfaces/](../30-interfaces/) | syscall + IPC + SDK + 编码规范 |
 | [40-dataflows/](../40-dataflows/) | 4 大数据流（认知 + 记忆 + IPC + 调度） |
-| [50-engineering-standards/120-cross-project-code-sharing.md](../50-engineering-standards/120-cross-project-code-sharing.md) | [SC] 共享契约层 SSoT |
-| [50-engineering-standards/09-ssot-registry.md](../50-engineering-standards/09-ssot-registry.md) | 全局规则编号 SSoT |
+| [50-engineering-standards/120-cross-project-code-sharing.md](../50-engineering-standards/120-cross-project-code-sharing.md) | [SC] 共享契约层落地规范 |
+| [50-engineering-standards/09-ssot-registry.md](../50-engineering-standards/09-ssot-registry.md) | **全局规则编号 SSoT**（OS-IRON-013/014/015 等所有规则编号的唯一权威来源） |
 
-### 8.2 本文档的 SSoT 范围
+### 10.2 本文档的 SSoT 依赖声明
 
-本文档是 agentrt-linux 源码目录结构的 SSoT，所有子目录设计、文件命名、[SC] 物理宿主归属以本文档为准。其他文档涉及目录结构时引用本文档，禁止重新定义。
+**本文档不是 SSoT**。本文档涉及的规则编号（如 OS-IRON-013 8 子仓 submodule、OS-IRON-014 [SC] 单一数据源、OS-IRON-015 编号管理元规则、OS-STD-062 子仓完整目录结构、OS-FMT-001 Tab 8 等）的**唯一权威来源**为 [`50-engineering-standards/09-ssot-registry.md`](../50-engineering-standards/09-ssot-registry.md)。
+
+当本文档与 SSoT 注册表冲突时，以 SSoT 注册表为准。新规则须按 [09-ssot-registry.md §1.4](../50-engineering-standards/09-ssot-registry.md) 流程申请注册。
 
 ---
 
-## 9. 实施路线图
+## 11. 实施路线图
 
-### 9.1 0.1.1（文档体系完成）
+### 11.1 0.1.1（文档体系完成）
 
-- [x] 本文档创建
-- [x] 目录结构设计经源码验证
-- [x] [SC] 6 头文件物理宿主确认（`include/uapi/airymax/`）
+- [x] 本文档创建（v0.1.1 初始版本）
+- [x] v0.2.4 升级：单仓视图 → 8 子仓 submodule（OS-IRON-013 落地）
+- [x] v0.2.4 升级：[SC] 路径修正 `include/uapi/airymax/` → `kernel/include/airymax/`（OS-IRON-014 落地）
+- [x] v0.2.4 升级：kernel/ 子仓定位修正（10 个 airy_*.c → 模型 A 完整 fork 60K+文件）
+- [x] v0.2.4 升级：§10.2 SSoT 声明修正（自称 SSoT → 引用 09-ssot-registry 唯一 SSoT）
 - [x] ES-OLK-1~13 落地证据映射
 - [x] seL4 设计模式对齐状态评估
 
-### 9.2 1.0.1 M1（代码开发启动）
+### 11.2 1.0.1 M0（目录骨架创建）
 
-- [ ] `kernel/` 子系统骨架代码填充（10 个 `.c` 文件）
-- [ ] `include/uapi/airymax/` 6 头文件物理落地
-- [ ] `arch/{x86,arm64,riscv}/` 三架构骨架
-- [ ] `scripts/` 构建系统（`Makefile`/`Kconfig`/`Kbuild`/`Makefile.oever`）
-- [ ] `tools/checkpatch.pl` + `.clang-format` 落地
-- [ ] `MAINTAINERS` 文件级维护者登记
+- [ ] 8 子仓 git 仓库初始化（kernel/services/security/memory/cognition/cloudnative/system/tests-linux）
+- [ ] 管理仓 .gitmodules 配置 + submodule 接入
+- [ ] 每子仓公共骨架（README/LICENSE/NOTICE/MAINTAINERS/.gitignore/CONTRIBUTING.md）
+- [ ] kernel/ 子仓完整 Linux 6.6 fork 接入（git submodule 或 git subtree）
+- [ ] `kernel/include/airymax/` 6 [SC] 头文件物理落地
+- [ ] `kernel/arch/{x86,arm64,riscv}/` 三架构骨架
+- [ ] `kernel/scripts/` 构建系统（`Makefile`/`Kconfig`/`Kbuild`/`Makefile.airymaxos`）
+- [ ] `kernel/scripts/checkpatch.pl` + `.clang-format` 落地
 
-### 9.3 1.0.1 M2+（深度借鉴）
+### 11.3 1.0.1 M1（代码开发启动）
 
-- [ ] `tools/bitfield_gen.py` fork seL4 + 移除 HOL 部分（C-C02）
-- [ ] `include/uapi/airy_syscall.xml` + `tools/syscall_header_gen.py`（C-C04）
-- [ ] `kernel/airy_notification.c` 重新设计（3 状态 + bitwise OR badge，C-C01）
-- [ ] `kernel/airy_zombie.c` 增量清理算法（C-C05）
+- [ ] `kernel/corekern/` 微核心原语骨架代码填充
+- [ ] 各子仓模块骨架代码填充
+- [ ] CI 流水线搭建（含 [SC] 双向 CI）
+
+### 11.4 1.0.1 M2+（深度借鉴）
+
+- [ ] `kernel/scripts/bitfield_gen.py` fork seL4 + 移除 HOL 部分（C-C02）
+- [ ] `kernel/include/uapi/airymax/syscall.xml` + `kernel/scripts/syscall_gen.py`（C-C04）
+- [ ] `kernel/corekern/object/notification.c` 重新设计（3 状态 + bitwise OR badge，C-C01）
+- [ ] `kernel/corekern/object/` Zombie 增量清理算法（C-C05）
 - [ ] TCB 内嵌 reply slot（C-C07）
 - [ ] MDB 派生树增强（C-C08）
 - [ ] CapRights 4 位掩码（C-C09）
 
 ---
 
-## 10. 版本历史
+## 12. 版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| 0.1.1 | 2026-07-13 | 初始版本 |
+| 0.1.1 | 2026-07-13 | 初始版本（单仓视图，[SC] 路径误用 `include/uapi/airymax/`，kernel/ 仅 10 个 airy_*.c） |
+| 0.2.4 | 2026-07-15 | **生产级修正版**：(1) 单仓视图 → 8 子仓 submodule（OS-IRON-013 落地）；(2) [SC] 路径 `include/uapi/airymax/` → `kernel/include/airymax/`（OS-IRON-014 落地）；(3) kernel/ 子仓 10 个 airy_*.c → 模型 A 完整 fork 60K+文件；(4) §10.2 自称 SSoT → 引用 09-ssot-registry 唯一 SSoT；(5) 清洗所有上游发行版名称引用（BAN-INTERNAL-001 落地，统一表述为"Linux 6.6 内核基线"）；(6) 新增 §3 kernel/ 完整目录树 + §3.3 子仓引用方式 + §3.4 子仓内部头文件命名规范 + §4 其他 7 子仓目录结构概要 + §4.1 形式化验证工程标准；(7) §11 实施路线图新增 M0 目录骨架创建阶段 |
 | 1.0.1 M1 | 2027-XX-XX | M1 代码开发启动，骨架代码填充 |
 | 1.0.1 M2+ | 2027-XX-XX | seL4 深度借鉴（bitfield DSL / Notification 重设计 / Zombie 清理等） |
 

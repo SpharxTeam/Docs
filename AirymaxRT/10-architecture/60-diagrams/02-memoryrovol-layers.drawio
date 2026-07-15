@@ -90,7 +90,7 @@
         </mxCell>
 
         <!-- ===== L2 Feature Layer ===== -->
-        <mxCell id="l2" value="L2 Feature Layer 特征层 — 存储后端: 向量数据库 (FAISS 索引 + 倒排索引)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=8;" vertex="1" parent="1">
+        <mxCell id="l2" value="L2 Feature Layer 特征层 — 存储后端: 向量数据库 (HNSW 索引 + 倒排索引)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=8;" vertex="1" parent="1">
           <mxGeometry x="300" y="440" width="780" height="160" as="geometry" />
         </mxCell>
 
@@ -98,7 +98,7 @@
           <mxGeometry x="320" y="480" width="170" height="100" as="geometry" />
         </mxCell>
 
-        <mxCell id="l2_2" value="FAISS Index&#xa;向量索引&#xa;──────────&#xa;HNSW / IVF / FLAT&#xa;feature_vector_t" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="l2_2" value="HNSW Index&#xa;向量索引&#xa;──────────&#xa;图索引 (M / ef_construction)&#xa;feature_vector_t" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="510" y="480" width="170" height="100" as="geometry" />
         </mxCell>
 

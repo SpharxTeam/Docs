@@ -520,7 +520,7 @@ typedef struct airy_memory_query {
    ↓ FFI 调用
 MemoryRovol
    ├─ L1 Raw: 文件系统存储
-   ├─ L2 Feature: FAISS 向量索引
+   ├─ L2 Feature: HNSW 向量索引
    ├─ L3 Structure: 绑定算子
    └─ L4 Pattern: 持久同调分析
 ```
@@ -839,9 +839,9 @@ void airy_sys_init(void* cognition, void* execution, void* memory) {
 
 ---
 
-## 8. 实现状态与性能基准
+## 9. 实现状态与性能基准
 
-### 8.1 已完成功能
+### 9.1 已完成功能
 
 #### 认知层 (90%)
 - ✅ 意图理解引擎基础框架
@@ -867,7 +867,7 @@ void airy_sys_init(void* cognition, void* execution, void* memory) {
 - ✅ 上下文挂载机制
 - 🔲 记忆进化触发（部分实现）
 
-### 8.2 性能指标
+### 9.2 性能指标
 
 **测试环境**: Intel i7-12700K, 32GB RAM, Linux 6.5
 
@@ -882,9 +882,9 @@ void airy_sys_init(void* cognition, void* execution, void* memory) {
 
 ---
 
-## 9. 开发指南
+## 10. 开发指南
 
-### 9.1 自定义规划策略
+### 10.1 自定义规划策略
 
 ```c
 typedef struct my_plan_data {
@@ -904,18 +904,18 @@ airy_err_t my_plan_strategy(
 
 void my_plan_destroy(airy_plan_strategy_t* strategy) {
     if (strategy->data) {
-        free(strategy->data);
+        AIRY_FREE(strategy->data);
     }
 }
 
 // 创建策略
-airy_plan_strategy_t* strategy = malloc(sizeof(airy_plan_strategy_t));
+airy_plan_strategy_t* strategy = AIRY_MALLOC(sizeof(airy_plan_strategy_t));
 strategy->plan = my_plan_strategy;
 strategy->destroy = my_plan_destroy;
 strategy->data = NULL;
 ```
 
-### 9.2 注册执行单元
+### 10.2 注册执行单元
 
 ```c
 typedef struct my_unit {
@@ -940,9 +940,9 @@ airy_execution_register_unit(engine, "my_unit", &my_unit->base);
 
 ---
 
-## 10. 故障排查
+## 11. 故障排查
 
-### 10.1 常见问题
+### 11.1 常见问题
 
 #### 问题：任务规划失败
 **症状**: `airy_cognition_process()` 返回错误  
@@ -958,7 +958,7 @@ airy_execution_register_unit(engine, "my_unit", &my_unit->base);
 2. 检查任务依赖关系
 3. 验证并发线程数配置
 
-### 10.2 调试技巧
+### 11.2 调试技巧
 
 - 启用 Debug 日志级别
 - 使用 `airy_cognition_stats()` 查看统计信息
@@ -966,7 +966,7 @@ airy_execution_register_unit(engine, "my_unit", &my_unit->base);
 
 ---
 
-## 11. 参考资料
+## 12. 参考资料
 
 - [README.md](../../README.md) - 项目总览
 - [memoryrovol.md](memoryrovol.md) - MemoryRovol 架构详解

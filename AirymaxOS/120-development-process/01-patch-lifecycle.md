@@ -700,7 +700,7 @@ agentrt-linux 的 umbrella repo 通过 `.gitmodules` 引用 8 子仓的 commit S
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集补丁生命周期 6 阶段所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核开发流程（`Documentation/process/`）、git format-patch 补丁格式规范、DCO 1.1 标准，以及 agentrt-linux GitHub PR 工作流专属契约（`include/airymax/patch_types.h`）。
+> **附录定位**： 本附录汇集补丁生命周期 6 阶段所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 内核开发流程（`Documentation/process/`）、git format-patch 补丁格式规范、DCO 1.1 标准，以及 agentrt-linux GitHub PR 工作流专属契约（`include/airymax/patch_types.h`，agentrt-linux 内核内部头文件，[IND] 独立层，agentrt 用户态不共享）。
 
 ### A.1 核心数据结构
 

@@ -203,7 +203,7 @@ eBPF 安全性由验证器在加载时保证，分两阶段：第一阶段做 DA
 
 加载失败时验证器返回详细日志，可通过 `bpf_attr.log_buf` 获取。验证器日志含程序名、失败指令、错误原因三要素。agentrt-linux 规定所有 BPF 加载失败必须将验证器日志落审计至 `/var/log/airymaxos/bpf-load.log`，便于事后排查。
 
-**OS-STD-012: BPF 程序加载失败时必须记录验证器日志，含程序名、失败指令偏移、错误原因三要素。**
+**OS-STD-OBS-012: BPF 程序加载失败时必须记录验证器日志，含程序名、失败指令偏移、错误原因三要素。**
 
 ---
 
@@ -305,7 +305,7 @@ int trace_cognition(void *ctx)
 
 **OS-OBS-017: Token 累加计数器必须使用 `BPF_MAP_TYPE_PERCPU_ARRAY`，key 为 agent_id，value 为 token 累加值；不得使用普通 hash 避免锁竞争。**
 
-**OS-STD-013: BPF map 创建必须显式设置 `max_entries`，ringbuf 大小不得小于 1 MB，hash/array 不得小于 1024 条目。**
+**OS-STD-OBS-013: BPF map 创建必须显式设置 `max_entries`，ringbuf 大小不得小于 1 MB，hash/array 不得小于 1024 条目。**
 
 ### 8.4 struct_ops map 与 task_storage map
 
@@ -350,7 +350,7 @@ graph TD
 
 **OS-KER-112: kernel 必须支持 `bpf(BPF_LINK_CREATE)` 显式 link 创建，确保 BPF 程序生命周期可独立于加载进程管理。**
 
-**OS-STD-014: BPF 程序 .o 文件必须随 airymaxos-kernel 发布包分发，存放于 `/usr/lib/airymaxos/bpf/`，便于 Agent 重载时引用。**
+**OS-STD-OBS-014: BPF 程序 .o 文件必须随 airymaxos-kernel 发布包分发，存放于 `/usr/lib/airymaxos/bpf/`，便于 Agent 重载时引用。**
 
 ---
 
@@ -558,7 +558,7 @@ struct airy_struct_ops_common_value {
 };
 ```
 
-**OS-STD-015: agentrt-linux eBPF 与 agentrt 共享 `include/airymax/bpf_struct_ops.h` 头文件，struct_ops state 枚举值（0/1/2/3）与字段语义两端必须一致；两端事件格式必须一致，便于跨态聚合分析。**
+**OS-STD-OBS-015: agentrt-linux eBPF 与 agentrt 共享 `include/airymax/bpf_struct_ops.h` 头文件，struct_ops state 枚举值（0/1/2/3）与字段语义两端必须一致；两端事件格式必须一致，便于跨态聚合分析。**
 
 ### 13.3 [SS] 语义同源层
 
@@ -617,9 +617,9 @@ MicroCoreRT 极简内核契约要求：内核态 BPF 程序不解析用户态事
 | 0.1.1 | 2026-07-07 | 修订：新增第 10 章 struct_ops 注册机制与 SCHED_AGENT 集成；更新 IRON-9 v2 三层共享模型（[SC]/[SS]/[IND]）；增强程序类型与 map 类型（struct_ops/task_storage）；新增 OS-OBS-021/022、OS-KER-116/022 规则 |
 | 1.0.1 | 2026-07-07 | 开发版：补充 Token 能效与 Agent 行为追踪实现 + struct_ops 集成实现 |
 
-**OS-STD-016: 文档中引用的 BPF 程序类型、map 类型、kfunc 名必须与 Linux 6.6 内核基线的 `include/uapi/linux/bpf.h` 保持一致；上游变更时本文档必须同步更新。**
+**OS-STD-OBS-016: 文档中引用的 BPF 程序类型、map 类型、kfunc 名必须与 Linux 6.6 内核基线的 `include/uapi/linux/bpf.h` 保持一致；上游变更时本文档必须同步更新。**
 
-**OS-STD-017: OS-KER / OS-STD / OS-OBS 规则编号一经分配不得复用；废弃规则标记 `DEPRECATED` 但保留编号。**
+**OS-IRON-015: OS-KER / OS-STD / OS-OBS / OS-DRV 等所有规则编号一经分配不得复用；废弃规则标记 `DEPRECATED` 但保留编号。本规则为全局元规则，2026-07-15 从原 OS-STD-017 提升为 OS-IRON-015（编号管理元规则应归入 IRON 系列，因 OS-IRON-013 已被"8 子仓 submodule"占用而改用 OS-IRON-015）。**
 
 **维护责任**：文档负责人为 agentrt-linux 可观测性工程组；代码负责人为 kernel BPF 维护者；每个 LTS 小版本发布前重新核对 BPF 接口与规则编号有效性。
 

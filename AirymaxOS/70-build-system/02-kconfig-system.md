@@ -638,7 +638,7 @@ graph LR
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 Kconfig 配置系统所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `scripts/kconfig/`（解析器与配置工具）、`init/Kconfig`、`lib/Kconfig.airymaxos` 及 `include/airymax/kconfig_types.h`（[SC] 共享契约层）。A.1 以 C 结构体建模 Kconfig 符号/菜单的内部表示，A.2 以解析器入口函数为主，A.3 给出 `CONFIG_AIRY_*` 完整清单与三态语义。
+> **附录定位**： 本附录汇集 Kconfig 配置系统所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `scripts/kconfig/`（解析器与配置工具）、`init/Kconfig`、`lib/Kconfig.airymaxos` 及 `include/airymax/kconfig_types.h`（agentrt-linux 内核内部头文件，[IND] 独立层，agentrt 用户态不共享）。A.1 以 C 结构体建模 Kconfig 符号/菜单的内部表示，A.2 以解析器入口函数为主，A.3 给出 `CONFIG_AIRY_*` 完整清单与三态语义。
 
 ### A.1 核心数据结构
 

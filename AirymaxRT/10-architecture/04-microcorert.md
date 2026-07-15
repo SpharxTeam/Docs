@@ -750,7 +750,7 @@ airy_core_ipc_recv(channel, (void**)&recv_msg, &recv_len, 1000);
 #include "memory_manager.h"
 
 // 创建带析构函数的智能指针
-struct my_data* data = malloc(sizeof(struct my_data));
+struct my_data* data = AIRY_MALLOC(sizeof(struct my_data));
 airy_core_smart_ptr_t* ptr;
 airy_core_smart_ptr_create(data, sizeof(*data), free, &ptr);
 

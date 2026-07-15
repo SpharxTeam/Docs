@@ -64,7 +64,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 6 个 \[SC] 头文件清单
 
-\[SC] 层包含**6 个**共享头文件，存放于 `include/airymax/` 目录（完整内核路径 `include/uapi/airymax/`，对齐 Linux UAPI 标准），两端（agentrt 与 agentrt-linux）共同依赖，**逐字节相同**：
+\[SC] 层包含**6 个**共享头文件，**唯一物理宿主**于 `kernel/include/airymax/` 目录（其他子仓通过 `-I../kernel/include` 引用，禁止物理副本，OS-IRON-014 落地），两端（agentrt 与 agentrt-linux）共同依赖，**逐字节相同**：
 
 | 序号 | 文件                  | 共享内容                                                                                                    | magic 值               | 落地路径                                |
 | -- | ------------------- | ------------------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------- |
@@ -88,7 +88,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - 规则编号体系（IRON/BAN/STD/ACC）
 - 五维正交 24 原则
 
-### 2.2 补充共享文件：bpf\_struct\_ops.h（非 [SC] 核心头文件）
+### 2.2 补充共享文件 1：bpf\_struct\_ops.h（非 [SC] 核心头文件）
 
 ```c
 /* SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0 */
@@ -124,9 +124,30 @@ enum airy_struct_ops_state {
 
 ### 2.2.1 跨平台 UAPI 类型兼容：uapi\_compat.h（辅助文件）
 
-所有 6 个 [SC] 核心头文件 + `bpf_struct_ops.h` 均通过 `#include <airymax/uapi_compat.h>` 获取 `__u8`/`__u16`/`__u32`/`__u64`/`__s32`/`__s64` 等 UAPI 类型。该辅助文件在 Linux 上直接包含 `<linux/types.h>`，在 macOS/Windows 上通过 `<stdint.h>` + typedef 提供等价类型，确保 [SC] 头文件在 agentrt 用户态跨平台（Linux/macOS/Windows）和 agentrt-linux 内核态均能逐字节相同地编译。
+所有 6 个 [SC] 核心头文件 + `bpf_struct_ops.h` + `error.h` 均通过 `#include <airymax/uapi_compat.h>` 获取 `__u8`/`__u16`/`__u32`/`__u64`/`__s32`/`__s64` 等 UAPI 类型。该辅助文件在 Linux 上直接包含 `<linux/types.h>`，在 macOS/Windows 上通过 `<stdint.h>` + typedef 提供等价类型，确保 [SC] 头文件在 agentrt 用户态跨平台（Linux/macOS/Windows）和 agentrt-linux 内核态均能逐字节相同地编译。
 
 > **设计约束**：[SC] 头文件中**禁止**直接 `#include <linux/types.h>`（macOS/Windows 无此头文件），**必须**通过 `<airymax/uapi_compat.h>` 间接获取 UAPI 类型。
+
+### 2.2.2 补充共享文件 2：error.h（非 [SC] 核心头文件）
+
+> **定位说明**：`error.h` 是 agentrt 与 agentrt-linux 之间的**补充共享文件**（错误码 SSoT），两端共享代码但**不属于 6 个 [SC] 核心头文件**。物理宿主为 `kernel/include/airymax/error.h`（[SC] 物理宿主目录内），agentrt 用户态通过 `-I` 引用。
+
+**权威源文件迁移路径**（2026-07-15 登记）：
+
+- **当前实际权威源**：`agentrt/commons/utils/error/include/error.h`（定义 `AIRY_ERR_*` 扩展码 + 错误链/i18n 接口）+ `agentrt/commons/include/airy_types.h`（定义 `airy_err_t` 类型 + `AIRY_E*` POSIX 码）
+- **规划 SSoT 路径**：`kernel/include/airymax/error.h`（[SC] 物理宿主，当前尚未创建；创建后 agentrt 用户态通过 `-I` 引用，禁止物理副本）
+- **SSoT 登记**：`09-ssot-registry.md §2 OS-IRON-014`（[SC] 6 核心 + 2 补充单一数据源）
+
+**错误码体系**：
+
+- `airy_err_t` 类型定义于 `agentrt/commons/include/airy_types.h:41`（`typedef int32_t airy_err_t`）
+- 成功码：`AIRY_EOK = 0`（与 `AIRY_SUCCESS = 0` 等价，推荐使用 `AIRY_EOK`）
+- 错误码值为 POSIX errno 负值（参考 Linux errno.h）：`AIRY_EINVAL=(-22)`、`AIRY_ENOMEM=(-12)`、`AIRY_ETIMEDOUT=(-110)`、`AIRY_EPERM=(-1)`、`AIRY_ENOENT=(-2)`、`AIRY_EBUSY=(-16)`、`AIRY_EIO=(-5)`、`AIRY_EEXIST=(-17)` 等
+- 无对应 POSIX errno 的保留自定义负值（如 `AIRY_ENOTINIT=(-9)`、`AIRY_ECANCELLED=(-10)`）
+
+**已废弃方案**：方案 B（runtime_interfaces.md 的 -1/-2/-11 自定义序列）、方案 C（coding_conventions.md 的 -2/-4/-6 旧值）、方案 D（project_erp.md 的位掩码 0x00010000，仅用于 ERP 分类，非错误码方案）均已废弃，禁止在新代码中使用。
+
+任何文档、代码不得另起定义，必须引用此权威源。详见 `180-i18n/03-error-message-i18n.md` §2.2。
 
 ### 2.3 头文件 1：memory\_types.h
 

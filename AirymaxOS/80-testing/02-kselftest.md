@@ -367,7 +367,7 @@ TEST_HARNESS_MAIN
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include "../../../include/uapi/airymaxos/agent_ioctl.h"
+#include "../../../include/uapi/airymax/agent_ioctl.h"
 
 FIXTURE(agent_sdk) {
     int agent_fd;
@@ -410,7 +410,7 @@ TEST_F(agent_sdk, ipc_128b_header_protocol) {
 TEST_HARNESS_MAIN
 ```
 
-配套文件：`settings` 声明 `timeout=45`；`Makefile` 用 `CFLAGS += -I../../../../include/uapi/airymaxos` + `TEST_GEN_PROGS := agent_sdk_contract` + `include ../lib.mk`；`config` 列出 `CONFIG_AIRY_AGENT=y`/`CONFIG_AIRY_IPC=y`/`CONFIG_AIRY_COGNITION=y`。
+配套文件：`settings` 声明 `timeout=45`；`Makefile` 用 `CFLAGS += -I../../../../include/uapi/airymax` + `TEST_GEN_PROGS := agent_sdk_contract` + `include ../lib.mk`；`config` 列出 `CONFIG_AIRY_AGENT=y`/`CONFIG_AIRY_IPC=y`/`CONFIG_AIRY_COGNITION=y`。
 
 **OS-TEST-020**：agentrt-linux Agent SDK 的每个公共 ioctl 必须有 kselftest 系统级测试；契约覆盖正常路径 + `EINVAL`/`ENOMEM`/`EBUSY` 各一例异常路径。
 
@@ -591,7 +591,7 @@ kselftest 输出 TAP（version 13），形如 `ok <num> <suite>:<case>` / `not o
 - `80-testing/08-agent-contract-testing.md`（agentrt-linux 专属：Agent 行为契约测试，待创建）
 - `50-engineering-standards/06-toolchain-and-automation.md`（7 层验证体系，本卷属第 8 层）
 - `50-engineering-standards/01-coding-standards.md`（错误处理强制，与 kselftest 退出码对齐）
-- `20-modules/08-tests.md`（tests-linux 子仓设计）
+- `20-modules/08-tests-linux.md`（tests-linux 子仓设计）
 - `110-security/README.md`（安全测试，复用 kselftest 框架）
 
 ### 12.1 上游参考
@@ -780,7 +780,7 @@ int kselftest_run(struct kselftest_module *module,
 TEST_GEN_PROGS := agent_sdk_contract
 TEST_PROGS     := agent_runtime_smoke.sh
 TEST_GEN_FILES := agent_fixture.bin
-CFLAGS += -I../../../../include/uapi/airymaxos
+CFLAGS += -I../../../../include/uapi/airymax
 
 # 必须在变量声明后 include 公共构建规则
 include ../lib.mk
@@ -957,7 +957,7 @@ void ksft_exit_skip(const char *fmt, ...) __attribute__((noreturn));
 #   典型: TEST_GEN_PROGS_EXTENDED := libagent_test.a
 
 # EXTRA_CFLAGS / CFLAGS: 编译开关（须用 -I 指向 uapi 头）
-#   典型: CFLAGS += -I../../../../include/uapi/airymaxos
+#   典型: CFLAGS += -I../../../../include/uapi/airymax
 
 # include ../lib.mk: 必须在所有变量声明之后 include 公共构建规则
 # @since 0.1.1

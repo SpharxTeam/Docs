@@ -41,7 +41,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 5 | [cognition](20-modules/05-cognition.md)             | 极境认知  | CoreLoopThree kthread + Wasm + LLM 调度 + 超节点沙箱           | coreloopthree + frameworks   |
 | 6 | [cloudnative](20-modules/06-cloudnative.md)         | 极境云原生 | K8s + containerd + OCI + agentctl + 超节点 OS              | gateway + sdk                |
 | 7 | [system](20-modules/07-system.md)                   | 极境系统  | 包管理 + 配置 + shell + 基础库 + DevStation                     | commons                      |
-| 8 | [tests-linux](20-modules/08-tests.md)               | 极境测试  | 单元测试 + 集成测试 + 形式化验证 + Soak + 混沌                         | 全模块测试                        |
+| 8 | [tests-linux](20-modules/08-tests-linux.md)               | 极境测试  | 单元测试 + 集成测试 + 形式化验证 + Soak + 混沌                         | 全模块测试                        |
 
 ## 4. 文档体系结构（19 模块）
 

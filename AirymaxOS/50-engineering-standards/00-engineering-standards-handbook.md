@@ -61,9 +61,9 @@ agentrt-linux 工程标准由 4 主题文档构成，本手册为其总索引与
 
 ## 第 2 章 IRON 工程铁律（不可妥协）
 
-### 2.1 OS-IRON 编号汇总（14 条铁律）
+### 2.1 OS-IRON 编号汇总（15 条铁律）
 
-> **SSoT 声明**：OS-IRON 铁律编号的唯一权威来源为 [09-ssot-registry.md §2](./09-ssot-registry.md)（14 条铁律）。本表为该注册表的公开镜像，必须与之一一对应。原表中不属于 IRON 层级的规则已重分类：①"7 层自动化验证强制"→ OS-ACC-002（验收标准）；②"信任链分层不可越级提交"→ OS-STD-GOV-008；③"Reviewed-by 不可替代 Signed-off-by"→ 由 IRON-005（审查优先）+ IRON-007（DCO）共同涵盖；④"组织 6 级成熟度 Level 2"→ OS-STD-GOV-009。
+> **SSoT 声明**：OS-IRON 铁律编号的唯一权威来源为 [09-ssot-registry.md §2](./09-ssot-registry.md)（15 条铁律，含 OS-IRON-015 编号管理元规则，2026-07-15 提升）。本表为该注册表的公开镜像，必须与之一一对应。原表中不属于 IRON 层级的规则已重分类：①"7 层自动化验证强制"→ OS-ACC-002（验收标准）；②"信任链分层不可越级提交"→ OS-STD-GOV-008；③"Reviewed-by 不可替代 Signed-off-by"→ 由 IRON-005（审查优先）+ IRON-007（DCO）共同涵盖；④"组织 6 级成熟度 Level 2"→ OS-STD-GOV-009。
 
 | 编号 | 规则 | 五维映射 | 来源文档 |
 |------|------|---------|---------|
@@ -81,6 +81,7 @@ agentrt-linux 工程标准由 4 主题文档构成，本手册为其总索引与
 | **OS-IRON-012** | seL4 借鉴仅限架构层（ES-SEL4-1~5）——不包括编码风格层（4 空格 / camelCase / 重度 typedef） | — | 04 工程思想 §12 |
 | **OS-IRON-013** | 8 子仓独立 git 仓库 + submodule 管理——拆分为 8 个独立 leaf 仓，由管理仓通过 submodule 统一管理 | S-2 | 04 工程思想 §13 |
 | **OS-IRON-014** | [SC] 共享契约层 6 头文件单一数据源（禁止物理副本）——6 个头文件物理宿主在 kernel/include/airymax/，其他子仓通过 -I 引用 | E-7 | 120 跨项目代码共享 |
+| **OS-IRON-015** | 编号管理元规则——OS-KER / OS-STD / OS-OBS / OS-DRV 等所有规则编号一经分配不得复用；废弃规则标记 `DEPRECATED` 但保留编号（原 OS-STD-017，2026-07-15 提升为 OS-IRON-015） | S-1 | 90-observability/02-ebpf-probes.md §14.2 |
 
 ### 2.2 IRON 铁律执行机制
 
@@ -100,6 +101,7 @@ agentrt-linux 工程标准由 4 主题文档构成，本手册为其总索引与
 | OS-IRON-012 | seL4 借鉴范围审查（仅 ES-SEL4-1~5 架构层） | 编码风格层借鉴被拒绝 |
 | OS-IRON-013 | 8 子仓仓库结构校验 + submodule 一致性检查 | 跨仓直接引用（非 submodule）被拒绝 |
 | OS-IRON-014 | `scripts/check-sc-single-source.sh` 检查 [SC] 头文件单一数据源 | 物理副本被检测并拒绝 |
+| OS-IRON-015 | SSoT 注册表唯一性校验 + 废弃规则编号占用扫描 + CI 编号冲突检测 | 重复登记或复用废弃编号被 CI 阻断合并 |
 
 ---
 
@@ -111,13 +113,15 @@ agentrt-linux 工程标准由 4 主题文档构成，本手册为其总索引与
 
 本章不再镜像 09-ssot-registry.md 的完整内容（2026-07-12 SSoT 重新设计：取消三层镜像，消除 ~200 行重复）。请直接查阅 [09-ssot-registry.md](./09-ssot-registry.md) 获取：
 
-- §2 OS-IRON 工程铁律（14 条）
+- §2 OS-IRON 工程铁律（15 条）
 - §3 OS-KER 内核工程规则（001-155 + 211/221）
 - §4 OS-STD 标准规则（CODE/FMT/STY/GOV/DOC/CHK 子域）
 - §5 OS-BAN 禁止规则（11 条）
-- §6 OS-ABI 接口稳定性
-- §7 OS-ACC 验收标准
-- §8 术语表与废弃文档登记
+- §6 OS-ACC 验收标准
+- §7 OS-ABI 接口稳定性
+- §8 命名规范
+- §9 OS-SEC 安全工程规则
+- §10 agentrt 规则编号体系（17 类 751 条，2026-07-15 升级合并）
 
 ### 3.1 编号格式约定（速查）
 

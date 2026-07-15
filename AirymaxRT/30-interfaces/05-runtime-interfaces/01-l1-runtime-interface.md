@@ -47,7 +47,7 @@
 
 所有 L1 接口返回 `are_error_t`（`int32_t`）。成功为 `ARE_OK (0)`，错误为负值。错误码权威定义与分段见 L3 标准《第 5 节 统一错误码体系》；本标准仅引用下列基础码。
 
-> **SSoT 映射声明**：[SC] 共享契约层错误码 SSoT 位于 `include/airymax/error.h`，类型 `airy_err_t = int32_t`（定义于 `airy_types.h:41`），与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致。L1 标准 ABI 采用 `ARE_*` 前缀作为第三方可实现的公开接口，与内部 `AIRY_*` 宏**值空间一致**（均为 `int32_t`），映射关系：`ARE_OK ↔ AIRY_EOK`、`ARE_EINVAL ↔ AIRY_EINVAL`、`ARE_ENOMEM ↔ AIRY_ENOMEM`、`ARE_ETIMEDOUT ↔ AIRY_ETIMEDOUT` 等。`ARE_*` 与 `AIRY_*` 应保持数值对齐（POSIX errno 负值），具体值见 `docs/AirymaxRT/30-interfaces/05-runtime-interfaces/` 同目录 L3 标准。
+> **SSoT 映射声明**：[SC] 共享契约层错误码 SSoT 位于 `agentrt/commons/include/airy_types.h`（`airy_err_t` 类型 + `AIRY_E*` POSIX 码）+ `agentrt/commons/utils/error/include/error.h`（`AIRY_ERR_*` 扩展码）；`include/airymax/error.h` 为规划中的 [SC] 共享路径，当前尚未创建。类型 `airy_err_t = int32_t`（定义于 `airy_types.h:41`），与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致。L1 标准 ABI 采用 `ARE_*` 前缀作为第三方可实现的公开接口，与内部 `AIRY_*` 宏**值空间一致**（均为 `int32_t`），映射关系：`ARE_OK ↔ AIRY_EOK`、`ARE_EINVAL ↔ AIRY_EINVAL`、`ARE_ENOMEM ↔ AIRY_ENOMEM`、`ARE_ETIMEDOUT ↔ AIRY_ETIMEDOUT` 等。`ARE_*` 与 `AIRY_*` 应保持数值对齐（POSIX errno 负值），具体值见 `docs/AirymaxRT/30-interfaces/05-runtime-interfaces/` 同目录 L3 标准。
 
 | 宏 | 值 | 含义 | 映射至 `AIRY_*` |
 |----|----|------|----------------|

@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **最新**: 2026-06-09
 **状态**: 维护中
-**路径**: OpenAirymax/docs/AirymaxRT/20-modules/10-contracts/03-protocol-contract.md
+**路径**: docs/AirymaxRT/20-modules/10-contracts/03-protocol-contract.md
 ---
 
 ## 编制说明
@@ -41,7 +41,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 |------|---------|------|
 | Habitat 网关 | 统一的通信网关，处理外部请求和服务间通信 | 本规范 |
 | JSON-RPC 2.0 | 基于 JSON 的远程过程调用协议 | 本规范 |
-| 系统调用 (Syscall) | 用户态进入内核的唯一入口 | [syscall_api_contract.md](./syscall_api_contract.md) |
+| 系统调用 (Syscall) | 用户态进入内核的唯一入口 | [04-syscall-api-contract.md](./04-syscall-api-contract.md) |
 | TraceID | 分布式追踪的唯一标识 | [日志打印规范](../../50-engineering-standards/10-coding-style/coding_conventions.md) |
 
 ---
@@ -657,7 +657,7 @@ X-Trace-ID: abc123def456
 - `file`: 源文件名
 - `line`: 源文件行号
 
-详见 [日志格式规范](./logging_format.md)。
+详见 [日志格式规范](./05-logging-format.md)。
 
 #### 6.2.3 指标收集
 
@@ -876,9 +876,9 @@ curl -X POST http://localhost:8080/rpc \
 
 | 引用规范 | 关系说明 |
 |---------|---------|
-| [架构设计原则](../../00-architectural-principles.md) | 本规范是架构原则在通信层面的具体实现，特别是层次分解和接口稳定原则 |
-| [系统调用 API 规范](./syscall_api_contract.md) | 本规范定义了系统调用的传输协议，syscall_api_contract.md 定义了具体的 API 接口 |
-| [日志格式规范](./logging_format.md) | 本规范要求所有组件使用统一的日志格式，支持 TraceID 贯穿 |
+| [架构设计原则](../../10-architecture/00-architectural-principles.md) | 本规范是架构原则在通信层面的具体实现，特别是层次分解和接口稳定原则 |
+| [系统调用 API 规范](./04-syscall-api-contract.md) | 本规范定义了系统调用的传输协议，04-syscall-api-contract.md 定义了具体的 API 接口 |
+| [日志格式规范](./05-logging-format.md) | 本规范要求所有组件使用统一的日志格式，支持 TraceID 贯穿 |
 | [日志打印规范](../../50-engineering-standards/10-coding-style/coding_conventions.md) | 通信过程中的日志记录应遵循日志打印规范 |
 | [统一术语表](../../TERMINOLOGY.md) | 本规范使用的术语定义和解释 |
 
@@ -887,7 +887,7 @@ curl -X POST http://localhost:8080/rpc \
 ## 参考文献
 
 [1] Airymax 设计哲学。../../00-requirements/04-design-principles-cn.md  
-[2] 架构设计原则。../../00-architectural-principles.md  
+[2] 架构设计原则。../../10-architecture/00-architectural-principles.md  
 [3] 统一术语表。../../TERMINOLOGY.md  
 [4] JSON-RPC 2.0 Specification. https://www.jsonrpc.org/specification  
 [5] RFC 6455: The WebSocket Protocol. https://tools.ietf.org/html/rfc6455  

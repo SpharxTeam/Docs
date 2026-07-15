@@ -75,7 +75,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 所有 API 函数返回 `airy_err_t` 类型（`int32_t`）：
 
-> **SSoT 声明**：错误码权威定义位于 `include/airymax/error.h`（[SC] 共享契约层，agentrt 与 agentrt-linux 共享同一物理头文件）。类型 `airy_err_t = int32_t` 定义于 `airy_types.h:41`。本表与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致。
+> **SSoT 声明**：错误码权威定义位于 `agentrt/commons/include/airy_types.h`（`airy_err_t` 类型 + `AIRY_E*` POSIX 码）和 `agentrt/commons/utils/error/include/error.h`（`AIRY_ERR_*` 扩展码）。`include/airymax/error.h` 为规划中的 [SC] 共享路径，当前尚未创建。类型 `airy_err_t = int32_t` 定义于 `airy_types.h:41`。本表与 `docs/AirymaxRT/50-engineering-standards/120-cross-project-code-sharing.md` §2.1（13 个 `AIRY_E*` 宏，对齐 POSIX errno 负值）逐字节一致。
 
 | 错误码 | 值 | 含义 |
 |--------|---|------|
