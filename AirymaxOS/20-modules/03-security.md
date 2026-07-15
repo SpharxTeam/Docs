@@ -181,7 +181,7 @@ graph TD
     subgraph SS["[SS] 语义同源层"]
         SECHOOKS[security_add_hooks]
         LANDLOCK[Landlock 三系统调用]
-        EBPFSIGN[eBPF 签名验证]
+        EBPFSIGN[eBPF 代码完整性]
         CAPCHECK[cap_capable 检查]
     end
     subgraph IND["[IND] 独立层"]

@@ -530,7 +530,7 @@ client = AirymaxClient(
 | `cognition_types.h` | 三阶段枚举 + Thinkdual 模式 + Token 能效 | CognitionClient / ChatClient |
 | `memory_types.h` | MemoryRovol L1-L4 快照结构 | ToolClient（记忆上下文） |
 
-> **补充**：`bpf_struct_ops.h`（struct_ops 4 状态机 INIT/REGISTERED/ACTIVE/DRAINING）是 SDK 网关状态管理的共享结构，由 SDK 消费，但不属于上述 6 个核心 [SC] 共享契约层头文件（SSoT: `20-contracts/README.md`）。
+> **补充**：`bpf_struct_ops.h`（struct_ops 4 状态机 INIT/REGISTERED/ACTIVE/DRAINING）是 SDK 网关状态管理的共享结构，由 SDK 消费，但不属于上述 6 个核心 [SC] 共享契约层头文件（SSoT: `120-cross-project-code-sharing.md` §2.7，规则编号 SSoT: `09-ssot-registry.md` §2 OS-IRON-014）。
 
 ### 9.3 [SS] 语义同源层——agentrt ↔ agentrt-linux SDK API 映射
 

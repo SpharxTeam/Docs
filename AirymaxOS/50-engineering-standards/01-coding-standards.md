@@ -732,7 +732,7 @@ config AIRY_DEVMEM_RW
 | OS-STD-047 | OS-STD-FMT-003 | 非函数语句块开括号在行末（K&R） | §3.1 | 与 OS-KER-008 合并为 K&R 大括号族 |
 | OS-KER-008 | OS-STD-FMT-009 | 函数例外：开括号在下一行行首 | §3.2 | 与 OS-STD-047 合并为 K&R 大括号族 |
 | OS-KER-009 | OS-STD-FMT-004 | 单语句与多语句的大括号规则 | §3.4 | Linux 6.6 内核基线 立场：单语句可不加（采纳 02 立场） |
-| OS-KER-010 ~ OS-KER-014 | OS-STD-FMT-005 | 空格规则（合并 5 条为 1 条） | §4.1-§4.5 | 合并：关键字后空格 / sizeof 无空格 / 指针贴名 / 运算符空格 / 括号内禁空格 |
+| OS-KER-010 / OS-KER-011 / OS-KER-014 | OS-STD-FMT-005 | 空格规则（合并 3 条为 1 条） | §4.1/§4.2/§4.4/§4.5 | 合并：关键字后空格 / sizeof 无空格 / 运算符空格 / 括号内禁空格。注：OS-KER-012 单独迁移至 OS-STD-FMT-006（见下行），OS-KER-013 单独迁移至 OS-STD-CODE-020（typedef 规则，见 Part III §6.1）。2026-07-15 修正：原表"OS-KER-010~014 合并 5 条"错误，实际为 3 条合并 + 2 条单独迁移。 |
 | OS-KER-012（指针声明 `*` 贴名字） | OS-STD-FMT-006 | 指针对齐 | §4.3 | 注意：OS-KER-012 在 §4.3 表指针、在 §1.x 不出现，迁移后消除歧义 |
 | OS-KER-015 | OS-STD-FMT-010 | case 标签与 switch 对齐 | §5.1 | — |
 | OS-KER-016 | OS-STD-FMT-011 | fallthrough 必须显式标注 | §5.2 | — |
@@ -3076,7 +3076,7 @@ struct airy_sched_ops {
 
 ### 6.1 规则 OS-STD-DOC-011：仅允许 typedef 的 kernel-doc
 
-agentrt-linux 禁止结构体 typedef（OS-KER-013），但允许 (a)-(e) 类 typedef（如 `airy_q16_t`）。这些允许的 typedef **必须**有 kernel-doc 注释，描述其底层类型与语义。
+agentrt-linux 禁止结构体 typedef（OS-STD-CODE-020，原 OS-KER-013），但允许 (a)-(e) 类 typedef（如 `airy_q16_t`）。这些允许的 typedef **必须**有 kernel-doc 注释，描述其底层类型与语义。
 
 **Linux 6.6 内核基线 源码路径**: `scripts/kernel-doc:73` (`$type_typedef` 正则)
 

@@ -155,7 +155,7 @@ docs/AirymaxOS/
 | Linux 6.6 内核基线（EEVDF + MGLRU + eBPF kfunc + Rust 实验性支持） | kernel                       |
 | sched\_ext（eBPF 用户态调度器、sub-scheduler）                   | kernel（Agent 调度策略）           |
 | io\_uring（零 syscall 高性能 I/O）                            | kernel + services            |
-| eBPF 签名验证 + 机密计算                                        | security                     |
+| eBPF 代码完整性 + 机密计算                                        | security                     |
 | MGLRU 多代 LRU（Linux 6.6 原生）                              | memory                       |
 | Wasm 3.0（安全沙箱运行时）                                       | cognition                    |
 | CXL（内存分层与池化）                                            | memory                       |

@@ -178,7 +178,7 @@ agentrt-linux 1.0.1 共定义约 110 项 OS-ACC 验收标准，覆盖 9 个 Part
 | OS-ACC-063 ★ | LSM 集成 | `grep -rE "LSM\|Linux Security Module" docs/AirymaxOS/110-security/` | ≥5 处 | P0 | M4 |
 | OS-ACC-064 | 机密计算定义 | `grep -rE "机密计算\|confidential computing" docs/AirymaxOS/110-security/` | ≥3 处 | P0 | M4 |
 | OS-ACC-065 | 国密支持 | `grep -rE "国密\|SM2\|SM3\|SM4" docs/AirymaxOS/110-security/` | ≥3 处 | P0 | M4 |
-| OS-ACC-066 | eBPF 签名验证 | `grep -rE "eBPF.*签名\|eBPF.*signature" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
+| OS-ACC-066 | eBPF 代码完整性验证 | `grep -rE "eBPF.*完整性\|eBPF.*kfunc\|eBPF.*代码.*签名" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
 | OS-ACC-067 | 模块签名 | `grep -rE "模块签名\|module signature" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
 | OS-ACC-068 ★ | 安全审计流程 | `grep -rE "安全审计\|security audit" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
 | OS-ACC-069 | 漏洞响应预案 | `grep -rE "漏洞响应\|vulnerability response" docs/AirymaxOS/110-security/` | ≥1 处定义 | P0 | M4 |
@@ -250,7 +250,7 @@ agentrt-linux 1.0.1 共定义约 110 项 OS-ACC 验收标准，覆盖 9 个 Part
 | OS-ACC-107 | 调优指南 | `grep -rE "调优\|tuning" docs/AirymaxOS/170-performance/` | ≥2 处 | P1 | M8 |
 | OS-ACC-108 | Token 能效基准 | `grep -rE "Token 能效\|Token efficiency" docs/AirymaxOS/170-performance/` | ≥2 处 | P1 | M8 |
 | OS-ACC-109 | 基准测试套件 | `grep -rE "基准测试\|benchmark" docs/AirymaxOS/170-performance/` | ≥3 处 | P1 | M8 |
-| OS-ACC-110 ★ | Linux 6.6 兼容性验证 | `grep -rE "Linux 7\.0\|PREEMPT_LAZY\|Rust 正式转正\|XFS 自修复\|MGLRU 2\.0" docs/AirymaxOS/ \| grep -v "06-acceptance-criteria"` | 0 结果（同 ACC-OS04，排除本文件自身） | P1 | M8 |
+| OS-ACC-110 ★ | Linux 6.6 兼容性验证 | `grep -rE "Linux 7\.0\|PREEMPT_LAZY\|Rust 正式转正\|XFS 自修复\|MGLRU 2\.0" docs/AirymaxOS/ \| grep -v "06-acceptance-criteria" \| grep -v "04-engineering-baseline"` | 0 结果（排除本文件自身 + 04-engineering-baseline.md §8.4 前瞻性预留章节。2026-07-15 修正：原命令未排除前瞻性预留章节，导致 §8.4 描述 Linux 7.1 能力时合理使用 PREEMPT_LAZY 被误报为违规） | P1 | M8 |
 
 ---
 

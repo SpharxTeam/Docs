@@ -21,7 +21,7 @@ agentrt-linux 安全加固体系是系统可信运行的核心保障。它继承
 | L1 | LSM 框架 | `security_hook_heads` + `lsm_blob_sizes` + 排序 | 内核安全钩子 |
 | L2 | 用户态沙箱 | Landlock（非特权进程自限制） | 进程级隔离 |
 | L3 | capability | seL4 风格 capability + POSIX caps | 权限细粒度 |
-| L4 | 模块签名 | eBPF 签名验证 + 模块签名 | 代码完整性 |
+| L4 | 模块签名 | eBPF 代码完整性（kfunc + dynamic pointer）+ 模块签名 | 代码完整性 |
 | L5 | Lockdown | 内核 Lockdown 模式 | 限制 root |
 | L6 | 密钥环 | builtin/secondary/machine/platform 4 层 | 密钥管理 |
 | **L7** | **Cupolas 安全穹顶** | **agentrt-linux 专属** | **Agent 行为约束** |
