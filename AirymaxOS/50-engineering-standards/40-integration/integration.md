@@ -1130,13 +1130,13 @@ int load_kernel_config(config_context_t* ctx) {
     
     config_source_t* source = config_source_create_file(&options);
     if (!source) {
-        fprintf(stderr, "无法创建配置源: %s\n", file_path);
+        AIRY_LOG_ERROR("无法创建配置源: %s", file_path);
         return -1;
     }
     
     int result = config_source_load(source, ctx);
     if (result != CONFIG_SUCCESS) {
-        fprintf(stderr, "加载配置失败: %s\n", file_path);
+        AIRY_LOG_ERROR("加载配置失败: %s", file_path);
         config_source_destroy(source);
         return -1;
     }
@@ -1150,7 +1150,7 @@ int main(void) {
     /* 创建配置上下文 */
     config_context_t* ctx = config_context_create("agentrt");
     if (!ctx) {
-        fprintf(stderr, "创建配置上下文失败\n");
+        AIRY_LOG_ERROR("创建配置上下文失败");
         return EXIT_FAILURE;
     }
     
@@ -1218,7 +1218,7 @@ int load_all_manager_configs(config_context_t* ctx) {
         config_source_t* source = config_source_create_file(&options);
         if (!source) {
             if (info->required) {
-                fprintf(stderr, "[ERROR] 无法创建配置源: %s\n", file_path);
+                AIRY_LOG_ERROR("无法创建配置源: %s", file_path);
                 fail_count++;
             } else {
                 printf("[WARN] 可选配置源不存在: %s\n", file_path);
@@ -1232,7 +1232,7 @@ int load_all_manager_configs(config_context_t* ctx) {
             printf("[OK] 加载配置成功: %s\n", info->relative_path);
         } else {
             if (info->required) {
-                fprintf(stderr, "[ERROR] 加载配置失败: %s\n", file_path);
+                AIRY_LOG_ERROR("加载配置失败: %s", file_path);
                 fail_count++;
             } else {
                 printf("[WARN] 可选配置加载失败: %s\n", file_path);

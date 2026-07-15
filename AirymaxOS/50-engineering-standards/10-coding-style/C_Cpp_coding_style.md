@@ -46,9 +46,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 章节 | 规则编号 | 内容 | 唯一性理由 |
 |------|----------|------|-----------|
-| §7 | OS-KER-001/004, OS-BAN-002 | goto 集中出口、分级标签逆序释放、禁 BUG() | 内核态错误处理范式，01 覆盖用户态 |
-| §8 | OS-KER-016/017/018 | GFP 标志选择、释放后置 NULL、krealloc 规范 | 内核内存分配专属 |
-| §9 | OS-KER-019/020/046/053 | 锁选择、RCU、锁前置设计、共享数据同步 | 内核并发专属 |
+| §7 | OS-KER-001/004/224/225, OS-BAN-002 | 校验优先于修改、goto 集中出口、分级标签逆序释放、DEFINE_FREE 自动释放、禁 BUG() | 内核态错误处理范式，01 覆盖用户态 |
+| §8 | OS-KER-016/017/018/222/223/227/228 | GFP 标志选型（含 NOWARN/ACCOUNT）、释放后置 NULL、krealloc 规范、内存毒化保护、kmemleak 标注、kmem_cache 选型、长循环抢占点 | 内核内存分配与安全专属 |
+| §9 | OS-KER-019/020/046/053/226 | 锁选择、RCU、锁前置设计、共享数据同步、kref 释放回调 | 内核并发专属 |
 | §10 | OS-KER-021/070 | [SC] 共享契约层 + [SS] 语义同源层编写规则 | IRON-9 v2 代码归属专属 |
 
 ---
@@ -365,6 +365,278 @@ include 顺序固定：系统头 → 架构头 → 本地头 → `#define CREATE
 
 ### 7. 错误处理规范
 
+#### 7.0 校验优先于修改原则（OS-KER-225）
+
+> **OS-KER-225**：任何可能产生副作用的函数（分配内存、修改全局状态、写寄存器），必须将所有输入校验、权限检查、边界检查置于所有副作用之前。违反此原则意味着校验失败时需要回滚已执行的副作用或泄漏已分配的资源。正确的做法是：先判断"能不能做"，再"去做"。此原则源于 seL4 微内核 `decodeUntypedInvocation()` 的工程实践——该函数在执行任何内存 Retype 操作之前，完成了全部 11 项校验（操作类型、cap 类型、FreeIndex 范围、大小边界、对齐、内核窗口边界、设备内存等），确保校验失败时零副作用、零资源泄漏。
+
+**seL4 参考实现**（`src/object/untyped.c:26-231`，`decodeUntypedInvocation()`）：
+
+```c
+/* seL4 模式：所有校验在前，无任何副作用（ES-SEL4-05 工程思想，研究范围参考） */
+static exception_t decodeUntypedInvocation(word_t invLabel, ...)
+{
+    /* 阶段 1：校验——纯读取，零副作用 */
+    if (invLabel != UntypedRetype)                 // 校验 1: 操作类型
+        return EXCEPTION_SYSCALL_ERROR;
+    if (cap_get_capType(cap) != cap_untyped_cap)    // 校验 2: cap 类型
+        return EXCEPTION_SYSCALL_ERROR;
+    if (freeIndex >= MAX_FREE_INDEX(sizeBits))      // 校验 3: FreeIndex 范围
+        return EXCEPTION_SYSCALL_ERROR;
+    if (type > seL4_SchedContextObject)              // 校验 4: 对象类型
+        return EXCEPTION_SYSCALL_ERROR;
+    if (size_bits > seL4_MaxUntypedBits || ...)     // 校验 5-6: 大小边界
+        return EXCEPTION_SYSCALL_ERROR;
+    if (!IS_ALIGNED(pptr, size_bits))               // 校验 7: 对齐
+        return EXCEPTION_SYSCALL_ERROR;
+    /* ... 校验 8-11: 内核窗口、设备内存、子能力、总量 ... */
+
+    /* 阶段 2：全部校验通过后，才执行修改 */
+    invokeUntyped_Retype(...);  // 真正的副作用在这里
+}
+```
+
+**agentrt-linux 落地规范**：
+
+1. **两个阶段结构**：每个函数应明确分为"校验阶段"（无副作用）和"执行阶段"（有副作用）：
+
+```c
+/* 好：校验优先（OS-KER-225） */
+int airy_cap_retype(struct airy_cap *src, u32 type, u32 size_bits)
+{
+        /* === 阶段 1：校验——纯读取，零副作用 === */
+        if (cap_get_type(src) != CAP_UNTYPED)
+                return -EINVAL;
+        if (size_bits > MAX_SIZE_BITS || size_bits < MIN_SIZE_BITS)
+                return -EINVAL;     /* 直接返回，无需清理 */
+        if (!IS_ALIGNED(src->base, size_bits))
+                return -EINVAL;
+        if (src->free_index >= MAX_FREE_INDEX(size_bits))
+                return -ENOSPC;     /* 资源不足，但仍无需清理 */
+
+        /* === 阶段 2：全部校验通过，执行修改 === */
+        return cap_do_retype(src, type, size_bits);
+}
+
+/* 坏：校验和修改交织，中间校验失败时前面的修改无法回滚 */
+int bad_cap_retype(struct airy_cap *src, u32 type, u32 size_bits)
+{
+        cap_do_partial_write(src);  /* 副作用！ */
+        if (size_bits > MAX_SIZE_BITS)
+                return -EINVAL;     /* 前面已经写了，如何回滚？ */
+        /* ... */
+}
+```
+
+2. **校验阶段禁止的操作**：校验阶段不得执行以下任何副作用——
+   - `kmalloc` / `kzalloc` / 任何内存分配（应在全部校验通过后分配）
+   - 写全局变量、写设备寄存器
+   - 获取锁（校验阶段不需要锁，因为不操作共享数据）
+   - 注册到全局表、链表、IDR 等数据结构
+   - 文件 I/O、网络 I/O
+
+3. **校验失败直接返回错误码**：校验阶段的错误路径应直接 `return -EINVAL` / `-ENOSPC` / `-EPERM`，不需要 `goto` 清理标签（因为零副作用）：
+
+```c
+/* 校验阶段：直接返回，无需 goto（OS-KER-225 联合 OS-KER-001） */
+if (ret < 0)
+        return ret;           /* 校验失败：零副作用，无需清理 */
+/* 执行阶段：需要 goto 清理 */
+s = kzalloc(sizeof(*s), GFP_KERNEL);
+if (!s)
+        return -ENOMEM;
+/* ... */
+```
+
+4. **与 goto 集中出口的分工**：校验优先于修改 + goto 集中出口 = 完整的错误处理策略：
+
+```
+函数入口
+    │
+    ▼
+┌───────────────────┐
+│   阶段 1：校验     │  ← OS-KER-225 校验优先
+│   纯读取，零副作用  │     校验失败 → return -EINVAL / -ENOSPC
+└───────┬───────────┘
+        │ 全部校验通过
+        ▼
+┌───────────────────┐
+│   阶段 2：执行     │  ← OS-KER-001 goto 集中出口
+│   分配/修改/注册   │     OS-KER-004 分级标签逆序释放
+└───────┬───────────┘
+        │
+        ▼
+    return 0
+```
+
+**完整代码示例：seL4 风格内核对象分配与释放**
+
+以下示例将 OS-KER-225（校验优先于修改）与 OS-KER-001（goto 集中出口）联合应用到 agentrt-linux 内核 Capability Retype 场景，展示"十一项校验在前、零副作用，一次分配在末、goto 逆序清理"的完整模式：
+
+```c
+/*
+ * airy_untyped_retype - seL4 风格内核对象分配（OS-KER-225 + OS-KER-001 联合示例）
+ * @ut_slot:     Untyped capability slot
+ * @new_type:    创建的对象类型 (AIRY_OBJ_TCB / AIRY_OBJ_CNODE / AIRY_OBJ_FRAME / ...)
+ * @size_bits:   对象大小（以 2 的幂表示）
+ * @dest_root:   目标 CNode 根 slot
+ * @dest_index:  目标 CNode 内起始索引
+ * @dest_depth:  目标 CNode 查找深度 (0 = dest_root 本身)
+ * @num_objects: 创建对象数量
+ * @ret_slots:   输出：分配的 slot 指针数组
+ *
+ * | 阶段 | 规则                    | 副作用    | 失败处理              |
+ * |------|------------------------|----------|---------------------|
+ * | 1    | OS-KER-225 校验优先      | 无        | 直接 return -Exxx     |
+ * | 2    | OS-KER-001 goto 集中出口 | 分配/写入  | goto out_* 逆序释放    |
+ * | 3    | OS-KER-224 __free()     | 无        | 编译器自动 kfree(bufs) |
+ *
+ * Return: 0 成功；-Exxx 失败（校验阶段或分配阶段）
+ */
+int airy_untyped_retype(cte_t *ut_slot, u32 new_type, u32 size_bits,
+                        cte_t *dest_root, u32 dest_index,
+                        u32 dest_depth, u32 num_objects,
+                        cte_t **ret_slots)
+{
+        cap_t ut_cap;
+        u32 free_index;
+        bool reset;
+        size_t total_size;
+        int ret = 0;
+
+        /*
+         * ============================================================
+         * 阶段 1：校验——纯读取，零副作用（OS-KER-225）
+         * 全部 11 项校验中任何一项失败，直接 return -Exxx
+         * 此时尚未分配任何内存，零资源泄漏
+         * ============================================================
+         */
+
+        /* 校验 1：操作合法性——cap 必须是 Untyped 类型 */
+        ut_cap = ut_slot->cap;
+        if (cap_get_type(ut_cap) != AIRY_CAP_UNTYPED) {
+                log_write(LOG_ERROR, "airy_untyped_retype: not an untyped cap");
+                return -EINVAL;
+        }
+
+        /* 校验 2：对象类型必须在合法范围内 */
+        if (new_type >= AIRY_OBJ_TYPE_COUNT || new_type == AIRY_OBJ_NULL) {
+                log_write(LOG_ERROR, "airy_untyped_retype: invalid type %u", new_type);
+                return -EINVAL;
+        }
+
+        /* 校验 3：对象大小边界检查（溢出 + 上限） */
+        if (size_bits >= BITS_PER_LONG ||
+            size_bits > cap_untyped_get_max_bits(ut_cap)) {
+                log_write(LOG_ERROR, "airy_untyped_retype: size_bits %u out of range",
+                          size_bits);
+                return -ERANGE;
+        }
+
+        /* 校验 4：CNode 最小大小（必须 >= 1 slot） */
+        if (new_type == AIRY_OBJ_CNODE && size_bits < AIRY_MIN_CNODE_BITS) {
+                log_write(LOG_ERROR, "airy_untyped_retype: CNode too small");
+                return -EINVAL;
+        }
+
+        /* 校验 5：Untyped 对象最小大小（必须 >= 4 bits = 16 字节） */
+        if (new_type == AIRY_OBJ_UNTYPED && size_bits < AIRY_MIN_UNTYPED_BITS) {
+                log_write(LOG_ERROR, "airy_untyped_retype: Untyped too small");
+                return -EINVAL;
+        }
+
+        /* 校验 6：目标 CNode 深度合法性 */
+        if (dest_depth > AIRY_MAX_CNODE_DEPTH) {
+                log_write(LOG_ERROR, "airy_untyped_retype: depth %u too large", dest_depth);
+                return -EINVAL;
+        }
+
+        /* 校验 7：目标 CNode 查找（纯读取，不修改 CNode） */
+        if (dest_depth > 0) {
+                ret = cnode_lookup_slot(dest_root, dest_index, dest_depth, &dest_root);
+                if (ret) {
+                        log_write(LOG_ERROR, "airy_untyped_retype: destination lookup failed");
+                        return ret; /* 校验失败直接返回，无副作用 */
+                }
+        }
+
+        /* 校验 8：目标确实是 CNode */
+        if (cap_get_type(dest_root->cap) != AIRY_CAP_CNODE) {
+                log_write(LOG_ERROR, "airy_untyped_retype: destination is not a CNode");
+                return -ENOTDIR;
+        }
+
+        /* 校验 9：窗口大小在合法范围且不越界 */
+        if (num_objects == 0 || num_objects > AIRY_MAX_RETYPE_FANOUT) {
+                log_write(LOG_ERROR, "airy_untyped_retype: num_objects %u out of range [1, %u]",
+                          num_objects, AIRY_MAX_RETYPE_FANOUT);
+                return -ERANGE;
+        }
+
+        /* 校验 10：目标 CNode 剩余 slot 是否足够 */
+        {
+                u32 node_size = cap_cnode_get_radix(dest_root->cap);
+                if (dest_index + num_objects > node_size) {
+                        log_write(LOG_ERROR, "airy_untyped_retype: destination window overflow");
+                        return -ENOSPC;
+                }
+        }
+
+        /* 校验 11：Untyped 是否有足够空间 */
+        if (cap_untyped_get_free(ut_cap) + (num_objects * BIT(size_bits)) >
+            cap_untyped_get_total(ut_cap)) {
+                log_write(LOG_ERROR, "airy_untyped_retype: insufficient memory");
+                return -ENOMEM;
+        }
+
+        /*
+         * ============================================================
+         * 阶段 2：执行——全部校验通过，开始分配和修改（OS-KER-001）
+         * 此阶段从这一行起才产生副作用
+         * ============================================================
+         */
+
+        /* 分配 slot 指针数组 */
+        ret_slots[0] = NULL; /* 安全初始化 */
+
+        /* __free() 自动释放临时缓冲区（OS-KER-224）——无需 goto 标签 */
+        __free(kfree) void *zero_buf = kzalloc(num_objects * BIT(size_bits), GFP_KERNEL);
+        if (!zero_buf)
+                return -ENOMEM;
+
+        /*
+         * 重置或继承 FreeIndex
+         * 如果 Untyped 没有子能力，可以重置 FreeIndex = 0（子能力全部删除后整块回收）
+         * 否则从记录的 FreeIndex 继续分配（子能力还在使用中）
+         */
+        if (cap_untyped_has_children(ut_slot)) {
+                free_index = cap_untyped_get_free_index(ut_cap);
+                reset = false;
+        } else {
+                free_index = 0;
+                reset = true;
+        }
+
+        /* 分配 CNode slot 并创建对象 */
+        ret = cnode_alloc_slots(dest_root, dest_index, num_objects,
+                                ut_slot, free_index, new_type, size_bits,
+                                zero_buf, ret_slots);
+        if (ret)
+                return ret; /* 失败时 cnode_alloc_slots 已内部分批清理 */
+
+        /* 更新 Untyped free index */
+        cap_untyped_set_free_index(&ut_slot->cap, free_index + num_objects);
+
+        return 0;
+        /*
+         * 说明：zero_buf 通过 __free(kfree) 在函数返回时自动释放 —— OS-KER-224
+         * 本例中没有 goto 标签，因为：
+         *   - 校验失败在阶段 1 直接 return（OS-KER-225：零副作用）
+         *   - cnode_alloc_slots 内部负责清理部分分配（委托清理模式）
+         *   - zero_buf 由编译器自动释放（OS-KER-224）
+         */
+}
+```
+
 #### 7.1 goto 集中出口模式
 
 > **规则编号**：OS-KER-001（权威定义见 [01-coding-standards.md §7.1](../01-coding-standards.md)；编号注册见 [09-ssot-registry.md §3.1](../09-ssot-registry.md)）
@@ -411,7 +683,45 @@ out_free_session:
 
 禁止新增 `BUG()` / `BUG_ON()` / `VM_BUG_ON()`，改用 `WARN_ON_ONCE()` + 恢复代码。
 
-#### 7.4 错误码规范
+#### 7.4 DEFINE_FREE 自动资源释放（OS-KER-224）
+
+> **OS-KER-224**：优先使用 `DEFINE_FREE` / `__free()` 模式实现自动资源释放，替代手写 goto 清理标签。编译器保证作用域退出时自动执行释放函数，彻底消除"遗忘 goto 标签"类 bug。不得将自动释放与手动 goto 清理标签混用于同一资源。
+
+Linux 6.6 内核提供了 `DEFINE_FREE(kfree, ...)` 宏，基于 `__cleanup` 编译器属性：
+
+```c
+/* 推荐：__free() 自动释放，无需 goto 标签（OS-KER-224） */
+ssize_t airy_agent_work_log_read(struct airy_agent_ctx *ctx,
+                                  char __user *ubuf, size_t count)
+{
+        __free(kfree) void *kbuf = NULL;
+        size_t copy_len = min(count, AGENT_WORK_LOG_MAX);
+
+        kbuf = kzalloc(copy_len, GFP_KERNEL);
+        if (!kbuf)
+                return -ENOMEM;
+        /* ... 填充 kbuf ... */
+        if (copy_to_user(ubuf, kbuf, copy_len))
+                return -EFAULT;
+        return copy_len;
+        /* kbuf 在函数返回时自动 kfree，所有路径统一释放 */
+}
+```
+
+**使用约束**：
+- `__free(kfree)` 仅释放单一资源；多资源场景仍用 goto 标签
+- `__free()` 声明的变量必须在分配前初始化（NULL / ERR_PTR），否则分配失败时释放未定义值
+- 禁止在同一个函数中混用 `__free(kfree) ptr` 和手写 `kfree(ptr)` 释放同一资源——编译器生成的释放与手动释放会出现 double-free
+
+**与 goto 集中出口的互补关系**：
+| 场景 | 推荐模式 | 理由 |
+|------|---------|------|
+| 单资源 | `__free(kfree)` | 编译器强制，零遗漏风险 |
+| 多资源，alloc 间无依赖 | 多个 `__free()` | 作用域退出时统一释放 |
+| 多资源，alloc 间有依赖 | goto 分级标签 | 标签精确控制释放顺序 |
+| 需在函数中途释放 | 手动 `kfree` + `ptr = NULL` | 自动释放仅作用于作用域结束 |
+
+#### 7.5 错误码规范
 
 agentrt-linux（AirymaxOS）内核态错误码对齐 agentrt 错误码体系（[SS] 语义同源层），使用 `AIRY_E*` 前缀。
 
@@ -514,9 +824,481 @@ buf = tmp;
 buf = krealloc(buf, new_size, GFP_KERNEL);
 ```
 
+##### 8.4.1 快速路径 NOWARN 修饰符（OS-KER-016 扩展）
+
+> **OS-KER-016a**：有明确回退路径的快速分配必须使用 `GFP_NOWAIT | __GFP_NOWARN` 组合，避免分配失败时内核日志被 `page allocation failure` 警告刷屏。`__GFP_NOWARN` 禁止在无回退路径的分配中使用——静默失败会掩盖真正的内存不足问题。
+
+```c
+/* 好：有回退路径的快速分配 + NOWARN（OS-KER-016a） */
+entry = kmalloc(sizeof(*entry), GFP_NOWAIT | __GFP_NOWARN);
+if (!entry) {
+        /* 有慢速回退路径：降级到预分配池 */
+        entry = mempool_alloc(fallback_pool, GFP_KERNEL);
+}
+
+/* 坏：无回退路径却禁用告警——OOM 将无法诊断 */
+entry = kmalloc(sizeof(*entry), GFP_KERNEL | __GFP_NOWARN);
+```
+
+##### 8.4.2 用户空间触发分配的核算修饰符（OS-KER-016 扩展）
+
+> **OS-KER-016b**：所有由用户空间触发的不可信内存分配（syscall、ioctl、write 等系统调用路径），必须使用 `GFP_KERNEL_ACCOUNT`（等价于 `GFP_KERNEL | __GFP_ACCOUNT`），将分配计入调用进程的 kmem cgroup 核算。此举防止恶意用户通过大量分配耗尽内核内存（CVE-2018-5333 同类问题）。
+
+```c
+/* 好：用户空间触发的分配使用 GFP_KERNEL_ACCOUNT（OS-KER-016b） */
+SYSCALL_DEFINE3(airy_agent_register, u32, agent_id,
+                const char __user *, name, u32, flags)
+{
+        struct airy_agent *agent;
+
+        /* 用户空间 syscall 路径 —— 必须 GFP_KERNEL_ACCOUNT */
+        agent = kzalloc(sizeof(*agent), GFP_KERNEL_ACCOUNT);
+        if (!agent)
+                return -ENOMEM;
+        /* ... */
+        return 0;
+}
+
+/* syscall 路径的专用 kmem_cache 同样需要核算 */
+agent = kmem_cache_zalloc(agent_cache, GFP_KERNEL_ACCOUNT);
+```
+
+**GFP 标志完整选型表**（OLK-6.6 规范）：
+
+| 上下文 | 推荐标志 | 可睡眠 | 可回收 | 核算 |
+|--------|---------|--------|--------|------|
+| 标准内核分配 | `GFP_KERNEL` | 是 | 是 | 否 |
+| 用户空间 syscall | `GFP_KERNEL_ACCOUNT` | 是 | 是 | 是 |
+| 中断/原子上下文 | `GFP_ATOMIC` | 否 | 仅 kswapd | 否 |
+| 回退路径快速分配 | `GFP_NOWAIT \| __GFP_NOWARN` | 否 | 仅 kswapd | 否 |
+| 初始化（不可阻塞） | `GFP_NOWAIT` | 否 | 仅 kswapd | 否 |
+| 不可恢复的关键分配 | `GFP_KERNEL \| __GFP_NOFAIL` | 是 | 是 | 否 |
+
+#### 8.5 内存毒化保护（OS-KER-222）
+
+> **OS-KER-222**：对所有动态分配的内核内存启用毒化保护——分配时写入 `POISON_INUSE`（0x5a）检测 use-before-init，释放时写入 `POISON_FREE`（0x6b）检测 use-after-free，RedZone 写入 0xbb/0xcc 检测越界写。这是 Linux 内核内存安全的三层防御体系，源于 openEuler OLK-6.6 代码品味。
+
+**毒化值定义**（`include/linux/poison.h` OLK-6.6 规范）：
+
+| 宏 | 值 | 语义 | 检测目标 |
+|----|----|------|---------|
+| `POISON_FREE` | 0x6b | 已释放内存填充值 | Use-After-Free (UAF) |
+| `POISON_INUSE` | 0x5a | 已分配但未初始化填充值 | Use-Before-Init (UAI) |
+| `POISON_END` | 0xa5 | 毒化区域结束字节 | 缓冲区溢出（结尾标记） |
+| `PAGE_POISON` | 0xaa | 页面毒化值 | 页面级 UAF/UAI |
+| `SLUB_RED_ACTIVE` | 0xcc | SLUB RedZone 活跃标记 | 越界写检测 |
+| `SLUB_RED_INACTIVE` | 0xbb | SLUB RedZone 非活跃标记 | 越界写检测 |
+
+**强制规则**：
+
+1. **SLUB debug 必须开启**：所有 agentrt-linux 内核调试构建（`CONFIG_DEBUG_KMEM=y`）必须启用以下 SLUB debug flags——`SLAB_POISON`（毒化）、`SLAB_RED_ZONE`（RedZone）、`SLAB_STORE_USER`（调用栈追踪）
+
+2. **敏感内存结构体必须使用专用 kmem_cache**：包含密钥、token、capability 等敏感数据的结构体，必须在 `kmem_cache_create` 中开启 `SLAB_POISON | SLAB_RED_ZONE`，不使用通用 `kmalloc`：
+
+```c
+/* 好：敏感数据使用专用 kmem_cache + 毒化（OS-KER-222） */
+static struct kmem_cache *cap_cache;
+
+int __init airy_cap_cache_init(void)
+{
+        cap_cache = kmem_cache_create("airy_cap",
+                sizeof(struct airy_cap), 0,
+                SLAB_POISON | SLAB_RED_ZONE | SLAB_STORE_USER,
+                NULL);
+        if (!cap_cache)
+                return -ENOMEM;
+        return 0;
+}
+
+void *airy_cap_alloc(gfp_t flags)
+{
+        return kmem_cache_zalloc(cap_cache, flags); /* 零化 + 毒化 */
+}
+
+void airy_cap_free(void *cap)
+{
+        kmem_cache_free(cap_cache, cap); /* 自动 POISON_FREE */
+}
+```
+
+3. **页面分配必须开启页面毒化**：默认启用 `CONFIG_PAGE_POISONING=y` 和 `CONFIG_PAGE_POISONING_NO_SANITY=n`（不跳过写时验证）。页面毒化值 `PAGE_POISON`（0xaa）在页面分配和释放时写入，读取时验证。
+
+4. **禁止绕过毒化**：不得通过 `memset(ptr, 0, size)` 或任何直接的清零操作覆盖毒化标记，除非在分配后且使用前的初始化阶段。分配时若需清零应使用 `kzalloc`（内部处理毒化），释放时仅使用 `kfree` / `kmem_cache_free`（内部写入 `POISON_FREE`）。
+
+#### 8.6 kmemleak 泄漏检测标注（OS-KER-223）
+
+> **OS-KER-223**：对所有非标准分配器（自定义 mempool、静态预留区、ring buffer）分配的内存，必须显式调用 `kmemleak_alloc`/`kmemleak_free` 注册分配/释放追踪。对刻意保留的全局对象或已知良性泄漏，必须通过 `kmemleak_not_leak` 标注。kmemleak 在未开启 `CONFIG_DEBUG_KMEMLEAK` 时通过内联空函数实现零开销消除，生产环境无性能影响。
+
+**核心 API**（`include/linux/kmemleak.h` OLK-6.6 规范）：
+
+| API | 语义 | 使用场景 |
+|-----|------|---------|
+| `kmemleak_alloc(ptr, size, min_count, gfp)` | 注册分配 | 自定义分配器分配的内存 |
+| `kmemleak_free(ptr)` | 注册释放 | 自定义分配器释放的内存 |
+| `kmemleak_not_leak(ptr)` | 非泄漏标记 | 静态分配、单例、刻意保留的全局对象 |
+| `kmemleak_ignore(ptr)` | 忽略此指针 | 固件数据、BIOS 表等已知泄漏但无法修复 |
+| `kmemleak_no_scan(ptr)` | 不扫描此区域 | 包含虚假指针或敏感数据的 opaque 内存 |
+| `kmemleak_scan_area(ptr, size, gfp)` | 标注扫描区域 | 指针保存在非标准位置的区域 |
+
+**强制规则**：
+
+1. **自建内存池必须注册 kmemleak**：任何非 `kmalloc`/`vmalloc`/`kmem_cache` 的自定义分配器，其 `alloc` 和 `free` 路径必须分别调用 `kmemleak_alloc()` 和 `kmemleak_free()`：
+
+```c
+/* 好：自建 ring buffer 注册 kmemleak（OS-KER-223） */
+struct airy_ring *airy_ring_alloc(size_t n_slots, gfp_t flags)
+{
+        struct airy_ring *ring;
+        ring = kmalloc(struct_size(ring, slots, n_slots), flags);
+        if (!ring)
+                return NULL;
+        /* 注册到 kmemleak，min_count = 0 表示只要无指针引用即视为泄漏 */
+        kmemleak_alloc(ring, struct_size(ring, slots, n_slots), 0, flags);
+        ring->n_slots = n_slots;
+        return ring;
+}
+
+void airy_ring_free(struct airy_ring *ring)
+{
+        kmemleak_free(ring);  /* 先注销再释放 */
+        kfree(ring);
+}
+```
+
+2. **静态单例必须标注 `kmemleak_not_leak`**：启动阶段分配的全局对象（如 IDR、radix_tree 根节点、全局 hash 表），必须在分配并赋值给全局变量后调用 `kmemleak_not_leak`：
+
+```c
+/* 好：静态单例标注非泄漏（OS-KER-223） */
+static struct airy_agent_registry *global_registry;
+
+int __init airy_agent_registry_init(void)
+{
+        global_registry = kzalloc(sizeof(*global_registry), GFP_KERNEL);
+        if (!global_registry)
+                return -ENOMEM;
+        spin_lock_init(&global_registry->lock);
+        kmemleak_not_leak(global_registry); /* 全局单例，非泄漏 */
+        return 0;
+}
+```
+
+3. **禁用 `SLAB_NOLEAKTRACE` 的滥用**：不得将 `SLAB_NOLEAKTRACE` 用作"不想看到泄漏报告"的快捷方式。仅当 kmem_cache 创建的对象由 kmemleak 内部自身使用时（如 kmemleak 自己的 object 缓存），方可使用此标志。
+
+#### 8.7 kmem_cache 选型标准（OS-KER-227）
+
+> **OS-KER-227**：对满足以下所有条件的对象类型，必须使用专用 `kmem_cache_create` 而非通用 `kmalloc`：(1) 对象大小固定；(2) 整个生命周期内分配/释放次数超过 100 次；(3) 对调试支持有要求（caller tracking、RedZone、poisoning）。通用 `kmalloc` 仅适用于临时缓冲区、一次性分配、大小不固定的分配。此标准源于 OLK-6.6 内核工程实践——inode/dentry/task_struct 等高频固定大小对象均使用专用 slab cache。
+
+**选型决策表**：
+
+| 条件 | kmem_cache | kmalloc |
+|------|-----------|---------|
+| 对象大小固定 | ✓ 强烈推荐 | △ 可用 |
+| 分配次数 > 100/生命周期 | ✓ 必须 | ✗ 不推荐 |
+| 需 SLAB_STORE_USER 调用栈追踪 | ✓ 必须 | ✗ 不支持 |
+| 需 SLAB_POISON 毒化保护 | ✓ 必须 | △ 通过 slub_debug 全局开启 |
+| 需 SLAB_RED_ZONE 越界检测 | ✓ 必须 | △ 通过 slub_debug 全局开启 |
+| 临时缓冲区（生命周期 < 函数返回） | ✗ 过度设计 | ✓ 推荐 |
+| 大小不固定（变长数组等） | ✗ 不适用 | ✓ 必须用 kvmalloc/krealloc |
+
+```c
+/* 好：高频固定大小对象使用专用 kmem_cache（OS-KER-227） */
+static struct kmem_cache *task_cache;       /* Agent task 对象 —— 高频分配 */
+static struct kmem_cache *invoke_ctx_cache;  /* Invocation 上下文 —— 每次 syscall 分配 */
+
+int __init airy_kernel_caches_init(void)
+{
+        /* Agent task: 生命周期内分配/释放 > 10,000 次 */
+        task_cache = kmem_cache_create("airy_task",
+                sizeof(struct airy_task), 0,
+                SLAB_POISON | SLAB_RED_ZONE | SLAB_STORE_USER,
+                NULL);
+        if (!task_cache)
+                return -ENOMEM;
+
+        /* Invoke ctx: 每次 capability invocation 分配一次 */
+        invoke_ctx_cache = kmem_cache_create("airy_invoke_ctx",
+                sizeof(struct airy_invoke_ctx), 0,
+                SLAB_STORE_USER,       /* 频繁分配，仅需调用栈追踪 */
+                NULL);
+        if (!invoke_ctx_cache)
+                goto err_destroy_task;
+        return 0;
+
+err_destroy_task:
+        kmem_cache_destroy(task_cache);
+        return -ENOMEM;
+}
+
+/* 好：临时缓冲区使用 kmalloc —— 无需专用 cache（OS-KER-227） */
+void airy_process_agent_cfg(void)
+{
+        __free(kfree) char *tmp = kzalloc(PAGE_SIZE, GFP_KERNEL);
+        if (!tmp)
+                return;
+        /* ... 处理配置后自动释放 ... */
+}
+
+/* 坏：低频单次分配滥用 kmem_cache —— 过度设计 */
+static struct kmem_cache *boot_params_cache; /* ❌ 启动时仅分配 1 次 */
+```
+
+#### 8.8 长循环抢占点规则（OS-KER-228）
+
+> **OS-KER-228**：任何预计单次调用耗时超过 1ms 或循环迭代超过 1000 次的循环体，必须周期性调用 `cond_resched()` 将 CPU 让出给调度器。此规则源于 seL4 `resetUntypedCap()` 的 `preemptionPoint()` 模式（研究范围参考）和 Linux 内核 `might_sleep()` / `need_resched()` 约定。禁止在持有自旋锁的循环中调用 `cond_resched()`（spinlock 持有者不可睡眠）。
+
+**抢占点插入规则**：
+
+| 循环特征 | 抢占策略 | 示例场景 |
+|---------|---------|---------|
+| 迭代 < 100 次 | 无需抢占点 | 遍历 8 子仓维护者列表 |
+| 迭代 100~1000 次 | 每 256 次迭代 `cond_resched()` | 遍历 CNode slot |
+| 迭代 > 1000 次 | 每 256 次迭代 `cond_resched()` | 大批量 capability 清理 |
+| 已知耗时操作（memzero/memcpy 大块） | 循环外单次 `cond_resched()` | 大范围内存清零 |
+
+**重构示例：`resetUntypedCap` 中的长循环抢占点**
+
+以下将原有批量释放 untoped cap 子对象的循环按 OS-KER-228 重构，每 256 次迭代调用 `cond_resched()`，避免在释放大量子能力时长时间占用 CPU：
+
+```c
+/*
+ * airy_untyped_reset_children - 批量释放 Untyped 的所有子能力
+ * @ut_slot: Untyped capability slot
+ * @region_base: Untyped 区域基地址
+ * @block_size: Untyped 总大小（字节）
+ * @chunk: 每次清除的粒度（CONFIG_AIRY_RESET_CHUNK_BITS 决定）
+ *
+ * 本函数展示 OS-KER-228 长循环抢占点规则在 agentrt-linux 的落地模式。
+ * 继承 seL4 resetUntypedCap() 的 preemptionPoint() 工程思想——
+ * 在长时间操作中周期性让出 CPU，保持系统调度响应性。
+ *
+ * 适用规则：
+ *   OS-KER-228  长循环必须插入 cond_resched() 抢占点
+ *   OS-KER-225  校验优先于修改——参数校验在前，清除操作在后
+ *   OS-KER-222  毒化保护——region_base 清零后写入 PAGE_POISON(0xaa)
+ *
+ * Return: 0 成功；-EINTR 被信号中断（调用者可重试）
+ */
+static int airy_untyped_reset_children(cte_t *ut_slot,
+                                        void *region_base,
+                                        size_t block_size, u32 chunk)
+{
+        ssize_t offset;
+        int ret = 0;
+        u32 iteration = 0;
+
+        /* === 阶段 1：校验（OS-KER-225）——零副作用 === */
+        if (!ut_slot || !region_base)
+                return -EINVAL;
+        if (chunk == 0 || chunk > block_size)
+                return -EINVAL;
+        if (!IS_ALIGNED((unsigned long)region_base, chunk))
+                return -EINVAL;
+
+        /*
+         * === 阶段 2：执行——长循环清除 + 周期性抢占（OS-KER-228）===
+         *
+         * 从区域末尾向起始方向按 chunk 粒度逐步清除。
+         * offset 从 ROUND_DOWN(block_size - 1, chunk) 开始，
+         * 每次递减 chunk，直至 0。
+         * 每 256 次迭代调用 cond_resched() 让出 CPU。
+         */
+        for (offset = ROUND_DOWN(block_size - 1, chunk);
+             offset >= 0;
+             offset -= chunk, iteration++) {
+
+                /*
+                 * 抢占点（OS-KER-228）：
+                 * 每 256 次迭代（每清除 256 * chunk 字节）让出 CPU。
+                 * 若 chunk = 16B（最小），256 * 16 = 4KB 即让出一次。
+                 * 若 chunk = 4KB（页面），256 * 4KB = 1MB 即让出一次。
+                 *
+                 * cond_resched() 仅在 need_resched 标志置位时才实际调度，
+                 * 无标志时是轻量 no-op（~10 条指令）。
+                 */
+                if ((iteration & 0xff) == 0 && iteration > 0) {
+                        cond_resched();
+                        /* 检查是否有挂起的信号需中止清理 */
+                        if (signal_pending(current)) {
+                                ret = -EINTR;
+                                /* 记录断点以便调用者恢复 */
+                                ut_slot->reset_offset = offset;
+                                log_write(LOG_INFO,
+                                          "airy_untyped_reset: preempted at "
+                                          "offset %zd (%u iterations)",
+                                          offset, iteration);
+                                return ret;
+                        }
+                }
+
+                /* 清除当前 chunk：先清零，再写入毒化标记（OS-KER-222） */
+                void *chunk_ptr = region_base + offset;
+                memset(chunk_ptr, 0, chunk);
+                memset(chunk_ptr, PAGE_POISON, chunk); /* 0xaa 页面毒化 */
+        }
+
+        /* 全部子能力已清除，重置 FreeIndex */
+        cap_untyped_set_free_index(&ut_slot->cap, 0);
+
+        return 0;
+}
+```
+
+> **设计说明**：
+> - `cond_resched()` 在 `need_resched` 标志未设置时开销极小（~10 CPU 指令），可安全用于热路径
+> - `iteration & 0xff` 位运算比 `% 256` 快，适合热点循环
+> - `signal_pending()` 检查允许用户通过 SIGKILL 中断长时间清理操作
+> - 记录 `reset_offset` 支持调用者在被中断后从断点继续（幂等操作）
+
+#### 8.9 内存安全综合示例
+
+以下示例展示 agentrt-linux 内核态遵循 OLK-6.6 代码品味的内存分配与释放最佳实践，集成了毒化保护、泄漏检测、自动释放、goto 集中出口与错误处理规范：
+
+```c
+/*
+ * airy_agent_session_create - 创建 Agent 会话（完整内存安全示例）
+ * @agent_id: Agent 标识符
+ * @session_out: 输出会话对象指针
+ *
+ * 本示例集中展示 agentrt-linux 遵循 OLK-6.6 代码品味的内存管理工程规范：
+ *   - OS-KER-016: GFP 标志按上下文正确选型
+ *   - OS-KER-222: 敏感对象使用专用 kmem_cache + SLAB_POISON | SLAB_RED_ZONE
+ *   - OS-KER-223: kmemleak 显式标注非泄漏对象
+ *   - OS-KER-224: 自动资源释放（__free）用于无依赖的简单资源
+ *   - OS-KER-001: goto 分级标签逆序释放用于多资源场景
+ *   - OS-KER-017: 释放后指针置 NULL
+ *   - OS-KER-018: krealloc 使用临时变量
+ *   - OS-KER-135: check_mul_overflow 溢出检查
+ *
+ * Return: 0 成功；-ENOMEM 内存不足；-EINVAL 参数非法
+ */
+int airy_agent_session_create(u32 agent_id,
+                               struct airy_agent_session **session_out)
+{
+        struct airy_agent_session *sess;
+        struct airy_agent_batch *batch;
+        size_t total_bytes;
+        int ret = -ENOMEM;
+
+        /* 步骤 1：敏感对象使用专用 kmem_cache（OS-KER-222 SLAB_POISON + RedZone） */
+        sess = kmem_cache_zalloc(agent_session_cache, GFP_KERNEL);
+        if (!sess)
+                return -ENOMEM;
+
+        /* 步骤 2：简单资源使用 __free() 自动释放，无 goto 标签（OS-KER-224） */
+        __free(kfree) char *name_buf = kzalloc(AGENT_NAME_MAX, GFP_KERNEL);
+        if (!name_buf)
+                goto out_free_session;
+
+        /* 步骤 3：require:check_mul_overflow 溢出检查（OS-KER-135） */
+        if (check_mul_overflow(AGENT_BATCH_ENTRIES,
+                               sizeof(struct airy_agent_batch), &total_bytes)) {
+                ret = -EINVAL;
+                goto out_free_session;
+        }
+
+        /* 步骤 4：数组分配必须使用 kcalloc（OS-BAN-003） */
+        batch = kcalloc(AGENT_BATCH_ENTRIES,
+                        sizeof(struct airy_agent_batch), GFP_KERNEL);
+        if (!batch)
+                goto out_free_session;
+
+        /* 步骤 5：填充会话字段 */
+        sess->agent_id    = agent_id;
+        sess->batch       = batch;
+        sess->batch_count = AGENT_BATCH_ENTRIES;
+        kref_init(&sess->refcount);  /* 引用计数管理生命周期 */
+
+        /* 步骤 6：全局单例标注非泄漏（OS-KER-223） */
+        kmemleak_not_leak(sess); /* 此会话注册到全局表后由 kref 管理，非泄漏 */
+
+        *session_out = sess;
+        return 0;
+
+out_free_session:
+        kmem_cache_free(agent_session_cache, sess);
+        sess = NULL; /* OS-KER-017：释放后置 NULL，防悬挂指针 */
+        return ret;
+}
+
+/*
+ * airy_agent_session_release - kref 回调：释放会话所有资源
+ *
+ * 遵循 OS-KER-222 释放时 kmem_cache_free 自动写入 POISON_FREE（0x6b），
+ * 检测 use-after-free。注意 kref_put 的 release 回调不能直接传 kfree，
+ * 必须通过 container_of 获取外层结构体。
+ */
+static void airy_agent_session_release(struct kref *ref)
+{
+        struct airy_agent_session *sess;
+
+        sess = container_of(ref, struct airy_agent_session, refcount);
+
+        /* 逆序释放子资源 */
+        kfree(sess->batch);      /* batch 先释放 */
+        sess->batch = NULL;      /* OS-KER-017 */
+        kmem_cache_free(agent_session_cache, sess); /* 毒化 + 释放 */
+}
+```
+
 ---
 
 ### 9. 锁与并发规范
+
+#### 9.0 kref 释放回调规范（OS-KER-226）
+
+> **OS-KER-226**：`kref_put(release)` 的 `release` 回调必须通过 `container_of` 获取外层结构体指针，禁止直接将 `kfree` 作为 release 回调传入。此规则源于 OLK-6.6 `include/linux/kref.h` 第 49-55 行注释的明确声明——"it is not acceptable to pass kfree in as this function"。违反此规则将导致释放不正确（仅释放 kref 成员的地址而非外层结构体）。
+
+**为什么不能直接传 kfree**：
+
+```c
+struct airy_task {
+        struct kref refcount;    /* 内嵌在 task 中的 kref */
+        u32 task_id;
+        /* ... 更多字段 ... */
+};
+
+/* 坏：错误！release 收到的是 &task->refcount 的地址，不是 &task 的地址 */
+kref_put(&task->refcount, kfree);  /* ❌ 只释放了 kref 字段，泄漏 task 其余内存 */
+
+/* 好：container_of 获取外层结构体（OS-KER-226） */
+kref_put(&task->refcount, airy_task_release);
+```
+
+**正确模式**：
+
+```c
+/*
+ * airy_task_release - kref release 回调（OS-KER-226 容器模板）
+ * @ref: kref 指针（实际指向 task->refcount）
+ *
+ * 通过 container_of 从 refcount 成员地址反推 task 结构体地址，
+ * 释放整个 task 对象。此模式确保每次 kref_put 正确释放外层结构体。
+ */
+static void airy_task_release(struct kref *ref)
+{
+        struct airy_task *task;
+
+        /* container_of 是访问外层结构体的唯一正确方式 */
+        task = container_of(ref, struct airy_task, refcount);
+
+        /* 逆序释放 task 内部资源 */
+        if (task->name)
+                kfree(task->name);
+        kfree(task->sched_attr);
+        kmem_cache_free(task_cache, task);  /* 使用专用 kmem_cache */
+}
+
+/* 使用示例 */
+void airy_task_put(struct airy_task *task)
+{
+        kref_put(&task->refcount, airy_task_release);
+}
+```
+
+**强制要求**：
+1. `release` 回调必须命名为 `<type>_release`（如 `airy_task_release`），禁止匿名或临时的 lambda/闭包
+2. `release` 回调内第一行必须是 `container_of(ref, struct <type>, refcount)`
+3. 禁止通过 `offsetof` / 强制类型转换 / `(void *)ref - offsetof(...)` 等方式绕过 `container_of`
 
 #### 9.1 共享数据必须用同步原语保护（OS-KER-053 复用）
 

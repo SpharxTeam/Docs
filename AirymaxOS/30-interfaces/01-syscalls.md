@@ -67,6 +67,164 @@ if (ret < 0) {
 - 安全策略加载通过 `airy_sys_call(security_cap, &msg)` 完成，Wasm 模块加载通过 `airy_sys_call(module_cap, &msg)` 完成。
 - 详见 [02-ipc-protocol.md](02-ipc-protocol.md) 和 [120-cross-project-code-sharing.md §2.4](../50-engineering-standards/120-cross-project-code-sharing.md)。
 
+**重构示例：应用 OS-KER-225 校验优先于修改**
+
+以下将 agentrt-linux 的 `airy_sys_call` 内部 `decode_and_invoke` 函数按 OS-KER-225 原则重构——十一项校验全部完成后方执行 capability invocation，校验阶段零副作用：
+
+```c
+/*
+ * airy_decode_and_invoke - 解码 capability invocation 并分派执行
+ * @cap:    能力令牌
+ * @msg:    IPC 消息（128B 头 + payload）
+ *
+ * 本函数是 airy_sys_call 的内部实现，展示 OS-KER-225 校验优先于修改的
+ * agentrt-linux 落地模式。继承 seL4 decodeUntypedInvocation 的工程思想——
+ * 全部校验在前、零副作用，修改在后、goto 清理。
+ *
+ * 适用规则：
+ *   OS-KER-225  校验优先于修改——校验阶段零副作用
+ *   OS-KER-001  goto 集中出口——执行阶段逆序释放
+ *   OS-KER-222  毒化保护——cap 对象分配后 SLAB_POISON 写入 POISON_INUSE
+ *   OS-KER-224  __free() 自动释放——临时缓冲区由编译器管理
+ *   OS-BAN-002  禁止 BUG()——所有校验失败走 WARN_ON_ONCE + return -Exxx
+ *
+ * Return: 0 成功；-Exxx 失败
+ */
+static int airy_decode_and_invoke(cap_t cap,
+                                   const struct airy_ipc_msg_hdr *msg)
+{
+        u32 op_type;
+        u32 obj_type;
+        int ret = 0;
+
+        /*
+         * ============================================================
+         * 阶段 1：校验——纯读取，零副作用（OS-KER-225）
+         * 共 11 项校验：
+         *   校验 1-2：输入指针非空 + magic 验证
+         *   校验 3-4：cap 合法性 + 类型
+         *   校验 5-6：消息长度 + opcode 范围
+         *   校验 7-8：权限检查 + 子能力约束
+         *   校验 9-10：对象类型特定约束
+         *   校验 11：资源可用性预检查
+         * ============================================================
+         */
+
+        /* 校验 1：cap 非空 */
+        if (!cap) {
+                WARN_ON_ONCE(1);
+                return -EINVAL;
+        }
+
+        /* 校验 2：消息头 magic 验证 */
+        if (msg->magic != IPC_MAGIC_ARE1) {
+                log_write(LOG_ERROR, "airy_decode_invoke: bad magic 0x%08x", msg->magic);
+                return -EINVAL;
+        }
+
+        /* 校验 3：cap 类型必须在合法范围 */
+        obj_type = cap_get_type(cap);
+        if (obj_type >= AIRY_CAP_TYPE_COUNT) {
+                log_write(LOG_ERROR, "airy_decode_invoke: invalid cap type %u", obj_type);
+                return -EINVAL;
+        }
+
+        /* 校验 4：cap 必须处于有效状态（未被撤销） */
+        if (!cap_is_valid(cap)) {
+                log_write(LOG_ERROR, "airy_decode_invoke: cap revoked");
+                return -EACCES;
+        }
+
+        /* 校验 5：消息长度 >= 128B 最小头 */
+        if (msg->hdr_len < IPC_HDR_MIN_SIZE || msg->hdr_len > IPC_HDR_MAX_SIZE) {
+                log_write(LOG_ERROR, "airy_decode_invoke: bad hdr_len %u", msg->hdr_len);
+                return -EMSGSIZE;
+        }
+
+        /* 校验 6：opcode 范围检查 */
+        op_type = msg->opcode & IPC_OP_MASK;
+        if (op_type >= AIRY_CAP_OP_COUNT) {
+                log_write(LOG_ERROR, "airy_decode_invoke: invalid opcode %u", op_type);
+                return -EINVAL;
+        }
+
+        /* 校验 7：权限检查——调用者是否有权操作此 cap */
+        if (!cap_has_rights(cap, op_type_to_rights(op_type))) {
+                log_write(LOG_ERROR, "airy_decode_invoke: insufficient rights");
+                return -EPERM;
+        }
+
+        /* 校验 8：CNode 操作的特殊约束——不允许在自身子能力上进行危险操作 */
+        if (obj_type == AIRY_CAP_CNODE &&
+            !cnode_op_is_allowed(cap, op_type)) {
+                log_write(LOG_ERROR, "airy_decode_invoke: CNode op not allowed");
+                return -ENOTSUP;
+        }
+
+        /* 校验 9：对象类型-操作兼容性检查 */
+        if (!cap_op_compatible(obj_type, op_type)) {
+                log_write(LOG_ERROR, "airy_decode_invoke: type %u op %u incompatible",
+                          obj_type, op_type);
+                return -EINVAL;
+        }
+
+        /* 校验 10：Untyped Retype —— 验证 FreeIndex 空间是否充足（纯读取） */
+        if (obj_type == AIRY_CAP_UNTYPED && op_type == AIRY_CAP_OP_RETYPE) {
+                u32 free_bytes = cap_untyped_get_free_bytes(cap);
+                u32 need_bytes = msg->obj_count * (1u << msg->obj_size_bits);
+                if (need_bytes > free_bytes) {
+                        log_write(LOG_ERROR,
+                                  "airy_decode_invoke: untyped retype needs %u, has %u",
+                                  need_bytes, free_bytes);
+                        return -ENOMEM;
+                }
+        }
+
+        /* 校验 11：安全检查——LSM hook（纯读取，不修改状态） */
+        {
+                u32 sec_ret;
+                sec_ret = security_cap_invoke_check(cap, op_type, msg);
+                if (sec_ret) {
+                        log_write(LOG_ERROR, "airy_decode_invoke: LSM denied (ret=%d)",
+                                  sec_ret);
+                        return -EACCES;
+                }
+        }
+
+        /*
+         * ============================================================
+         * 阶段 2：执行——全部校验通过，开始实际的 capability invocation
+         * 使用 __free() 自动释放临时对象（OS-KER-224）
+         * ============================================================
+         */
+
+        /* dispatch 对象自动管理——kmem_cache_zalloc 写入 POISON_INUSE（OS-KER-222） */
+        __free(kfree) struct airy_invoke_ctx *ctx = NULL;
+
+        ctx = kmem_cache_zalloc(invoke_ctx_cache, GFP_KERNEL);
+        if (!ctx)
+                return -ENOMEM;
+
+        ctx->cap     = cap;
+        ctx->op_type = op_type;
+        ctx->msg     = msg;
+
+        /* 调用类型分派表执行实际操作 */
+        ret = cap_op_dispatch[obj_type][op_type](ctx);
+        if (ret)
+                log_write(LOG_ERROR, "airy_decode_invoke: dispatch failed, ret=%d", ret);
+
+        return ret;
+        /* ctx 在 return 时通过 __free(kfree) 自动释放 —— OS-KER-224 */
+}
+```
+
+> **设计说明**：此重构将原分散在 `do_*_invoke` 各子函数中的校验逻辑集中到 `airy_decode_and_invoke` 统一校验阶段，确保：
+> - 校验 1-11 全部为纯读取操作，不分配内存，不修改全局状态
+> - 校验失败直接 `return -Exxx`，无需 goto 清理
+> - 校验通过后才进入执行阶段——分配 `invoke_ctx`（kmem_cache_zalloc + POISON_INUSE）
+> - 临时对象通过 `__free(kfree)` 编译器自动释放
+
 ---
 
 ## 2. 系统调用编号规则

@@ -1179,8 +1179,8 @@ agentrt market publish ./my-awesome-plugin
 发布新版本时更新 `plugin.yaml` 中的版本号：
 
 ```yaml
-# v0.1.0 → v0.2.0
-version: 0.2.0
+# v0.1.1 → v1.0.1（IRON-8：0.1.1→1.0.1 直接过渡）
+version: 1.0.1
 ```
 
 建议遵循语义化版本规范：

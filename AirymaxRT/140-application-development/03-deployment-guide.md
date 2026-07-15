@@ -441,9 +441,9 @@ deploy/kubernetes/helm/
 └── templates/
     ├── _helpers.tpl        # 模板辅助函数
     ├── configmap.yaml      # ConfigMap 配置
-    ├── deployments.yaml    # 10 个 Daemon 用户态服务 + 核心模块 Deployment
+    ├── deployments.yaml    # 12 个 Daemon 用户态服务 + 核心模块 Deployment
     ├── ingress.yaml        # Ingress 入口
-    └── services.yaml       # 10 个 Daemon 用户态服务 + 核心模块 Service
+    └── services.yaml       # 12 个 Daemon 用户态服务 + 核心模块 Service
 ```
 
 ### 4.3 安装 Chart
@@ -472,7 +472,7 @@ helm install agentrt ./deploy/kubernetes/helm \
 
 ### 4.4 部署的 Daemon 列表
 
-Helm Chart 部署 10 个 Daemon 用户态服务 + 核心模块，分为四个层级：
+Helm Chart 部署 12 个 Daemon 用户态服务 + 核心模块，分为四个层级：
 
 | 层级 | 类别 | Daemon | 默认端口 | 生产副本数 |
 |------|------|--------|---------|-----------|

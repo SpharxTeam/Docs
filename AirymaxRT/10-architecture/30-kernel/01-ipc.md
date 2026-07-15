@@ -12,7 +12,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 字段 | 值 |
 |------|-----|
 | 文档名称 | Airymax 进程间通信（IPC）架构详解 |
-| 适用版本 | v1.0.0+ |
+| 适用版本 | v1.0.1+ |
 
 ---
 
