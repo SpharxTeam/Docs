@@ -7,7 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，§37 风险登记册）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则（体系并行论）\
-> **核心约束**：IRON-9 同源且部分代码共享（IRON-9 v2）（agentrt 与 agentrt-linux 架构契合，非代码耦合）
+> **核心约束**：IRON-9 同源且部分代码共享（IRON-9 v3）（agentrt 与 agentrt-linux 架构契合，非代码耦合）
 
 ---
 
@@ -122,7 +122,7 @@ agentrt-linux 1.0.1 开发周期内的 10 项核心风险登记如下：
 
 ### 2.5 R-005：同源 agentrt API 漂移
 
-- **风险描述**：agentrt 在 1.0.1 周期内若变更同源 API（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree 语义），可能导致 agentrt-linux 同源实现失配，破坏 IRON-9 同源且部分代码共享（IRON-9 v2）原则。
+- **风险描述**：agentrt 在 1.0.1 周期内若变更同源 API（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree 语义），可能导致 agentrt-linux 同源实现失配，破坏 IRON-9 同源且部分代码共享（IRON-9 v3）原则。
 - **触发条件**：
   1. agentrt 1.0.1 修订同源 API 语义
   2. 季度同步评审未发现漂移
@@ -401,7 +401,7 @@ graph LR
 | **E-8 可测试性** | 测试覆盖率不足（R-008）通过强制 ≥80% 缓解 | §2.8 |
 | **K-2 接口契约化** | ABI 破坏（R-006）通过强制 ABI 审查 + 6 个月宽限期缓解 | §2.6 |
 | **A-4 完美主义** | P0 不可妥协；高风险必须降至中以下才可发布 | §1.3 |
-| **IRON-9 同源且部分代码共享（IRON-9 v2）** | 同源 API 漂移（R-005）通过季度同步评审缓解 | §2.5 |
+| **IRON-9 同源且部分代码共享（IRON-9 v3）** | 同源 API 漂移（R-005）通过季度同步评审缓解 | §2.5 |
 
 ---
 
@@ -440,8 +440,8 @@ graph LR
 
 ### 8.2 同源 Airymax 文档
 
-- `docs/AirymaxRT/00-architectural-principles.md` — 五维正交 24 原则
-- IRON-9 v2 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
+- `docs/AirymaxRT/10-architecture/00-architectural-principles.md` — 五维正交 24 原则
+- IRON-9 v3 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
 - agentrt 工程改进方案 — agentrt 三大支柱方案（v4.2，§37 风险登记册）
 
 ### 8.3 agentrt-linux 工程标准
@@ -461,4 +461,4 @@ graph LR
 
 ---
 
-> **文档结束** | 共 9 节 | Linux 6.6 内核基线 + 五维正交 24 原则 + IRON-9 同源且部分代码共享（IRON-9 v2） | 10 项核心风险 + 风险等级矩阵 + 3 套应急预案
+> **文档结束** | 共 9 节 | Linux 6.6 内核基线 + 五维正交 24 原则 + IRON-9 同源且部分代码共享（IRON-9 v3） | 10 项核心风险 + 风险等级矩阵 + 3 套应急预案

@@ -6,8 +6,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**：2026-07-06\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：agentrt 7 层验证 L2（系统级测试）+ Linux 6.6 内核基线 `tools/testing/selftests/`\
-> **理论根基**：Linux 6.6 内核基线测试思想 + Airymax 五维正交 24 原则（E-8 可测试性 / S-1 反馈闭环 / IRON-9 v2 同源且部分代码共享）\
-> **核心约束**：IRON-9 v2 同源且部分代码共享——kselftest 框架与 Linux 6.6 上游保持源码同源，agentrt-linux 扩展必须以独立子目录形式注入，禁止改写上游 kselftest 框架代码。
+> **理论根基**：Linux 6.6 内核基线测试思想 + Airymax 五维正交 24 原则（E-8 可测试性 / S-1 反馈闭环 / IRON-9 v3 同源且部分代码共享）\
+> **核心约束**：IRON-9 v3 同源且部分代码共享——kselftest 框架与 Linux 6.6 上游保持源码同源，agentrt-linux 扩展必须以独立子目录形式注入，禁止改写上游 kselftest 框架代码。
 
 ---
 
@@ -40,7 +40,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 kselftest 是 Linux 6.6 内核基线中的官方用户态系统级测试框架，由 Shuah Khan（Samsung）于 2014 年首次合入主线。其设计目标有三：系统级覆盖（系统调用、`/proc`、`/sys`、ioctl 等用户态接口测试内核特性，覆盖 KUnit 难以触及的端到端路径）、真实环境（QEMU 或真实硬件反映用户实际工作负载）、零依赖（仅依赖 glibc 或 NOLIBC，无需额外测试运行时）。
 
-agentrt-linux 完整继承 Linux 6.6 内核基线的 kselftest 框架（`tools/testing/selftests/`），不修改任何上游源文件。agentrt-linux 专属测试以独立 `airy_*` 子目录形式驻留于 `tools/testing/selftests/`，遵循 IRON-9 v2 同源且部分代码共享原则。
+agentrt-linux 完整继承 Linux 6.6 内核基线的 kselftest 框架（`tools/testing/selftests/`），不修改任何上游源文件。agentrt-linux 专属测试以独立 `airy_*` 子目录形式驻留于 `tools/testing/selftests/`，遵循 IRON-9 v3 同源且部分代码共享原则。
 
 ### 1.2 kselftest 架构层次
 
@@ -171,11 +171,11 @@ stateDiagram-v2
 
 ## 4. 子系统测试集
 
-Linux 6.6 内核基线在 `tools/testing/selftests/` 下提供 100+ 子系统测试集，覆盖 sched、mm、filesystems、net、bpf、cgroup、livepatch、resctrl、rseq、seccomp、tpm2 等。本节仅以 MicroCoreRT（agentrt-linux 用户态调度器，方案 C-Prime）调度系统测试为例说明 agentrt-linux 系统级测试范式。
+Linux 6.6 内核基线在 `tools/testing/selftests/` 下提供 100+ 子系统测试集，覆盖 sched、mm、filesystems、net、bpf、cgroup、livepatch、resctrl、rseq、seccomp、tpm2 等。本节仅以 MicroCoreRT（agentrt-linux 用户态调度器，sched_tac）调度系统测试为例说明 agentrt-linux 系统级测试范式。
 
 ### 4.1 MicroCoreRT 调度系统测试
 
-MicroCoreRT 调度算法的系统级验证通过 `airy_microcorert/` 测试集承载，基于方案 C-Prime（SCHED_FIFO/SCHED_DEADLINE/EEVDF + seL4 MCS 映射，标准 6.6 用户态调度器），包含 `fifo_priority_slice`、`deadline_bandwidth`、`eevdf_vtime`、`cgroup_cpuset`、`hotplug` 等用户态主程序对：
+MicroCoreRT 调度算法的系统级验证通过 `airy_microcorert/` 测试集承载，基于sched_tac（SCHED_FIFO/SCHED_DEADLINE/EEVDF + seL4 MCS 映射，标准 6.6 用户态调度器），包含 `fifo_priority_slice`、`deadline_bandwidth`、`eevdf_vtime`、`cgroup_cpuset`、`hotplug` 等用户态主程序对：
 
 ```c
 /* tools/testing/selftests/airy_microcorert/microcorert_sched.c */
@@ -429,11 +429,11 @@ TEST_HARNESS_MAIN
 | **A-4 完美主义** | root/非 root 双矩阵 + 退出码严格（OS-TEST-015/018） |
 | **K-3 协议优先** | AgentsIPC 128B 协议系统级契约（OS-KER-071） |
 | **K-6 调度优先** | MicroCoreRT 调度策略系统级时间片测量（OS-TEST-016） |
-| **IRON-9 v2 同源且部分代码共享** | agentrt-linux 扩展子目录独立注入，不改上游（OS-STD-048/OS-KER-085） |
+| **IRON-9 v3 同源且部分代码共享** | agentrt-linux 扩展子目录独立注入，不改上游（OS-STD-048/OS-KER-085） |
 
 > Airymax 五维正交 24 原则要求各维度强制规则两两正交无重叠，kselftest 卷规则（OS-TEST-013 至 OS-TEST-022）按原则维度分组，避免一条规则同时承担多个原则检查。
 
-### 9.1 IRON-9 v2 同源且部分代码共享在本卷的具体落地
+### 9.1 IRON-9 v3 同源且部分代码共享在本卷的具体落地
 
 - **同源**：agentrt-linux 不修改上游 `tools/testing/selftests/Makefile` 顶层结构；上游测试集与 Linux 6.6 内核基线一一对应。
 - **独立**：agentrt-linux 扩展子目录以 `airy_*` 前缀命名，独立 `config`/`settings`/`Makefile`，独立 Kconfig 依赖。
@@ -441,9 +441,9 @@ TEST_HARNESS_MAIN
 
 **OS-KER-098**：agentrt-linux 子目录禁止引入对上游测试集源码的依赖（`#include "../cgroup/..."` 等）；扩展测试自包含，避免上游重构时被破坏。
 
-### 9.2 IRON-9 v2 三层共享模型
+### 9.2 IRON-9 v3 四层共享模型
 
-本节将 §9.1 的"同源 / 独立 / 互操作"三要素进一步细化为 **IRON-9 v2 三层共享模型**，明确测试集层在用户态（agentrt）与内核态（agentrt-linux）之间的代码共享边界。三层分别为：**[SC] 共享契约层**（共享头文件 / 数据结构定义）、**[SS] 语义同源层**（设计模式同源但实现独立）、**[IND] 完全独立层**（双方各自独立实现）。该模型由 10 个 [SC] 头文件契约、跨态语义对照表与独立实现清单共同支撑。
+本节将 §9.1 的"同源 / 独立 / 互操作"三要素进一步细化为 **IRON-9 v3 四层共享模型**，明确测试集层在用户态（agentrt）与内核态（agentrt-linux）之间的代码共享边界。三层分别为：**[SC] 共享契约层**（共享头文件 / 数据结构定义）、**[SS] 语义同源层**（设计模式同源但实现独立）、**[IND] 完全独立层**（双方各自独立实现）。该模型由 10 个 [SC] 头文件契约、跨态语义对照表与独立实现清单共同支撑。
 
 #### 9.2.1 三层模型概览表
 
@@ -457,7 +457,7 @@ TEST_HARNESS_MAIN
 
 **无直接 [SC] 共享头文件**。
 
-测试集层不属于 IRON-9 v2 的 10 个 [SC] 共享头文件清单（`syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。测试集是验证基础设施，两端运行目标截然不同（agentrt 用户态集成测试 vs agentrt-linux 内核态系统级测试），其 Makefile 模式与运行器各自定义，源码层无共享头文件依赖。这一约束确保 agentrt 用户态集成测试演进时不会被动牵连 agentrt-linux kselftest，反之亦然——测试集层的演进由各自的 **OS-TEST 评审** 独立裁决。两端仅通过 **TAP 13 格式** 与 **AgentsIPC** 实现跨态协作而非代码共享。
+测试集层不属于 IRON-9 v3 的 10 个 [SC] 共享头文件清单（`syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h`）。测试集是验证基础设施，两端运行目标截然不同（agentrt 用户态集成测试 vs agentrt-linux 内核态系统级测试），其 Makefile 模式与运行器各自定义，源码层无共享头文件依赖。这一约束确保 agentrt 用户态集成测试演进时不会被动牵连 agentrt-linux kselftest，反之亦然——测试集层的演进由各自的 **OS-TEST 评审** 独立裁决。两端仅通过 **TAP 13 格式** 与 **AgentsIPC** 实现跨态协作而非代码共享。
 
 #### 9.2.3 [SS] 语义同源层
 
@@ -523,7 +523,7 @@ graph LR
     style K3 fill:#fce4ec,stroke:#c62828,color:#000
 ```
 
-**协作说明**：agentrt 用户态集成测试通过 `TEST_PROGS` 声明发现并用 `ctest` 调度运行于用户态进程，agentrt-linux 内核态 kselftest 通过 `TEST_PROGS` 声明发现并用 `run_kselftest.sh` 调度运行于系统级环境。两端在 **[SS] 语义同源层** 共享"测试发现 + TAP 报告"的设计模式（Makefile 模式 / 调度器 / TAP 13 格式 / 过滤），使测试集的组织心智模型在两端可复用；但在 **[IND] 完全独立层** 各自维护内核安装机制、rootfs 集成、超时管理。两端测试结果均输出 **TAP 13 格式**，通过 **AgentsIPC** 通道汇总至 CI 统一解析。这与 §9.1 的"同源 / 独立 / 互操作"三要素一致：同源（测试发现 + TAP）、独立（安装机制 / rootfs）、互操作（`run_kselftest.sh` 调度器与上游共享）。这正是 **IRON-9 v2 同源且部分代码共享** 在测试集层的落地——同源模式，独立实现，无共享契约，靠 IPC 协作。
+**协作说明**：agentrt 用户态集成测试通过 `TEST_PROGS` 声明发现并用 `ctest` 调度运行于用户态进程，agentrt-linux 内核态 kselftest 通过 `TEST_PROGS` 声明发现并用 `run_kselftest.sh` 调度运行于系统级环境。两端在 **[SS] 语义同源层** 共享"测试发现 + TAP 报告"的设计模式（Makefile 模式 / 调度器 / TAP 13 格式 / 过滤），使测试集的组织心智模型在两端可复用；但在 **[IND] 完全独立层** 各自维护内核安装机制、rootfs 集成、超时管理。两端测试结果均输出 **TAP 13 格式**，通过 **AgentsIPC** 通道汇总至 CI 统一解析。这与 §9.1 的"同源 / 独立 / 互操作"三要素一致：同源（测试发现 + TAP）、独立（安装机制 / rootfs）、互操作（`run_kselftest.sh` 调度器与上游共享）。这正是 **IRON-9 v3 同源且部分代码共享** 在测试集层的落地——同源模式，独立实现，无共享契约，靠 IPC 协作。
 
 ---
 
@@ -613,7 +613,7 @@ kselftest 输出 TAP（version 13），形如 `ok <num> <suite>:<case>` / `not o
 
 ### 13.1 维护规则
 
-- 本卷与 Linux 6.6 内核基线 kselftest 框架保持源码同源（IRON-9 v2 同源且部分代码共享）。
+- 本卷与 Linux 6.6 内核基线 kselftest 框架保持源码同源（IRON-9 v3 同源且部分代码共享）。
 - 上游 kselftest API 变更时，本卷必须在 1 个上游 LTS 周期内同步更新。
 - agentrt-linux 扩展子目录的新增/删除必须同步更新本卷第 8 节与 `80-testing/README.md` 的 L2 章节。
 - 本卷所有规则编号（OS-KER-XXX/OS-STD-XXX/OS-TEST-XXX）注册于 07 维护者制度的"规则编号注册表"。
@@ -629,7 +629,7 @@ kselftest 输出 TAP（version 13），形如 `ok <num> <suite>:<case>` / `not o
 
 ## 附录 A: 接口定义
 
-> **附录定位**： 本附录汇集 kselftest 系统级测试框架所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `tools/testing/selftests/kselftest.h`、`tools/testing/selftests/kselftest_harness.h`、`tools/testing/selftests/lib.mk`、`run_kselftest.sh` 及 `include/airymax/selftest_types.h`（[SC] 共享契约层）。kselftest 框架与 Linux 6.6 上游保持源码同源（IRON-9 v2），agentrt-linux 扩展以独立 `airy_*` 子目录形式注入，禁止改写上游框架代码。
+> **附录定位**： 本附录汇集 kselftest 系统级测试框架所需的完整接口契约，供直接参照实现。所有数据结构与函数签名对齐 Linux 6.6 `tools/testing/selftests/kselftest.h`、`tools/testing/selftests/kselftest_harness.h`、`tools/testing/selftests/lib.mk`、`run_kselftest.sh` 及 `include/airymax/selftest_types.h`（[SC] 共享契约层）。kselftest 框架与 Linux 6.6 上游保持源码同源（IRON-9 v3），agentrt-linux 扩展以独立 `airy_*` 子目录形式注入，禁止改写上游框架代码。
 
 ### A.1 核心数据结构
 

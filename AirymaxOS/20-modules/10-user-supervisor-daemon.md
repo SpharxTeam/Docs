@@ -1,11 +1,11 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # Macro-Supervisor 用户态守护进程设计
-> **文档定位**：USV（统一生命周期监管）模块的用户态监管组件唯一权威设计\
+> **文档定位**：A-ULS（统一生命周期管理）模块的用户态监管组件唯一权威设计\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §7\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4（USV 设计）+ §1（方案 C-Prime）
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4（A-ULS 设计）+ §1（sched_tac）
 
 ---
 
@@ -13,25 +13,25 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **Macro-Supervisor 用户态守护进程** 的唯一权威源。systemd unit 管理 12 个 daemon、心跳检查、Capability 注入（io_uring_cmd）、故障裁决（警告/降级/暂停/终止）、"用户温情裁决"策略、单点故障 fallback（内核 watchdog 直接重启）、io_uring_cmd 执行裁决均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义 Macro-Supervisor 职责与裁决流程。
 >
-> 技术选型声明：IPC 采用 **IORING_OP_URING_CMD + registered buffer + mmap**（**不使用 page flipping**）。整体遵循 Unify Design：方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> 技术选型声明：IPC 采用 **IORING_OP_URING_CMD + registered buffer + mmap**（**不使用 page flipping**）。整体遵循 Unify Design：sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
 ## 文档信息卡
 
-- **目标读者**：用户态守护进程开发者、USV 模块开发者、运维工程师
-- **前置知识**：理解 [09-kernel-agent-supervisor.md](09-kernel-agent-supervisor.md) Micro-Supervisor、[10-unify-design.md](../10-architecture/10-unify-design.md) §7 USV 模块、[10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) Agent 8 态
+- **目标读者**：用户态守护进程开发者、A-ULS 模块开发者、运维工程师
+- **前置知识**：理解 [09-kernel-agent-supervisor.md](09-kernel-agent-supervisor.md) Micro-Supervisor、[10-unify-design.md](../10-architecture/10-unify-design.md) §7 A-ULS 模块、[10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) Agent 8 态
 - **预计阅读时间**：35 分钟
 - **核心概念**：Macro-Supervisor、systemd unit、心跳检查、Capability 注入、故障裁决、温情裁决、单点 fallback、io_uring_cmd
 - **复杂度标识**：高级
 
 ---
 
-## §1 架构定位：USV 模块的用户态监管组件
+## §1 架构定位：A-ULS 模块的用户态监管组件
 
 ### 1.1 双 Supervisor 模型回顾
 
-USV 模块采用双 Supervisor 模型——内核冷酷执法 + 用户温情裁决（详见 [10-unify-design.md](../10-architecture/10-unify-design.md) §7）：
+A-ULS 模块采用双 Supervisor 模型——内核冷酷执法 + 用户温情裁决（详见 [10-unify-design.md](../10-architecture/10-unify-design.md) §7）：
 
 | Supervisor | 执行域 | 职责 | 设计哲学 |
 |-----------|--------|------|---------|
@@ -58,9 +58,9 @@ Macro-Supervisor 管理的 12 个 daemon 及其职责：
 
 | # | Daemon | 职责 | Agent 态管理 |
 |---|--------|------|------------|
-| 1 | macro_superv | 主监管守护进程（USV） | 自身（高优先级） |
-| 2 | logger_daemon | 日志消费（ULPS） | 心跳监控 |
-| 3 | config_daemon | 配置管理（UCF） | 心跳监控 |
+| 1 | macro_superv | 主监管守护进程（A-ULS） | 自身（高优先级） |
+| 2 | logger_daemon | 日志消费（A-ULP） | 心跳监控 |
+| 3 | config_daemon | 配置管理（A-UCS） | 心跳监控 |
 | 4 | gateway_d | 网关守护 | 心跳监控 |
 | 5 | sched_d | 调度守护 | 8 态生命周期 |
 | 6 | vfs_d | VFS 用户态服务 | 心跳监控 |
@@ -82,7 +82,7 @@ Macro-Supervisor 作为 systemd service 管理 12 个 daemon 的生命周期：
 ```ini
 # /etc/systemd/system/airymax-macro-superv.service
 [Unit]
-Description=Airymax Macro-Supervisor (USV user-side)
+Description=Airymax Macro-Supervisor (A-ULS user-side)
 After=systemd-modules-load.service airy-log.service
 Requires=airy-log.service
 # 依赖内核 Micro-Supervisor 模块
@@ -98,7 +98,7 @@ RestartSec=1
 MemoryMax=512M
 LimitNOFILE=256
 # 调度：SCHED_FIFO 优先级 80，确保及时裁决
-# 对齐方案 C-Prime：关键 daemon 用 SCHED_FIFO
+# 对齐sched_tac：关键 daemon 用 SCHED_FIFO
 IOSchedulingClass=realtime
 IOSchedulingPriority=2
 # 安全加固
@@ -142,7 +142,7 @@ static int macro_superv_spawn_daemons(void)
         const struct daemon_spec *d = &daemons[i];
         pid_t pid = fork();
         if (pid == 0) {
-            /* 子进程：设置调度策略（方案 C-Prime） */
+            /* 子进程：设置调度策略（sched_tac） */
             if (d->sched_policy == SCHED_DEADLINE) {
                 macro_superv_set_deadline(getpid(), d);
             } else if (d->sched_policy == SCHED_FIFO) {
@@ -323,7 +323,7 @@ eventfd 唤醒
     │  ├── Agent 历史违规记录
     │  ├── 当前 Agent 状态（8 态）
     │  ├── Fault 严重程度
-    │  └── 配置策略（UCF）
+    │  └── 配置策略（A-UCS）
     │
     ▼
 3. 裁决决策
@@ -336,7 +336,7 @@ eventfd 唤醒
 4. 执行裁决（通过 io_uring_cmd）
     │
     ▼
-5. 记录裁决日志（ULPS Ring Buffer）
+5. 记录裁决日志（A-ULP Ring Buffer）
 ```
 
 ### 5.2 裁决策略矩阵
@@ -392,7 +392,7 @@ static int macro_superv_adjudicate(struct airy_fault_event *ev)
         break;
     }
 
-    /* 4. 记录裁决日志（ULPS Ring Buffer） */
+    /* 4. 记录裁决日志（A-ULP Ring Buffer） */
     airy_log_write(LOG_WARNING, AIRY_FAC_SUPERV, &action, sizeof(action));
 
     return 0;
@@ -420,7 +420,7 @@ static int macro_superv_adjudicate(struct airy_fault_event *ev)
 1. **递进式处置**：首次警告 → 再次降级 → 屡犯暂停 → 严重终止
 2. **上下文感知**：考虑 Agent 是否首次启动、是否在高负载下
 3. **可恢复**：警告和降级不永久影响 Agent，可恢复
-4. **策略可配置**：裁决策略通过 UCF 配置，支持热重载
+4. **策略可配置**：裁决策略通过 A-UCS 配置，支持热重载
 
 ### 6.3 裁决选项详解
 
@@ -604,14 +604,14 @@ static int airy_adjudicate_execute(struct airy_ipc_cmd *cmd)
 
 ## §10 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) §7 —— USV 模块总纲
+- [10-unify-design.md](../10-architecture/10-unify-design.md) §7 —— A-ULS 模块总纲
 - [09-kernel-agent-supervisor.md](09-kernel-agent-supervisor.md) —— Micro-Supervisor（内核冷酷执法）
 - [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) —— Agent 8 态生命周期
 - [07-ipc-fastpath.md](../30-interfaces/07-ipc-fastpath.md) —— IPC fastpath（裁决执行通道）
 - [05-ipc-control-plane-reconciliation.md](../110-security/05-ipc-control-plane-reconciliation.md) —— Reconciliation（Macro-Supervisor 是控制面主体）
 - [04-ipc-data-plane-autonomy.md](../110-security/04-ipc-data-plane-autonomy.md) —— 数据面自治（Macro-Supervisor 故障时）
 - [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) —— [DSL] 降级（watchdog fallback）
-- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4 —— USV 设计依据
+- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4 —— A-ULS 设计依据
 
 ---
 

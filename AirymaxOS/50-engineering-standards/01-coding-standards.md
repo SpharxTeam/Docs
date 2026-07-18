@@ -623,7 +623,7 @@ config AIRY_DEVMEM_RW
 | 8 并发   | K-2 接口契约 | E-1 / E-3 资源确定性       | A-2 细节关注 |
 | 9 条件编译 | K-2 接口契约 | E-1 / E-7 文档即代码       | A-3 人文关怀 |
 
-> **同源语义注**： 本章规则在 agentrt 用户态运行时侧有等价表述（agentrt `IRON-1`\~`IRON-10` 同源铁律），两端通过 AgentsIPC 128B 消息头协议实现无适配层互操作——这是 agentrt-linux 与 agentrt "同源且部分代码共享（IRON-9 v2）"关系在代码规范层的体现。
+> **同源语义注**： 本章规则在 agentrt 用户态运行时侧有等价表述（agentrt `IRON-1`\~`IRON-10` 同源铁律），两端通过 AgentsIPC 128B 消息头协议实现无适配层互操作——这是 agentrt-linux 与 agentrt "同源且部分代码共享（IRON-9 v3）"关系在代码规范层的体现。
 
 ***
 
@@ -687,7 +687,7 @@ config AIRY_DEVMEM_RW
 - 本文档 Part III — 代码风格（模块化 / 抽象层次 / 防御性）
 - `50-engineering-standards/04-engineering-philosophy.md` — 工程思想（双层稳定性 / 策略机制分离）
 - `50-engineering-standards/07-maintainers-and-governance.md` — 维护者制度与规则编号注册表
-- `docs/AirymaxRT/00-architectural-principles.md` — Airymax 五维正交 24 原则
+- `docs/AirymaxRT/10-architecture/00-architectural-principles.md` — Airymax 五维正交 24 原则
 - `50-engineering-standards/magic-numbers.md` — agentrt-linux magic number 注册表
 - `30-interfaces/01-syscall-spec.md` — 系统调用规范（UABI 边界）
 
@@ -1331,7 +1331,7 @@ struct airy_dispatcher_ops {
 
 ### 2.2 策略外移至用户空间或可插拔模块（OS-KER-121）
 
-**OS-KER-121**：策略必须可在不重新编译内核的情况下替换。agentrt-linux 通过两类机制实现：用户态守护进程（K-3 服务隔离）+ eBPF / 方案 C-Prime 用户态调度器（K-4 可插拔策略）。
+**OS-KER-121**：策略必须可在不重新编译内核的情况下替换。agentrt-linux 通过两类机制实现：用户态守护进程（K-3 服务隔离）+ eBPF / sched_tac 用户态调度器（K-4 可插拔策略）。
 
 ```c
 /* 错误：策略硬编码进内核 */
@@ -1341,7 +1341,7 @@ static int airy_pick_next_cpu(struct task_struct *p)
 	return 0;
 }
 
-/* 正确：内核只提供机制，策略由方案 C-Prime 用户态调度器提供 */
+/* 正确：内核只提供机制，策略由sched_tac 用户态调度器提供 */
 struct airy_sched_ops airy_agent_sched = {
 	.enqueue		= agent_sched_enqueue,  /* 用户态调度器注入 */
 	.dispatch		= agent_sched_dispatch,
@@ -1349,9 +1349,9 @@ struct airy_sched_ops airy_agent_sched = {
 };
 ```
 
-### 2.3 方案 C-Prime 用户态调度器作为极端范式（OS-KER-122）
+### 2.3 sched_tac 用户态调度器作为极端范式（OS-KER-122）
 
-**OS-KER-122**：kernel 的 `AIRY_SCHED_AGENT` 用户态调度器策略必须基于方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF）实现——这是策略机制分离的最纯粹形态。用户态调度器在用户态编写、动态加载、热替换，而无需内核重新编译或重启。任何把调度策略硬编码进 `kernel/sched/` 的 PR 直接拒绝。
+**OS-KER-122**：kernel 的 `sched_tac` 用户态调度器策略必须基于 SCHED_DEADLINE/SCHED_FIFO/EEVDF 实现——这是策略机制分离的最纯粹形态。用户态调度器在用户态编写、动态加载、热替换，而无需内核重新编译或重启。任何把调度策略硬编码进 `kernel/sched/` 的 PR 直接拒绝。
 
 ### 2.4 agentrt-linux 专属：K-4 可插拔策略原则映射
 
@@ -1651,7 +1651,7 @@ arr = kcalloc(n, sizeof(*arr), GFP_KERNEL);
 
 ### 8.4 Agent 工作负载考量——Token 能效与记忆卷载（OS-STD-STY-004）
 
-**OS-STD-STY-004**：agentrt-linux 设计须考虑 Agent 工作负载特性——Token 能效（每 token 的 CPU/J 预算）、记忆卷载（C-3，L1-L4 分层卷载模式）。详见 [40-dataflows/01-cognition-flow.md](../40-dataflows/01-cognition-flow.md) 与 [40-dataflows/02-memory-flow.md](../40-dataflows/02-memory-flow.md)。Agent 任务在调度器中应作为 `AIRY_SCHED_AGENT` 用户态调度器策略，与普通进程隔离调度，避免被普通负载饿死或反噬。
+**OS-STD-STY-004**：agentrt-linux 设计须考虑 Agent 工作负载特性——Token 能效（每 token 的 CPU/J 预算）、记忆卷载（C-3，L1-L4 分层卷载模式）。详见 [40-dataflows/01-cognition-flow.md](../40-dataflows/01-cognition-flow.md) 与 [40-dataflows/02-memory-flow.md](../40-dataflows/02-memory-flow.md)。Agent 任务在调度器中应作为 `sched_tac` 用户态调度器策略（stc_agent 枚举），与普通进程隔离调度，避免被普通负载饿死或反噬。
 
 ### 8.5 OLK-6.6 品味哲学——8 项隐性工程智慧（OS-STD-STY-005~012）
 
@@ -1942,7 +1942,7 @@ struct airy_task_struct {
 | **E-8 可测试性** | 错误路径必须测试；fault injection 强制 | OS-KER-134、OS-KER-148 |
 | **K-2 接口契约化** | 4 层接口稳定性分级；用户 ABI 永久稳定 | OS-KER-132、OS-STD-CODE-006 |
 | **K-3 服务隔离** | 策略外移至用户态守护进程 | OS-KER-121 |
-| **K-4 可插拔策略** | 策略机制分离；方案 C-Prime 用户态调度范式 | OS-KER-120、OS-KER-122 |
+| **K-4 可插拔策略** | 策略机制分离；sched_tac 用户态调度范式 | OS-KER-120、OS-KER-122 |
 | **C-1 双系统协同** | 热路径 C / 慢路径 Rust / Agent Python+TS 分层 | OS-STD-STY-003、OS-KER-143 |
 | **C-3 记忆卷载** | Agent 工作负载考量，Token 能效与 L1-L4 卷载 | OS-STD-STY-004 |
 

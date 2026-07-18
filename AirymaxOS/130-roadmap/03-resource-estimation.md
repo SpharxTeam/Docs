@@ -7,7 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，§36 SP32-SP37 生产就绪 6 项）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则（体系并行论）\
-> **核心约束**：IRON-9 v2 同源且部分代码共享（agentrt 与 agentrt-linux 架构契合，非代码耦合）
+> **核心约束**：IRON-9 v3 同源且部分代码共享（agentrt 与 agentrt-linux 架构契合，非代码耦合）
 
 ---
 
@@ -33,7 +33,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 1. **E-3 资源确定性**——所有资源（人力、工时、设备）必须有明确归属与生命周期，禁止"模糊分摊"；每条工时必须挂载到具体 Part / 模块 / 文档。
 2. **A-4 完美主义**——P0 不可妥协，工时估算含审查与缓冲，不为赶工期压缩质量门禁（OS-ACC）。
-3. **IRON-9 v2 同源且部分代码共享**——agentrt-linux 工时独立于 agentrt，同源语义对齐成本（约 80h）计入 P0 缓冲。
+3. **IRON-9 v3 同源且部分代码共享**——agentrt-linux 工时独立于 agentrt，同源语义对齐成本（约 80h）计入 P0 缓冲。
 4. **E-6 错误可追溯**——所有工时变更必须留下 RFC 痕迹，季度回顾时与实际消耗对比，差异 >15% 需复盘。
 
 ### 1.4 估算边界
@@ -153,7 +153,7 @@ pie showData
 | 角色 | 人数 | 职责 | 投入度 |
 |------|------|------|--------|
 | 总架构师 | 1 | 统筹 9 Part 优先级、技术决策、关键路径管理 | 100%（全程） |
-| 内核工程师 | 1 | kernel 微内核化改造、AIRY_SCHED_AGENT、Rust 模块 | 100%（M1-M5） |
+| 内核工程师 | 1 | kernel 微内核化改造、sched_tac、Rust 模块 | 100%（M1-M5） |
 | 系统服务工程师 | 1 | services / system 子仓、12 daemons 集成 | 100%（M2-M6） |
 | 安全工程师 | 1 | security 子仓、capability + LSM、机密计算 | 80%（M2-M5） |
 | 测试工程师 | 1 | tests-linux、KUnit / kselftest / 形式化 | 80%（M3-M6） |
@@ -218,7 +218,7 @@ pie showData
 
 | 子仓 | 实施工时(h) | 占比 | 主要工作 |
 |------|-----------|------|---------|
-| kernel | 180 | 31.0% | 方案 C-Prime + io_uring + eBPF + Rust 模块 |
+| kernel | 180 | 31.0% | sched_tac + io_uring + eBPF + Rust 模块 |
 | services | 80 | 13.8% | VFS + 网络 + 12 daemons |
 | security | 90 | 15.5% | capability + LSM + 国密 |
 | memory | 60 | 10.3% | CXL + PMEM + MGLRU |
@@ -333,7 +333,7 @@ gantt
 | **S-4 涌现性管理** | 14% 风险缓冲用于抑制延期传染；关键路径并行化 | §6 关键路径 + §2.2 缓冲 |
 | **E-6 错误可追溯** | 工时变更留 RFC 痕迹；季度回顾对比实际消耗 | §1.3 估算原则 |
 | **E-7 文档即代码** | 本估算文档本身是 Markdown 即代码；与代码同源演进 | 全文 |
-| **IRON-9 v2 同源且部分代码共享** | agentrt-linux 工时独立于 agentrt；同源语义对齐成本计入缓冲 | §1.3 + §4 |
+| **IRON-9 v3 同源且部分代码共享** | agentrt-linux 工时独立于 agentrt；同源语义对齐成本计入缓冲 | §1.3 + §4 |
 
 ---
 
@@ -374,8 +374,8 @@ gantt
 
 ### 10.2 同源 Airymax 文档
 
-- `docs/AirymaxRT/00-architectural-principles.md` — 五维正交 24 原则
-- IRON-9 v2 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
+- `docs/AirymaxRT/10-architecture/00-architectural-principles.md` — 五维正交 24 原则
+- IRON-9 v3 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
 - agentrt 工程改进方案 — agentrt 三大支柱方案（v4.2）
 
 ### 10.3 agentrt-linux 工程标准
@@ -394,4 +394,4 @@ gantt
 
 ---
 
-> **文档结束** | 共 11 节 | Linux 6.6 内核基线 + 五维正交 24 原则 + IRON-9 v2 同源且部分代码共享 | 1.0.1 总工时 ~2,750h
+> **文档结束** | 共 11 节 | Linux 6.6 内核基线 + 五维正交 24 原则 + IRON-9 v3 同源且部分代码共享 | 1.0.1 总工时 ~2,750h

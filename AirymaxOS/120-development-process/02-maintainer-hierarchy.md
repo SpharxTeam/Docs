@@ -7,7 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：agentrt 维护者层级 + Linux 6.6 内核 MAINTAINERS 文件与 Lieutenant System\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + S-3 总体设计部 + A-3 人文关怀\
-> **核心约束**：IRON-9 v2 同源且部分代码共享（agentrt 用户态维护者层级与 agentrt-linux 内核发行版维护者层级并行，通过同源 API 变更评审保持协同）
+> **核心约束**：IRON-9 v3 同源且部分代码共享（agentrt 用户态维护者层级与 agentrt-linux 内核发行版维护者层级并行，通过同源 API 变更评审保持协同）
 
 ---
 
@@ -419,13 +419,13 @@ emeritus（荣誉维护者）是已卸任但仍保留咨询身份的维护者：
 | **E-6 错误可追溯** | 错误可溯源可追踪 | Signed-off-by 链条 + DCO 1.1 溯源每层维护者 |
 | **E-7 文档即代码** | 文档与代码同源同审 | MAINTAINERS.md 14 字段 + 子系统手册（P: 字段） |
 | **A-3 人文关怀** | 不烧桥管理哲学 | 审查礼仪 + emeritus 荣誉身份 + 接班 6 个月缓冲 |
-| **IRON-9 v2 同源且部分代码共享** | 同源 API 并行演进 | MicroCoreRT/AgentsIPC 同源 API 变更需两端维护者协同评审 |
+| **IRON-9 v3 同源且部分代码共享** | 同源 API 并行演进 | MicroCoreRT/AgentsIPC 同源 API 变更需两端维护者协同评审 |
 
 ---
 
 ## 10. 同源 agentrt 映射
 
-本文档的维护者层级与 agentrt 用户态运行时维护者层级同源且部分代码共享（IRON-9 v2 同源且部分代码共享）：
+本文档的维护者层级与 agentrt 用户态运行时维护者层级同源且部分代码共享（IRON-9 v3 同源且部分代码共享）：
 
 | 维度 | agentrt（用户态） | agentrt-linux（内核发行版） |
 |------|------------------|----------------------|
@@ -441,9 +441,9 @@ emeritus（荣誉维护者）是已卸任但仍保留咨询身份的维护者：
 
 MicroCoreRT 与 AgentsIPC 同源 API 的维护者变更必须双向通知：agentrt 端维护者离职需通知 agentrt-linux 端对应维护者，反之亦然；继任者任命需经两端共同 ACK，确保同源 API 的一致性不因单端维护者变更而漂移。
 
-### 10.2 IRON-9 v2 三层共享模型
+### 10.2 IRON-9 v3 四层共享模型
 
-IRON-9 v2 三层共享模型将 agentrt（用户态运行时）与 agentrt-linux（内核发行版）之间的同源关系细分为三个正交层次：[SC] 共享契约层（头文件级代码共享）、[SS] 语义同源层（语义两端一致但实现独立）、[IND] 完全独立层（发行版固有责任）。本节聚焦维护者层级的三层映射。
+IRON-9 v3 四层共享模型将 agentrt（用户态运行时）与 agentrt-linux（内核发行版）之间的同源关系细分为三个正交层次：[SC] 共享契约层（头文件级代码共享）、[SS] 语义同源层（语义两端一致但实现独立）、[IND] 完全独立层（发行版固有责任）。本节聚焦维护者层级的三层映射。
 
 #### 10.2.1 三层模型概览
 

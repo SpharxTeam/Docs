@@ -91,7 +91,7 @@ agentrt-linux 定义三级信任边界（L1/L2/L3），与 [`110-security/README
 
 **A4 IPC 消息通道**：128B 消息头 `struct airy_ipc_msg_hdr`，magic `0x41524531`（'ARE1'），5 种 payload type，4 种操作码（SEND/RECV/SEND\_BATCH/CANCEL）。magic 与 checksum 共同保证消息完整性，`trace_id` 支持全链路追踪。IPC 是 Agent 间通信的唯一合法通道，篡改将导致跨租户越权。
 
-**A5 Agent 任务描述符**：`struct airy_task_desc`，magic `0x41475453`（'AGTS'），方案 C-Prime 调度策略（SCHED_DEADLINE/SCHED_FIFO/EEVDF），优先级 0-139，`MAC_MAX_AGENTS=1024`。描述符伪造将导致 Agent 身份冒充，绕过 capability 授权。
+**A5 Agent 任务描述符**：`struct airy_task_desc`，magic `0x41475453`（'AGTS'），sched_tac 调度策略（SCHED_DEADLINE/SCHED_FIFO/EEVDF），优先级 0-139，`MAC_MAX_AGENTS=1024`。描述符伪造将导致 Agent 身份冒充，绕过 capability 授权。
 
 **A6 LLM 推理状态**：CoreLoopThree kthread 维护的三阶段认知循环状态（`cognition_types.h` 三阶段枚举）。推理状态含 Agent 上下文、提示词、中间张量，属高价值认知数据。跨租户泄露违反 Agent 数据隔离原则。
 

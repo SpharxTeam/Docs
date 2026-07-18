@@ -7,7 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，§36 SP07-SP12 仓间依赖）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则（体系并行论）\
-> **核心约束**：IRON-9 v2 同源且部分代码共享（agentrt 与 agentrt-linux 通过同源语义解耦，非代码耦合）
+> **核心约束**：IRON-9 v3 同源且部分代码共享（agentrt 与 agentrt-linux 通过同源语义解耦，非代码耦合）
 
 ---
 
@@ -293,7 +293,7 @@ gantt
 
 - 60-驱动模型 → 多数下游：驱动模型通过 K-4 可插拔策略与下游解耦
 - 180-i18n / 190-分发：作为 P2 模块，几乎完全独立
-- 同源语义对齐：agentrt 与 agentrt-linux 通过 IRON-9 v2 同源且部分代码共享原则解耦
+- 同源语义对齐：agentrt 与 agentrt-linux 通过 IRON-9 v3 同源且部分代码共享原则解耦
 
 ---
 
@@ -388,7 +388,7 @@ graph TD
 | **K-2 接口契约化** | Part 间依赖通过 OS-ACC 验收标准约束，非隐式假设 | §7.2 里程碑验收 |
 | **E-3 资源确定性** | 每条依赖明确标注上游 Part 与下游影响范围 | §2.1 Part 依赖矩阵 |
 | **E-6 错误可追溯** | 依赖关系变更留 RFC 痕迹；季度审查 | §8.2 依赖管理机制 |
-| **IRON-9 v2 同源且部分代码共享** | agentrt 与 agentrt-linux 通过同源语义解耦，非代码耦合 | §1.1 + §6.3 弱依赖 |
+| **IRON-9 v3 同源且部分代码共享** | agentrt 与 agentrt-linux 通过同源语义解耦，非代码耦合 | §1.1 + §6.3 弱依赖 |
 
 ---
 
@@ -405,8 +405,8 @@ graph TD
 
 ### 10.2 同源 Airymax 文档
 
-- `docs/AirymaxRT/00-architectural-principles.md` — 五维正交 24 原则
-- IRON-9 v2 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
+- `docs/AirymaxRT/10-architecture/00-architectural-principles.md` — 五维正交 24 原则
+- IRON-9 v3 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
 - agentrt 工程改进方案 — agentrt 三大支柱方案（v4.2，§36 SP07-SP12）
 
 ### 10.3 agentrt-linux 工程标准
@@ -426,4 +426,4 @@ graph TD
 
 ---
 
-> **文档结束** | 共 11 节 | Linux 6.6 内核基线 + 五维正交 24 原则 + IRON-9 v2 同源且部分代码共享 | 9 Part 依赖图 + 19 模块依赖矩阵 + 关键路径
+> **文档结束** | 共 11 节 | Linux 6.6 内核基线 + 五维正交 24 原则 + IRON-9 v3 同源且部分代码共享 | 9 Part 依赖图 + 19 模块依赖矩阵 + 关键路径

@@ -459,7 +459,7 @@ ibus-libpinyin
 
 %post --log=/var/log/airymaxos-install.log
 
-# 启用 AIRY_SCHED_AGENT 用户态调度器（方案 C-Prime）
+# 启用 sched_tac 用户态调度器
 systemctl enable airymaxos-sched-agent.service
 
 # 启用 12 个 daemon
@@ -545,7 +545,7 @@ fi
 │    └→ grub2-install + grub2-mkconfig + Secure Boot 签名       │
 ├───────────────────────────────────────────────────────────────┤
 │ 8. 后置配置                                                   │
-│    └→ locale + 时区 + 用户 + 网络 + AIRY_SCHED_AGENT 用户态调度器 + 快照 │
+│    └→ locale + 时区 + 用户 + 网络 + sched_tac 用户态调度器 + 快照 │
 ├───────────────────────────────────────────────────────────────┤
 │ 9. 重启进入系统                                              │
 │    └→ 加载 airymaxos-kernel + 启动 systemd + 启动 12 daemon   │
@@ -945,11 +945,11 @@ out_free_ctx:
 | **E-7 文档即代码** | kickstart 配置即安装契约文档 |
 | **E-8 可测试性** | 自动化无人值守安装 + 测试矩阵 |
 | **K-2 接口契约化** | kickstart 是安装接口契约 |
-| **IRON-9 v2 [IND]** | 安装器独立于 agentrt |
+| **IRON-9 v3 [IND]** | 安装器独立于 agentrt |
 
 ---
 
-## 12. IRON-9 v2 同源映射
+## 12. IRON-9 v3 同源映射
 
 | 组件 | agentrt-linux（[IND]） | agentrt（[IND]） |
 |------|--------------------------|------------------|

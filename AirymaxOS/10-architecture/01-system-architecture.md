@@ -51,7 +51,7 @@ agentrt-linux 采用三大设计支柱:
 
 | agentrt 模块 | agentrt-linux 同源模块 | 同源语义 |
 |---|---|---|
-| atoms/corekern (MicroCoreRT) | kernel (SCHED_AGENT) | 调度语义一致 |
+| atoms/corekern (MicroCoreRT) | kernel（sched_tac） | 调度语义一致 |
 | atoms/ipc + protocols (AgentsIPC) | services (消息传递) | IPC 协议语义一致 |
 | cupolas (Cupolas) | security (capability) | 安全模型一致 |
 | heapstore + memoryrovol (MemoryRovol) | memory (记忆持久化) | 记忆模型一致 |
@@ -96,7 +96,7 @@ agentrt-linux 采用三大设计支柱:
 ┌─────────────────────────▼───────────────────────────────────────┐
 │              agentrt-linux 微内核核心 (kernel)             │
 │  ┌──────────┬──────────┬──────────┬──────────┬────────────┐   │
-│  │ sched_ext│ io_uring │ 内存管理  │ IPC      │ Rust 模块   │   │
+│  │ sched_tac│ io_uring │ 内存管理  │ IPC      │ Rust 模块   │   │
 │  │ SCHED_   │ 零拷贝   │ 基本能力  │ agent_ipc│ 安全驱动    │   │
 │  │ AGENT    │          │          │ syscall  │             │   │
 │  └──────────┴──────────┴──────────┴──────────┴────────────┘   │
@@ -123,15 +123,15 @@ agentrt-linux 不是从零开发微内核，而是基于 Linux 内核进行**微
 | 网络栈在内核态 | 网络栈部分用户态化（DPDK/AF_XDP） |
 | 驱动在内核态 | 部分驱动用户态化（VFIO/libvfio） |
 | 安全模块在内核态 | capability + LSM 用户态化 |
-| 调度器在内核态 | sched_ext 允许 eBPF 用户态调度 |
+| 调度器在内核态 | sched_tac 用户态调度策略（SCHED_DEADLINE/SCHED_FIFO/EEVDF） |
 
-**关键改造**: 利用 agentrt-linux 内核增强的 sched_ext + eBPF + io_uring 实现微内核化，而不抛弃 Linux 内核的稳定性和硬件支持。
+**关键改造**: 利用 agentrt-linux 内核增强的 sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF）+ io_uring 实现微内核化，而不抛弃 Linux 内核的稳定性和硬件支持。
 
 ## 3. 与 agentrt 的同源关系
 
 ### 3.1 同源性定义
 
-**同源** = agentrt 和 agentrt-linux 共享 Airymax 设计理念，并共享契约层代码（IRON-9 v2，`include/airymax/` 头文件库），实现层各自独立。
+**同源** = agentrt 和 agentrt-linux 共享 Airymax 设计理念，并共享契约层代码（IRON-9 v3，`include/airymax/` 头文件库），实现层各自独立。
 
 | 维度 | 同源体现 |
 |---|---|
@@ -154,8 +154,8 @@ agentrt（跨平台用户态运行时，代码不变）
        │   └── 天然更稳健 ← 因为同源，设计假设和实现假设一致
        │
        └── 可选使用 OS 原生能力（同源红利）
-           例：agentrt 可选调用 SCHED_AGENT 策略
-               因为 SCHED_AGENT 的语义和 MicroCoreRT 一致（同源）
+           例：agentrt 可选调用sched_tac 调度策略
+               因为sched_tac 的语义和 MicroCoreRT 一致（同源）
                所以调用是自然的，无适配层
 ```
 
@@ -197,7 +197,7 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 |---|---|---|
 | EEVDF 调度器 | Linux 6.6 内核基线 | kernel |
 | Rust 实验性支持 | Linux 6.6 内核基线 | kernel（安全驱动）|
-| sched_ext | agentrt-linux 内核增强（主线 6.12+） | kernel（SCHED_AGENT）|
+| sched_tac | agentrt-linux 用户态调度器 | kernel（SCHED_DEADLINE/SCHED_FIFO/EEVDF）|
 | io_uring 异步 I/O 改进 | Linux 6.6 | kernel + services |
 | eBPF kfunc + dynamic pointer | Linux 6.6 原生 | security |
 | MGLRU（多代 LRU） | Linux 6.6 | memory |
@@ -222,7 +222,7 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 | 决策 | 内容 | 日期 |
 |---|---|---|
 | ADR-001 | 采用 Linux 6.6 内核基线（同步 SP3 增强） | 2026-07-06 |
-| ADR-002 | 微内核化改造策略（基于 Linux + sched_ext + eBPF kfunc + io_uring） | 2026-07-06 |
+| ADR-002 | 微内核化改造策略（基于 Linux + sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF）+ io_uring） | 2026-07-06 |
 | ADR-003 | 8 子仓划分（基于微内核设计思想 + agentrt-linux 工程基线 + Airymax 同源） | 2026-07-06 |
 | ADR-004 | capability 安全模型（seL4 风格，security） | 2026-07-06 |
 | ADR-005 | io_uring IPC 子系统（同源 AgentsIPC 128B 消息头） | 2026-07-06 |
@@ -230,7 +230,7 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 | ADR-007 | MemoryRovol 内核态实现（memory，L1-L4 四层递进） | 2026-07-06 |
 | ADR-008 | Wasm 3.0 沙箱运行时（cognition frameworks） | 2026-07-06 |
 | ADR-009 | K8s CRD + containerd shim 云原生（cloudnative） | 2026-07-06 |
-| ADR-010 | 与 agentrt 同源且部分代码共享（IRON-9 v2，无适配层天然契合） | 2026-07-06 |
+| ADR-010 | 与 agentrt 同源且部分代码共享（IRON-9 v3，无适配层天然契合） | 2026-07-06 |
 | ADR-011 | 7 层架构模型范围界定与 agentrt 用户态关系论证 | 2026-07-09 |
 | ADR-012 | 微内核化改造技术路线确认（基于 Linux 改造 + seL4 思想，非从零开发） | 2026-07-09 |
 | ADR-013 | 版本基线锁定战略决策（1.x.x 锁定 Linux 6.6，2.x.x 升级 Linux 7.1） | 2026-07-09 |
@@ -238,9 +238,9 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 
 ---
 
-## 6. IRON-9 v2 三层共享模型
+## 6. IRON-9 v3 四层共享模型
 
-> **OS-ARCH-001**： agentrt-linux 与 agentrt 的同源关系遵循 IRON-9 v2 三层共享模型——[SC] 共享契约层完全共享代码（10 个头文件）、[SS] 语义同源层高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进、[IND] 完全独立层各自独立演进。禁止在 agentrt-linux 内核态与 agentrt 用户态之间引入适配层或兼容别名层。
+> **OS-ARCH-001**： agentrt-linux 与 agentrt 的同源关系遵循 IRON-9 v3 四层共享模型——[SC] 共享契约层完全共享代码（10 个头文件）、[SS] 语义同源层高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进、[IND] 完全独立层各自独立演进。禁止在 agentrt-linux 内核态与 agentrt 用户态之间引入适配层或兼容别名层。
 
 ### 6.1 三层模型概览
 
@@ -248,13 +248,13 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 |------|---------|---------------|
 | **[SC] 共享契约层** | 完全共享代码 | 10 个头文件 `kernel/include/airymax/{syscalls,ipc,sched,security_types,memory_types,cognition_types}.h`，物理宿主在 kernel 子仓 `kernel/include/airymax/`（OS-IRON-014 落地），其他子仓通过 `-I../kernel/include` 引用，禁止物理副本。`bpf_struct_ops.h` 为补充共享文件，非 [SC] 核心头文件 |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | agentrt 7 大模块（MicroCoreRT/AgentsIPC/Cupolas/MemoryRovol/CoreLoopThree/Frameworks/Daemons）↔ agentrt-linux 8 子仓（kernel/services/security/memory/cognition/cloudnative/system/tests-linux）的同源映射 |
-| **[IND] 完全独立层** | 完全独立 | agentrt 跨平台用户态实现（libc/POSIX，Linux/macOS/Windows）↔ agentrt-linux Linux 6.6 内核态实现（Kbuild/Kconfig/sched_ext/io_uring/eBPF） |
+| **[IND] 完全独立层** | 完全独立 | agentrt 跨平台用户态实现（libc/POSIX，Linux/macOS/Windows）↔ agentrt-linux Linux 6.6 内核态实现（Kbuild/Kconfig/sched_tac/io_uring） |
 
 ### 6.2 [SC] 共享契约层——10 个头文件在本架构层的角色
 
 | 头文件 | 在系统架构中的角色 | 消费方 |
 |--------|-------------------|--------|
-| `sched.h` | 任务描述符 magic（0x41475453 'AGTS'）+ SCHED_EXT=7 调度类编号 + vtime 衰减公式 + 优先级范围 0-139 | kernel / cognition |
+| `sched.h` | 任务描述符 magic（0x41475453 'AGTS'）+ 复用 Linux 6.6 原生 SCHED_DEADLINE/SCHED_FIFO/EEVDF 调度类 + vtime 衰减公式 + 优先级范围 0-139 | kernel / cognition |
 | `ipc.h` | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码 | kernel / services |
 | `syscalls.h` | 12 核心 syscall 编号 + 12 预留槽位| kernel / cognition |
 | `security_types.h` | POSIX capability 41 ID 枚举 + LSM 钩子 252 ID 枚举 + Cupolas blob 布局 + capability 派生模型 | kernel / security |
@@ -265,7 +265,7 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 
 | agentrt 模块（用户态） | agentrt-linux 子仓（内核态） | 同源 API | 实现差异 |
 |----------------------|---------------------------|---------|---------|
-| MicroCoreRT（atoms/corekern） | kernel | sched_ext 17 项 + eBPF 11 项同源 API | 用户态链表 vs 内核 BPF 回调 |
+| MicroCoreRT（atoms/corekern） | kernel | sched_tac 17 项同源 API | 用户态链表 vs 内核 BPF 回调 |
 | AgentsIPC（atoms/ipc） | kernel + services | io_uring 8 项同源 API | 用户态 mmap vs 内核 io_uring_setup() |
 | Cupolas（cupolas） | security | capability 4 项同源 API（mint/revoke/derive/copy） | 用户态 Cupolas vs 内核 CNode（ES-SEL4） |
 | MemoryRovol（memoryrovol） | memory | MemoryRovol L1-L4 4 层接口同源 | 用户态 mmap+msync vs 内核 PMEM+CXL |
@@ -277,7 +277,7 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 
 | 独立项 | agentrt 实现 | agentrt-linux 实现 | 独立原因 |
 |--------|-------------|-------------------|---------|
-| 调度器核心 | 用户态 priority queue + 协程 | 内核 BPF struct_ops + sched_ext | 跨平台约束（macOS/Windows 无 sched_ext） |
+| 调度器核心 | 用户态 priority queue + 协程 | sched_tac 用户态调度策略 | 跨平台约束（macOS/Windows 无 sched_ext） |
 | IPC 传输层 | 用户态 POSIX MQ + mmap | 内核 io_uring + SQPOLL | 内核态性能优势 |
 | 安全执行 | 用户态 Landlock + seccomp | 内核 LSM + Landlock + capability | 内核态安全纵深 |
 | 内存后端 | 用户态 malloc/mmap | 内核 slab/buddy/MGLRU | 内核态内存管理 |
@@ -298,7 +298,7 @@ graph TB
     end
 
     subgraph "agentrt-linux 内核态（Linux 6.6）"
-        OS_KERN[kernel<br/>sched_ext + eBPF + io_uring]
+        OS_KERN[kernel<br/>sched_tac + io_uring]
         OS_SEC[security<br/>LSM + Landlock + cap]
         OS_MEM[memory<br/>MGLRU + PMEM + CXL]
         OS_COG[cognition<br/>kthread + Wasm 3.0]

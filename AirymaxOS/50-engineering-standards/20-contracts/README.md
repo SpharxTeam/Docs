@@ -18,9 +18,9 @@ agentrt-linux（AirymaxOS）的 OS 层契约规范定义各组件间的交互协
 
 ### 1.2 与 agentrt 用户态契约的关系
 
-agentrt-linux 与 agentrt 遵循"同源且部分代码共享"原则（IRON-9 v2）。在契约层面，这一关系表现为三层结构：
+agentrt-linux 与 agentrt 遵循"同源且部分代码共享"原则（IRON-9 v3）。在契约层面，这一关系表现为三层结构：
 
-| 契约层 | IRON-9 v2 分层 | 共享方式 | 涵盖内容 |
+| 契约层 | IRON-9 v3 分层 | 共享方式 | 涵盖内容 |
 |--------|---------------|---------|---------|
 | [SC] 共享契约层 | Shared Contract | 头文件完全共享，代码字面一致 | `syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` |
 | [SS] 语义同源层 | Semantic Symbiosis | 语义一致，实现各自独立 | syscall API 语义 / IPC 128B 消息头 / 日志格式 |
@@ -56,7 +56,7 @@ graph TB
         subgraph "内核态"
             D1[系统调用入口]
             D2[io_uring IPC 引擎]
-            D3[SCHED_AGENT 策略]
+            D3[sched_tac 调度策略]
             D4[capability 安全模块]
         end
     end
@@ -80,7 +80,7 @@ graph TB
 
 ---
 
-## 2. IRON-9 v2 下的契约分层
+## 2. IRON-9 v3 下的契约分层
 
 ### 2.1 [SC] 共享契约层：10 个共享头文件
 
@@ -88,12 +88,16 @@ graph TB
 
 | 头文件 | 全路径 | 定义内容 | 对应契约 |
 |--------|--------|---------|---------|
-| `syscalls.h` | `include/airymax/syscalls.h` | 12 核心 syscall 编号（AIRY_SYS_CALL/SEND/RECV/NBSEND/NBRECV/REPLY_RECV/YIELD/ROVOL_CTL/SCHED_CTL/CLT_NOTIFY/REPLY/NOTIFY）+ 12 预留槽位 | syscall API 契约 |
+| `error.h` | `include/airymax/error.h` | A-UEF Error 码（负数空间 `[-300, -1]`）+ Fault 码（正数空间 `[0x1000, 0x1FFF]`）双轨制 + POSIX/IPC/Capability/[SC]/[DSL] 分层错误码 | A-UEF 错误码契约 |
+| `log_types.h` | `include/airymax/log_types.h` | A-ULP LOG_* 枚举（LOG_DEBUG~LOG_FATAL）+ 128B 固定日志记录格式（magic=0x414C4F47 'ALOG'）+ facility 编号 | A-ULP 日志契约 |
 | `memory_types.h` | `include/airymax/memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口 | syscall API 契约 |
-| `security_types.h` | `include/airymax/security_types.h` | POSIX capability 41 ID 枚举 + LSM 钩子 252 ID 枚举 + Cupolas blob 布局 + capability 派生模型 + Vault backend 抽象 + 策略裁决 4 值枚举 | IPC 协议契约 |
+| `security_types.h` | `include/airymax/security_types.h` | POSIX capability 41 ID 枚举 + capability 派生模型 + Vault backend 抽象 + 策略裁决 4 值枚举 | 安全（CAP）契约 |
+| `lsm_types.h` | `include/airymax/lsm_types.h` | LSM 钩子 252 ID 枚举 + Cupolas blob 布局（cred/inode/file/task）+ 纯 C LSM 模块接口契约 | 安全（LSM）契约 |
 | `cognition_types.h` | `include/airymax/cognition_types.h` | CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 + LLM 推理阶段枚举 + Token 能效指标 + GPU/NPU 能力描述符 | syscall API 契约 |
-| `sched.h` | `include/airymax/sched.h` | SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）+ 任务描述符（magic 0x41475453 'AGTS'）+ vtime 衰减公式 + 优先级 0-139 + AIRY_SLICE_DFL（20ms） | syscall API 契约 |
+| `sched.h` | `include/airymax/sched.h` | sched_tac 调度类约束（使用 SCHED_DEADLINE/SCHED_FIFO/EEVDF 原生调度类，禁止 SCHED_AGENT 内核调度类宏）+ 任务描述符（magic 0x41475453 'AGTS'）+ vtime 衰减公式 + 优先级 0-139 + AIRY_SLICE_DFL（20ms） | syscall API 契约 |
 | `ipc.h` | `include/airymax/ipc.h` | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（struct airy_ipc_msg_hdr）+ SQE/CQE 操作码与标志位 | IPC 协议契约 |
+| `syscalls.h` | `include/airymax/syscalls.h` | 12 核心 syscall 编号（AIRY_SYS_CALL/SEND/RECV/NBSEND/NBRECV/REPLY_RECV/YIELD/ROVOL_CTL/SCHED_CTL/CLT_NOTIFY/REPLY/NOTIFY）+ 12 预留槽位 | syscall API 契约 |
+| `uapi_compat.h` | `include/airymax/uapi_compat.h` | 用户态-内核态 ABI 兼容性定义 + 类型映射（`__u32`/`__u16` 等）+ 字节序与对齐规范 | ABI 兼容契约 |
 
 **共享规则**：
 
@@ -120,7 +124,7 @@ graph TB
 | 契约维度 | 说明 | 对应文档 |
 |---------|------|---------|
 | 驱动接口 | 设备模型、平台驱动、用户态驱动框架（VFIO/libvfio） | `60-driver-model/` |
-| 内核态 eBPF kfunc | SCHED_AGENT 调度器注册的 kfunc 接口 | syscall API 契约 |
+| 内核态 eBPF kfunc | sched_tac 调度策略注册的用户态接口（struct airy_sched_ops） | syscall API 契约 |
 | io_uring 固定 OP 扩展 | `IORING_OP_IPC_SEND` 等内核级 IPC 操作码 | IPC 协议契约 |
 | capability 内核级实现 | seL4 风格 capability 令牌的生成、派生、撤销 | IPC 协议契约 |
 
@@ -257,9 +261,9 @@ agentrt-linux OS 层契约在 MAJOR 版本内提供以下 ABI 兼容性保证：
 | 错误可追溯 | E-6 | 错误码体系 `AIRY_E*` 与 `airy_strerror()` | syscall 契约 |
 | 简约至上 | A-1 | 契约接口最小化，128B 定长消息头，6 类系统调用 | 全文 |
 
-### 6.2 IRON-9 v2 同源且部分代码共享
+### 6.2 IRON-9 v3 同源且部分代码共享
 
-本契约规范体系是 IRON-9 v2"同源且部分代码共享"原则在 OS 层契约的落地：[SC] 层 10 个头文件完全共享，[SS] 层语义一致但实现独立，[IND] 层完全独立。详见第 2 章 IRON-9 v2 契约分层。
+本契约规范体系是 IRON-9 v3"同源且部分代码共享"原则在 OS 层契约的落地：[SC] 层 10 个头文件完全共享，[SS] 层语义一致但实现独立，[IND] 层完全独立。详见第 2 章 IRON-9 v3 契约分层。
 
 ---
 
@@ -317,7 +321,7 @@ agentrt-linux OS 层契约的治理遵循"分层负责、架构仲裁"模型：
 ### 9.1 短期（0.1.1 文档体系完成）
 
 - [x] 本目录 4 份契约文档完成初稿
-- [x] IRON-9 v2 三层契约分层定义完成
+- [x] IRON-9 v3 四层契约分层定义完成
 - [x] [SC] 层 10 个共享头文件清单确认
 - [x] 系统调用编号 512-631 预留段分配
 - [x] 128B 消息头 v0x0100 布局锁定
@@ -345,7 +349,7 @@ agentrt-linux OS 层契约的治理遵循"分层负责、架构仲裁"模型：
 
 本目录契约文档使用的核心术语与 agentrt 用户态契约保持同源语义：
 
-| 术语 | agentrt-linux OS 层含义 | 同源 agentrt 含义 | IRON-9 v2 分层 |
+| 术语 | agentrt-linux OS 层含义 | 同源 agentrt 含义 | IRON-9 v3 分层 |
 |------|------------------------|-------------------|---------------|
 | 契约 (Contract) | 组件间交互协议的法律定义 | 同源 | [SC] / [SS] |
 | 系统调用 (Syscall) | 用户态进入内核态的唯一入口 | 不适用（agentrt 无内核态） | [IND] |
@@ -353,9 +357,9 @@ agentrt-linux OS 层契约的治理遵循"分层负责、架构仲裁"模型：
 | Cupolas | capability 安全模型 | 同源（语义一致） | [SS] |
 | MemoryRovol | 记忆卷载四层模型 | 同源（语义一致） | [SS] |
 | CoreLoopThree | 认知循环三阶段状态机 | 同源（语义一致） | [SS] |
-| SCHED_AGENT | sched_ext eBPF 调度类 | 同源 MicroCoreRT 调度 | [SS] |
+| stc_agent | sched_tac 用户态调度策略枚举（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射） | 同源 MicroCoreRT 调度 | [SS] |
 | io_uring | Linux 内核异步 I/O 框架 | 不适用（agentrt 无内核态） | [IND] |
-| bpf_struct_ops | BPF 结构体操作共享头文件 | 同源（代码字面一致） | [SC] |
+| bpf_struct_ops.h | SDK 网关状态管理共享结构（补充共享文件，非 [SC] 核心） | 同源（代码字面一致） | [SC] 补充 |
 | TraceID | 分布式链路追踪标识 | 同源（OpenTelemetry） | [SS] |
 
 ---
@@ -400,7 +404,7 @@ flowchart TD
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| 0.1.1 | 2026-07-07 | 初始版本（agentrt-linux OS 层契约规范总览，含 IRON-9 v2 三层契约分层、4 大契约规范索引、版本管理策略、兼容性保证） |
+| 0.1.1 | 2026-07-07 | 初始版本（agentrt-linux OS 层契约规范总览，含 IRON-9 v3 四层契约分层、4 大契约规范索引、版本管理策略、兼容性保证） |
 | 0.1.1 | 2026-07-13 | seL4 SEL4-01~08 + 6 项新发现设计模式对齐 + [SC] 物理宿主 Tab 8 缩进验证 |
 | 1.0.1 | 2027-XX-XX | 首个开发版本（契约实现与代码同步验证） |
 

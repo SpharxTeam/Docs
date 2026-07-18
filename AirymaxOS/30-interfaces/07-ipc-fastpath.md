@@ -574,11 +574,11 @@ struct airy_ipc_stats {
 
 ## 附录：v1.0 升级说明
 
-> **升级背景**：本次 v1.0 升级将本文档对齐 Airymax Unify Design（见 [10-unify-design.md](../10-architecture/10-unify-design.md)）UIPF 模块设计与方案 C-Prime 技术选型，消解 v0.2.8 遗留的零拷贝路径与 capability 检查架构冲突点。升级内容如下。
+> **升级背景**：本次 v1.0 升级将本文档对齐 Airymax Unify Design（见 [10-unify-design.md](../10-architecture/10-unify-design.md)）A-IPC 模块设计与sched_tac 技术选型，消解 v0.2.8 遗留的零拷贝路径与 capability 检查架构冲突点。升级内容如下。
 
 ### A.1 已删除 page flipping，改为 IORING_OP_URING_CMD + registered buffer + mmap
 
-v0.2.8 在 §5 io_uring 集成章节中存在 page flipping 零拷贝路径的残留表述（见 [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §6 C-02 冲突点，6 个文件引用已废弃的 page flipping）。v1.0 彻底删除 page flipping，统一为 UIPF 模块技术选型：
+v0.2.8 在 §5 io_uring 集成章节中存在 page flipping 零拷贝路径的残留表述（见 [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §6 C-02 冲突点，6 个文件引用已废弃的 page flipping）。v1.0 彻底删除 page flipping，统一为 A-IPC 模块技术选型：
 
 - **零拷贝载体**：`IORING_OP_URING_CMD` + registered buffer，消除 page flipping 的页所有权反转复杂度
 - **共享内存**：`alloc_pages(GFP_KERNEL)` + mmap（不使用 DMA 一致性内存），对齐 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md) §1 内存方案
@@ -593,11 +593,11 @@ v0.2.8 §3 fastpath 触发条件中 C-S9 / C-R7 的 capability 检查（`airy_ca
 - **缓存未命中回退**：缓存失效时 fastpath 降级至 slowpath（§4），由 daemon 异步裁决后回填缓存
 - 该机制对齐 Airymax Unify Design 的 [SC] `lsm_types.h` Capability 缓存结构定义
 
-### A.3 已对齐 Airymax Unify Design UIPF 模块
+### A.3 已对齐 Airymax Unify Design A-IPC 模块
 
-本文档作为 UIPF（统一 IPC Fastpath）模块的数据面状态机设计，v1.0 明确对齐 Airymax Unify Design 的 UIPF 模块边界：
+本文档作为 A-IPC（统一 IPC Fastpath）模块的数据面状态机设计，v1.0 明确对齐 Airymax Unify Design 的 A-IPC 模块边界：
 
-- **UIPF 模块定位**：UIPF 是 Unify Design 5 模块之一（[10-unify-design.md](../10-architecture/10-unify-design.md) §5），负责统一 IPC fastpath 的状态机、零拷贝路径、capability 检查缓存
+- **A-IPC 模块定位**：A-IPC 是 Unify Design 5 模块之一（[10-unify-design.md](../10-architecture/10-unify-design.md) §5），负责统一 IPC fastpath 的状态机、零拷贝路径、capability 检查缓存
 - **权威源边界**：本文档是 fastpath 状态机（§2 8 状态 + §3 触发条件 + §4 回退机制）的唯一权威源；128B 消息头布局的权威源为 [02-ipc-protocol.md](02-ipc-protocol.md) + [SC] `ipc.h`；capability 模型的权威源为 [03-capability-model.md](../110-security/03-capability-model.md)
 - **技术选型统一**：IPC 零拷贝统一为 `IORING_OP_URING_CMD` + registered buffer + mmap（不使用 page flipping），与 [06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md) §4.2 [IND] 层 IPC 实现差异表一致
 

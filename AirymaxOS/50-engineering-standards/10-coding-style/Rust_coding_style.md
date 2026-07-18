@@ -26,7 +26,7 @@ agentrt-linux（AirymaxOS）的 Rust 代码仅用于**内核模块**（安全敏
 
 agentrt-linux（AirymaxOS）的 Rust 编码风格以 Rust for Linux 社区约定为基线，在此基础上增加：
 - `airy_` / `airy_` 前缀隔离
-- IRON-9 v2 三层模型代码归属标注
+- IRON-9 v3 四层模型代码归属标注
 - 内核模块专属的 unsafe 审计规范
 - 与 C 代码互操作的 FFI 边界规范
 
@@ -891,7 +891,7 @@ pub fn airy_ipc_send_rs(channel: u32, msg: &[u8]) -> i32 {
 
 #### 5.2 类型布局兼容性（OS-SEC-241）
 
-> **OS-SEC-241**：FFI 边界上的结构体必须使用 `#[repr(C, packed)]` 确保与 C 的布局兼容。Rust 默认布局（`repr(Rust)`）不保证字段顺序和填充，不能用于 FFI。IRON-9 v2 [SC] 共享契约层的结构体（如 `AirymaxIpcMsgHdr`）在 agentrt 和 agentrt-linux（AirymaxOS）两端必须位级兼容，`#[repr(C, packed)]` 是保证这一兼容性的前提（对齐 Layout C SSoT 的 `__attribute__((packed))`）。
+> **OS-SEC-241**：FFI 边界上的结构体必须使用 `#[repr(C, packed)]` 确保与 C 的布局兼容。Rust 默认布局（`repr(Rust)`）不保证字段顺序和填充，不能用于 FFI。IRON-9 v3 [SC] 共享契约层的结构体（如 `AirymaxIpcMsgHdr`）在 agentrt 和 agentrt-linux（AirymaxOS）两端必须位级兼容，`#[repr(C, packed)]` 是保证这一兼容性的前提（对齐 Layout C SSoT 的 `__attribute__((packed))`）。
 
 ```rust
 /// [SC] 共享契约层：IPC 消息头，与 C 结构体 struct airy_ipc_msg_hdr 完全一致。

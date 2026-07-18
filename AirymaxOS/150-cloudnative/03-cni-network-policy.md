@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：Linux 6.6 容器网络（IRON-9 v2 [IND] 完全独立层，CNI 为 agentrt-linux 专属扩展）\
+> **同源映射**：Linux 6.6 容器网络（IRON-9 v3 [IND] 完全独立层，CNI 为 agentrt-linux 专属扩展）\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[SS] Cupolas 安全模型同源 + [IND] CNI 实现独立
+> **IRON-9 v3 层次**：[SS] Cupolas 安全模型同源 + [IND] CNI 实现独立
 
 ---
 
@@ -619,9 +619,9 @@ cat /var/lib/agentrt/memoryrovol/cupolas-audit/last_record
 - Linux 6.6 TC（Traffic Control）子系统
 - Linux 6.6 XDP（eXpress Data Path）
 - eBPF 程序设计
-- Cupolas 安全模型（IRON-9 v2 [SS] 语义同源层）
+- Cupolas 安全模型（IRON-9 v3 [SS] 语义同源层）
 
 ---
 
 > **文档结束** | agentrt-linux（AirymaxOS）CNI 网络策略设计 v0.1.1
-> 遵循 IRON-9 v2 [SS] Cupolas 安全模型同源 + [IND] CNI 实现独立
+> 遵循 IRON-9 v3 [SS] Cupolas 安全模型同源 + [IND] CNI 实现独立

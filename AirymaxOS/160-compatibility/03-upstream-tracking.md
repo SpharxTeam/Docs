@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：Linux 6.6 LTS 内核维护流程（IRON-9 v2 [IND] 完全独立层，上游追踪为 agentrt-linux 专属策略）\
+> **同源映射**：Linux 6.6 LTS 内核维护流程（IRON-9 v3 [IND] 完全独立层，上游追踪为 agentrt-linux 专属策略）\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[IND] 完全独立层（上游追踪为 agentrt-linux 作为 OS 发行版的专属维护策略）
+> **IRON-9 v3 层次**：[IND] 完全独立层（上游追踪为 agentrt-linux 作为 OS 发行版的专属维护策略）
 
 ---
 
@@ -267,8 +267,8 @@ git diff
 
 # 解决冲突：保留上游修复 + 保留 agentrt-linux 专属扩展
 # 例如：上游修复了 sched_core 中的内存泄漏
-#       agentrt-linux 在同一文件扩展了 AIRY_SCHED_AGENT
-# 解决方式：应用上游修复 + 保留 AIRY_SCHED_AGENT 代码
+#       agentrt-linux 在同一文件扩展了 sched_tac
+# 解决方式：应用上游修复 + 保留 sched_tac 代码
 
 # 标记冲突已解决
 git add kernel/sched/core.c
@@ -459,7 +459,7 @@ agentrt-linux 在 Linux 6.6 基线上有大量专属补丁，需在 merge 时保
 
 | 补丁类别 | 估计数量 | 冲突风险 |
 |----------|----------|----------|
-| AIRY_SCHED_AGENT 策略 | ~50 补丁 | 高（与 sched/ 冲突） |
+| sched_tac 调度策略 | ~50 补丁 | 高（与 sched/ 冲突） |
 | Cupolas 安全穹顶 | ~80 补丁 | 中（与 security/ 冲突） |
 | MemoryRovol 记忆卷载 | ~60 补丁 | 中（与 mm/ 冲突） |
 | AgentsIPC io_uring | ~40 补丁 | 高（与 io_uring/ 冲突） |
@@ -496,7 +496,7 @@ done
 
 set -e
 
-echo "=== AIRY_SCHED_AGENT 测试 ==="
+echo "=== sched_tac 测试 ==="
 ./test_user_sched --all
 
 echo "=== Cupolas 安全测试 ==="
@@ -645,4 +645,4 @@ agentrt-linux 采用以下版本号格式：
 ---
 
 > **文档结束** | agentrt-linux（AirymaxOS）上游追踪策略 v0.1.1
-> 遵循 IRON-9 v2 [IND] 完全独立层（上游追踪为 agentrt-linux 专属维护策略）
+> 遵循 IRON-9 v3 [IND] 完全独立层（上游追踪为 agentrt-linux 专属维护策略）

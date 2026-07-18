@@ -457,7 +457,7 @@ AIRY_API int airy_sys_rovol_ctl(uint32_t op, uint32_t pid,
  * @cgroup_path: Target cgroup path.
  * @policy: Policy name (scx_realtime / scx_batch / scx_interactive / scx_agent).
  *
- * Unified scheduling control via user-space scheduler (Scheme C-Prime).
+ * Unified scheduling control via user-space scheduler (sched_tac).
  *
  * Return: 0 on success, negative errno on failure.
  *
@@ -539,7 +539,7 @@ AIRY_API int airy_sys_notify(cap_t cap);
 
 ### 5.2 调度路径优化
 
-- **方案 C-Prime 调度**：通过用户态调度器（方案 C-Prime：SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）实现 Agent 调度策略，零内核调度器修改。
+- **sched_tac 调度**：通过用户态调度器（sched_tac：SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）实现 Agent 调度策略，零内核调度器修改。
 - **EEVDF 调度器**：Linux 6.6 原生 EEVDF 调度器提供混合抢占模式，兼顾吞吐与响应。
 - **CoreLoopThree 阶段感知**：`airy_sys_clt_notify` 在思考阶段提升优先级，行动阶段恢复正常，减少关键路径抢占。
 
@@ -563,7 +563,7 @@ AIRY_API int airy_sys_notify(cap_t cap);
 
 ### 5.5 优先级与延迟预算
 
-agentrt-linux 为不同 Agent 任务类别定义延迟预算（latency budget），由用户态调度器策略（方案 C-Prime）强制：
+agentrt-linux 为不同 Agent 任务类别定义延迟预算（latency budget），由用户态调度器策略（sched_tac）强制：
 
 | 任务类别 | cgroup | 优先级范围 | 延迟预算（P99） | 典型场景 |
 |---------|---------|-----------|----------------|---------|
@@ -578,7 +578,7 @@ agentrt-linux 为不同 Agent 任务类别定义延迟预算（latency budget）
 
 ## 6. 错误码定义
 
-错误码对齐 `include/airymax/error.h`（[SC] 补充共享头文件，SSoT 权威定义见 `180-i18n/03-error-message-i18n.md` §2.2），与 agentrt 同源且部分代码共享（IRON-9 v2）。错误码统一使用 `AIRY_E*` 前缀，负值返回。以下为 SSoT 引用，权威定义见 `include/airymax/error.h`，不得另起定义。
+错误码对齐 `include/airymax/error.h`（[SC] 补充共享头文件，SSoT 权威定义见 `180-i18n/03-error-message-i18n.md` §2.2），与 agentrt 同源且部分代码共享（IRON-9 v3）。错误码统一使用 `AIRY_E*` 前缀，负值返回。以下为 SSoT 引用，权威定义见 `include/airymax/error.h`，不得另起定义。
 
 | 错误码 | 值 | 含义 | 触发场景 |
 |--------|-----|------|---------|
@@ -635,9 +635,9 @@ if (ret < 0) {
 
 ---
 
-## 8. IRON-9 v2 三层共享模型
+## 8. IRON-9 v3 四层共享模型
 
-> **OS-IFACE-001**： 系统调用接口遵循 IRON-9 v2 三层共享模型——agentrt 用户态 `syscalls.h` 与 agentrt-linux 内核 `airy_syscalls.h` 的编号、签名、错误码通过 [SC] 共享契约层头文件同源；syscall 表注册、`SYSCALL_DEFINE*` 宏、capability 守卫实现各自独立。禁止在用户态与内核态之间引入 syscall 号映射表或编号转换层。
+> **OS-IFACE-001**： 系统调用接口遵循 IRON-9 v3 四层共享模型——agentrt 用户态 `syscalls.h` 与 agentrt-linux 内核 `airy_syscalls.h` 的编号、签名、错误码通过 [SC] 共享契约层头文件同源；syscall 表注册、`SYSCALL_DEFINE*` 宏、capability 守卫实现各自独立。禁止在用户态与内核态之间引入 syscall 号映射表或编号转换层。
 
 ### 8.1 三层模型概览
 

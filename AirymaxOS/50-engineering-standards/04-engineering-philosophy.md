@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-12\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：`docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）+ agentrt 17 类规则编号体系（IRON-9 v2 同源且部分代码共享）\
+> **同源映射**：`docs/AirymaxRT/10-architecture/00-architectural-principles.md`（五维正交 24 原则）+ agentrt 17 类规则编号体系（IRON-9 v3 同源且部分代码共享）\
 > **理论根基**：Linux 6.6 内核基线工程思想 + Airymax 体系并行论（Multibody Cybernetic Intelligent System）\
 > **SSoT 声明**：OS-IRON 铁律编号的唯一权威来源为 [09-ssot-registry.md §2](./09-ssot-registry.md)（15 条铁律，含 OS-IRON-015 编号管理元规则，2026-07-15 提升）。本文档第 5-10 章中标注的历史 OS-IRON-003~006 编号与 SSoT 存在语义偏移（详见下方 §0 对齐映射表）。正文中保留的历史编号仅作章节内引用，**规则定义以 SSoT 为准**；本文档与 SSoT 的任何冲突，以 SSoT 为准。
 
@@ -82,9 +82,9 @@ agentrt-linux 工程思想建立在三大支柱之上，缺一不可：
 
 Linux 内核工程思想提供严肃性基底，五维正交 24 原则提供 Airymax 自身的设计语言，17 类规则编号体系提供可执行性骨架。三者并非简单叠加，而是**正交耦合**：Linux 工程思想回答"内核工程的普遍规律"，五维原则回答"Airymax 在这些规律上的立场"，规则编号回答"这些立场如何被强制执行"。
 
-### 1.3 IRON-9 v2 同源且部分代码共享在工程思想层的体现
+### 1.3 IRON-9 v3 同源且部分代码共享在工程思想层的体现
 
-agentrt-linux 工程标准与 agentrt 工程标准遵循 IRON-9 v2 同源且部分代码共享原则。在工程思想层，这一原则表现为：
+agentrt-linux 工程标准与 agentrt 工程标准遵循 IRON-9 v3 同源且部分代码共享原则。在工程思想层，这一原则表现为：
 
 - **同源**：双层稳定性哲学源自 Airymax K-2 接口契约化原则，在 agentrt（用户态运行时）与 agentrt-linux（OS 发行版）两端共享同一思想根源；审查优先文化源自 A-3 人文关怀原则，两端共同尊崇"审查是 thankless 工作但不可或缺"的价值。
 - **独立**：agentrt-linux 必须独立处理 agentrt 不涉及的内核态专属哲学——用户空间 ABI 永不破坏的内核严肃性、内核内部 API 不保证稳定的"you broke it, you fix it"机制、补丁生命周期的 Merge Window + RC 周期模型、维护者层级制度（Lieutenant System）。这些都是 OS 发行版的固有责任，不能委托给用户态运行时。
@@ -209,15 +209,15 @@ agentrt-linux 作为 Linux 6.6 内核衍生工程，内核态代码使用 GCC/Cl
 
 agentrt-linux 在内核态提供三类策略可插拔机制：
 
-- **方案 C-Prime 用户态调度器（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）**（§3.3）：CPU 调度策略完全可由用户态调度器定义。
+- **sched_tac 用户态调度器（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）**（§3.3）：CPU 调度策略完全可由用户态调度器定义。
 - **LSM 钩子机制**（§3.4）：安全策略通过 LSM 钩子链加载，运行时增删。
 - **Cupolas 安全策略可插拔**（§3.5）：agentrt-linux 专属的安全策略可插拔框架。
 
-### 3.3 方案 C-Prime 用户态调度器作为极端范式
+### 3.3 sched_tac 用户态调度器作为极端范式
 
-方案 C-Prime 是 agentrt-linux 基于 Linux 6.6 原生调度类（SCHED_DEADLINE/SCHED_FIFO/EEVDF）+ seL4 MCS 映射构建的用户态调度器框架，它代表了策略与机制分离的极端形态：**整个 CPU 调度策略可以在用户空间定义**，而无需修改内核任何代码。
+sched_tac 是 agentrt-linux 基于 Linux 6.6 原生调度类（SCHED_DEADLINE/SCHED_FIFO/EEVDF）+ seL4 MCS 映射构建的用户态调度器框架，它代表了策略与机制分离的极端形态：**整个 CPU 调度策略可以在用户空间定义**，而无需修改内核任何代码。
 
-agentrt-linux 将方案 C-Prime 视为策略可插拔的范式案例。在智能体工作负载场景下，不同智能体任务对调度的需求差异巨大——批处理任务需要吞吐优先，交互式任务需要延迟优先，长链推理任务需要公平性优先。这些策略差异不应锁死在内核 C 代码中，而应由用户空间的调度器动态决定。agentrt-linux 默认提供一个 `airy_agent_sched` 用户态调度器，针对智能体工作负载优化（认知任务优先、IO 等待让步、长推理任务保护），但任何用户都可以加载自己的用户态调度器替代它。
+agentrt-linux 将sched_tac 视为策略可插拔的范式案例。在智能体工作负载场景下，不同智能体任务对调度的需求差异巨大——批处理任务需要吞吐优先，交互式任务需要延迟优先，长链推理任务需要公平性优先。这些策略差异不应锁死在内核 C 代码中，而应由用户空间的调度器动态决定。agentrt-linux 默认提供一个 `airy_agent_sched` 用户态调度器，针对智能体工作负载优化（认知任务优先、IO 等待让步、长推理任务保护），但任何用户都可以加载自己的用户态调度器替代它。
 
 ### 3.4 LSM 钩子机制
 
@@ -574,7 +574,7 @@ agentrt-linux 要求所有维护者、审查者、贡献者遵守两条简单规
 
 ### 10.4 6 级贡献者成熟度模型
 
-agentrt-linux 采用 Linux Foundation TAB 提出的贡献者成熟度模型，并按 IRON-9 v2 同源且部分代码共享原则适配 agentrt-linux 语境：
+agentrt-linux 采用 Linux Foundation TAB 提出的贡献者成熟度模型，并按 IRON-9 v3 同源且部分代码共享原则适配 agentrt-linux 语境：
 
 | Level | 特征 | agentrt-linux 表述 |
 |-------|------|----------------|
@@ -596,7 +596,7 @@ agentrt-linux 作为一个新建的智能体操作系统发行版，其工程组
 
 这一演进路径本身就是一个增量演化的过程（C-2 增量演化原则）——不期望跳跃式达到 L5，而是每一步都建立在前一步的稳固基础上。试图跳过中间阶段直接到达 L5 的组织，往往会因为缺乏中间积累而无法真正履行 L5 的承诺——正如试图跳过 Merge Window 直接在 RC 阶段合并大特性的开发者，会得到"unfriendly reception"一样。
 
-工程思想的真正力量，不在于它被写在这里，而在于它在每一次补丁提交、每一次审查响应、每一次 regression 决策中被默默遵守。本文档的所有规则编号（OS-IRON-001 至 OS-IRON-014，OS-KER-061 至 OS-KER-060）都不是装饰，而是 agentrt-linux 工程体系的承重结构——它们与五维正交 24 原则共同构成系统的思想骨架，与 Linux 6.6 内核基线共同保证系统的工程严肃性，与 IRON-9 v2 同源且部分代码共享原则共同定义 agentrt-linux 与 agentrt 的协作边界。
+工程思想的真正力量，不在于它被写在这里，而在于它在每一次补丁提交、每一次审查响应、每一次 regression 决策中被默默遵守。本文档的所有规则编号（OS-IRON-001 至 OS-IRON-014，OS-KER-061 至 OS-KER-060）都不是装饰，而是 agentrt-linux 工程体系的承重结构——它们与五维正交 24 原则共同构成系统的思想骨架，与 Linux 6.6 内核基线共同保证系统的工程严肃性，与 IRON-9 v3 同源且部分代码共享原则共同定义 agentrt-linux 与 agentrt 的协作边界。
 
 ---
 
@@ -656,5 +656,5 @@ agentrt-linux 作为一个新建的智能体操作系统发行版，其工程组
 ---
 
 > **文档结束** | agentrt-linux 工程标准 50-engineering-standards/04-engineering-philosophy.md
-> **同源文档**： `docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）| IRON-9 v2 工程铁律（工程标准规范，17 类规则编号体系）
+> **同源文档**： `docs/AirymaxRT/10-architecture/00-architectural-principles.md`（五维正交 24 原则）| IRON-9 v3 工程铁律（工程标准规范，17 类规则编号体系）
 > **下游文档**： `05-development-process.md`（开发流程）| `07-maintainers-and-governance.md`（维护者制度与治理）

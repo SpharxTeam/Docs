@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：agentrt 四语言 SDK（IRON-9 v2 [SC] 共享契约层共享头文件 + [SS] 语义同源层 SDK 层签名同源）\
+> **同源映射**：agentrt 四语言 SDK（IRON-9 v3 [SC] 共享契约层共享头文件 + [SS] 语义同源层 SDK 层签名同源）\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[SC] 共享契约层（IPC 消息头结构、syscall 编号、错误码完全共享）+ [SS] 语义同源层（SDK 层签名同源，同一份源码两端编译，构建期条件编译切换传输层；其他层语义同源）
+> **IRON-9 v3 层次**：[SC] 共享契约层（IPC 消息头结构、syscall 编号、错误码完全共享）+ [SS] 语义同源层（SDK 层签名同源，同一份源码两端编译，构建期条件编译切换传输层；其他层语义同源）
 
 ---
 
@@ -20,7 +20,7 @@ agentrt-linux（AirymaxOS）提供四语言 SDK（Python / Rust / Go / TypeScrip
 
 1. **零拷贝高性能**：通过 io_uring 提交队列与内核共享内存，避免数据拷贝
 2. **FFI 边界安全**：四语言与 C ABI 边界严格类型检查，杜绝内存安全漏洞
-3. **同源 API 一致性**：四语言 SDK（SDK 层）API 签名完全一致，遵循 IRON-9 v2 [SS] 层
+3. **同源 API 一致性**：四语言 SDK（SDK 层）API 签名完全一致，遵循 IRON-9 v3 [SS] 层
 4. **运行时环境感知**：SDK 自动检测宿主为 agentrt-linux 或 agentrt，切换通信路径
 5. **统一错误码**：四语言共享 `include/airymax/error.h` 错误码（[SC] 层）
 
@@ -45,7 +45,7 @@ agentrt-linux（AirymaxOS）提供四语言 SDK（Python / Rust / Go / TypeScrip
 └─────────────────────────────────────────────────────────┘
 ```
 
-### 1.3 IRON-9 v2 共享层次
+### 1.3 IRON-9 v3 共享层次
 
 | 层次 | 共享内容 | agentrt-linux SDK | agentrt SDK |
 |------|----------|-------------------|-------------|
@@ -59,10 +59,10 @@ agentrt-linux（AirymaxOS）提供四语言 SDK（Python / Rust / Go / TypeScrip
 
 ### 2.1 消息头结构
 
-AgentsIPC 协议的核心是 128 字节定长消息头，定义于 IRON-9 v2 [SC] 共享契约层：
+AgentsIPC 协议的核心是 128 字节定长消息头，定义于 IRON-9 v3 [SC] 共享契约层：
 
 ```c
-/* include/uapi/agentrt/ipc.h（IRON-9 v2 [SC] 共享契约层）
+/* include/uapi/agentrt/ipc.h（IRON-9 v3 [SC] 共享契约层）
  * 与 agentrt 用户态运行时完全共享，禁止单端修改 */
 /* IPC 128B 消息头定义见 [SC] 共享契约层（SSoT），不就地重定义 */
 #include <airymax/ipc.h>
@@ -523,7 +523,7 @@ class CognitionClient:
    io_uring 提交队列接收 SQE
        |
        v
-[用户态 AIRY_SCHED_AGENT]
+[用户态 sched_tac]
    调度 cogn_d kthread 处理
        |
        v
@@ -677,9 +677,9 @@ go test -race ./...
 - Rust bindgen 项目（C 头文件绑定生成）
 - Go cgo 文档（C 互操作）
 - Node.js N-API 文档（原生插件接口）
-- agentrt 四语言 SDK 实现（IRON-9 v2 [SC]/[SS] 同源）
+- agentrt 四语言 SDK 实现（IRON-9 v3 [SC]/[SS] 同源）
 
 ---
 
 > **文档结束** | agentrt-linux（AirymaxOS）SDK 集成设计 v0.1.1
-> 遵循 IRON-9 v2 [SC] 共享契约层 + [SS] 语义同源层与 agentrt SDK 同源
+> 遵循 IRON-9 v3 [SC] 共享契约层 + [SS] 语义同源层与 agentrt SDK 同源

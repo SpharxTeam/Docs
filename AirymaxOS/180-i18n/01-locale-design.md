@@ -30,7 +30,7 @@ agentrt-linux（AirymaxOS）Locale 设计旨在为全球开发者与用户提供
 
 ### 1.3 术语规范
 
-本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 主流 Linux 发行版/主流 Linux 发行版 字样。Agent 提示词与 locale 在 agentrt 与 agentrt-linux 之间属于 IRON-9 v2 [SS] 语义同源层。
+本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 主流 Linux 发行版/主流 Linux 发行版 字样。Agent 提示词与 locale 在 agentrt 与 agentrt-linux 之间属于 IRON-9 v3 [SS] 语义同源层。
 
 ### 1.4 locale 支持矩阵
 
@@ -187,9 +187,9 @@ static const struct airy_kmsg_entry kmsg_table[] = {
 	 "agentrt-linux（AirymaxOS，极境智能体操作系统）启动中...",
 	 "agentrt-linux（AirymaxOS）を起動しています..."},
 	{KMSG_SCHED_LOADED,
-	 "User-space scheduler (Scheme C-Prime) loaded successfully",
-	 "用户态调度器（方案 C-Prime）加载成功",
-	 "ユーザースペーススケジューラ（スキームC-Prime）を正常にロードしました"},
+	 "User-space scheduler (sched_tac) loaded successfully",
+	 "用户态调度器（sched_tac）加载成功",
+	 "ユーザースペーススケジューラ（スキームsched_tac）を正常にロードしました"},
 	{KMSG_MEMORY_INIT,
 	 "MemoryRovol L1-L4 initialized, capacity=%lu MB",
 	 "MemoryRovol L1-L4 已初始化，容量=%lu MB",
@@ -207,9 +207,9 @@ static const struct airy_kmsg_entry kmsg_table[] = {
 	 "MemoryRovol 层 L1=%u L2=%u L3=%u L4=%u 页已加载",
 	 "MemoryRovol レイヤ L1=%u L2=%u L3=%u L4=%u ページをロードしました"},
 	{KMSG_SCHED_TIMEOUT,
-	 "AIRY_SCHED_AGENT watchdog timeout, fallback to default scheduler",
-	 "AIRY_SCHED_AGENT 看门狗超时，降级到默认调度器",
-	 "AIRY_SCHED_AGENT ウォッチドッグがタイムアウト、デフォルトスケジューラに切り替えます"},
+	 "stc_agent watchdog timeout, fallback to default scheduler",
+	 "stc_agent 看门狗超时，降级到默认调度器",
+	 "stc_agent ウォッチドッグがタイムアウト、デフォルトスケジューラに切り替えます"},
 };
 
 static DEFINE_SPINLOCK(kmsg_locale_lock);
@@ -310,7 +310,7 @@ int main(void)
 	/* dmesg 将输出中文 */
 	/* 输出示例：
 	 * [    0.123456] agentrt-linux（AirymaxOS，极境智能体操作系统）启动中...
-	 * [    0.234567] 用户态调度器（方案 C-Prime）加载成功
+	 * [    0.234567] 用户态调度器（sched_tac）加载成功
 	 * [    0.345678] MemoryRovol L1-L4 已初始化，容量=16384 MB
 	 */
 	return 0;
@@ -638,7 +638,7 @@ void *airy_mo_mmap(const char *domain, const char *locale)
 
 ---
 
-## 10. IRON-9 v2 同源映射
+## 10. IRON-9 v3 同源映射
 
 | 组件 | agentrt-linux（[SS]） | agentrt（[SS]） | 共享（[SC]） |
 |------|------------------------|------------------|--------------|

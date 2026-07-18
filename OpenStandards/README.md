@@ -5,7 +5,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**: Airymax 开放标准  
 > **版本**: 1.0（开放标准草案）  
 > **最后更新**: 2026-07-09  
-> **SPDX-License-Identifier**: AGPL-3.0-or-later OR Apache-2.0  
+> **SPDX-License-Identifier**: CC-BY-4.0
+> **License**: Creative Commons Attribution 4.0 International (CC-BY-4.0) — see [LICENSE](LICENSE) for details. Completely free for any use, including commercial implementation.
 
 ***
 

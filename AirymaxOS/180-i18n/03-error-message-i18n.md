@@ -17,7 +17,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 agentrt-linux（AirymaxOS）作为面向全球开发者和用户的智能体操作系统发行版，其错误消息体系是开发者体验与可追溯性的关键。本文档定义错误消息国际化工程设计，目标是：
 
 1. **错误码与消息分离**：错误码（`airy_err_t`）作为机器可读契约，本地化消息作为人类可读呈现，二者严格分离
-2. **错误码注册表 SSoT**：所有错误码唯一定义于 `include/airymax/error.h`（IRON-9 v2 [SC] 共享契约层），任何文档、代码不得另起定义
+2. **错误码注册表 SSoT**：所有错误码唯一定义于 `include/airymax/error.h`（IRON-9 v3 [SC] 共享契约层），任何文档、代码不得另起定义
 3. **多语言消息映射**：每个错误码映射到多语言消息表，支持 zh_CN、en_US、ja_JP 等 locale
 4. **跨端错误码同源**：agentrt-linux 内核态与 agentrt 用户态运行时错误码完全一致，实现跨端错误可追溯
 
@@ -578,9 +578,9 @@ msgstr "Locale unavailable"
 
 ## 6. 跨端错误码同源
 
-### 6.1 IRON-9 v2 [SC] 共享
+### 6.1 IRON-9 v3 [SC] 共享
 
-错误码定义位于 IRON-9 v2 [SC] 共享契约层，agentrt-linux 内核态与 agentrt 用户态运行时完全共享同一份 `include/airymax/error.h`：
+错误码定义位于 IRON-9 v3 [SC] 共享契约层，agentrt-linux 内核态与 agentrt 用户态运行时完全共享同一份 `include/airymax/error.h`：
 
 ```
 agentrt 仓库:
@@ -773,7 +773,7 @@ out_free_reg:
 | **K-2 接口契约化** | 错误码是跨端硬契约（[SC] 层） |
 | **E-7 文档即代码** | .po 文件版本控制，error_gen 自动生成 |
 | **E-8 可测试性** | SSoT 校验 + 翻译完整性测试 |
-| **IRON-9 v2 [SC]** | 错误码定义两端完全共享 |
+| **IRON-9 v3 [SC]** | 错误码定义两端完全共享 |
 
 ---
 

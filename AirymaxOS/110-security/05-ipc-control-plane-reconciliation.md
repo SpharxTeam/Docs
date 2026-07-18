@@ -1,11 +1,11 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # IPC 控制面 Reconciliation 设计
-> **文档定位**：UIPF（统一进程间通信体系）控制面恢复后 Reconciliation 流程的唯一权威详细设计\
+> **文档定位**：A-IPC（统一进程间通信体系）控制面恢复后 Reconciliation 流程的唯一权威详细设计\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §8\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5（UIPF 设计）+ [04-ipc-data-plane-autonomy.md](04-ipc-data-plane-autonomy.md) 原则三
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5（A-IPC 设计）+ [04-ipc-data-plane-autonomy.md](04-ipc-data-plane-autonomy.md) 原则三
 
 ---
 
@@ -13,13 +13,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **IPC 控制面 Reconciliation** 的唯一权威源。Reconciliation 流程（控制面重启 → 扫描数据面状态 → 差异检测 → 状态修复）、差异检测算法、状态修复策略（补发/丢弃/重建）、超时处理与 [DSL] 降级触发均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义 Reconciliation 流程。
 >
-> 技术选型声明：IPC 采用 **IORING_OP_URING_CMD + registered buffer + mmap**（**不使用 page flipping**）。整体遵循 Unify Design：方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> 技术选型声明：IPC 采用 **IORING_OP_URING_CMD + registered buffer + mmap**（**不使用 page flipping**）。整体遵循 Unify Design：sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
 ## 文档信息卡
 
-- **目标读者**：UIPF 模块开发者、可靠性工程师、Macro-Supervisor 开发者
+- **目标读者**：A-IPC 模块开发者、可靠性工程师、Macro-Supervisor 开发者
 - **前置知识**：理解 [04-ipc-data-plane-autonomy.md](04-ipc-data-plane-autonomy.md) 数据面自治三原则、[03-capability-model.md](03-capability-model.md) Capability 模型、[07-ipc-fastpath.md](../30-interfaces/07-ipc-fastpath.md) IPC fastpath
 - **预计阅读时间**：25 分钟
 - **核心概念**：Reconciliation、差异检测、状态修复、最终一致性、超时降级
@@ -445,13 +445,13 @@ Reconciliation 超时进入 [DSL] 降级后，IPC 行为调整：
 
 ## §7 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) §8 —— UIPF 模块总纲
+- [10-unify-design.md](../10-architecture/10-unify-design.md) §8 —— A-IPC 模块总纲
 - [04-ipc-data-plane-autonomy.md](04-ipc-data-plane-autonomy.md) —— 数据面自治三原则（原则三定义 Reconciliation 目标）
 - [02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) —— IPC 协议契约
 - [03-capability-model.md](03-capability-model.md) —— Capability 模型（缓存基础）
 - [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) —— [DSL] 降级（超时触发）
 - [20-modules/10-user-supervisor-daemon.md](../20-modules/10-user-supervisor-daemon.md) —— Macro-Supervisor（控制面主体）
-- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5 —— UIPF 设计依据
+- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5 —— A-IPC 设计依据
 
 ---
 

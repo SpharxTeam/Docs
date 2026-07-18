@@ -27,7 +27,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 子仓 | 核心功能 | 同源 agentrt 模块 | 关键能力 |
 |---|---|---|---|
-| kernel | 内核调度、IPC、内存管理 | atoms/corekern (MicroCoreRT) | EEVDF + 方案 C-Prime + io_uring |
+| kernel | 内核调度、IPC、内存管理 | atoms/corekern (MicroCoreRT) | EEVDF + sched_tac + io_uring |
 | services | VFS、网络、驱动、daemons | daemons (12 daemons) | systemd + io_uring 消息传递 |
 | security | capability、LSM、国密 | cupolas | capability(seL4) + Landlock + 机密计算 |
 | memory | 记忆持久化、CXL、PMEM | heapstore + memoryrovol | MemoryRovol 内核态 + MGLRU |
@@ -71,8 +71,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 编号 | 功能需求 | 输入 | 输出 | 同源 agentrt | 验收标准 |
 |---|---|---|---|---|---|
-| FR-001 | 内核调度（EEVDF + 方案 C-Prime） | 任务描述 + 调度策略 | 调度结果 | atoms/corekern Task | 调度延迟 < 100ms |
-| FR-002 | AIRY_SCHED_AGENT 策略 | Agent 任务 + 优先级 | 调度决策 | MicroCoreRT 调度器 | Agent 优先级抢占正确 |
+| FR-001 | 内核调度（EEVDF + sched_tac） | 任务描述 + 调度策略 | 调度结果 | atoms/corekern Task | 调度延迟 < 100ms |
+| FR-002 | sched_tac 调度策略 | Agent 任务 + 优先级 | 调度决策 | MicroCoreRT 调度器 | Agent 优先级抢占正确 |
 | FR-003 | IPC 子系统（io_uring 零拷贝） | 消息（128B 头 + payload） | 接收确认 | atoms/corekern IPC | 吞吐 > 100K msg/s |
 | FR-004 | 内存管理（MGLRU，Linux 6.6 多代 LRU） | 内存分配请求 | 内存指针 | atoms/corekern Mem | 多代 LRU 正确回收 |
 | FR-005 | 时间服务（时钟 + 定时器） | 定时器请求 | 定时器触发 | atoms/corekern Time | 定时器精度 < 1ms |
@@ -371,7 +371,7 @@ flowchart TD
 - [业务需求分析](01-business-requirements.md)：Agent 工作负载与生态对齐
 - [非功能需求分析](03-non-functional-requirements.md)：性能、安全、可靠性需求
 - [agentrt-linux 总览](../README.md)：agentrt-linux 整体设计与子仓清单
-- [Airymax 架构设计原则](../../AirymaxRT/00-architectural-principles.md)：五维正交 24 原则
+- [Airymax 架构设计原则](../../AirymaxRT/10-architecture/00-architectural-principles.md)：五维正交 24 原则
 
 ---
 

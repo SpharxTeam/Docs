@@ -293,7 +293,7 @@ agentrt-linux 在 io_uring 注册以下 IPC 专用 OP（详见 [20-modules/01-ke
 ### 4.5 零拷贝机制
 
 - **registered buffers**: 发送方注册 page 为 io_uring buffer，内核持有 page 引用。
-- **page flipping**: 接收方通过 `IORING_OP_IPC_RECV` 接收 page 引用，内核通过 IORING_OP_URING_CMD 语义映射传递 registered buffer 引用，不拷贝数据。
+- **registered buffer**: 接收方通过 `IORING_OP_URING_CMD` 接收 registered buffer 引用，内核通过 IORING_OP_URING_CMD 语义映射传递 registered buffer 引用，不拷贝数据。
 - **MSG_ZEROCOPY**: 网络路径使用 `MSG_ZEROCOPY` 减少协议栈拷贝。
 
 ### 4.6 capability 携带与权限校验
@@ -450,9 +450,9 @@ IPC 性能约束对齐非功能性需求 NFR-P-002（详见 [00-requirements/03-
 
 ---
 
-## 8. IRON-9 v2 三层共享模型
+## 8. IRON-9 v3 四层共享模型
 
-> **OS-IFACE-003**： IPC 协议遵循 IRON-9 v2 三层共享模型——128B 消息头结构、magic 0x41524531（'ARE1'）、5 种 payload type 通过 [SC] 共享契约层 `ipc.h` 完全共享；io_uring 操作码与传输实现各自独立。禁止在 agentrt 与 agentrt-linux 之间引入协议转换层或字节序适配层。
+> **OS-IFACE-003**： IPC 协议遵循 IRON-9 v3 四层共享模型——128B 消息头结构、magic 0x41524531（'ARE1'）、5 种 payload type 通过 [SC] 共享契约层 `ipc.h` 完全共享；io_uring 操作码与传输实现各自独立。禁止在 agentrt 与 agentrt-linux 之间引入协议转换层或字节序适配层。
 
 ### 8.1 三层模型概览
 

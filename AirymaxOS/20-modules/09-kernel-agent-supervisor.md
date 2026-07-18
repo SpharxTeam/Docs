@@ -1,11 +1,11 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # Micro-Supervisor 内核模块设计
-> **文档定位**：USV（统一生命周期监管）模块的内核态监管组件唯一权威设计\
+> **文档定位**：A-ULS（统一生命周期管理）模块的内核态监管组件唯一权威设计\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §7\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4（USV 设计）+ §1（方案 C-Prime）
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4（A-ULS 设计）+ §1（sched_tac）
 
 ---
 
@@ -13,25 +13,25 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **Micro-Supervisor 内核模块** 的唯一权威源。纯 C LSM 非法 Capability 检测（对齐 openEuler 纯 C LSM 模式，**不使用 BPF LSM**）、IPC 队列冻结机制（`ring->frozen = true` + `unlikely(ring->frozen)` 零开销检查）、die_notifier 内核崩溃通知链、eventfd 故障通知、"内核冷酷执法"流程（检测 → 冻结 → 返回 `AIRY_FAULT_ABNORMAL_CAP`）、借鉴 seL4 `handleFault()` 模式均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义 Micro-Supervisor 职责与执法流程。
 >
-> 技术选型声明：安全采用 **纯 C LSM 模块**（**不使用 BPF LSM**，对齐 openEuler 纯 C 模式）。整体遵循 Unify Design：方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ IORING_OP_URING_CMD + registered buffer + mmap（不使用 page flipping）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> 技术选型声明：安全采用 **纯 C LSM 模块**（**不使用 BPF LSM**，对齐 openEuler 纯 C 模式）。整体遵循 Unify Design：sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ IORING_OP_URING_CMD + registered buffer + mmap（不使用 page flipping）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
 ## 文档信息卡
 
-- **目标读者**：内核开发者、安全模块开发者、USV 模块开发者
-- **前置知识**：理解 [10-unify-design.md](../10-architecture/10-unify-design.md) §7 USV 模块、[03-capability-model.md](../110-security/03-capability-model.md) Capability 模型、[07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) 纯 C LSM、seL4 `handleFault()` 机制
+- **目标读者**：内核开发者、安全模块开发者、A-ULS 模块开发者
+- **前置知识**：理解 [10-unify-design.md](../10-architecture/10-unify-design.md) §7 A-ULS 模块、[03-capability-model.md](../110-security/03-capability-model.md) Capability 模型、[07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) 纯 C LSM、seL4 `handleFault()` 机制
 - **预计阅读时间**：35 分钟
 - **核心概念**：Micro-Supervisor、纯 C LSM、Capability 检测、IPC 队列冻结、die_notifier、eventfd、冷酷执法、seL4 handleFault
 - **复杂度标识**：高级
 
 ---
 
-## §1 架构定位：USV 模块的内核态监管组件
+## §1 架构定位：A-ULS 模块的内核态监管组件
 
 ### 1.1 双 Supervisor 模型
 
-USV 模块采用双 Supervisor 模型——内核冷酷执法 + 用户温情裁决（详见 [10-unify-design.md](../10-architecture/10-unify-design.md) §7）：
+A-ULS 模块采用双 Supervisor 模型——内核冷酷执法 + 用户温情裁决（详见 [10-unify-design.md](../10-architecture/10-unify-design.md) §7）：
 
 | Supervisor | 执行域 | 职责 | 设计哲学 |
 |-----------|--------|------|---------|
@@ -55,9 +55,9 @@ Micro-Supervisor 是内核态的纯 C LSM 模块，不做任何"人性化"决策
 
 | 协作方 | 关系 | 接口 |
 |--------|------|------|
-| UIPF | 冻结 IPC Ring | `ring->frozen = true` |
-| UEF | 返回 Fault 码 | `AIRY_FAULT_ABNORMAL_CAP` 等 |
-| ULPS | eventfd 复用日志通道 | eventfd_signal |
+| A-IPC | 冻结 IPC Ring | `ring->frozen = true` |
+| A-UEF | 返回 Fault 码 | `AIRY_FAULT_ABNORMAL_CAP` 等 |
+| A-ULP | eventfd 复用日志通道 | eventfd_signal |
 | Macro-Supervisor | 故障通知接收方 | eventfd + io_uring_cmd |
 
 ---
@@ -442,9 +442,9 @@ seL4 微内核的 `handleFault()` 函数是 Micro-Supervisor 的设计原型。s
 |-----------|------------|------|
 | `handleFault()` | `airy_fault_enforce()` | 检测 + 冻结 + 通知 |
 | Fault Handler（用户态） | Macro-Supervisor | 裁决 Fault |
-| `fault_set`（Fault 码） | UEF Fault 码 | `AIRY_FAULT_*` |
+| `fault_set`（Fault 码） | A-UEF Fault 码 | `AIRY_FAULT_*` |
 | `ntfn`（通知对象） | eventfd | 通知通道 |
-| SC（Scheduling Context） | Agent 调度预算 | 方案 C-Prime 映射 |
+| SC（Scheduling Context） | Agent 调度预算 | sched_tac 映射 |
 
 ### 7.3 设计差异
 
@@ -490,14 +490,14 @@ Airymax 在借鉴 seL4 时有两处适配：
 
 ## §9 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) §7 —— USV 模块总纲
+- [10-unify-design.md](../10-architecture/10-unify-design.md) §7 —— A-ULS 模块总纲
 - [10-user-supervisor-daemon.md](10-user-supervisor-daemon.md) —— Macro-Supervisor（用户态温情裁决）
 - [07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) —— 纯 C LSM 模块设计（Micro-Supervisor 的安全基础）
 - [03-capability-model.md](../110-security/03-capability-model.md) —— Capability 模型（检测对象）
 - [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) —— Agent 8 态生命周期
-- [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— UEF Fault 码（执法返回值）
+- [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— A-UEF Fault 码（执法返回值）
 - [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) —— [DSL] 降级（Macro-Supervisor 故障 fallback）
-- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4 —— USV 设计依据
+- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.4 —— A-ULS 设计依据
 
 ---
 

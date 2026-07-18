@@ -2,11 +2,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # printk 桥接设计
 
-> **文档定位**：AirymaxOS（agentrt-linux）printk 桥接设计——将 Linux 6.6 原生 printk 桥接到 Airymax Ring Buffer 的写入路径、Panic 回退机制、性能对比与 ULPS 兼容层定位\
+> **文档定位**：AirymaxOS（agentrt-linux）printk 桥接设计——将 Linux 6.6 原生 printk 桥接到 Airymax Ring Buffer 的写入路径、Panic 回退机制、性能对比与 A-ULP 兼容层定位\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
-> **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §5（ULPS 模块）\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2（ULPS 设计）
+> **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §5（A-ULP 模块）\
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2（A-ULP 设计）
 
 ---
 
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **printk 桥接设计** 的唯一权威源。`printk_hook` 注册机制、128B 记录格式化规则、Ring Buffer reserve/commit 写入路径、Panic 回退至 `printk_safe` 原生路径的切换条件、性能对比基线均以本文件为唯一权威定义。
 >
-> 本文件遵循 [10-unify-design.md](../10-architecture/10-unify-design.md) ULPS 模块设计。printk 8 级到 `LOG_*` 5 级的映射权威源为 [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md)。Ring Buffer reserve/commit 两阶段写入模型的权威源为 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)。技术选型对齐 Unify Design：方案 C-Prime（不使用 sched_ext）+ `alloc_pages` + mmap（不使用 DMA 一致性内存）。
+> 本文件遵循 [10-unify-design.md](../10-architecture/10-unify-design.md) A-ULP 模块设计。printk 8 级到 `LOG_*` 5 级的映射权威源为 [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md)。Ring Buffer reserve/commit 两阶段写入模型的权威源为 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)。技术选型对齐 Unify Design：sched_tac（不使用 sched_ext）+ `alloc_pages` + mmap（不使用 DMA 一致性内存）。
 
 ---
 
@@ -22,9 +22,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 桥接必要性
 
-Linux 6.6 原生 `printk()` 将内核日志写入 `log_buf`（`printk/log.c`），由用户态 `klogctl(2)` / `dmesg` 读取。AirymaxOS 的 ULPS 模块统一采用 Ring Buffer + Logger Daemon 架构（见 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)），若原生 printk 与 Airymax Ring Buffer 各自独立，会产生双轨日志：内核驱动/子系统的 printk 日志进 `log_buf`，Airymax 模块的 `LOG_*` 日志进 Ring Buffer，两者时间戳不同步、检索割裂。
+Linux 6.6 原生 `printk()` 将内核日志写入 `log_buf`（`printk/log.c`），由用户态 `klogctl(2)` / `dmesg` 读取。AirymaxOS 的 A-ULP 模块统一采用 Ring Buffer + Logger Daemon 架构（见 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)），若原生 printk 与 Airymax Ring Buffer 各自独立，会产生双轨日志：内核驱动/子系统的 printk 日志进 `log_buf`，Airymax 模块的 `LOG_*` 日志进 Ring Buffer，两者时间戳不同步、检索割裂。
 
-printk 桥接的目标是：**在不修改 Linux 6.6 printk 主路径的前提下，将原生 printk 输出镜像到 Airymax Ring Buffer**，使所有内核日志统一汇聚到 ULPS 消费链路，实现"一个 Ring Buffer，一个 Logger Daemon，一份归档"。
+printk 桥接的目标是：**在不修改 Linux 6.6 printk 主路径的前提下，将原生 printk 输出镜像到 Airymax Ring Buffer**，使所有内核日志统一汇聚到 A-ULP 消费链路，实现"一个 Ring Buffer，一个 Logger Daemon，一份归档"。
 
 ### 1.2 设计约束
 
@@ -245,11 +245,11 @@ printk 桥接在原生 printk 路径上额外增加：128B 记录格式化 + Rin
 
 ---
 
-## §5 与 ULPS 模块的关系：printk 桥接是 ULPS 的兼容层
+## §5 与 A-ULP 模块的关系：printk 桥接是 A-ULP 的兼容层
 
-### 5.1 ULPS 模块定位
+### 5.1 A-ULP 模块定位
 
-ULPS（统一日志与打印系统）是 Airymax Unify Design 五模块之一（见 [10-unify-design.md](../10-architecture/10-unify-design.md) §5），目标是统一 AirymaxOS 的日志与打印系统。ULPS 由三部分构成：
+A-ULP（统一日志与打印系统）是 Airymax Unify Design 五模块之一（见 [10-unify-design.md](../10-architecture/10-unify-design.md) §5），目标是统一 AirymaxOS 的日志与打印系统。A-ULP 由三部分构成：
 
 | 组件 | 职责 | 权威文档 |
 |------|------|---------|
@@ -259,7 +259,7 @@ ULPS（统一日志与打印系统）是 Airymax Unify Design 五模块之一（
 
 ### 5.2 兼容层语义
 
-printk 桥接是 ULPS 的**兼容层**，而非 ULPS 的核心组件。核心组件（Ring Buffer + Logger Daemon）定义了 Airymax 原生日志链路；printk 桥接负责将既有的 Linux 内核日志（驱动、子系统、第三方模块的 printk）纳入这条链路，避免双轨。这一兼容层定位决定了：
+printk 桥接是 A-ULP 的**兼容层**，而非 A-ULP 的核心组件。核心组件（Ring Buffer + Logger Daemon）定义了 Airymax 原生日志链路；printk 桥接负责将既有的 Linux 内核日志（驱动、子系统、第三方模块的 printk）纳入这条链路，避免双轨。这一兼容层定位决定了：
 
 - **不新增日志语义**：桥接不引入新的日志级别或 facility，仅做 printk → `LOG_*` 的格式转换
 - **可禁用**：通过 Kconfig `CONFIG_AIRY_PRINTK_BRIDGE` 可关闭桥接，系统退化为"Airymax 模块走 Ring Buffer，其余走 log_buf"的双轨模式（功能完整，仅割裂）
@@ -273,7 +273,7 @@ printk 桥接是 ULPS 的**兼容层**，而非 ULPS 的核心组件。核心组
 
 ## §6 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) —— Airymax Unify Design 总纲（ULPS 模块定位）
+- [10-unify-design.md](../10-architecture/10-unify-design.md) —— Airymax Unify Design 总纲（A-ULP 模块定位）
 - [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md) —— Ring Buffer reserve/commit 两阶段写入权威源
 - [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) —— 128B 记录格式 + printk 8 级映射 [SC] 契约
 - [12-logger-daemon-module.md](12-logger-daemon-module.md) —— Logger Daemon 模块设计（日志链路下游）

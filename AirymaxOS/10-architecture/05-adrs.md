@@ -41,7 +41,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | ADR-007 | MemoryRovol 内核态实现（memory，L1-L4 四层递进）                     | Accepted |
 | ADR-008 | Wasm 3.0 沙箱运行时（cognition frameworks）                     | Accepted |
 | ADR-009 | K8s CRD + containerd shim 云原生（cloudnative）               | Accepted |
-| ADR-010 | 与 agentrt 同源且部分代码共享（IRON-9 v2，无适配层天然契合）                  | Accepted |
+| ADR-010 | 与 agentrt 同源且部分代码共享（IRON-9 v3，无适配层天然契合）                  | Accepted |
 | ADR-011 | 7 层架构模型范围界定与 agentrt 用户态关系论证                             | Accepted |
 | ADR-012 | 微内核化改造技术路线确认（基于 Linux 改造 + seL4 思想，非从零开发）                | Accepted |
 | ADR-013 | 版本基线锁定战略决策（1.x.x 锁定 Linux 6.6，2.x.x 升级 Linux 7.1）        | Accepted |
@@ -720,7 +720,7 @@ agentrt-linux 在 cloudnative 子仓实现 **K8s CRD + containerd shim 云原生
 
 ***
 
-## ADR-010: 与 agentrt 同源且部分代码共享（IRON-9 v2，无适配层天然契合）
+## ADR-010: 与 agentrt 同源且部分代码共享（IRON-9 v3，无适配层天然契合）
 
 - **状态**: Accepted
 - **日期**: 2026-07-06
@@ -737,7 +737,7 @@ agentrt-linux 与 agentrt 的关系是架构设计的核心问题。需要明确
 
 ### 决策
 
-agentrt-linux 与 agentrt 是 **同源且部分代码共享** 的关系（IRON-9 v2 工程铁律）：
+agentrt-linux 与 agentrt 是 **同源且部分代码共享** 的关系（IRON-9 v3 工程铁律）：
 
 | 维度   | agentrt                                                    | agentrt-linux                                     |
 | ---- | ---------------------------------------------------------- | ------------------------------------------------- |
@@ -750,11 +750,11 @@ agentrt-linux 与 agentrt 是 **同源且部分代码共享** 的关系（IRON-9
 
 ### 理由
 
-1. **同源定义**：同源 = 共享设计理念 + 共享契约层代码（IRON-9 v2）。agentrt 和 agentrt-linux 共享 MicroCoreRT/AgentsIPC/Cupolas/MemoryRovol/CoreLoopThree 的语义，并共享契约层代码（IPC 消息头结构、syscall 编号、capability 令牌格式、MemoryRovol L1-L4 数据结构、CoreLoopThree 接口定义、错误码、规则编号体系，统一存放于 `include/airymax/` 头文件库），实现层各自独立
+1. **同源定义**：同源 = 共享设计理念 + 共享契约层代码（IRON-9 v3）。agentrt 和 agentrt-linux 共享 MicroCoreRT/AgentsIPC/Cupolas/MemoryRovol/CoreLoopThree 的语义，并共享契约层代码（IPC 消息头结构、syscall 编号、capability 令牌格式、MemoryRovol L1-L4 数据结构、CoreLoopThree 接口定义、错误码、规则编号体系，统一存放于 `include/airymax/` 头文件库），实现层各自独立
 2. **天然契合**：因为设计假设和实现假设一致，agentrt 在 agentrt-linux 上运行**无适配层**，天然更稳健
 3. **独立性**：agentrt 是跨平台用户态运行时，必须独立于任何特定 OS；agentrt-linux 是 Linux 发行版，专注于 Linux 6.6 优化
 4. **演进协同**：两者通过共享设计理念（00-architectural-principles.md）与共享契约层代码（`include/airymax/`）协同演进，契约层变更须经 agentrt + agentrt-linux 两端 CI 双向校验
-5. **IRON-9 v2 约束**：工程标准规范手册 IRON-9 v2 明确规定"agentrt 和 agentrt-linux 同源且部分代码共享"——共享契约层代码完全共享（`include/airymax/`），语义同源层高层 API 语义同源（概念操作一致）、签名因抽象层级不同而独立演进，完全独立层各自独立
+5. **IRON-9 v3 约束**：工程标准规范手册 IRON-9 v3 明确规定"agentrt 和 agentrt-linux 同源且部分代码共享"——共享契约层代码完全共享（`include/airymax/`），语义同源层高层 API 语义同源（概念操作一致）、签名因抽象层级不同而独立演进，完全独立层各自独立
 6. **边界清晰**：agentrt 是用户态库 + 守护进程，agentrt-linux 是 Linux 内核 + 用户态服务，边界清晰
 
 ### 影响
@@ -804,7 +804,7 @@ agentrt-linux 与 agentrt 是 **同源且部分代码共享** 的关系（IRON-9
 agentrt-linux 的 7 层架构模型（L1-L7）用于组织 8 个子仓的依赖关系。需要明确回答两个核心架构问题：
 
 1. **7 层架构模型是否包含 agentrt 组件？**——agentrt 是否作为某一层纳入 agentrt-linux 的内部架构？
-2. **agentrt 是否可以直接作为 agentrt-linux 的用户态？**——而非仅保持 IRON-9 v2 同源映射关系？
+2. **agentrt 是否可以直接作为 agentrt-linux 的用户态？**——而非仅保持 IRON-9 v3 同源映射关系？
 
 ### 决策
 
@@ -834,7 +834,7 @@ agentrt-linux 的 7 层架构（L1-L7）是 agentrt-linux **内部**的组织架
 
 > **论证支撑**： 本决策经完整技术论证（C-2.3 架构模型论证报告，VP-4 决策确认）。
 
-**决策二：agentrt 是 agentrt-linux 的推荐用户态运行时，但非唯一用户态。agentrt 不直接"成为"agentrt-linux 的用户态，而是以 IRON-9 v2 同源关系运行于其上。**
+**决策二：agentrt 是 agentrt-linux 的推荐用户态运行时，但非唯一用户态。agentrt 不直接"成为"agentrt-linux 的用户态，而是以 IRON-9 v3 同源关系运行于其上。**
 
 agentrt 与 agentrt-linux 的关系是"平台—应用"关系，而非"内核—用户态"关系：
 
@@ -846,7 +846,7 @@ agentrt 与 agentrt-linux 的关系是"平台—应用"关系，而非"内核—
 │  ├── 在 macOS 上：标准 libc/POSIX                │
 │  └── 在 Windows 上：Win32 API                   │
 └──────────────────────┬──────────────────────────┘
-                       │ 同源天然适配（IRON-9 v2 [SC] 共享契约层）
+                       │ 同源天然适配（IRON-9 v3 [SC] 共享契约层）
 ┌──────────────────────▼──────────────────────────┐
 │  agentrt-linux（AirymaxOS，Linux 发行版）           │  ← 7 层架构内部
 │  L7: cloudnative / tests-linux                   │
@@ -862,7 +862,7 @@ agentrt 与 agentrt-linux 的关系是"平台—应用"关系，而非"内核—
 
 1. **硬约束：agentrt 必须保持跨平台**（开源极境工程与规范委员会决策 2026-07-04）：atoms 核心路径保持用户态跨 Linux/macOS/Windows 三平台。若 agentrt 成为 agentrt-linux 的专属用户态，将丧失跨平台能力，违反此硬约束。
 2. **架构正交性**：7 层架构是 agentrt-linux 的内部依赖管理工具。agentrt 是外部独立项目，将其纳入 agentrt-linux 内部架构会破坏架构正交性——agentrt 的演进不应受 agentrt-linux 内部层次变化制约。
-3. **IRON-9 v2 已是最优实现**：IRON-9 v2 的三层共享模型（\[SC] 共享契约层 + \[SS] 语义同源层 + \[IND] 完全独立层）已实现"天然契合零适配层"的目标，无需将 agentrt 纳入 agentrt-linux 内部架构即可获得同源红利。
+3. **IRON-9 v3 已是最优实现**：IRON-9 v3 的三层共享模型（\[SC] 共享契约层 + \[SS] 语义同源层 + \[IND] 完全独立层）已实现"天然契合零适配层"的目标，无需将 agentrt 纳入 agentrt-linux 内部架构即可获得同源红利。
 4. **seL4 root task 模型验证**：seL4 微内核架构中，root task（用户态初始进程）是独立于内核的外部组件，通过 capability 与内核交互。agentrt 与 agentrt-linux 的关系类比于此——agentrt 是 agentrt-linux 上的"root task 级"用户态运行时，但并非内核的一部分。
 5. **"微核心"与"微内核"的区分**（开源极境工程与规范委员会决策 2026-07-09）：agentrt 是"微核心"（MicroCoreRT，用户态微核心运行时），agentrt-linux 是"微内核"（基于 Linux 改造的微内核化 OS）。两者是不同层级的概念，不应混为一谈。
 
@@ -872,7 +872,7 @@ agentrt 与 agentrt-linux 的关系是"平台—应用"关系，而非"内核—
 | -------------------------------- | ----------------- | ------------------- | -------- |
 | agentrt 纳入 7 层架构（作为 L8）          | 紧密集成              | 破坏跨平台、破坏架构正交        | 违反跨平台硬约束 |
 | agentrt 直接成为 agentrt-linux 专属用户态 | 零适配               | 丧失 macOS/Windows 支持 | 违反跨平台硬约束 |
-| **IRON-9 v2 同源关系（采纳）**           | 跨平台 + 同源红利 + 零适配层 | 需双向同步               | **最优平衡** |
+| **IRON-9 v3 同源关系（采纳）**           | 跨平台 + 同源红利 + 零适配层 | 需双向同步               | **最优平衡** |
 
 ### 后果
 
@@ -880,7 +880,7 @@ agentrt 与 agentrt-linux 的关系是"平台—应用"关系，而非"内核—
 
 - agentrt 保持跨平台独立性
 - 7 层架构边界清晰，仅管理 agentrt-linux 内部 8 子仓
-- IRON-9 v2 提供零适配层天然契合
+- IRON-9 v3 提供零适配层天然契合
 - agentrt 可在任何 OS 上运行，在 agentrt-linux 上获得最佳同源体验
 
 **负面后果**：
@@ -1068,9 +1068,9 @@ agentrt-linux 的微内核设计思想**唯一来源：seL4**。不引入 Zircon
 
 ***
 
-## IRON-9 v2 三层共享模型汇总
+## IRON-9 v3 四层共享模型汇总
 
-> **OS-ARCH-009**： 14 个 ADR 中涉及 agentrt 同源关系的 6 个核心 ADR（ADR-003 / 004 / 005 / 006 / 007 / 010）遵循 IRON-9 v2 三层共享模型分布——capability / IPC / 认知 / 记忆契约经 \[SC] 共享，8 子仓与 7 模块经 \[SS] 同源，构建与平台适配经 \[IND] 独立。
+> **OS-ARCH-009**： 14 个 ADR 中涉及 agentrt 同源关系的 6 个核心 ADR（ADR-003 / 004 / 005 / 006 / 007 / 010）遵循 IRON-9 v3 四层共享模型分布——capability / IPC / 认知 / 记忆契约经 \[SC] 共享，8 子仓与 7 模块经 \[SS] 同源，构建与平台适配经 \[IND] 独立。
 
 ### 三层模型概览
 
@@ -1204,7 +1204,7 @@ graph LR
 - [五维正交原则](02-five-dimensional-principles.md)：五维正交 24 原则落地映射
 - [微内核策略](03-microkernel-strategy.md)：微内核化改造策略
 - [工程基线](04-engineering-baseline.md)：agentrt-linux 工程基线
-- [架构原则](../../AirymaxRT/00-architectural-principles.md)：五维正交 24 原则的完整定义
+- [架构原则](../../AirymaxRT/10-architecture/00-architectural-principles.md)：五维正交 24 原则的完整定义
 - 工程标准规范手册：IRON-9 / IRON-10 / BAN-361 等工程铁律
 
 ***

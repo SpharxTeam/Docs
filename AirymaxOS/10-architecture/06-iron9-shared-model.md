@@ -13,7 +13,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **Airymax IRON-9 v3 跨端共享模型** 的唯一权威源（AirymaxOS 侧）。[SC] / [SS] / [IND] / [DSL] 四层定义、10 个 [SC] 头文件清单、四层模型应用归属均以本文件为唯一权威定义。
 >
-> IRON-9 v3 相比 v2 新增 **[DSL] 第四层**（降级生存层），确保 [SC] 头文件损坏/缺失时的最小可运行子集。本模型遵循 [10-unify-design.md](10-unify-design.md) 的技术选型（方案 C-Prime + IORING_OP_URING_CMD + 纯 C LSM + alloc_pages/mmap）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> IRON-9 v3 相比 v2 新增 **[DSL] 第四层**（降级生存层），确保 [SC] 头文件损坏/缺失时的最小可运行子集。本模型遵循 [10-unify-design.md](10-unify-design.md) 的技术选型（sched_tac + IORING_OP_URING_CMD + 纯 C LSM + alloc_pages/mmap）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
@@ -90,16 +90,16 @@ v3 将 [SC] 头文件数量从 v2 的 6 个扩展为 **10 个**，新增 `error.
 
 | # | 头文件 | 物理路径 | 共享内容 | 关联模块 | 契约文档 |
 |---|--------|---------|---------|---------|---------|
-| 1 | `error.h` | `include/airymax/error.h` | `AIRY_E*` 错误码 + `AIRY_FAULT_*` 故障码 + [DSL] 降级块 | UEF | [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) |
-| 2 | `log_types.h` | `include/airymax/log_types.h` | `AIRY_LOG_MAGIC` + 128B 记录 + 5 级日志枚举 + printk 映射 | ULPS | [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) |
-| 3 | `ipc.h` | `include/airymax/ipc.h` | IPC magic + 128B 消息头 + SQE/CQE 操作码 | UIPF | [02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) |
-| 4 | `sched.h` | `include/airymax/sched.h` | Agent 8 态生命周期 + 方案 C-Prime 调度参数 + `MAC_MAX_AGENTS` | USV | [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) |
+| 1 | `error.h` | `include/airymax/error.h` | `AIRY_E*` 错误码 + `AIRY_FAULT_*` 故障码 + [DSL] 降级块 | A-UEF | [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) |
+| 2 | `log_types.h` | `include/airymax/log_types.h` | `AIRY_LOG_MAGIC` + 128B 记录 + 5 级日志枚举 + printk 映射 | A-ULP | [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) |
+| 3 | `ipc.h` | `include/airymax/ipc.h` | IPC magic + 128B 消息头 + SQE/CQE 操作码 | A-IPC | [02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) |
+| 4 | `sched.h` | `include/airymax/sched.h` | Agent 8 态生命周期 + sched_tac 调度参数 + `MAC_MAX_AGENTS` | A-ULS | [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) |
 | 5 | `memory_types.h` | `include/airymax/memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 接口 | 记忆 | [120-cross-project-code-sharing.md](../50-engineering-standards/120-cross-project-code-sharing.md) |
 | 6 | `security_types.h` | `include/airymax/security_types.h` | POSIX capability 41 ID + LSM 钩子 252 ID + Cupolas blob 布局 | 安全 | [03-capability-model.md](../110-security/03-capability-model.md) |
 | 7 | `cognition_types.h` | `include/airymax/cognition_types.h` | `airy_q16_t` Q16.16 定点数 + CoreLoopThree 三阶段 + Thinkdual 模式 | 认知 | [120-cross-project-code-sharing.md](../50-engineering-standards/120-cross-project-code-sharing.md) |
 | 8 | `syscalls.h` | `include/airymax/syscalls.h` | Syscall 编号体系（12 核心 + 12 预留 = 24 槽位） | 全部 | [01-syscalls.md](../30-interfaces/01-syscalls.md) |
 | 9 | `uapi_compat.h` | `include/airymax/uapi_compat.h` | 三路类型桥接（`__KERNEL__` / `__linux__` / `#else`） | IRON-9 | [11-sc-header-type-bridging.md](../50-engineering-standards/11-sc-header-type-bridging.md) |
-| 10 | `lsm_types.h` | `include/airymax/lsm_types.h` | 纯 C LSM 类型定义 + `DEFINE_LSM(airy)` 骨架 + Capability 缓存结构 | USV/UIPF | [07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) |
+| 10 | `lsm_types.h` | `include/airymax/lsm_types.h` | 纯 C LSM 类型定义 + `DEFINE_LSM(airy)` 骨架 + Capability 缓存结构 | A-ULS/A-IPC | [07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) |
 
 ### 2.3 [SC] 头文件的 [DSL] 降级块
 
@@ -114,8 +114,8 @@ v3 将 [SC] 头文件数量从 v2 的 6 个扩展为 **10 个**，新增 `error.
 
 v3 新增 4 个 [SC] 头文件的原因：
 
-- `error.h`：UEF 模块需要独立的错误码 [SC] 契约（v2 时错误码散落在 agentrt 仓库，未统一）
-- `log_types.h`：ULPS 模块需要独立的日志类型 [SC] 契约（v2 时 128B 记录格式多处定义）
+- `error.h`：A-UEF 模块需要独立的错误码 [SC] 契约（v2 时错误码散落在 agentrt 仓库，未统一）
+- `log_types.h`：A-ULP 模块需要独立的日志类型 [SC] 契约（v2 时 128B 记录格式多处定义）
 - `uapi_compat.h`：IRON-9 三路类型桥接需要独立 [SC] 头文件
 - `lsm_types.h`：纯 C LSM（不使用 BPF LSM）需要独立的类型 [SC] 契约
 
@@ -148,7 +148,7 @@ v3 新增 4 个 [SC] 头文件的原因：
 
 ### 3.3 [SS] 的配置同源
 
-UCF 模块的配置也属于 [SS] 层——内核侧 Kconfig/sysctl 与用户态 JSON/TOML 语义映射。详见 [10-unify-design.md](10-unify-design.md) §6.1。
+A-UCS 模块的配置也属于 [SS] 层——内核侧 Kconfig/sysctl 与用户态 JSON/TOML 语义映射。详见 [10-unify-design.md](10-unify-design.md) §6.1。
 
 ---
 
@@ -171,7 +171,7 @@ UCF 模块的配置也属于 [SS] 层——内核侧 Kconfig/sysctl 与用户态
 | IPC 机制 | POSIX MQ + mmap 共享内存 | io_uring + `IORING_OP_URING_CMD` |
 | 零拷贝 | mmap 共享页 | registered buffer + mmap |
 | 同步原语 | 信号量 | eventfd |
-| 调度 | MicroCoreRT 用户态调度 | 方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF） |
+| 调度 | MicroCoreRT 用户态调度 | sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF） |
 | 安全 | 应用权限模型 | 纯 C LSM + Capability 系统 |
 
 ### 4.3 agentrt-linux [IND] 独有内容
@@ -207,7 +207,7 @@ UCF 模块的配置也属于 [SS] 层——内核侧 Kconfig/sysctl 与用户态
 | 错误码 | 5 子空间（300 码） | 38 个 POSIX 码 + 1 个配置码 |
 | 日志 | Ring Buffer + Logger Daemon | printk 原生（仅 LOG_FATAL + LOG_ERROR） |
 | IPC | 完整 128B 消息头 + 3 操作 | 最简 128B 消息头 + 2 操作 |
-| 调度 | 方案 C-Prime 三层 | EEVDF 默认 |
+| 调度 | sched_tac 三层 | EEVDF 默认 |
 | 安全 | 纯 C LSM 完整校验 | 仅 POSIX capability |
 | Fault | Fault Handler 优雅处理 | 统一 Panic |
 
@@ -234,7 +234,7 @@ UCF 模块的配置也属于 [SS] 层——内核侧 Kconfig/sysctl 与用户态
 | 128B IPC 消息头 | ● | — | — | ● | [02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) |
 | IPC 操作码 | ● | — | — | ● | [02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) |
 | Agent 8 态生命周期 | ● | — | — | — | [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) |
-| 方案 C-Prime 调度参数 | ● | — | ● | — | [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) |
+| sched_tac 调度参数 | ● | — | ● | — | [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md) |
 | Capability 41 ID | ● | — | — | ● | [03-capability-model.md](../110-security/03-capability-model.md) |
 | 纯 C LSM 类型 | ● | — | ● | — | [07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) |
 | syscall 编号 | ● | — | — | ● | [01-syscalls.md](../30-interfaces/01-syscalls.md) |
@@ -296,8 +296,8 @@ UCF 模块的配置也属于 [SS] 层——内核侧 Kconfig/sysctl 与用户态
 
 - [10-unify-design.md](10-unify-design.md) —— Airymax Unify Design 总纲（5 模块）
 - [11-degraded-survival-layer.md](11-degraded-survival-layer.md) —— [DSL] 降级生存层详细设计
-- [30-interfaces/08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— UEF [SC] error.h 契约
-- [30-interfaces/09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) —— ULPS [SC] log_types.h 契约
+- [30-interfaces/08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— A-UEF [SC] error.h 契约
+- [30-interfaces/09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) —— A-ULP [SC] log_types.h 契约
 - [50-engineering-standards/120-cross-project-code-sharing.md](../50-engineering-standards/120-cross-project-code-sharing.md) —— 跨项目代码共享（v2 基线）
 - [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §2.3 / §3.1 —— 设计依据
 

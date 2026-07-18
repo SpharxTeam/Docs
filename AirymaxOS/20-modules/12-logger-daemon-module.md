@@ -2,11 +2,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # Logger Daemon 模块设计
 
-> **文档定位**：AirymaxOS（agentrt-linux）Logger Daemon 模块级设计——systemd unit 编排、配置文件 schema、日志轮转策略、zstd 压缩归档，作为 ULPS（统一日志与打印系统）用户态消费侧的模块工程契约\
+> **文档定位**：AirymaxOS（agentrt-linux）Logger Daemon 模块级设计——systemd unit 编排、配置文件 schema、日志轮转策略、zstd 压缩归档，作为 A-ULP（统一日志与打印系统）用户态消费侧的模块工程契约\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
-> **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §5（ULPS 模块）\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2（ULPS 设计）+ §6.2.1 C-07（DMA 一致性内存修正）
+> **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §5（A-ULP 模块）\
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2（A-ULP 设计）+ §6.2.1 C-07（DMA 一致性内存修正）
 
 ---
 
@@ -14,7 +14,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **Logger Daemon 模块级设计** 的唯一权威源。`airy-logger.service` systemd unit 编排、`/etc/agentrt/logger.conf` 配置 schema、按大小+时间的双维度轮转策略、zstd 压缩归档流程均以本文件为唯一权威定义。
 >
-> 本文件遵循 [10-unify-design.md](../10-architecture/10-unify-design.md) ULPS 模块设计与 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md) 数据流设计。技术选型对齐 Unify Design：日志内存采用 `alloc_pages(GFP_KERNEL)` + mmap（不使用 DMA 一致性内存），调度采用方案 C-Prime（不使用 sched_ext）。`LOG_*` 5 级日志枚举与 128B 记录格式的权威源为 [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md)。
+> 本文件遵循 [10-unify-design.md](../10-architecture/10-unify-design.md) A-ULP 模块设计与 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md) 数据流设计。技术选型对齐 Unify Design：日志内存采用 `alloc_pages(GFP_KERNEL)` + mmap（不使用 DMA 一致性内存），调度采用sched_tac（不使用 sched_ext）。`LOG_*` 5 级日志枚举与 128B 记录格式的权威源为 [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md)。
 
 ---
 
@@ -22,7 +22,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 模块定位
 
-Logger Daemon 是 ULPS 模块的用户态消费侧守护进程，从内核 Ring Buffer（见 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)）mmap 映射区读取 128B 日志记录，按 `/etc/agentrt/logger.conf` 配置写入持久化文件，并执行轮转与压缩归档。Logger Daemon **不参与日志生产**，仅承担消费、落盘、轮转、归档四项职责，与内核 Ring Buffer 生产者彻底解耦。
+Logger Daemon 是 A-ULP 模块的用户态消费侧守护进程，从内核 Ring Buffer（见 [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)）mmap 映射区读取 128B 日志记录，按 `/etc/agentrt/logger.conf` 配置写入持久化文件，并执行轮转与压缩归档。Logger Daemon **不参与日志生产**，仅承担消费、落盘、轮转、归档四项职责，与内核 Ring Buffer 生产者彻底解耦。
 
 ### 1.2 unit 文件
 
@@ -31,7 +31,7 @@ Logger Daemon 通过 systemd unit `airy-logger.service` 编排，作为系统早
 ```ini
 # /usr/lib/systemd/system/airy-logger.service
 [Unit]
-Description=Airymax Logger Daemon (ULPS consumer)
+Description=Airymax Logger Daemon (A-ULP consumer)
 Documentation=file:///usr/share/doc/agentrt/20-modules/12-logger-daemon-module.md
 After=agentrt-init.service
 Before=multi-user.target
@@ -46,7 +46,7 @@ Restart=on-failure
 RestartSec=1s
 # OOM 不可杀，日志是故障诊断最后防线
 OOMScoreAdjust=-1000
-# 调度对齐方案 C-Prime：Logger Daemon 用 SCHED_FIFO 高优先级
+# 调度对齐sched_tac：Logger Daemon 用 SCHED_FIFO 高优先级
 # 保证日志消费不背压内核 Ring Buffer
 Nice=-10
 LimitNOFILE=1024
@@ -76,10 +76,10 @@ Logger Daemon 在 `multi-user.target` 之前启动，确保用户态服务拉起
 
 ### 2.1 配置 schema
 
-Logger Daemon 配置采用 TOML 格式（对齐 UCF 统一配置管理，见 [11-unified-config.md](11-unified-config.md)），schema 如下：
+Logger Daemon 配置采用 TOML 格式（对齐 A-UCS 统一配置管理体系，见 [11-unified-config.md](11-unified-config.md)），schema 如下：
 
 ```toml
-# /etc/agentrt/logger.conf —— Logger Daemon 配置（UCF TOML 语义）
+# /etc/agentrt/logger.conf —— Logger Daemon 配置（A-UCS TOML 语义）
 
 [level]
 # 全局最低输出级别，低于此级别的记录丢弃
@@ -229,7 +229,7 @@ static int logger_archive_compress(const char *src, const char *dst)
 
 ### 5.1 文档分层
 
-本文件（`12-logger-daemon-module.md`）是 **模块级设计**，与数据流设计 `06-logger-daemon-design.md`（Logger Daemon 数据流设计）构成 ULPS 模块的两层文档体系：
+本文件（`12-logger-daemon-module.md`）是 **模块级设计**，与数据流设计 `06-logger-daemon-design.md`（Logger Daemon 数据流设计）构成 A-ULP 模块的两层文档体系：
 
 | 维度 | 本文件（模块级） | 06-logger-daemon-design.md（数据流级） |
 |------|----------------|--------------------------------------|
@@ -244,9 +244,9 @@ static int logger_archive_compress(const char *src, const char *dst)
 - **06-logger-daemon-design.md 权威**：Ring Buffer 消费指针推进算法、eventfd 通知节流策略、mmap 读取窗口、Panic 时 Logger Daemon 的降级行为
 - **共同引用**：两者均引用 [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) 作为 128B 记录格式与 `LOG_*` 枚举的权威源，禁止任一文件重新定义记录格式
 
-### 5.3 与 ULPS 模块的整体关系
+### 5.3 与 A-ULP 模块的整体关系
 
-Logger Daemon 是 ULPS 模块（见 [10-unify-design.md](../10-architecture/10-unify-design.md) §5）的用户态消费侧，与内核侧 Ring Buffer 生产者、printk 桥接（见 [13-printk-bridge.md](13-printk-bridge.md)）共同构成完整日志链路。三者关系：
+Logger Daemon 是 A-ULP 模块（见 [10-unify-design.md](../10-architecture/10-unify-design.md) §5）的用户态消费侧，与内核侧 Ring Buffer 生产者、printk 桥接（见 [13-printk-bridge.md](13-printk-bridge.md)）共同构成完整日志链路。三者关系：
 
 ```
 内核生产者                    用户态消费者
@@ -266,11 +266,11 @@ Logger Daemon 是 ULPS 模块（见 [10-unify-design.md](../10-architecture/10-u
 
 ## §6 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) —— Airymax Unify Design 总纲（ULPS 模块定位）
+- [10-unify-design.md](../10-architecture/10-unify-design.md) —— Airymax Unify Design 总纲（A-ULP 模块定位）
 - [05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md) —— 零拷贝 Ring Buffer 日志数据流（内核生产侧权威）
 - [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) —— 128B 记录格式与 `LOG_*` 枚举 [SC] 契约
 - [13-printk-bridge.md](13-printk-bridge.md) —— printk 桥接设计（日志链路上游）
-- [11-unified-config.md](11-unified-config.md) —— UCF 统一配置管理（logger.conf TOML 语义）
+- [11-unified-config.md](11-unified-config.md) —— A-UCS 统一配置管理体系（logger.conf TOML 语义）
 
 ---
 

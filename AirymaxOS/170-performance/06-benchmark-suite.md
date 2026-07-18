@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：agentrt 性能基线（IRON-9 v2 [SS] 语义同源层，基准测试语义同源）\
+> **同源映射**：agentrt 性能基线（IRON-9 v3 [SS] 语义同源层，基准测试语义同源）\
 > **理论根基**：Linux 6.6 perf benchmark + seL4 l4bench 基准思想 + Airymax E-8 可测试性 + A-4 完美主义\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[SS] 语义同源层（基准测试语义与 agentrt 同源）+ [IND] 完全独立层（内核态基准测试为 agentrt-linux 专属）
+> **IRON-9 v3 层次**：[SS] 语义同源层（基准测试语义与 agentrt 同源）+ [IND] 完全独立层（内核态基准测试为 agentrt-linux 专属）
 
 ---
 
@@ -28,7 +28,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [12. 错误处理](#12-错误处理)
 - [13. 安全考量](#13-安全考量)
 - [14. 性能约束](#14-性能约束)
-- [15. IRON-9 v2 同源映射](#15-iron-9-v2-同源映射)
+- [15. IRON-9 v3 同源映射](#15-iron-9-v2-同源映射)
 - [16. SDK 集成](#16-sdk-集成)
 - [17. 使用示例](#17-使用示例)
 - [18. 测试策略](#18-测试策略)
@@ -831,7 +831,7 @@ graph TD
 
 ---
 
-## 15. IRON-9 v2 同源映射
+## 15. IRON-9 v3 同源映射
 
 | 层次 | 共享内容 | 本文档使用 |
 |------|---------|-----------|
@@ -923,7 +923,7 @@ agentctl bench report --format html --output report.html
 ## 19. 合规声明
 
 - **OS-IRON-001 遵守**：基准测试接口永不破坏
-- **IRON-9 v2 遵守**：基准测试为 [IND] 独立层
+- **IRON-9 v3 遵守**：基准测试为 [IND] 独立层
 - **seL4 唯一来源遵守**：l4bench 基准思想借鉴 seL4
 - **Linux 6.6 基线遵守**：perf benchmark 对齐 Linux 6.6
 
@@ -941,4 +941,4 @@ agentctl bench report --format html --output report.html
 
 ---
 
-> **文档结束** | 基准测试套件实现方案 | IRON-9 v2 [SS] + [IND]
+> **文档结束** | 基准测试套件实现方案 | IRON-9 v3 [SS] + [IND]

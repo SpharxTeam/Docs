@@ -48,7 +48,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | §7 | OS-KER-001/004/224/225, OS-BAN-002 | 校验优先于修改、goto 集中出口、分级标签逆序释放、DEFINE_FREE 自动释放、禁 BUG() | 内核态错误处理范式，01 覆盖用户态 |
 | §8 | OS-KER-016/017/018/222/223/227/228 | GFP 标志选型（含 NOWARN/ACCOUNT）、释放后置 NULL、krealloc 规范、内存毒化保护、kmemleak 标注、kmem_cache 选型、长循环抢占点 | 内核内存分配与安全专属 |
 | §9 | OS-KER-019/020/046/053/226 | 锁选择、RCU、锁前置设计、共享数据同步、kref 释放回调 | 内核并发专属 |
-| §10 | OS-KER-021/070 | [SC] 共享契约层 + [SS] 语义同源层编写规则 | IRON-9 v2 代码归属专属 |
+| §10 | OS-KER-021/070 | [SC] 共享契约层 + [SS] 语义同源层编写规则 | IRON-9 v3 代码归属专属 |
 
 ---
 
@@ -60,7 +60,7 @@ agentrt-linux（AirymaxOS）的 C 语言编码风格以 Linux 6.6 内核 `Docume
 
 与 Linux 内核编码风格的关系：**基线对齐，扩展独立**。agentrt-linux（AirymaxOS）在基线基础上增加了以下专属规则：
 - `airy_` / `airy_` 前缀隔离（OS-STD-CODE-005）
-- IRON-9 v2 三层模型代码归属标注
+- IRON-9 v3 四层模型代码归属标注
 - 五维正交 24 原则映射注释
 - 内核模块 Rust 互操作 FFI 边界规范
 
@@ -75,7 +75,7 @@ agentrt-linux（AirymaxOS）的 C 语言编码风格以 Linux 6.6 内核 `Docume
 - 错误处理规范（§7）
 - 内存管理规范（§8）
 - 锁与并发规范（§9）
-- IRON-9 v2 [SC] 层代码编写规范（§10）
+- IRON-9 v3 [SC] 层代码编写规范（§10）
 
 > **五维正交映射**：K-2 接口契约化、E-5 命名语义化、E-7 文档即代码、A-1 极简主义。
 
@@ -320,7 +320,7 @@ int airy_ipc_send(u32 channel, const void *msg, size_t len);
 
 #### 5.3 数据结构注释（OS-STD-CODE-013 复用）
 
-数据声明每行一个，留出注释空间。IRON-9 v2 层级归属必须标注。
+数据声明每行一个，留出注释空间。IRON-9 v3 层级归属必须标注。
 
 ```c
 struct airy_task {
@@ -371,12 +371,12 @@ include 顺序固定：系统头 → 架构头 → 本地头 → `#define CREATE
 
 **守卫策略对齐 Linux 内核**（OS-IRON-010）：agentrt-linux 头文件守卫使用 `#ifndef _AIRY_*_H` 形式，与 Linux 6.6 内核基线保持一致，**不使用** seL4 的 `#pragma once` 方案。这不是技术选型讨论，而是工程取向对齐——`#ifndef` 具有更好的可移植性（GCC/Clang/ICC 全支持），且能避免 `#pragma once` 在 NFS/符号链接场景下的潜在歧义。
 
-#### 6.4 IRON-9 v2 层级归属标注
+#### 6.4 IRON-9 v3 层级归属标注
 
-头文件应在文件头部注释中标明其 IRON-9 v2 层级归属：
+头文件应在文件头部注释中标明其 IRON-9 v3 层级归属：
 
 ```c
-/* IRON-9 v2: [SC] 共享契约层 — 此头文件与 agentrt 完全共享 */
+/* IRON-9 v3: [SC] 共享契约层 — 此头文件与 agentrt 完全共享 */
 #ifndef _AIRY_IPC_MSG_H
 #define _AIRY_IPC_MSG_H
 ```
@@ -1473,16 +1473,16 @@ kfree(old);
 
 ---
 
-### 10. IRON-9 v2 [SC] 共享契约层代码编写规范
+### 10. IRON-9 v3 [SC] 共享契约层代码编写规范
 
 #### 10.1 [SC] 层定义
 
-[SC] 共享契约层是 IRON-9 v2 三层模型中**代码完全共享**的层级。agentrt-linux（AirymaxOS）与 agentrt 共享 `include/airymax/` 下的 10 个头文件：
+[SC] 共享契约层是 IRON-9 v3 四层模型中**代码完全共享**的层级。agentrt-linux（AirymaxOS）与 agentrt 共享 `include/airymax/` 下的 10 个头文件：
 - `syscalls.h`：12 核心 syscall 编号（AIRY_SYS_CALL/SEND/RECV/NBSEND/NBRECV/REPLY_RECV/YIELD/ROVOL_CTL/SCHED_CTL/CLT_NOTIFY/REPLY/NOTIFY）+ 12 预留槽位
 - `memory_types.h`：MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口
 - `security_types.h`：Cupolas capability 令牌结构、POSIX capability 41 ID 枚举、LSM 钩子 252 ID 枚举、capability 派生模型、Vault backend 抽象、策略裁决 4 值枚举
 - `cognition_types.h`：CoreLoopThree 阶段枚举、Thinkdual 模式枚举、LLM 推理阶段枚举、Token 能效指标、GPU/NPU 能力描述符
-- `sched.h`：方案 C-Prime 调度类约束（使用 SCHED_DEADLINE/SCHED_FIFO/EEVDF 原生调度类，禁止定义 SCHED_AGENT 宏）、任务描述符（magic 0x41475453 'AGTS'）、vtime 衰减公式、优先级 0-139、AIRY_SLICE_DFL（20ms）
+- `sched.h`：sched_tac 调度类约束（使用 SCHED_DEADLINE/SCHED_FIFO/EEVDF 原生调度类，禁止定义 SCHED_AGENT 宏）、任务描述符（magic 0x41475453 'AGTS'）、vtime 衰减公式、优先级 0-139、AIRY_SLICE_DFL（20ms）
 - `ipc.h`：IPC magic（0x41524531 'ARE1'）、128B 消息头结构（struct airy_ipc_msg_hdr）、SQE/CQE 操作码与标志位
 
 #### 10.2 [SC] 层代码编写规则（OS-KER-021）
@@ -1499,7 +1499,7 @@ kfree(old);
 #ifndef _AIRY_IPC_H
 #define _AIRY_IPC_H
 
-/* IRON-9 v2: [SC] 共享契约层 — 此头文件与 agentrt 完全共享 */
+/* IRON-9 v3: [SC] 共享契约层 — 此头文件与 agentrt 完全共享 */
 /* 版本: 0.1.1 */
 
 #include <stdint.h>  /* C99 标准头文件，非内核头文件 */
@@ -1673,7 +1673,7 @@ MODULE_DESCRIPTION("agentrt-linux（AirymaxOS）IPC Channel Module");
 | §7 错误处理 | E-3 资源确定性、E-6 错误可追溯 | goto 集中出口 |
 | §8 内存管理 | E-3 资源确定性、E-1 安全内生 | 安全分配惯用法 |
 | §9 锁与并发 | E-1 安全内生、E-3 资源确定性 | 锁与引用计数分离 |
-| §10 IRON-9 v2 | K-2 接口契约化、S-3 总体设计部 | [SC]/[SS]/[IND] 三层模型 |
+| §10 IRON-9 v3 | K-2 接口契约化、S-3 总体设计部 | [SC]/[SS]/[IND]/[DSL] 四层模型 |
 
 ---
 
@@ -4053,7 +4053,7 @@ spin_unlock(&task_table->lock);
 
 #### 6.1 capability 检查（OS-SEC-121）
 
-> **OS-SEC-121**：所有安全敏感操作（资源访问、权限变更、配置修改）必须通过 Cupolas capability 系统检查。capability 是不可伪造的令牌，无 capability 即无访问权限。Cupolas capability 结构体定义位于 [SC] 共享契约层（`include/airymax/capability.h`），遵循 IRON-9 v2 同源且部分代码共享原则。
+> **OS-SEC-121**：所有安全敏感操作（资源访问、权限变更、配置修改）必须通过 Cupolas capability 系统检查。capability 是不可伪造的令牌，无 capability 即无访问权限。Cupolas capability 结构体定义位于 [SC] 共享契约层（`include/airymax/capability.h`），遵循 IRON-9 v3 同源且部分代码共享原则。
 
 ```c
 /* 好：操作前检查 capability */

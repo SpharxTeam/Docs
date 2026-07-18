@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：agentrt gateway + Linux 6.6 容器编排（IRON-9 v2 [IND] 完全独立层，云原生为 agentrt-linux 专属扩展）\
+> **同源映射**：agentrt gateway + Linux 6.6 容器编排（IRON-9 v3 [IND] 完全独立层，云原生为 agentrt-linux 专属扩展）\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[IND] 完全独立层（K8s CRD 与 controller 为 agentrt-linux 云原生专属实现）
+> **IRON-9 v3 层次**：[IND] 完全独立层（K8s CRD 与 controller 为 agentrt-linux 云原生专属实现）
 
 ---
 
@@ -19,7 +19,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 agentrt-linux（AirymaxOS）将 Agent 应用建模为 Kubernetes 自定义资源（Custom Resource），实现声明式管理。CRD 设计达成以下工程目标：
 
 1. **声明式 Agent 管理**：通过 YAML 声明 Agent 的镜像、Token 预算、记忆卷载、认知循环等属性
-2. **OS 级调度联动**：CRD controller 与 agentrt-linux 节点的 AIRY_SCHED_AGENT 用户态调度器联动
+2. **OS 级调度联动**：CRD controller 与 agentrt-linux 节点的 sched_tac 用户态调度器联动
 3. **记忆卷载 CSI 集成**：Agent CRD 自动声明 MemoryRovol CSI 卷并挂载至容器
 4. **Cupolas 安全策略联动**：CRD 安全字段映射至 Cupolas capability 令牌与 Landlock 规则
 5. **水平弹性伸缩**：基于 Token 预算消耗与认知负载的 HPA 自动伸缩
@@ -41,7 +41,7 @@ agentrt-linux（AirymaxOS）将 Agent 应用建模为 Kubernetes 自定义资源
 | 资源声明 | CPU/Memory | CPU/Memory + Token 预算 |
 | 存储 | PVC | MemoryRovol CSI 卷 |
 | 安全 | SecurityContext | Cupolas capability + Landlock |
-| 调度类 | CFS（默认） | AIRY_SCHED_AGENT（用户态调度器策略） |
+| 调度类 | CFS（默认） | stc_agent（用户态调度器策略） |
 | 生命周期 | RestartPolicy | Agent 状态机（8 状态） |
 
 ---
@@ -143,8 +143,8 @@ spec:
                       default: CoreLoopThree
                     scheduler:
                       type: string
-                      enum: [AIRY_SCHED_AGENT, SCHED_NORMAL]
-                      default: AIRY_SCHED_AGENT
+                      enum: [stc_agent, SCHED_NORMAL]
+                      default: stc_agent
                     thinkMode:
                       type: string
                       enum: [t2, t1-f, t1-p, dual]
@@ -245,7 +245,7 @@ spec:
 
   cognition:
     cycle: CoreLoopThree
-    scheduler: AIRY_SCHED_AGENT
+    scheduler: stc_agent
     thinkMode: dual
 
   security:
@@ -292,7 +292,7 @@ spec:
 │ │  ┌───────────────────────────────────────────┐ │
 │ │  │ Node Allocator                            │ │ │
 │ │  │  - 选择 agentrt-linux 节点                │ │ │
-│ │  │  - 与 AIRY_SCHED_AGENT 用户态调度器联动     │ │ │
+│ │  │  - 与 sched_tac 用户态调度器联动     │ │ │
 │ │  └───────────────────────────────────────────┘ │
 │ │           |                                     │
 │ │           v                                     │
@@ -309,7 +309,7 @@ spec:
    ┌────────────────────────────────────┐
    │ agentrt-linux Node                  │
    │  - kubelet + containerd             │
-   │  - AIRY_SCHED_AGENT 用户态调度器    │
+   │  - sched_tac 用户态调度器    │
    │  - MemoryRovol CSI 插件             │
    │  - Cupolas 安全穹顶                 │
    └────────────────────────────────────┘
@@ -482,8 +482,8 @@ agentrt-linux 节点通过标签声明能力：
 # agentrt-linux 节点标签
 airymaxos.dev/node-type: agentrt-linux       # 节点类型
 airymaxos.dev/kernel-version: "6.6-airymax"   # 内核版本
-airymaxos.dev/user-sched: "true"               # 支持方案 C-Prime 用户态调度器
-airymaxos.dev/sched-agent: "true"             # 支持 AIRY_SCHED_AGENT 策略
+airymaxos.dev/user-sched: "true"               # 支持sched_tac 用户态调度器
+airymaxos.dev/sched-agent: "true"             # 支持 stc_agent 策略
 airymaxos.dev/memoryrovol: "true"             # 支持 MemoryRovol
 airymaxos.dev/cupolas: "true"                 # 部署 Cupolas
 airymaxos.dev/cxl-pool: "true"                # CXL 内存池化
@@ -512,17 +512,17 @@ scheduling:
       effect: NoSchedule
 overhead:
   podFixed:
-    cpu: "100m"      # AIRY_SCHED_AGENT 调度开销
+    cpu: "100m"      # sched_tac 调度开销
     memory: "128Mi"  # MicroCoreRT 额外内存
 ```
 
-### 4.3 AIRY_SCHED_AGENT 联动
+### 4.3 sched_tac 联动
 
-Controller 通过节点的 daemonset 与 AIRY_SCHED_AGENT 用户态调度器联动：
+Controller 通过节点的 daemonset 与 sched_tac 用户态调度器联动：
 
 ```go
 /* agentrt-sched-agent-agent: daemonset 运行于 agentrt-linux 节点
- * 监听 Pod 创建事件，向内核 AIRY_SCHED_AGENT 用户态调度器提交调度参数 */
+ * 监听 Pod 创建事件，向内核 sched_tac 用户态调度器提交调度参数 */
 func handlePodCreate(pod *corev1.Pod) error {
 	if pod.Labels["app"] != "agentrt-agent" {
 		return nil
@@ -710,9 +710,9 @@ spec:
 - Kubebuilder 框架
 - Kubernetes RuntimeClass 文档
 - Prometheus Operator
-- agentrt gateway（IRON-9 v2 [IND] 完全独立层）
+- agentrt gateway（IRON-9 v3 [IND] 完全独立层）
 
 ---
 
 > **文档结束** | agentrt-linux（AirymaxOS）K8s CRD 设计 v0.1.1
-> 遵循 IRON-9 v2 [IND] 完全独立层（agentrt-linux 云原生专属）
+> 遵循 IRON-9 v3 [IND] 完全独立层（agentrt-linux 云原生专属）

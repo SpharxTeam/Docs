@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：agentrt 用户态运行时 MAC 框架 + TaskFlow 引擎（IRON-9 v2 [SS] 语义同源层）\
+> **同源映射**：agentrt 用户态运行时 MAC 框架 + TaskFlow 引擎（IRON-9 v3 [SS] 语义同源层）\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[SS] 语义同源层（协作模式高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进——agentrt-linux 基于内核 kthread + AIRY_SCHED_AGENT，agentrt 基于用户态线程）
+> **IRON-9 v3 层次**：[SS] 语义同源层（协作模式高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进——agentrt-linux 基于内核 kthread + stc_agent，agentrt 基于用户态线程）
 
 ---
 
@@ -18,7 +18,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 agentrt-linux（AirymaxOS）将多 Agent 编排视为操作系统级一等公民能力。Agent 编排设计达成以下工程目标：
 
-1. **OS 级编排**：编排引擎运行于内核态（kthread），获得 AIRY_SCHED_AGENT 调度优先级与确定性延迟
+1. **OS 级编排**：编排引擎运行于内核态（kthread），获得 stc_agent 调度优先级与确定性延迟
 2. **DAG 工作流**：支持有向无环图（DAG）表达复杂任务依赖，超步（superstep）执行
 3. **四种协作模式**：独立/协作/共识/委托，覆盖单 Agent 到多 Agent 协作全场景
 4. **容错恢复**：基于检查点的超步容错，单 Agent 失败可回滚至最近检查点
@@ -31,15 +31,15 @@ agentrt-linux（AirymaxOS）将多 Agent 编排视为操作系统级一等公民
 | L1 | 单 Agent 任务 | 单进程执行 | 顺序认知循环 |
 | L2 | DAG 工作流 | TaskFlow 超步 | 任务依赖编排 |
 | L3 | 多 Agent 协作 | MAC 框架 | 跨 Agent 协同 |
-| **L4** | **OS 级编排** | **内核 kthread + AIRY_SCHED_AGENT** | **agentrt-linux 专属** |
+| **L4** | **OS 级编排** | **内核 kthread + stc_agent** | **agentrt-linux 专属** |
 
 ### 1.3 与 agentrt 同源关系
 
-agentrt 用户态运行时的 MAC 框架与 TaskFlow 引擎与本设计遵循 IRON-9 v2 [SS] 语义同源层：
+agentrt 用户态运行时的 MAC 框架与 TaskFlow 引擎与本设计遵循 IRON-9 v3 [SS] 语义同源层：
 
 | 维度 | agentrt（微核心） | agentrt-linux（微内核） |
 |------|-------------------|------------------------|
-| 编排引擎 | 用户态线程池 | 内核 kthread + AIRY_SCHED_AGENT |
+| 编排引擎 | 用户态线程池 | 内核 kthread + stc_agent |
 | 协作模式 API | `mac_*` | `mac_*`（同源签名） |
 | DAG 引擎 | 用户态 TaskFlow | OS 级 TaskFlow（内核态） |
 | 通信 | 用户态消息队列 | AgentsIPC（io_uring） |
@@ -52,7 +52,7 @@ agentrt 用户态运行时的 MAC 框架与 TaskFlow 引擎与本设计遵循 IR
 ### 2.1 协作模式定义
 
 ```c
-/* include/uapi/agentrt/mac.h（IRON-9 v2 [SC] 共享契约层） */
+/* include/uapi/agentrt/mac.h（IRON-9 v3 [SC] 共享契约层） */
 enum airy_mac_mode {
 	AIRY_MAC_MODE_INDEPENDENT = 0,  /* 独立：各 Agent 独立执行 */
 	AIRY_MAC_MODE_COLLABORATIVE = 1, /* 协作：分工合作 */
@@ -158,7 +158,7 @@ DAG 按超步（superstep）执行，每个超步内并行执行就绪节点：
  *   1. 扫描所有 PENDING 节点
  *   2. 检查依赖是否全部 COMPLETED
  *   3. 就绪节点置为 READY
- *   4. 并行提交至 AIRY_SCHED_AGENT
+ *   4. 并行提交至 sched_tac 调度策略
  *
  * 返回：本超步就绪节点数
  */
@@ -325,7 +325,7 @@ static struct task_struct *taskflow_kthread;
 /**
  * airy_taskflow_kthread - TaskFlow 引擎内核线程
  *
- * 作为 AIRY_SCHED_AGENT 策略的常驻 kthread
+ * 作为 sched_tac 调度策略的常驻 kthread
  * 周期性扫描工作流队列，调度就绪超步
  * 通过 kfifo + wait_event_interruptible 与其他 kthread 通信
  */
@@ -559,7 +559,7 @@ agentrt 用户态运行时的 MAC 框架与 agentrt-linux 的内核态 TaskFlow 
 
 ### 8.2 API 同源保证
 
-由于 IRON-9 v2 [SS] 层高层 API 语义同源，编排代码可跨运行时迁移：
+由于 IRON-9 v3 [SS] 层高层 API 语义同源，编排代码可跨运行时迁移：
 
 ```python
 # 编排代码无需修改即可在两端运行
@@ -615,9 +615,9 @@ result = mac.execute(workflow=research_dag,
 - LangGraph 多 Agent 编排框架
 - Linux 6.6 `kernel/kthread.c`（内核线程机制）
 - Linux 6.6 `include/linux/kfifo.h`（FIFO 队列）
-- agentrt MAC 框架与 TaskFlow 引擎实现（IRON-9 v2 [SS] 同源）
+- agentrt MAC 框架与 TaskFlow 引擎实现（IRON-9 v3 [SS] 同源）
 
 ---
 
 > **文档结束** | agentrt-linux（AirymaxOS）Agent 编排设计 v0.1.1
-> 遵循 IRON-9 v2 [SS] 语义同源层与 agentrt MAC/TaskFlow 同源
+> 遵循 IRON-9 v3 [SS] 语义同源层与 agentrt MAC/TaskFlow 同源

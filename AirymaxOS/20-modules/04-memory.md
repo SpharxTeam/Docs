@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**：agentrt-linux（AirymaxOS）记忆设计文档（memory，极境记忆&存储）\
 > **文档版本**：v1.1（2026-07-07）\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **核心约束**：IRON-9 v2 同源且部分代码共享——与 agentrt 用户态 memoryrovol 通过 \[SC] 共享契约层 + \[SS] 语义同源层协作，\[IND] 内核态 CXL/PMEM/VFS 持久化实现独立\
+> **核心约束**：IRON-9 v3 同源且部分代码共享——与 agentrt 用户态 memoryrovol 通过 \[SC] 共享契约层 + \[SS] 语义同源层协作，\[IND] 内核态 CXL/PMEM/VFS 持久化实现独立\
 > **子仓编号**：04\
 > **子仓代号**：极境记忆（Airymax Memory）\
 > **设计基准**：MemoryRovol 内核态 + CXL 内存分层 + PMEM 持久化 + MGLRU 多代回收\
@@ -17,11 +17,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 目录
 
 - [1. 子仓职责](#1-子仓职责)
-- [2. 同源关系（IRON-9 v2 三层共享模型）](#2-同源关系iron-9-v2-三层共享模型)
+- [2. 同源关系（IRON-9 v3 四层共享模型）](#2-同源关系iron-9-v2-三层共享模型)
 - [3. 目录结构](#3-目录结构)
 - [4. 核心特性](#4-核心特性)
 - [5. 微内核思想体现](#5-微内核思想体现)
-- [6. IRON-9 v2 三层共享模型落地](#6-iron-9-v2-三层共享模型落地)
+- [6. IRON-9 v3 四层共享模型落地](#6-iron-9-v2-三层共享模型落地)
 - [7. agentrt-linux 工程基线](#7-agentrt-linux-工程基线)
 - [8. 前沿理论参考](#8-前沿理论参考)
 - [9. 与其他子仓的协作](#9-与其他子仓的协作)
@@ -57,9 +57,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ***
 
-## 2. 同源关系（IRON-9 v2 三层共享模型）
+## 2. 同源关系（IRON-9 v3 四层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 memoryrovol）与 agentrt-linux（内核态 memory）通过三层共享模型协作：
+依据 IRON-9 v3 决策，agentrt（用户态 memoryrovol）与 agentrt-linux（内核态 memory）通过三层共享模型协作：
 
 | 层次               | 共享程度          | 记忆子系统内容                                                                                                                  | 组织方式                             |
 | ---------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
@@ -416,7 +416,7 @@ echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 
 ***
 
-## 6. IRON-9 v2 三层共享模型落地
+## 6. IRON-9 v3 四层共享模型落地
 
 ### 6.1 \[SC] 共享契约层——`include/airymax/memory_types.h`
 
@@ -496,7 +496,7 @@ sequenceDiagram
 | **E-1 安全内生**            | 记忆加密 + PMEM 完整性校验 + TEE 保护             |
 | **K-3 服务隔离**            | MemoryRovol 独立 kthread + memcg 隔离      |
 | **K-4 可插拔策略**           | 内存分层策略可配置 + VFS 后端可插拔                  |
-| **IRON-9 v2 同源且部分代码共享** | \[SC] 共享契约层 + \[SS] 语义同源层 + \[IND] 独立层 |
+| **IRON-9 v3 同源且部分代码共享** | \[SC] 共享契约层 + \[SS] 语义同源层 + \[IND] 独立层 |
 | **A-4 完美主义**            | CXL 内存池化 + PMEM 持久化 + MGLRU 多代回收       |
 
 ***
@@ -557,7 +557,7 @@ sequenceDiagram
 
 ## 11. agentrt 一致性检查
 
-对 agentrt heapstore + memoryrovol 设计进行一致性检查，确认两端在 IRON-9 v2 三层共享模型下无冲突：
+对 agentrt heapstore + memoryrovol 设计进行一致性检查，确认两端在 IRON-9 v3 四层共享模型下无冲突：
 
 | 序号 | 检查项                        | agentrt 状态                    | agentrt-linux 状态         | 结论          |
 | -- | -------------------------- | ----------------------------- | ------------------------ | ----------- |
@@ -607,5 +607,5 @@ sequenceDiagram
 
 ***
 
-> **文档结束** | v1.1 | IRON-9 v2 同源且部分代码共享 | 记忆卷载贯穿 4 大数据流 | 0.1.1 = 文档体系完成
+> **文档结束** | v1.1 | IRON-9 v3 同源且部分代码共享 | 记忆卷载贯穿 4 大数据流 | 0.1.1 = 文档体系完成
 

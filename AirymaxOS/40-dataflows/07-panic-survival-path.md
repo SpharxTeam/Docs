@@ -1,11 +1,11 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # Panic 生存路径设计
-> **文档定位**：ULPS（统一日志与打印系统）Panic 场景日志生存路径的唯一权威设计\
+> **文档定位**：A-ULP（统一日志与打印系统）Panic 场景日志生存路径的唯一权威设计\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §5\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2（ULPS 设计）+ [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) §3
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2（A-ULP 设计）+ [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) §3
 
 ---
 
@@ -13,7 +13,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **Panic 生存路径** 的唯一权威源。printk_safe NMI-safe buffer 模型、Ring Buffer 锁规避策略（trylock + 直接写入）、Panic handler 流程（dump 寄存器 → 写入 Ring Buffer → 同步持久存储）、与 [DSL] 降级模式的关系均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义 Panic 日志生存策略。
 >
-> 技术选型声明：日志内存采用 **alloc_pages(GFP_KERNEL) + mmap**（**不使用 DMA 一致性内存**）。整体遵循 Unify Design：方案 C-Prime（不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ IORING_OP_URING_CMD + registered buffer + mmap（不使用 page flipping）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> 技术选型声明：日志内存采用 **alloc_pages(GFP_KERNEL) + mmap**（**不使用 DMA 一致性内存**）。整体遵循 Unify Design：sched_tac（不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ IORING_OP_URING_CMD + registered buffer + mmap（不使用 page flipping）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
@@ -353,8 +353,8 @@ Panic handler 必须保证以下信息完整落盘：
 | Panic 原因 | `panic()` 参数 | 是 |
 | 寄存器 dump | `show_regs()` | 是 |
 | 调用栈 | `dump_stack()` | 是 |
-| Airymax Fault 码 | UEF Fault 码（如 `AIRY_FAULT_CAP_FAULT`） | 是 |
-| Agent 状态 | USV Agent 8 态当前值 | 是 |
+| Airymax Fault 码 | A-UEF Fault 码（如 `AIRY_FAULT_CAP_FAULT`） | 是 |
+| Agent 状态 | A-ULS Agent 8 态当前值 | 是 |
 | Ring Buffer 状态 | head/tail/frozen | 否（best-effort） |
 
 ---
@@ -432,12 +432,12 @@ Panic 发生
 
 ## §8 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) §5 —— ULPS 模块总纲
+- [10-unify-design.md](../10-architecture/10-unify-design.md) §5 —— A-ULP 模块总纲
 - [05-ring-buffer-logging.md](05-ring-buffer-logging.md) §6 —— Panic 回退（本文件的上级设计）
 - [06-logger-daemon-design.md](06-logger-daemon-design.md) —— Logger Daemon 崩溃恢复
 - [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) §3 —— [DSL] 降级与 Panic 回退
-- [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— UEF Fault 码（Panic 时记录）
-- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2 —— ULPS 设计依据
+- [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— A-UEF Fault 码（Panic 时记录）
+- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.2 —— A-ULP 设计依据
 
 ---
 

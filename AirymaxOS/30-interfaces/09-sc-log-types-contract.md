@@ -1,11 +1,11 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # [SC] log_types.h 二进制契约
-> **文档定位**：ULPS（统一日志与打印系统）模块的 [SC] 共享契约权威定义\
+> **文档定位**：A-ULP（统一日志与打印系统）模块的 [SC] 共享契约权威定义\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §5\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §2.3（日志类型 SSoT）+ §4.2.2（ULPS 设计）
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §2.3（日志类型 SSoT）+ §4.2.2（A-ULP 设计）
 
 ---
 
@@ -13,23 +13,23 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **Airymax 日志类型与 128B 记录格式** 的唯一权威源。`LOG_*` 日志级别枚举、128B 固定记录格式、`AIRY_LOG_MAGIC` 魔数、printk 8 级映射均以本文件为唯一权威定义。物理宿主为 `kernel/include/airymax/log_types.h`，agentrt 与 agentrt-linux 物理共享同一份头文件，逐字节相同。
 >
-> 废弃风格声明：`AIRY_LOG_*`（详细前缀）已废弃，全部迁移为 `LOG_*`。本契约遵循 [10-unify-design.md](../10-architecture/10-unify-design.md) 的技术选型（方案 C-Prime + 纯 C LSM 不使用 BPF LSM + IORING_OP_URING_CMD + registered buffer + mmap 不使用 page flipping + alloc_pages + mmap 不使用 DMA 一致性内存）。
+> 废弃风格声明：`AIRY_LOG_*`（详细前缀）已废弃，全部迁移为 `LOG_*`。本契约遵循 [10-unify-design.md](../10-architecture/10-unify-design.md) 的技术选型（sched_tac + 纯 C LSM 不使用 BPF LSM + IORING_OP_URING_CMD + registered buffer + mmap 不使用 page flipping + alloc_pages + mmap 不使用 DMA 一致性内存）。
 
 ---
 
 ## 文档信息卡
 
 - **目标读者**：agentrt-linux 内核开发者、Logger Daemon 开发者、agentrt 用户态开发者
-- **前置知识**：理解 [10-unify-design.md](../10-architecture/10-unify-design.md) ULPS 模块定位、[06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md) [SC] 层概念
+- **前置知识**：理解 [10-unify-design.md](../10-architecture/10-unify-design.md) A-ULP 模块定位、[06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md) [SC] 层概念
 - **预计阅读时间**：20 分钟
 - **核心概念**：128B 固定记录、`LOG_*` 5 级枚举、printk 8 级映射、Fastpath 禁止格式化
 - **复杂度标识**：中级
 
 ---
 
-## §1 契约概述：ULPS 模块的 [SC] 共享契约
+## §1 契约概述：A-ULP 模块的 [SC] 共享契约
 
-ULPS（Unified Log & Print System，统一日志与打印系统）是 Airymax Unify Design 的观测主干模块，其 [SC] 共享契约头文件 `log_types.h` 定义了双端共享的日志记录格式与级别枚举。
+A-ULP（Unified Logging and Printk Subsystem，统一日志与打印系统）是 Airymax Unify Design 的观测主干模块，其 [SC] 共享契约头文件 `log_types.h` 定义了双端共享的日志记录格式与级别枚举。
 
 ### 1.1 契约范围
 
@@ -54,7 +54,7 @@ ULPS（Unified Log & Print System，统一日志与打印系统）是 Airymax Un
 
 ### 1.3 设计原则
 
-ULPS 遵循"Fastpath 禁止格式化"原则——128B 记录的 `payload` 字段存储**原始二进制**，不在内核侧进行 `sprintf` 格式化。格式化由用户态 Logger Daemon 异步完成。这一原则确保内核 fastpath 性能（~50-100ns），详见 [40-dataflows/05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)。
+A-ULP 遵循"Fastpath 禁止格式化"原则——128B 记录的 `payload` 字段存储**原始二进制**，不在内核侧进行 `sprintf` 格式化。格式化由用户态 Logger Daemon 异步完成。这一原则确保内核 fastpath 性能（~50-100ns），详见 [40-dataflows/05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md)。
 
 ---
 
@@ -62,7 +62,7 @@ ULPS 遵循"Fastpath 禁止格式化"原则——128B 记录的 `payload` 字段
 
 ### 2.1 记录布局
 
-ULPS 采用 128 字节固定长度日志记录，对齐 cache line（64B 的 2 倍），确保单次 `memcpy` 完成写入，避免跨 cache line 的拆分开销。
+A-ULP 采用 128 字节固定长度日志记录，对齐 cache line（64B 的 2 倍），确保单次 `memcpy` 完成写入，避免跨 cache line 的拆分开销。
 
 ```c
 /* kernel/include/airymax/log_types.h —— [SC] 共享契约层，逐字节共享 */
@@ -113,7 +113,7 @@ struct airy_log_record {
 
 ### 3.1 airy_log_level 枚举
 
-ULPS 定义 5 级日志枚举，从最详细到最严重：
+A-ULP 定义 5 级日志枚举，从最详细到最严重：
 
 ```c
 /* kernel/include/airymax/log_types.h */
@@ -148,11 +148,11 @@ enum airy_log_level {
 /* kernel/include/airymax/log_types.h */
 enum airy_log_facility {
     AIRY_FAC_KERNEL      = 0,     /* 内核主体 */
-    AIRY_FAC_IPC         = 1,     /* UIPF：IPC 子系统 */
-    AIRY_FAC_SCHED       = 2,     /* USV：调度子系统 */
-    AIRY_FAC_SUPERV      = 3,     /* USV：Micro-Supervisor */
-    AIRY_FAC_LOG         = 4,     /* ULPS：日志子系统自身 */
-    AIRY_FAC_CONFIG      = 5,     /* UCF：配置管理 */
+    AIRY_FAC_IPC         = 1,     /* A-IPC：IPC 子系统 */
+    AIRY_FAC_SCHED       = 2,     /* A-ULS：调度子系统 */
+    AIRY_FAC_SUPERV      = 3,     /* A-ULS：Micro-Supervisor */
+    AIRY_FAC_LOG         = 4,     /* A-ULP：日志子系统自身 */
+    AIRY_FAC_CONFIG      = 5,     /* A-UCS：配置管理 */
     AIRY_FAC_SECURITY    = 6,     /* 纯 C LSM 安全子系统 */
     AIRY_FAC_MEMORY      = 7,     /* 记忆子系统 */
     AIRY_FAC_COGNITION   = 8,     /* 认知子系统 */
@@ -169,9 +169,9 @@ enum airy_log_facility {
 
 ### 4.1 映射表
 
-Linux 6.6 的 `printk` 定义 8 级日志级别（`KERN_EMERG` ~ `KERN_DEBUG`），ULPS 将其映射到 5 级 `airy_log_level`：
+Linux 6.6 的 `printk` 定义 8 级日志级别（`KERN_EMERG` ~ `KERN_DEBUG`），A-ULP 将其映射到 5 级 `airy_log_level`：
 
-| printk 级别 | 值 | ULPS 级别 | 映射规则 |
+| printk 级别 | 值 | A-ULP 级别 | 映射规则 |
 |------------|-----|----------|---------|
 | `KERN_EMERG` | 0 | `LOG_FATAL` | 系统不可用 → 致命 |
 | `KERN_ALERT` | 1 | `LOG_FATAL` | 必须立即行动 → 致命 |
@@ -245,7 +245,7 @@ Linux 6.6 的 `printk` 定义 8 级日志级别（`KERN_EMERG` ~ `KERN_DEBUG`）
 
 ## §6 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) §5 —— ULPS 模块总纲
+- [10-unify-design.md](../10-architecture/10-unify-design.md) §5 —— A-ULP 模块总纲
 - [40-dataflows/05-ring-buffer-logging.md](../40-dataflows/05-ring-buffer-logging.md) —— 零拷贝 Ring Buffer 日志数据流
 - [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) §4.1.4 —— [DSL] 降级日志子集
 - [06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md) §2 —— [SC] 共享契约层
@@ -258,7 +258,7 @@ Linux 6.6 的 `printk` 定义 8 级日志级别（`KERN_EMERG` ~ `KERN_DEBUG`）
 
 | 版本 | 日期 | 变更内容 |
 |------|------|---------|
-| v1.0 | 2026-07-17 | 初始版本：ULPS [SC] log_types.h 二进制契约；128B 固定记录格式（magic/level/facility/timestamp/caller_id/payload/reserved）；5 级日志枚举（LOG_DEBUG~LOG_FATAL）；printk 8 级映射；物理宿主 `kernel/include/airymax/log_types.h` |
+| v1.0 | 2026-07-17 | 初始版本：A-ULP [SC] log_types.h 二进制契约；128B 固定记录格式（magic/level/facility/timestamp/caller_id/payload/reserved）；5 级日志枚举（LOG_DEBUG~LOG_FATAL）；printk 8 级映射；物理宿主 `kernel/include/airymax/log_types.h` |
 
 ---
 

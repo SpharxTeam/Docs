@@ -1,7 +1,7 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt ↔ agentrt-linux 系统调用语义映射
-> **文档定位**：基于 P0-03 决策（方案 D：分层 API 设计），建立 agentrt（用户态运行时）与 agentrt-linux（AirymaxOS 内核态）之间的系统调用语义映射关系，落地 IRON-9 v2 [SS] 语义同源层\
+> **文档定位**：基于 P0-03 决策（方案 D：分层 API 设计），建立 agentrt（用户态运行时）与 agentrt-linux（AirymaxOS 内核态）之间的系统调用语义映射关系，落地 IRON-9 v3 [SS] 语义同源层\
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-10\
 > **上级文档**：[agentrt-linux 设计文档](README.md)
@@ -12,7 +12,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 1.1 P0-03 问题回顾
 
-IRON-9 v2 [SS] 语义同源层声明"API 签名同源、实现独立"，但深度审查发现 agentrt（用户态）与 agentrt-linux（内核态）的系统调用 API 签名**根本不同**：
+IRON-9 v3 [SS] 语义同源层声明"API 签名同源、实现独立"，但深度审查发现 agentrt（用户态）与 agentrt-linux（内核态）的系统调用 API 签名**根本不同**：
 
 | 对比项 | AirymaxRT（agentrt 用户态） | AirymaxOS（agentrt-linux 内核态） | 差异性质 |
 |--------|---------------------------|--------------------------------|---------|
@@ -240,7 +240,7 @@ agentrt 在 agentrt-linux 上运行时，系统调用经过两条路径：
 | #555 | `airy_sys_cxl_tier_set()` | CXL 内存分层策略，内核态硬件接口 |
 | #556 | `airy_sys_mglru_config()` | MGLRU（多代 LRU）配置，内核态页回收策略 |
 
-### 5.3 分层用户态调度器机制（方案 C-Prime）
+### 5.3 分层用户态调度器机制（sched_tac）
 
 | OS syscall # | 内核 API | 独有原因 |
 |-------------|---------|---------|
@@ -252,7 +252,7 @@ agentrt 在 agentrt-linux 上运行时，系统调用经过两条路径：
 | OS syscall # | 内核 API | 独有原因 |
 |-------------|---------|---------|
 | #593 | `airy_sys_capability_revoke()` | 撤销 capability，内核态 CNode 操作（agentrt 用户态无 revoke syscall） |
-| #594 | `airy_sys_lsm_load_policy()` | 加载 agent_lsm 策略，内核态 LSM 钩子 |
+| #594 | `airy_sys_lsm_load_policy()` | 加载 airy_lsm 策略，内核态 LSM 钩子 |
 
 ### 5.5 认知内核机制（CoreLoopThree kthread + Wasm）
 
@@ -326,9 +326,9 @@ static int detect_kernel_accel(void)
 
 ---
 
-## 8. IRON-9 v2 三层共享模型
+## 8. IRON-9 v3 四层共享模型
 
-> **OS-IFACE-009**： 系统调用语义映射遵循 IRON-9 v2 三层共享模型——agentrt 高层 API（JSON-RPC 统一入口）与 agentrt-linux 编号 syscall（512-631）在 [SS] 语义同源层保持概念操作一致，签名因抽象层级不同而独立演进；SDK 层（AirymaxClient 4 语言）签名确实同源（同一份源码两端编译）。禁止在系统调用层引入签名转换层或 JSON-to-struct 适配层，签名同源仅限于 SDK 层。
+> **OS-IFACE-009**： 系统调用语义映射遵循 IRON-9 v3 四层共享模型——agentrt 高层 API（JSON-RPC 统一入口）与 agentrt-linux 编号 syscall（512-631）在 [SS] 语义同源层保持概念操作一致，签名因抽象层级不同而独立演进；SDK 层（AirymaxClient 4 语言）签名确实同源（同一份源码两端编译）。禁止在系统调用层引入签名转换层或 JSON-to-struct 适配层，签名同源仅限于 SDK 层。
 
 ### 8.1 三层映射概览
 
@@ -421,7 +421,7 @@ graph TB
     style OS_DEF fill:#fff3e0,stroke:#e65100
 ```
 
-> **OS-IFACE-010**： SDK 层签名同源是 IRON-9 v2 在系统调用领域的唯一签名同源点——agentrt 与 agentrt-linux 的系统调用层签名因抽象层级不同而独立演进，仅 SDK 层（AirymaxClient 4 语言）通过同一份源码两端编译实现签名同源。禁止在系统调用层引入签名转换层、JSON-to-struct 适配层或编号映射表来强制签名同源。
+> **OS-IFACE-010**： SDK 层签名同源是 IRON-9 v3 在系统调用领域的唯一签名同源点——agentrt 与 agentrt-linux 的系统调用层签名因抽象层级不同而独立演进，仅 SDK 层（AirymaxClient 4 语言）通过同一份源码两端编译实现签名同源。禁止在系统调用层引入签名转换层、JSON-to-struct 适配层或编号映射表来强制签名同源。
 
 ---
 

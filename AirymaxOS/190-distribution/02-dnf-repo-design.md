@@ -568,7 +568,7 @@ out_free_ctx:
 | **E-3 资源确定性** | metadata 校验和保证确定性 |
 | **E-6 错误可追溯** | GPG 签名 + changelog |
 | **K-2 接口契约化** | repomd.xml 是仓库契约 |
-| **IRON-9 v2 [IND]** | 仓库设计独立于 agentrt |
+| **IRON-9 v3 [IND]** | 仓库设计独立于 agentrt |
 
 ---
 

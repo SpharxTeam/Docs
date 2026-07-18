@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](10-unify-design.md)\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §3.1（P0 级缺失文档 #2）+ §4.2.1（UEF [DSL] 降级）
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §3.1（P0 级缺失文档 #2）+ §4.2.1（A-UEF [DSL] 降级）
 
 ---
 
@@ -13,7 +13,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **[DSL] 降级生存层** 的唯一权威源。`#ifdef AIRY_SC_FALLBACK` 降级块机制、Panic 回退路径、最小可运行子集定义、与 IRON-9 v3 四层模型的关系均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义 [DSL] 降级策略。
 >
-> 本文件遵循 **方案 C-Prime**（降级时回退到 EEVDF 默认调度）、**纯 C LSM**（不依赖 BPF）、**alloc_pages + mmap**（不依赖 DMA 一致性内存）技术选型。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> 本文件遵循 **sched_tac**（降级时回退到 EEVDF 默认调度）、**纯 C LSM**（不依赖 BPF）、**alloc_pages + mmap**（不依赖 DMA 一致性内存）技术选型。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
@@ -60,7 +60,7 @@ Airymax Unify Design 的 [SC] 共享契约层（物理宿主 `kernel/include/air
 │ [SC] error.h 完整    │        │ [SC] error.h 损坏    │
 │ 5 个码空间（300 码） │  ──┐   │ 仅 38 个 POSIX 码    │
 │ Ring Buffer 日志     │    │   │ printk_safe 原生     │
-│ 方案 C-Prime 三层    │    └──▶│ EEVDF 默认调度       │
+│ sched_tac 三层    │    └──▶│ EEVDF 默认调度       │
 │ IORING_OP_URING_CMD  │        │ 最简 IPC 消息头      │
 │ 纯 C LSM 完整校验    │        │ Capability 跳过      │
 └──────────────────────┘        └──────────────────────┘
@@ -181,7 +181,7 @@ config AIRY_SC_FALLBACK
 
 ### 3.1 为什么需要 Panic 回退
 
-当系统进入 Panic 状态时，ULPS 的 Ring Buffer 可能已损坏（内存损坏导致元数据不一致），或 Logger Daemon 已死亡（无法消费 Ring Buffer）。此时若仍尝试写入 Ring Buffer，可能导致递归 Panic 或死锁。[DSL] 规定 Panic 路径必须回退到 Linux 6.6 原生 `printk_safe` 路径。
+当系统进入 Panic 状态时，A-ULP 的 Ring Buffer 可能已损坏（内存损坏导致元数据不一致），或 Logger Daemon 已死亡（无法消费 Ring Buffer）。此时若仍尝试写入 Ring Buffer，可能导致递归 Panic 或死锁。[DSL] 规定 Panic 路径必须回退到 Linux 6.6 原生 `printk_safe` 路径。
 
 ### 3.2 printk_safe 机制（对齐 Linux 6.6 NMI-safe buffer）
 
@@ -211,7 +211,7 @@ static void airy_log_panic(const char *fmt, ...)
 
 ### 3.3 [DSL] 降级模式下的日志路径
 
-在 `AIRY_SC_FALLBACK` 激活时，ULPS 完全不初始化 Ring Buffer，所有日志直接走 `printk` 原生路径。此时性能从 ~50-100ns 退化为传统 printk 的 ~5-10μs，但保证了可运行性——这正是 [DSL] "永不 brick"原则的体现。
+在 `AIRY_SC_FALLBACK` 激活时，A-ULP 完全不初始化 Ring Buffer，所有日志直接走 `printk` 原生路径。此时性能从 ~50-100ns 退化为传统 printk 的 ~5-10μs，但保证了可运行性——这正是 [DSL] "永不 brick"原则的体现。
 
 | 模式 | 日志路径 | 单条延迟 | 适用场景 |
 |------|---------|---------|---------|
@@ -249,11 +249,11 @@ struct airy_ipc_msg_hdr_min {
 
 #### 4.1.3 调度子集
 
-降级模式下不依赖 `SCHED_DEADLINE` / `SCHED_FIFO` 配置，所有 Agent 统一使用 Linux 6.6 默认的 **EEVDF 调度器**（`SCHED_NORMAL` + nice）。方案 C-Prime 的三层调度在 [SC] 头文件完整时才启用。
+降级模式下不依赖 `SCHED_DEADLINE` / `SCHED_FIFO` 配置，所有 Agent 统一使用 Linux 6.6 默认的 **EEVDF 调度器**（`SCHED_NORMAL` + nice）。sched_tac 的三层调度在 [SC] 头文件完整时才启用。
 
 #### 4.1.4 日志子集
 
-降级模式下 ULPS 不初始化 Ring Buffer，日志级别仅保留 `LOG_FATAL` + `LOG_ERROR` 两级，直接走 `printk` 原生路径。
+降级模式下 A-ULP 不初始化 Ring Buffer，日志级别仅保留 `LOG_FATAL` + `LOG_ERROR` 两级，直接走 `printk` 原生路径。
 
 ### 4.2 降级模式的能力边界
 

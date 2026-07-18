@@ -1,14 +1,14 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）IRON-9 v2 三层共享模型落地规范
-> **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）与 agentrt（微核心用户态运行时）之间的 IRON-9 v2 三层代码共享模型落地规范。详细说明 \[SC] 共享契约层（10 个头文件）、\[SS] 语义同源层、\[IND] 完全独立层的实施细节，含双向 CI 校验机制与 magic 设计原理。\
-> **文档版本**：0.1.1\
-> **最后更新**：2026-07-12\
-> **上级文档**：[agentrt-linux 设计文档](README.md)\
+# agentrt-linux（AirymaxOS）IRON-9 v3 四层共享模型落地规范
+> **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）与 agentrt（微核心用户态运行时）之间的 IRON-9 v3 四层代码共享模型落地规范。详细说明 \[SC] 共享契约层（10 个头文件）、\[SS] 语义同源层、\[IND] 完全独立层、\[DSL] 降级生存层的实施细节，含双向 CI 校验机制与 magic 设计原理。本文件落地 **IRON-9 v3 四层模型（[SC]+[SS]+[IND]+[DSL]）**，权威源为 [06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md)。\
+> **文档版本**：v1.0\
+> **最后更新**：2026-07-17\
+> **上级文档**：[10-unify-design.md](../10-architecture/10-unify-design.md)（Unify Design 总纲）\
 > **理论根基**：Linux 6.6 内核基线工程思想 + seL4 微内核设计思想 + Airymax 体系并行论\
 > **编号权威**：[09-ssot-registry.md §3](./09-ssot-registry.md)\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **SSoT 依赖声明**：本文件引用 IRON-9 v2 三层模型（[SC]/[SS]/[IND]）作为跨项目代码共享的权威框架。IPC magic 值（0x41524531 'ARE1'）与任务描述符 magic（0x41475453 'AGTS'）的权威定义登记于 [09-ssot-registry.md §3](./09-ssot-registry.md)。命名前缀隔离（`airy_*`/`airy_*`）引用 [10-coding-style/coding_conventions.md Part IV §4.4.2](./10-coding-style/coding_conventions.md)。
+> **SSoT 依赖声明**：本文件引用 **IRON-9 v3 四层模型（[SC]/[SS]/[IND]/[DSL]）**作为跨项目代码共享的权威框架，权威源为 [06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md)。IPC magic 值（0x41524531 'ARE1'）与任务描述符 magic（0x41475453 'AGTS'）的权威定义登记于 [09-ssot-registry.md §3](./09-ssot-registry.md)。命名前缀隔离（`airy_*`/`airy_*`）引用 [10-coding-style/coding_conventions.md Part IV §4.4.2](./10-coding-style/coding_conventions.md)。[DSL] 降级生存层设计引用 [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md)。
 
 ***
 
@@ -16,7 +16,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.1 目的与范围
 
-本文件是 IRON-9 v2 三层共享模型的工程落地规范，定义 agentrt（用户态微核心）与 agentrt-linux（内核微内核发行版）之间的代码共享边界、契约内容、校验机制。
+本文件是 **IRON-9 v3 四层共享模型（[SC]+[SS]+[IND]+[DSL]）**的工程落地规范，定义 agentrt（用户态微核心）与 agentrt-linux（内核微内核发行版）之间的代码共享边界、契约内容、校验机制。四层模型的权威定义见 [06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md)，[DSL] 降级生存层的详细设计见 [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md)。
 
 ### 0.2 术语约束（硬性）
 
@@ -27,35 +27,39 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.3 Linux 6.6 基线约束
 
-- **SCHED\_EXT=7**（参考Linux 6.6 内核基线 内置，`include/uapi/linux/sched.h:121`）。agentrt-linux 复用 SCHED\_EXT=7，**禁止**定义 `SCHED_AGENT` 宏（避免与内核调度类编号冲突）。
+- **sched_tac 调度类约束**：使用 Linux 6.6 内核基线 原生调度类（SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_RR=2 / SCHED\_BATCH=3 / SCHED\_IDLE=5 / SCHED\_DEADLINE=6，`include/uapi/linux/sched.h:114-123`）。agentrt-linux 通过 sched_tac 复用这些原生调度类，**禁止**定义 `SCHED_AGENT` 内核调度类宏（避免与内核调度类编号冲突），**禁止**使用 `SCHED_EXT=7`（Linux 6.6 主线不含 sched_ext 框架，仅宏定义存在但实现不可用）。
 - 内核态禁 float（`arch/x86/Makefile:137` `-mno-80387`），用 Q16.16 定点数 `airy_q16_t`（= `int32_t`）。
 - kthread 间通信用 `kfifo` + `wait_event_interruptible`。
 
 ### 0.4 Linux 6.6 内核基线 源码路径
 
-- `include/uapi/linux/sched.h:114-123` —— SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_EXT=7
+- `include/uapi/linux/sched.h:114-123` —— SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_RR=2 / SCHED\_BATCH=3 / SCHED\_IDLE=5 / SCHED\_DEADLINE=6 / SCHED\_EXT=7（仅宏定义，sched_ext 框架未实现，6.6 主线不可用）
 - `arch/x86/Makefile:137-138` —— `-mno-80387` 禁浮点
 - `scripts/checkpatch.pl:836-851` —— `%deprecated_apis` 表（参考共享 API 治理）
 
 ***
 
-## 1. IRON-9 v2 三层模型总览
+## 1. IRON-9 v3 四层模型总览
 
-### 1.1 三层定义
+> **权威源声明**：本节为 IRON-9 v3 四层模型（[SC]+[SS]+[IND]+[DSL]）的工程落地概览，权威定义见 [06-iron9-shared-model.md §1-§5](../10-architecture/06-iron9-shared-model.md)。
 
-| 层次        | 缩写     | 共享程度               | 内容                                                        | 组织方式                             |
-| --------- | ------ | ------------------ | --------------------------------------------------------- | -------------------------------- |
-| **共享契约层** | \[SC]  | 完全共享代码             | 10 个头文件，定义数据结构、magic、操作码、枚举                                | `include/airymax/` 独立头文件库，两端共同依赖 |
-| **语义同源层** | \[SS]  | 高层 API 语义同源，签名独立演进 | 调度语义、安全模型、IPC 传输、记忆模型                                     | 各自独立实现，通过 \[SC] 保证互操作            |
-| **完全独立层** | \[IND] | 完全独立               | 内核驱动/Kbuild/内核 API（agentrt-linux）；跨平台用户态/SDK 四语言（agentrt） | 各自独立仓库，无依赖                       |
+### 1.1 四层定义
+
+| 层次          | 缩写     | 共享程度               | 内容                                                        | 组织方式                             |
+| ----------- | ------ | ------------------ | --------------------------------------------------------- | -------------------------------- |
+| **共享契约层**   | \[SC]  | 完全共享代码             | 10 个头文件，定义数据结构、magic、操作码、枚举                                | `include/airymax/` 独立头文件库，两端共同依赖 |
+| **语义同源层**   | \[SS]  | 高层 API 语义同源，签名独立演进 | 调度语义、安全模型、IPC 传输、记忆模型                                     | 各自独立实现，通过 \[SC] 保证互操作            |
+| **完全独立层**   | \[IND] | 完全独立               | 内核驱动/Kbuild/内核 API（agentrt-linux）；跨平台用户态/SDK 四语言（agentrt） | 各自独立仓库，无依赖                       |
+| **降级生存层**   | \[DSL] | 自包含降级块（[SC] 头文件内）   | `#ifdef AIRY_SC_FALLBACK` 降级块；[SC] 损坏时的最小可运行子集（38 POSIX 码 + 最简 IPC + EEVDF 默认调度） | 详见 [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) |
 
 ### 1.2 与旧版 IRON-9 的差异
 
-| 维度    | 旧版 IRON-9 | IRON-9 v2        |
-| ----- | --------- | ---------------- |
-| 契约层代码 | 不共享，仅语义同源 | **完全共享**（10 个头文件） |
-| 互操作方式 | 同源语义无适配层  | **共享代码无适配层**（增强） |
-| CI 校验 | 无         | 契约层变更双向校验        |
+| 维度    | 旧版 IRON-9 | IRON-9 v2        | IRON-9 v3                    |
+| ----- | --------- | ---------------- | ---------------------------- |
+| 契约层代码 | 不共享，仅语义同源 | **完全共享**（10 个头文件） | **完全共享**（10 个头文件，v3 沿用）       |
+| 互操作方式 | 同源语义无适配层  | **共享代码无适配层**（增强） | **共享代码无适配层**（v3 沿用）           |
+| CI 校验 | 无         | 契约层变更双向校验        | 契约层变更双向校验 + magic 双向校验（v3 增强） |
+| 降级路径  | 无         | 无                | **[DSL] 降级生存层**（v3 新增第四层）    |
 
 ***
 
@@ -63,17 +67,17 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 2.1 10 个 \[SC] 头文件清单
 
-\[SC] 层包含**10 个**共享头文件，**唯一物理宿主**于 `kernel/include/airymax/` 目录（其他子仓通过 `-I../kernel/include` 引用，禁止物理副本，OS-IRON-014 落地），两端（agentrt 与 agentrt-linux）共同依赖，**逐字节相同**：
+\[SC] 层包含**10 个**共享头文件，**唯一物理宿主**于 `kernel/include/airymax/` 目录（其他子仓通过 `-I../kernel/include` 引用，禁止物理副本，OS-IRON-014 落地），两端（agentrt 与 agentrt-linux）共同依赖，**逐字节相同**。下表清单与 [06-iron9-shared-model.md §2.2](../10-architecture/06-iron9-shared-model.md) 完全一致（权威源）：
 
 | 序号 | 文件                  | 共享内容                                                                                                    | magic 值               | 落地路径                                |
 | -- | ------------------- | ------------------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------- |
-| 1  | `error.h`           | UEF 统一错误码（AIRY_E* POSIX 负值 + AIRY_FAULT_* 0x1000+ 故障码）+ [DSL] 降级块                                      | —                     | `include/airymax/error.h`           |
-| 2  | `log_types.h`       | ULPS 统一日志类型（128B 固定记录格式 + 5 级日志枚举 + printk 8 级映射）                                                     | —                     | `include/airymax/log_types.h`       |
-| 3  | `memory_types.h`    | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口                                                          | —                     | `include/airymax/memory_types.h`    |
-| 4  | `security_types.h`  | POSIX capability 41 ID + LSM 钩子 252 ID + Cupolas blob 布局 + capability 派生模型（`airy_capability_t` 结构体 + MDB 派生树）+ **capability 引用类型（`cap_t` = `uint64_t`）**+ Vault backend + 策略裁决 4 值枚举 | —                     | `include/airymax/security_types.h`  |
-| 5  | `cognition_types.h` | `airy_q16_t` Q16.16 定点数 + CoreLoopThree 阶段枚举（`airy_cog_phase`）+ Thinkdual 模式枚举（`airy_think_mode`） | —                     | `include/airymax/cognition_types.h` |
-| 6  | `sched.h`           | 方案 C-Prime 调度约束（SCHED_DEADLINE/SCHED_FIFO/EEVDF）+ 任务描述符（magic 0x41475453 'AGTS'）+ vtime 类型与衰减公式 + 优先级范围 + SLICE\_DFL | `0x41475453` ('AGTS') | `include/airymax/sched.h`           |
-| 7  | `ipc.h`             | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码与标志位                 | `0x41524531` ('ARE1') | `include/airymax/ipc.h`             |
+| 1  | `error.h`           | A-UEF 统一错误码（AIRY_E* POSIX 负值 + AIRY_FAULT_* 0x1000+ 故障码）+ [DSL] 降级块                                      | —                     | `include/airymax/error.h`           |
+| 2  | `log_types.h`       | A-ULP 统一日志类型（128B 固定记录格式 + 5 级日志枚举 + printk 8 级映射）                                                     | —                     | `include/airymax/log_types.h`       |
+| 3  | `ipc.h`             | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码与标志位                 | `0x41524531` ('ARE1') | `include/airymax/ipc.h`             |
+| 4  | `sched.h`           | sched_tac 调度约束（SCHED_DEADLINE/SCHED_FIFO/EEVDF）+ 任务描述符（magic 0x41475453 'AGTS'）+ vtime 类型与衰减公式 + 优先级范围 + SLICE\_DFL | `0x41475453` ('AGTS') | `include/airymax/sched.h`           |
+| 5  | `memory_types.h`    | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口                                                          | —                     | `include/airymax/memory_types.h`    |
+| 6  | `security_types.h`  | POSIX capability 41 ID + LSM 钩子 252 ID + Cupolas blob 布局 + capability 派生模型（`airy_capability_t` 结构体 + MDB 派生树）+ **capability 引用类型（`cap_t` = `uint64_t`）**+ Vault backend + 策略裁决 4 值枚举 | —                     | `include/airymax/security_types.h`  |
+| 7  | `cognition_types.h` | `airy_q16_t` Q16.16 定点数 + CoreLoopThree 阶段枚举（`airy_cog_phase`）+ Thinkdual 模式枚举（`airy_think_mode`） | —                     | `include/airymax/cognition_types.h` |
 | 8  | `syscalls.h`        | Syscall 编号体系（12 核心 + 12 预留 = 24 槽位）                                                                     | —                     | `include/airymax/syscalls.h`        |
 | 9  | `uapi_compat.h`     | 三路类型桥接（内核态 `__u32` ↔ 用户态 Linux `uint32_t` ↔ 第三方 `uint32_t` with stdint.h），确保 [SC] 头文件跨平台逐字节相同编译         | —                     | `include/airymax/uapi_compat.h`    |
 | 10 | `lsm_types.h`       | 纯 C LSM 模块类型定义（`struct airy_lsm_blob` + `airy_capability_check()` 回调原型 + Capability 缓存结构）            | —                     | `include/airymax/lsm_types.h`       |
@@ -126,11 +130,11 @@ enum airy_struct_ops_state {
 
 > **设计约束**：[SC] 头文件中**禁止**直接 `#include <linux/types.h>`（macOS/Windows 无此头文件），**必须**通过 `<airymax/uapi_compat.h>` 间接获取 UAPI 类型。
 
-### 2.2.2 [SC] 核心头文件 1：error.h（UEF 统一错误码）
+### 2.2.2 [SC] 核心头文件 1：error.h（A-UEF 统一错误码）
 
-> **定位说明**：`error.h` 是 [SC] 10 个核心头文件之一（IRON-9 v3 升级，UEF 模块），物理宿主为 `kernel/include/airymax/error.h`，agentrt 用户态通过 `-I` 引用，禁止物理副本。
+> **定位说明**：`error.h` 是 [SC] 10 个核心头文件之一（IRON-9 v3 升级，A-UEF 模块），物理宿主为 `kernel/include/airymax/error.h`，agentrt 用户态通过 `-I` 引用，禁止物理副本。
 
-**错误码体系**（UEF 统一错误码与故障定义体系）：
+**错误码体系**（A-UEF 统一错误码与故障定义体系）：
 
 - `airy_err_t` 类型定义（`typedef int32_t airy_err_t`）
 - 成功码：`AIRY_EOK = 0`（与 `AIRY_SUCCESS = 0` 等价，推荐使用 `AIRY_EOK`）
@@ -207,7 +211,7 @@ enum airy_verdict {
 	AIRY_VERDICT_ALLOW	= 0,
 	AIRY_VERDICT_DENY	= 1,
 	AIRY_VERDICT_AUDIT	= 2,
-	AIRY_VERDICT_ASK	= 3,
+	AIRY_VERDICT_COMPLAIN	= 3,   /* 拒绝但记录（学习模式，对齐 AppArmor complain 语义） */
 };
 
 /* Capability invocation operations (seL4 CNode model) */
@@ -262,8 +266,8 @@ enum airy_think_mode {
 
 #include <airymax/uapi_compat.h>
 
-/* SCHED_EXT=7 (Linux 6.6 内核基线 内置, include/uapi/linux/sched.h:121)
- * 禁止定义 SCHED_AGENT 宏, 复用 SCHED_EXT 调度类编号。 */
+/* sched_tac (Linux 6.6 内核基线 原生调度类: SCHED_NORMAL=0/SCHED_FIFO=1/SCHED_DEADLINE=6)
+ * 禁止定义 SCHED_AGENT 内核调度类宏, 禁止使用 SCHED_EXT=7（6.6 主线不含 sched_ext 框架）。 */
 
 /* Task descriptor magic: 0x41475453 = 'AGTS' (Agent Task) */
 #define AIRY_TASK_MAGIC	0x41475453u
@@ -276,9 +280,9 @@ typedef __s32 airy_vtime_t;
 #define AIRY_PRIO_MAX	139
 
 /* Default scheduling slice: 20ms */
-#define AIRY_SLICE_DFL_MS	20
+#define AIRY_SLICE_DFL	20
 
-/* Weight range: compatible with Linux sched_ext weight model */
+/* Weight range: compatible with Linux EEVDF weight model */
 #define AIRY_WEIGHT_MIN	1
 #define AIRY_WEIGHT_MAX	10000
 
@@ -434,7 +438,53 @@ _Static_assert(sizeof(struct airy_ipc_msg_hdr) == 128,
 
 ***
 
-### 3.1 IPC magic 0x41524531 ('ARE1')
+## 3. [DSL] 降级生存层
+
+> **权威源声明**：本节为 [DSL] 降级生存层的工程落地概览，权威定义见 [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md)。四层模型权威源为 [06-iron9-shared-model.md §5](../10-architecture/06-iron9-shared-model.md)。
+
+### 3.1 [DSL] 层定义
+
+**[DSL]（Degraded Survival Layer，降级生存层）**是 IRON-9 v3 新增的第四层，定义 [SC] 头文件损坏/缺失时的最小可运行子集。每个 [SC] 头文件底部包含 `#ifdef AIRY_SC_FALLBACK` 降级块，提供自包含的最小符号集，确保 [SC] 损坏时系统仍能启动、打印日志、完成基本 IPC、安全 Panic。
+
+**特征**：
+
+- **自包含**：降级块不依赖任何外部头文件，仅使用标准 C 预处理与编译器内置类型
+- **最小集**：仅定义维持系统启动所需的最小符号集
+- **显式告警**：降级块生效时发出 `#warning`，告知开发者当前为降级模式
+- **最后防线**：[DSL] 是韧性领域的最后防线，正常运行时不生效
+
+### 3.2 [DSL] 降级时的最小可运行子集
+
+| 维度 | 正常模式 | [DSL] 降级模式 |
+|------|---------|--------------|
+| 错误码 | 5 子空间（300 码） | 38 个 POSIX 码 + 1 个配置码（`AIRY_ECFGVERSION`） |
+| 日志 | Ring Buffer + Logger Daemon | printk 原生（仅 `LOG_FATAL` + `LOG_ERROR`） |
+| IPC | 完整 128B 消息头 + 3 操作 | 最简 128B 消息头（3 字段）+ 2 操作 |
+| 调度 | sched_tac 三层（SCHED_DEADLINE/SCHED_FIFO/EEVDF） | EEVDF 默认调度 |
+| 安全 | 纯 C LSM 完整校验 | 仅 POSIX capability |
+| Fault | Fault Handler 优雅处理 | 统一 Panic（Fault 码禁用） |
+
+### 3.3 [DSL] 与 [SC] 的关系
+
+[DSL] 降级块的物理宿主仍在 [SC] 的 10 个头文件内部（通过 `#ifdef AIRY_SC_FALLBACK` 条件编译实现），但语义独立——[SC] 定义"正常时的完整契约"，[DSL] 定义"失败时的生存契约"。构建系统对每个降级块单独计算 hash（存入 `.fallback_hashes`），即使 [SC] 主体损坏，只要降级块 hash 校验通过，系统仍可降级启动。
+
+### 3.4 [DSL] 降级块触发条件
+
+构建系统在以下情况自动注入 `AIRY_SC_FALLBACK`：
+
+1. `sc-dual-ci.yml` 检测到两端 [SC] 头文件不一致
+2. `airy_defconfig` 中显式配置 `CONFIG_AIRY_SC_FALLBACK=y`
+3. [SC] 头文件物理校验失败（hash 不匹配）
+
+详细降级路径设计、Panic 回退路径（`printk_safe`）、各头文件降级块职责见 [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md)。
+
+***
+
+## 4. magic 值设计
+
+> **权威源声明**：本节为 IPC magic 与任务描述符 magic 的工程落地说明，权威定义见 [09-ssot-registry.md §3](./09-ssot-registry.md) 与 [06-iron9-shared-model.md §2.2](../10-architecture/06-iron9-shared-model.md)。
+
+### 4.1 IPC magic 0x41524531 ('ARE1')
 
 | 字段    | 值             | 说明                        |
 | ----- | ------------- | ------------------------- |
@@ -465,7 +515,7 @@ _Static_assert(sizeof(struct airy_ipc_msg_hdr) == 128,
 >
 > **L2 布局声明（[IND] 独立层）**：`ARE_IPC_MAGIC` 与 `AIRY_IPC_MAGIC` 共享同源 magic 值，但 L2 消息头布局 `are_ipc_message_header_t`（128B，14 字段）与 [SC] `struct airy_ipc_msg_hdr`（128B，9 字段）字段布局不同，属 IRON-9 [IND] 层——magic 同源、布局独立。
 
-### 3.2 任务描述符 magic 0x41475453 ('AGTS')
+### 4.2 任务描述符 magic 0x41475453 ('AGTS')
 
 | 字段    | 值            | 说明               |
 | ----- | ------------ | ---------------- |
@@ -479,7 +529,7 @@ _Static_assert(sizeof(struct airy_ipc_msg_hdr) == 128,
 2. **场景区分**：IPC magic 用于消息边界验证，任务 magic 用于描述符生命周期验证
 3. **\[SC] 共享**：两端共享同一 magic，跨端传递任务描述符时无需额外标识
 
-### 3.3 magic 常量锁定
+### 4.3 magic 常量锁定
 
 | magic         | 十六进制         | ASCII  | 场景       | 共享层   |
 | ------------- | ------------ | ------ | -------- | ----- |
@@ -490,22 +540,22 @@ _Static_assert(sizeof(struct airy_ipc_msg_hdr) == 128,
 
 ***
 
-## 4. \[SS] 语义同源层
+## 5. \[SS] 语义同源层
 
-### 4.1 \[SS] 层定义
+### 5.1 \[SS] 层定义
 
 \[SS] 层中，agentrt 与 agentrt-linux 的高层 API 语义同源（概念操作一致）；SDK 层签名同源（同一份源码两端编译），其他层签名因抽象层级不同而独立演进。两端通过 \[SC] 契约层保证语义一致，无需适配层。
 
-### 4.2 四大语义同源映射
+### 5.2 四大语义同源映射
 
 | 语义域                   | agentrt（用户态微核心）实现             | agentrt-linux（内核微内核）实现            | \[SC] 契约依据                              |
 | --------------------- | ----------------------------- | --------------------------------- | --------------------------------------- |
-| **调度语义**（MicroCoreRT） | 用户态调度器（协程/线程池）                | sched\_ext BPF 调度器（SCHED\_EXT=7）  | `sched.h`：任务描述符 + vtime + 优先级           |
-| **安全模型**（Cupolas）     | 用户态策略引擎（seccomp + capability） | LSM 钩子（252 ID） + capability 41 ID | `security_types.h`：capability + verdict |
-| **IPC 传输**（AgentsIPC） | 用户态消息队列（mqueue/io\_uring）     | 内核 io\_uring 驱动                   | `ipc.h`：128B 消息头 + magic 'ARE1'         |
-| **记忆模型**（MemoryRovol） | 用户态 heapstore（malloc + mmap）  | 内核态 L1-L4 分层（kmalloc + pmem）      | `memory_types.h`：L1-L4 + GFP 掩码         |
+| **调度语义**（MicroCoreRT） | 用户态调度器（协程/线程池）                | sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF，不含 sched\_ext）  | `sched.h`：任务描述符 + vtime + 优先级           |
+| **安全模型**（Cupolas）     | 用户态策略引擎（seccomp + capability） | 纯 C LSM 钩子（252 ID） + capability 41 ID | `security_types.h`：capability + verdict |
+| **IPC 传输**（AgentsIPC） | 用户态消息队列（mqueue/io\_uring）     | 内核 io\_uring 驱动（`IORING_OP_URING_CMD`）                   | `ipc.h`：128B 消息头 + magic 'ARE1'         |
+| **记忆模型**（MemoryRovol） | 用户态 heapstore（malloc + mmap）  | 内核态 L1-L4 分层（`alloc_pages` + `mmap` + pmem）      | `memory_types.h`：L1-L4 + GFP 掩码         |
 
-### 4.3 行为契约测试
+### 5.3 行为契约测试
 
 \[SS] 层的语义一致性通过**行为契约测试**验证。两端针对相同输入验证输出一致：
 
@@ -531,9 +581,11 @@ static void test_ipc_hdr_serialize(void)
 
 ***
 
-## 5. \[IND] 完全独立层
+## 6. \[IND] 完全独立层
 
-### 5.1 agentrt-linux 专属（\[IND]）
+> **权威源声明**：[IND] 层的权威定义见 [06-iron9-shared-model.md §4](../10-architecture/06-iron9-shared-model.md)。本节列出两端 [IND] 层的工程落地细节，含 io_uring + IORING_OP_URING_CMD（不使用 page flipping）、alloc_pages + mmap（不使用 DMA 一致性内存）、纯 C LSM（不使用 BPF LSM）三项关键技术选型。
+
+### 6.1 agentrt-linux 专属（\[IND]）
 
 | 模块               | 内容                                     | 理由                      |
 | ---------------- | -------------------------------------- | ----------------------- |
@@ -541,10 +593,12 @@ static void test_ipc_hdr_serialize(void)
 | Kbuild/Kconfig   | `Kbuild`、`Kconfig`、`Makefile`          | 内核构建系统专属                |
 | 内核内部 API         | `printk`、`kmalloc`、`spin_lock`         | 内核态 API，agentrt 用用户态等价物 |
 | systemd 集成       | `systemd/airymax-*.service`            | 发行版集成专属                 |
-| LSM 实现           | `security/airymax/`                    | 内核安全模块专属                |
+| LSM 实现           | 纯 C LSM 模块（`security/airy/`）       | 内核安全模块专属，**不使用 BPF LSM**（纯 C 实现，对齐 openEuler 252 钩子） |
 | eBPF struct\_ops | `kernel/bpf/airymax/`                  | 内核 BPF 框架专属             |
+| io\_uring 命令路径    | `IORING_OP_URING_CMD`（agentrt-linux 内核驱动） | 内核态专属，IPC fastpath 载体，**不使用 page flipping**（zero-copy via registered buffer + uring_cmd） |
+| 物理内存分配           | `alloc_pages` + `mmap`（agentrt-linux 内核） | 内核态专属，日志 Ring Buffer / IPC 共享内存方案，**不使用 DMA 一致性内存**（streaming DMA via page mapping，对齐 Linux 6.6 DMA API） |
 
-### 5.2 agentrt 专属（\[IND]）
+### 6.2 agentrt 专属（\[IND]）
 
 | 模块        | 内容                                                   | 理由                                             |
 | --------- | ---------------------------------------------------- | ---------------------------------------------- |
@@ -555,9 +609,9 @@ static void test_ipc_hdr_serialize(void)
 
 ***
 
-## 6. 双向 CI 校验机制
+## 7. 双向 CI 校验机制
 
-### 6.1 校验流程
+### 7.1 校验流程
 
 \[SC] 层（10 个头文件）的任何变更必须经过**双向 CI 校验**，确保两端均能编译通过：
 
@@ -583,7 +637,7 @@ static void test_ipc_hdr_serialize(void)
 步骤 5: 自动合并至 agentrt main（镜像同步）
 ```
 
-### 6.2 CI 配置（agentrt-linux 侧）
+### 7.2 CI 配置（agentrt-linux 侧）
 
 ```yaml
 # 文件: .github/workflows/sc-contract.yml
@@ -606,13 +660,13 @@ sc-contract-bidirectional:
     - ./scripts/airymax/compare_contract_results.sh
 ```
 
-### 6.3 校验失败处理
+### 7.3 校验失败处理
 
 - **agentrt-linux CI 失败**：直接拒绝合并，开发者修复
 - **agentrt CI 失败**：拒绝合并，开发者需同时考虑两端兼容性
 - **测试结果不一致**：拒绝合并，需对齐两端实现
 
-### 6.4 \[SC] 变更分类
+### 7.4 \[SC] 变更分类
 
 | 变更类型                 | 处理方式                               |
 | -------------------- | ---------------------------------- |
@@ -621,11 +675,22 @@ sc-contract-bidirectional:
 | **删除字段**（breaking）   | 禁止直接删除，先标记 `__deprecated` 一个版本，再删除 |
 | **纯文档/注释**           | 仅本仓 CI 校验，无需 agentrt 镜像            |
 
+### 7.5 magic 值 CI 校验
+
+[SC] 层的 magic 值在双向 CI 中进行校验，确保两端字节一致且不可篡改。magic 值一经发布即冻结，CI 校验任何对 magic 的修改均为合并阻断错误：
+
+| magic         | 十六进制         | ASCII  | 物理宿主 | CI 校验方式 |
+| ------------- | ------------ | ------ | -------- | -------- |
+| IPC 消息头 magic | `0x41524531` | 'ARE1' | `include/airymax/ipc.h` | `sc-dual-ci.yml` 逐字节验证 + 行为契约测试（`assert(hdr.magic == 0x41524531u)`） |
+| 任务描述符 magic   | `0x41475453` | 'AGTS' | `include/airymax/sched.h` | `sc-dual-ci.yml` 逐字节验证 + 行为契约测试（`assert(desc.magic == 0x41475453u)`） |
+
+> **变更禁令**：magic 值一经发布即冻结，禁止修改。如需协议演进，新增 magic（如 'ARE2'）而非修改现有 magic。CI 校验对 magic 值的任何修改均为合并阻断错误。
+
 ***
 
-## 7. kthread 间通信约束
+## 8. kthread 间通信约束
 
-### 7.1 Linux 6.6 内核基线 基线约束
+### 8.1 Linux 6.6 内核基线 基线约束
 
 agentrt-linux 内核态 kthread 间通信**必须**使用 `kfifo` + `wait_event_interruptible`，禁止使用浮点（用 `airy_q16_t`）：
 
@@ -660,22 +725,23 @@ static int airy_kthread_recv(struct airy_kthread_chan *chan,
 
 ***
 
-## 8. 速查表：三层模型速查
+## 9. 速查表：四层模型速查
 
 | 层次     | 共享程度 | 内容              | 落地路径               | CI 校验  |
 | ------ | ---- | --------------- | ------------------ | ------ |
 | \[SC]  | 完全共享 | 10 个头文件 + magic  | `include/airymax/` | 双向 CI  |
 | \[SS]  | 语义同源 | 调度/安全/IPC/记忆    | 各自实现               | 行为契约测试 |
 | \[IND] | 完全独立 | 内核驱动/Kbuild/SDK | 各自仓库               | 各自 CI  |
+| \[DSL] | 自包含降级块 | `#ifdef AIRY_SC_FALLBACK` 降级块（38 POSIX 码 + 最简 IPC + EEVDF 默认调度） | [SC] 头文件底部 | 降级块 hash 校验 |
 
-### 8.1 magic 速查
+### 9.1 magic 速查
 
 | magic | 十六进制         | ASCII  | 场景      | 层     |
 | ----- | ------------ | ------ | ------- | ----- |
 | IPC   | `0x41524531` | 'ARE1' | IPC 消息头 | \[SC] |
 | 任务    | `0x41475453` | 'AGTS' | 任务描述符   | \[SC] |
 
-### 8.2 调度编号速查
+### 9.2 调度编号速查
 
 | 常量            | 值 | Linux 6.6 内核基线 行号    | 约束                                 |
 | ------------- | - | ------------- | ---------------------------------- |
@@ -685,11 +751,12 @@ static int airy_kthread_recv(struct airy_kthread_chan *chan,
 
 ***
 
-## 9. 历史与变更记录
+## 10. 历史与变更记录
 
 | 日期         | 版本    | 变更摘要                                           | 责任人          |
 | ---------- | ----- | ---------------------------------------------- | ------------ |
-| 2026-07-09 | 0.1.1 | 初始创建，定义 IRON-9 v2 三层模型 + 10 个 \[SC] 头文件 + 双向 CI | SPHARX 工程标准组 |
+| 2026-07-09 | 0.1.1 | 初始创建，定义 IRON-9 v3 四层模型 + 10 个 \[SC] 头文件 + 双向 CI | SPHARX 工程标准组 |
+| 2026-07-17 | v1.0  | 升级为 IRON-9 v3 四层模型（[SC]+[SS]+[IND]+[DSL]）；新增 §3 [DSL] 降级生存层（引用 11-degraded-survival-layer.md）；[IND] 层补充 io_uring + IORING_OP_URING_CMD、alloc_pages + mmap、纯 C LSM；§2.1 头文件清单与 06-iron9-shared-model.md §2.2 对齐；§7.5 新增 magic 值 CI 校验表（含 AGTS 0x41475453）；上级文档改为 10-unify-design.md | SPHARX 工程标准组 |
 
 ***
 

@@ -7,7 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：agentrt 开发流程 + Linux 6.6 内核开发流程（`Documentation/process/development-process.rst` 8 章）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则 + S-4 涌现性管理 + C-2 增量演化\
-> **核心约束**：IRON-9 v2 同源且部分代码共享（agentrt 用户态运行时规范与 agentrt-linux 内核发行版规范并行演进，通过同源 API 保持互操作）
+> **核心约束**：IRON-9 v3 同源且部分代码共享（agentrt 用户态运行时规范与 agentrt-linux 内核发行版规范并行演进，通过同源 API 保持互操作）
 
 ---
 
@@ -510,13 +510,13 @@ Reviewed-by: Reviewer Name <reviewer@example.com>
 | **E-6 错误可追溯** | 错误可溯源可追踪 | Fixes/Closes/Link 标签 + 12 字符 SHA + Signed-off-by DCO 链 |
 | **E-7 文档即代码** | 文档与代码同源同审 | RFC issue + 五维原则映射小节（OS-DEV-102） |
 | **A-3 人文关怀** | 不烧桥管理哲学 | 审查礼仪 + 感谢审查者 + Morton 原则（OS-DEV-163） |
-| **IRON-9 v2 同源且部分代码共享** | 同源 API 并行演进 | MicroCoreRT 与 AgentsIPC 同源 API 变更需两端兼容性测试（OS-DEV-133） |
+| **IRON-9 v3 同源且部分代码共享** | 同源 API 并行演进 | MicroCoreRT 与 AgentsIPC 同源 API 变更需两端兼容性测试（OS-DEV-133） |
 
 ---
 
 ## 13. 同源 agentrt 映射
 
-本文档的开发流程与 agentrt 用户态运行时规范同源且部分代码共享（IRON-9 v2 同源且部分代码共享）：
+本文档的开发流程与 agentrt 用户态运行时规范同源且部分代码共享（IRON-9 v3 同源且部分代码共享）：
 
 | 维度 | agentrt（用户态） | agentrt-linux（内核发行版） |
 |------|------------------|----------------------|
@@ -531,9 +531,9 @@ Reviewed-by: Reviewer Name <reviewer@example.com>
 
 MicroCoreRT 与 AgentsIPC 同源 API 的变更必须遵循双向同步：agentrt 端 RFC 必须同步到 agentrt-linux 端，反之亦然；变更必须通过两端兼容性测试；季度评审同源 API 漂移。
 
-### 13.2 IRON-9 v2 三层共享模型
+### 13.2 IRON-9 v3 四层共享模型
 
-IRON-9 v2 三层共享模型将 agentrt（用户态运行时）与 agentrt-linux（内核发行版）之间的同源关系细分为三个正交层次：[SC] 共享契约层（头文件级代码共享）、[SS] 语义同源层（语义两端一致但实现独立）、[IND] 完全独立层（发行版固有责任）。本节聚焦补丁生命周期的三层映射。
+IRON-9 v3 四层共享模型将 agentrt（用户态运行时）与 agentrt-linux（内核发行版）之间的同源关系细分为三个正交层次：[SC] 共享契约层（头文件级代码共享）、[SS] 语义同源层（语义两端一致但实现独立）、[IND] 完全独立层（发行版固有责任）。本节聚焦补丁生命周期的三层映射。
 
 #### 13.2.1 三层模型概览
 
@@ -672,7 +672,7 @@ agentrt-linux 的 umbrella repo 通过 `.gitmodules` 引用 8 子仓的 commit S
 - **OS-DEV-191**：跨仓 PR 必须先 merge 下游仓再 merge 上游仓——下游仓（如 kernel）的 PR 合并并产出 commit SHA 后，上游仓（如 services）的 PR 方可提交；上游仓 PR 必须在描述中引用下游仓的 12 字符 commit SHA 作为依赖证据，禁止引用分支名或 tag（对齐 E-6 错误可追溯 + §10.3 OS-DEV-171）。
 - **OS-DEV-192**：submodule 更新 PR 的 commit message 必须包含 `Bump: <下游仓名> to <12 字符 SHA>` 格式的锚定行，且 SHA 必须与下游仓 develop 分支的最新 merge commit 一致；CI 自动校验 SHA 一致性，不一致则 PR 标记为 `blocked` 禁止 merge（对齐 E-3 资源确定性）。
 - **OS-DEV-193**：跨仓 CI 必须在全部依赖仓 merge 后方可触发——cognition 仓的 CI 必须等待 services 与 memory 仓的 submodule PR 双双 merge；tests-linux 仓的 CI 必须等待全部 7 仓 merge 完成后方可运行 KUnit/kselftest，禁止对未就绪依赖仓执行集成测试（对齐 §13.3.1 流转路径 + OS-DEV-121 7 层验证前 4 层）。
-- **OS-DEV-194**：跨仓补丁回退必须按依赖逆序回滚——若 cognition 仓的补丁需回退，必须先回退 cognition 仓的 PR，再回退触发其 submodule 更新的 services/memory 仓 PR，最后回退 kernel 仓 PR；禁止只回退上层仓而保留下层仓的新 commit，否则 submodule 指针将指向悬空 SHA（对齐 §9.2 OS-DEV-161 回退原则 + IRON-9 v2 同源一致性）。
+- **OS-DEV-194**：跨仓补丁回退必须按依赖逆序回滚——若 cognition 仓的补丁需回退，必须先回退 cognition 仓的 PR，再回退触发其 submodule 更新的 services/memory 仓 PR，最后回退 kernel 仓 PR；禁止只回退上层仓而保留下层仓的新 commit，否则 submodule 指针将指向悬空 SHA（对齐 §9.2 OS-DEV-161 回退原则 + IRON-9 v3 同源一致性）。
 
 ---
 

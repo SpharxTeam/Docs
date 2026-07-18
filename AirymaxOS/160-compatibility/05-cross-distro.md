@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：Linux 6.6 发行版兼容性（IRON-9 v2 [IND] 完全独立层，发行版兼容为 agentrt-linux 专属）\
+> **同源映射**：Linux 6.6 发行版兼容性（IRON-9 v3 [IND] 完全独立层，发行版兼容为 agentrt-linux 专属）\
 > **理论根基**：Linux 6.6 LSB/FHS 兼容性 + 主流 Linux 发行版 发行版兼容性思想 + Airymax K-2 接口契约化 + C-2 增量演化\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[IND] 完全独立层（跨发行版兼容为 agentrt-linux 发行版专属）
+> **IRON-9 v3 层次**：[IND] 完全独立层（跨发行版兼容为 agentrt-linux 发行版专属）
 
 ---
 
@@ -31,7 +31,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [15. 错误处理](#15-错误处理)
 - [16. 安全考量](#16-安全考量)
 - [17. 性能约束](#17-性能约束)
-- [18. IRON-9 v2 同源映射](#18-iron-9-v2-同源映射)
+- [18. IRON-9 v3 同源映射](#18-iron-9-v2-同源映射)
 - [19. SDK 集成](#19-sdk-集成)
 - [20. 使用示例](#20-使用示例)
 - [21. 测试策略](#21-测试策略)
@@ -130,7 +130,7 @@ agentrt-linux 基于 Linux 6.6 内核，需要确保其 Agent 应用与工具链
 | 发行版 | 原因 |
 |--------|------|
 | CentOS 7 | glibc 2.17 过低，内核 3.10 过旧 |
-| Ubuntu 20.04 | 内核 5.4 不满足方案 C-Prime 要求 |
+| Ubuntu 20.04 | 内核 5.4 不满足sched_tac 要求 |
 | Alpine Linux | musl libc 非 glibc，需额外适配 |
 | NixOS | 非标准 FHS 路径，需额外配置 |
 
@@ -179,15 +179,15 @@ gcc -o agent_app agent_app.c \
 
 ### 5.1 内核版本适配
 
-agentrt-linux 以 **Linux 6.6 为唯一原生基线**（IRON-9 v2 工程基线），其余内核版本仅作为 DKMS 兼容目标。内核模块针对不同发行版内核版本进行适配：
+agentrt-linux 以 **Linux 6.6 为唯一原生基线**（IRON-9 v3 工程基线），其余内核版本仅作 DKMS 兼容目标（非原生支持）。内核模块针对不同发行版内核版本进行适配：
 
-| 内核版本 | 发行版 | 方案 C-Prime 支持 | 模块适配策略 |
+| 内核版本 | 发行版 | sched_tac 支持 | 模块适配策略 |
 |---------|--------|---------------|-------------|
-| 6.6 | agentrt-linux / 主流 Linux 发行版 24.03 | 原生 | 完整功能（唯一原生基线） |
-| 6.8 | Ubuntu 24.04 / Fedora 40 | DKMS 适配 | DKMS 动态编译，功能完整 |
-| 6.1 | Debian 12 | DKMS 适配 | DKMS 动态编译，SCHED_DEADLINE 可用 |
-| 5.15 | Ubuntu 22.04 (HWE) | DKMS 适配 | DKMS 动态编译，SCHED_DEADLINE 可用 |
-| 5.14 | RHEL 9 | DKMS 适配 | DKMS 动态编译，SCHED_DEADLINE 可用 |
+| 6.6 | agentrt-linux / 主流 Linux 发行版 24.03 | 原生（唯一原生基线） | 完整功能（唯一原生基线） |
+| 6.8 | Ubuntu 24.04 / Fedora 40 | DKMS 适配（非原生支持，不保证全部功能可用） | DKMS 动态编译（功能可能受限） |
+| 6.1 | Debian 12 | DKMS 适配（非原生支持，不保证全部功能可用） | DKMS 动态编译，SCHED_DEADLINE 可用 |
+| 5.15 | Ubuntu 22.04 (HWE) | DKMS 适配（非原生支持，不保证全部功能可用） | DKMS 动态编译，SCHED_DEADLINE 可用 |
+| 5.14 | RHEL 9 | DKMS 适配（非原生支持，不保证全部功能可用） | DKMS 动态编译，SCHED_DEADLINE 可用 |
 
 ### 5.2 DKMS 动态编译
 
@@ -212,17 +212,17 @@ dkms autoinstall
 /* services/compat/kernel_feature_detect.c [IND] */
 
 /**
- * airy_detect_user_sched - 检测内核是否支持方案 C-Prime 用户态调度
+ * airy_detect_user_sched - 检测内核是否支持sched_tac 用户态调度
  *
  * 返回 1 表示支持，0 表示不支持
  */
 int airy_detect_user_sched(void)
 {
     if (access("/proc/agentrt/user_sched", F_OK) == 0) {
-        log_write(LOG_INFO, "方案 C-Prime supported: using AIRY_SCHED_AGENT");
+        log_write(LOG_INFO, "sched_tac supported: using stc_agent");
         return 1;
     }
-    log_write(LOG_WARN, "方案 C-Prime not supported: falling back to EEVDF");
+    log_write(LOG_WARN, "sched_tac not supported: falling back to EEVDF");
     return 0;
 }
 
@@ -268,7 +268,7 @@ agentctl app check-portability my-agent
 # Dependencies:
 #   - glibc >= 2.34 ✓
 #   - libairy_sdk >= 1.0.1 ✓
-#   - 方案 C-Prime (optional) ✓
+#   - sched_tac (optional) ✓
 #   - io_uring (optional) ✓
 # Compatible distributions:
 #   - agentrt-linux 1.0.1
@@ -485,7 +485,7 @@ steps:
 
 | 限制 | 影响发行版 | 降级策略 |
 |------|-----------|---------|
-| 方案 C-Prime 不支持 | RHEL 9 / Ubuntu 20.04 | 降级至 EEVDF（SCHED_NORMAL）调度 |
+| sched_tac 不支持 | RHEL 9 / Ubuntu 20.04 | 降级至 EEVDF（SCHED_NORMAL）调度 |
 | io_uring 不支持 | RHEL 9（旧版） | 降级至 unix socket |
 | BPF 不可用 | 部分嵌入式发行版 | 降级至用户态过滤 |
 | CXL 不可用 | 非 CXL 硬件 | 降级至本地内存 |
@@ -526,8 +526,8 @@ graph TD
     D -->|Fedora/RHEL/主流 Linux 发行版| G[安装 RPM 包]
     F --> H[运行时特性检测]
     G --> H
-    H --> I{方案 C-Prime 支持?}
-    I -->|是| J[使用 AIRY_SCHED_AGENT]
+    H --> I{sched_tac 支持?}
+    I -->|是| J[使用 stc_agent]
     I -->|否| K[降级至 EEVDF（SCHED_NORMAL）]
     J --> L[完整功能运行]
     K --> M[降级模式运行]
@@ -558,7 +558,7 @@ agentctl compat diagnose
 # Distribution: Ubuntu 22.04 LTS
 # Kernel: 5.15.0-91-generic
 # glibc: 2.35
-# 方案 C-Prime: not supported (fallback: EEVDF)
+# sched_tac: not supported (fallback: EEVDF)
 # io_uring: supported
 # BPF: supported
 # Status: Silver (降级模式)
@@ -607,7 +607,7 @@ rpm --checksig airymaxos-kernel-1.0.1-1.x86_64.rpm
 
 ---
 
-## 18. IRON-9 v2 同源映射
+## 18. IRON-9 v3 同源映射
 
 | 层次 | 共享内容 | 本文档使用 |
 |------|---------|-----------|
@@ -628,7 +628,7 @@ compat = DistroCompat.detect()
 print(f"Distribution: {compat.distro}")
 print(f"Kernel: {compat.kernel_version}")
 print(f"glibc: {compat.glibc_version}")
-print(f"方案 C-Prime: {'supported' if compat.has_user_sched else 'not supported'}")
+print(f"sched_tac: {'supported' if compat.has_user_sched else 'not supported'}")
 print(f"Compatibility level: {compat.level}")
 ```
 
@@ -707,7 +707,7 @@ agentctl test compat --regression
 ## 22. 合规声明
 
 - **OS-IRON-001 遵守**：跨发行版兼容性不破坏 UABI 稳定性
-- **IRON-9 v2 遵守**：跨发行版兼容为 [IND] 独立层
+- **IRON-9 v3 遵守**：跨发行版兼容为 [IND] 独立层
 - **主流 Linux 发行版标准兼容**：工程思想与实现方式与 主流 Linux 发行版 保持一致性
 - **FHS 3.0 遵守**：文件系统路径遵循 FHS 3.0 标准
 - **OCI 标准遵守**：容器镜像遵循 OCI 标准
@@ -726,4 +726,4 @@ agentctl test compat --regression
 
 ---
 
-> **文档结束** | 跨发行版兼容性实现方案 | IRON-9 v2 [IND]
+> **文档结束** | 跨发行版兼容性实现方案 | IRON-9 v3 [IND]

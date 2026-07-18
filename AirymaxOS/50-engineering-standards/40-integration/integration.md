@@ -1,7 +1,7 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux 集成标准合集
-> **文档定位**：合并与 agentrt 的集成规范、生态伙伴计划、Manager 模块配置集成标准、标准参与与技术方案贡献四部分内容，作为 agentrt-linux（AirymaxOS）集成标准的完整参考。理论根基：IRON-9 v2 工程铁律、五维正交24原则、体系并行论。\
+> **文档定位**：合并与 agentrt 的集成规范、生态伙伴计划、Manager 模块配置集成标准、标准参与与技术方案贡献四部分内容，作为 agentrt-linux（AirymaxOS）集成标准的完整参考。理论根基：IRON-9 v3 工程铁律、五维正交24原则、体系并行论。\
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-13\
 > **上级文档**：[agentrt-linux（AirymaxOS）工程标准规范](README.md)\
@@ -16,7 +16,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 #### 1.1 核心集成原则
 
-agentrt（AirymaxAgentRT）与 agentrt-linux（AirymaxOS）的集成基于 **IRON-9 v2 工程铁律**，核心原则如下：
+agentrt（AirymaxAgentRT）与 agentrt-linux（AirymaxOS）的集成基于 **IRON-9 v3 工程铁律**，核心原则如下：
 
 | 原则 | 说明 |
 |------|------|
@@ -52,7 +52,7 @@ graph TB
         FW[Frameworks<br/>Wasm/执行引擎]
     end
 
-    subgraph "IRON-9 v2 三层"
+    subgraph "IRON-9 v3 四层"
         SC["[SC] 共享契约层<br/>━━━━━━━━━━━━━<br/>include/airymax/<br/>syscalls.h<br/>memory_types.h<br/>security_types.h<br/>cognition_types.h<br/>sched.h<br/>ipc.h<br/>━━━━━━━━━━━━━<br/>完全共享代码"]
         SS["[SS] 语义同源层<br/>━━━━━━━━━━━━━<br/>调度语义同源<br/>IPC 语义同源<br/>安全语义同源<br/>记忆语义同源<br/>认知语义同源<br/>━━━━━━━━━━━━━<br/>高层 API 语义同源，签名独立演进"]
         IND["[IND] 完全独立层<br/>━━━━━━━━━━━━━<br/>平台适配层<br/>构建系统<br/>跨平台兼容层<br/>各自独立演进"]
@@ -69,7 +69,7 @@ graph TB
             ASY[system<br/>包管理 + DevStation]
         end
         subgraph "内核态"
-            AK[kernel<br/>SCHED_AGENT + io_uring IPC<br/>+ eBPF kfunc + MGLRU]
+            AK[kernel<br/>stc_agent + io_uring IPC<br/>+ eBPF kfunc + MGLRU]
             LK[Linux 6.6 内核基线]
         end
     end
@@ -137,7 +137,7 @@ agentrt 在 agentrt-linux 上有两种运行模式：
 agentrt 在 agentrt-linux 上的运行示意：
 
   标准模式: agentrt → libc → syscall → agentrt-linux 内核
-  增强模式: agentrt → agentrt SDK → SCHED_AGENT/io_uring → agentrt-linux 内核
+  增强模式: agentrt → agentrt SDK → stc_agent/io_uring → agentrt-linux 内核
 ```
 
 ---
@@ -146,25 +146,25 @@ agentrt 在 agentrt-linux 上的运行示意：
 
 #### 2.1 共享契约层定义
 
-[SC] 共享契约层是 IRON-9 v2 的核心，包含 agentrt 和 agentrt-linux 完全共享的代码。该层代码存放于 `include/airymax/` 头文件库，由 agentrt 维护，agentrt-linux 引用。
+[SC] 共享契约层是 IRON-9 v3 的核心，包含 agentrt 和 agentrt-linux 完全共享的代码。该层代码存放于 `include/airymax/` 头文件库，由 agentrt 维护，agentrt-linux 引用。
 
-#### 2.2 六个共享头文件
+#### 2.2 集成关键共享头文件（节选 6 个：5 个 [SC] 核心 + bpf_struct_ops.h 补充共享；全量 [SC] 核心为 10 个）
 
-##### 2.2.1 syscalls.h — sched_ext BPF 调度器结构体操作头文件
+##### 2.2.1 bpf_struct_ops.h — sched_tac 用户态调度器结构体操作头文件（补充共享文件，非 [SC] 核心）
 
 | 字段 | 说明 |
 |------|------|
 | 文件名 | `include/airymax/bpf_struct_ops.h` |
 | 维护方 | agentrt |
-| 共享内容 | sched_ext BPF 调度器 struct_ops 状态机定义、common_value 共享结构、调度器注册接口 |
-| agentrt-linux 使用方式 | 内核态 `#include` 使用，sched_ext 子系统通过 bpf_struct_ops 注册调度策略 |
+| 共享内容 | sched_tac 用户态调度器 struct airy_sched_ops 状态机定义、common_value 共享结构、调度器注册接口 |
+| agentrt-linux 使用方式 | 内核态 `#include` 使用，sched_tac 用户态调度器通过 struct airy_sched_ops 注册调度策略 |
 
 ```c
 /* bpf_struct_ops.h — 共享契约（简化示意） */
 #define AIRY_SCHED_BPF_NAME_MAX  16
-#define SCHED_AGENT_NAME            "sched_agent"
+#define AIRY_STC_POLICY_NAME        "stc_agent"
 
-/* sched_ext 策略通过 bpf_struct_ops 注册，禁止定义 SCHED_AGENT 策略编号宏 */
+/* sched_tac 用户态调度器通过 struct airy_sched_ops 注册，禁止定义 SCHED_AGENT 内核调度类宏 */
 struct airy_sched_ops {
     struct bpf_struct_ops_common_val common;
     s32 (*select_cpu)(struct task_struct *p, s32 prev_cpu, u64 enq_flags);
@@ -180,8 +180,7 @@ struct airy_sched_ops {
 
 | 落地位置 | 集成方式 | 说明 |
 |----------|----------|------|
-| kernel sched_ext 子系统 | 内核原生支持 struct_ops 注册 | SCHED_AGENT 策略通过 bpf_struct_ops 注册 |
-| kernel eBPF kfunc | 内核态调度策略实现 | 调度器逻辑在 eBPF 程序中实现 |
+| kernel sched_tac 调度层 | 用户态支持 struct airy_sched_ops 注册 | sched_tac 调度策略通过 struct airy_sched_ops 注册（非 eBPF struct_ops） |
 
 ##### 2.2.2 memory_types.h — MemoryRovol 记忆数据结构头文件
 
@@ -309,8 +308,8 @@ typedef enum {
 |------|------|
 | 文件名 | `include/airymax/sched.h` |
 | 维护方 | agentrt |
-| 共享内容 | SCHED_EXT 调度类编号约束（复用内核 SCHED_EXT=7，禁止 SCHED_AGENT 宏）、任务描述符（magic 0x41475453 'AGTS'）、vtime 类型与衰减公式、优先级范围 0-139、AIRY_SLICE_DFL（20ms） |
-| agentrt-linux 使用方式 | 内核态 sched_ext 子系统使用相同的任务描述符与 vtime 语义 |
+| 共享内容 | sched_tac 调度类约束（使用 SCHED_DEADLINE/SCHED_FIFO/EEVDF 原生调度类，禁止 SCHED_AGENT 内核调度类宏）、任务描述符（magic 0x41475453 'AGTS'）、vtime 类型与衰减公式、优先级范围 0-139、AIRY_SLICE_DFL（20ms） |
+| agentrt-linux 使用方式 | sched_tac 用户态调度器使用相同的任务描述符与 vtime 语义 |
 
 ```c
 /* sched.h — 共享契约（简化示意） */
@@ -320,14 +319,14 @@ typedef enum {
 #define AIRY_PRIO_MAX          139
 #define MAC_MAX_AGENTS            1024
 
-/* 禁止定义 SCHED_AGENT 策略编号宏，复用内核 SCHED_EXT=7 */
+/* 禁止定义 SCHED_AGENT 内核调度类宏，使用 SCHED_DEADLINE/SCHED_FIFO/EEVDF 原生调度类 */
 
 /**
  * @brief Agent 任务描述符（上下文扩展视图）
  * @note SSoT: 120-cross-project-code-sharing.md §2.6 sched.h
  *       权威定义仅含 magic/prio/_pad/vtime 4 字段（__u32/__u16/airy_vtime_t）
  *       以下为集成场景扩展视图，含 version/deadline_ns/reserved 等扩展字段
- * @note IRON-9 v2 [SC] 共享契约层：核心字段同源，扩展字段各自独立
+ * @note IRON-9 v3 [SC] 共享契约层：核心字段同源，扩展字段各自独立
  */
 struct __attribute__((aligned(64))) airy_task_desc {
     /* [SC] 共享契约层字段（SSoT：120-cross-project-code-sharing.md §2.6） */
@@ -346,7 +345,7 @@ struct __attribute__((aligned(64))) airy_task_desc {
 
 | 落地位置 | 集成方式 | 说明 |
 |----------|----------|------|
-| kernel sched_ext 子系统 | 内核态使用相同任务描述符 | 调度任务结构同源 |
+| kernel sched_tac 调度层 | 用户态使用相同任务描述符 | 调度任务结构同源 |
 | kernel EEVDF | 内核态 vtime 使用相同衰减公式 | vtime 语义同源 |
 
 ##### 2.2.6 ipc.h — IPC 协议头文件
@@ -401,15 +400,15 @@ typedef enum {
 
 #### 3.1 语义同源层定义
 
-[SS] 语义同源层是 IRON-9 v2 的第二层，包含 agentrt 和 agentrt-linux 语义一致但实现独立的模块。高层 API 语义同源（概念操作一致）；SDK 层签名同源（同一份源码两端编译），其他层签名因抽象层级不同而独立演进。
+[SS] 语义同源层是 IRON-9 v3 的第二层，包含 agentrt 和 agentrt-linux 语义一致但实现独立的模块。高层 API 语义同源（概念操作一致）；SDK 层签名同源（同一份源码两端编译），其他层签名因抽象层级不同而独立演进。
 
 #### 3.2 调度语义集成
 
-| 维度 | agentrt（MicroCoreRT） | agentrt-linux（SCHED_AGENT） | 同源语义 |
+| 维度 | agentrt（MicroCoreRT） | agentrt-linux（stc_agent） | 同源语义 |
 |------|------------------------|------------------------------|----------|
-| **调度模型** | 用户态优先级调度 | 内核态 SCHED_AGENT 策略 | 优先级调度语义一致 |
+| **调度模型** | 用户态优先级调度 | 用户态 sched_tac 调度策略 | 优先级调度语义一致 |
 | **任务描述** | `struct airy_task_desc` | 内核态 `task_struct` 扩展 | 任务结构语义一致 |
-| **调度策略** | 可插拔策略（FIFO/RR/CFS） | EEVDF + SCHED_AGENT | 策略可插拔语义一致 |
+| **调度策略** | 可插拔策略（FIFO/RR/CFS） | EEVDF + stc_agent（sched_tac） | 策略可插拔语义一致 |
 | **优先级范围** | 0-139 | 0-139 | 优先级范围一致 |
 | **抢占语义** | 支持抢占 | 支持抢占 | 抢占语义一致 |
 | **CPU 亲和性** | 支持设置 | 支持设置 | 亲和性语义一致 |
@@ -419,8 +418,8 @@ typedef enum {
 ```
 agentrt MicroCoreRT 在 agentrt-linux 上运行时：
   标准模式: agentrt 使用 pthread 调度（优先级映射到 Linux nice 值）
-  增强模式: agentrt 可选调用 SCHED_AGENT 策略
-            → 因为 SCHED_AGENT 的语义和 MicroCoreRT 一致
+  增强模式: agentrt 可选调用 sched_tac 调度策略
+            → 因为 stc_agent 的语义和 MicroCoreRT 一致
             → 所以调用是自然的，无需适配层
 ```
 
@@ -625,7 +624,7 @@ static_assert(offsetof(struct airy_ipc_msg_hdr, trace_id) == 8,
 
 | 测试项 | 测试方法 | 预期结果 |
 |--------|----------|----------|
-| 调度语义一致性 | agentrt 任务优先级 → agentrt-linux SCHED_AGENT 优先级 | 优先级映射正确，调度行为一致 |
+| 调度语义一致性 | agentrt 任务优先级 → agentrt-linux stc_agent 优先级 | 优先级映射正确，调度行为一致 |
 | IPC 语义一致性 | agentrt 发送消息 → agentrt-linux io_uring 接收 | 消息格式无损，5 种 payload 全部正确 |
 | 安全语义一致性 | agentrt capability 令牌 → agentrt-linux capability 检查 | 令牌验证通过，权限操作正确 |
 | 记忆语义一致性 | agentrt 记忆写入 → agentrt-linux MemoryRovol 查询 | 数据格式正确，L1-L4 检索正确 |
@@ -661,7 +660,7 @@ agentrt 在 agentrt-linux 上运行的性能基准，以 agentrt 在普通 Linux
 |----------|-------------------|----------------------|----------------------|------|
 | IPC 消息吞吐量 | 50K msg/s | 50K msg/s（等同） | > 100K msg/s（2x+） | 增强模式使用 io_uring 零拷贝 |
 | IPC 消息延迟（P99） | 100us | 100us（等同） | < 50us（2x） | 增强模式使用 io_uring 零拷贝 |
-| 调度延迟（P99） | 100us | 100us（等同） | < 50us（2x） | 增强模式使用 SCHED_AGENT |
+| 调度延迟（P99） | 100us | 100us（等同） | < 50us（2x） | 增强模式使用 stc_agent |
 | 认知循环延迟 | 100ms | 100ms（等同） | < 50ms（2x） | 增强模式使用 kthread |
 | 记忆检索延迟（L2） | 10ms | 10ms（等同） | < 5ms（2x） | 增强模式使用 CXL + MGLRU |
 | 安全令牌验证延迟 | 1us | 1us（等同） | < 0.5us（2x） | 增强模式使用内核态 capability |
@@ -728,7 +727,7 @@ sequenceDiagram
     OS_SVC->>OS_KERN: io_uring 系统调用
     OS_KERN-->>OS_SVC: 零拷贝完成
     OS_SVC-->>RT: 结果返回
-    RT->>OS_KERN: 可选使用 SCHED_AGENT
+    RT->>OS_KERN: 可选使用 sched_tac 调度策略
     OS_KERN-->>RT: 调度优先级提升
     RT-->>App: 任务完成（性能提升）
 ```
@@ -787,9 +786,9 @@ graph LR
 
 | 铁律 | 内容 | 关联规范 |
 |------|------|----------|
-| **无适配层** | agentrt 在 agentrt-linux 上运行时不得引入任何适配层或转换层 | IRON-9 v2 |
-| **[SC] 层不可变** | [SC] 层共享契约一旦发布，不得修改已有结构体布局和枚举值 | IRON-9 v2 |
-| **双向校验** | [SC] 层变更须经 agentrt + agentrt-linux 两端 CI 双向校验 | IRON-9 v2 |
+| **无适配层** | agentrt 在 agentrt-linux 上运行时不得引入任何适配层或转换层 | IRON-9 v3 |
+| **[SC] 层不可变** | [SC] 层共享契约一旦发布，不得修改已有结构体布局和枚举值 | IRON-9 v3 |
+| **双向校验** | [SC] 层变更须经 agentrt + agentrt-linux 两端 CI 双向校验 | IRON-9 v3 |
 | **ABI 稳定** | 系统调用 ABI 和 [SC] 层 ABI 在 LTS 周期内保持稳定 | K-2 接口契约化原则 |
 | **性能不退化** | 集成后性能基准不得劣于基线 | E-8 可测试性原则 |
 | **版本透明** | 版本对齐状态必须公开透明，记录在版本对齐矩阵中 | E-7 文档即代码原则 |
@@ -819,7 +818,7 @@ graph LR
 - [工程基线](../../10-architecture/04-engineering-baseline.md)：工程基线定义
 - [架构决策记录](../../10-architecture/05-adrs.md)：ADR-010 同源关系
 - [接口设计](../../30-interfaces/README.md)：系统调用与 IPC 接口
-- IRON-9 v2 工程铁律
+- IRON-9 v3 工程铁律
 
 ---
 

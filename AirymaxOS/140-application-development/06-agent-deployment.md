@@ -142,7 +142,7 @@ annotations:
   airymaxos.agent.version: "1.0.1"
   airymaxos.agent.token-budget: "1000000"
   airymaxos.agent.memory-rovol: "L1,L2,L3,L4"
-  airymaxos.agent.scheduler: "AIRY_SCHED_AGENT"
+  airymaxos.agent.scheduler: "stc_agent"
   airymaxos.agent.cognition-cycle: "CoreLoopThree"
   airymaxos.agent.min-kernel: "1.0.1"
   airymaxos.agent.capabilities: "CAP_ROVOL_SNAPSHOT,CAP_IPC_SEND"
@@ -251,7 +251,7 @@ spec:
 
   # === 调度 ===
   scheduler:
-    policy: airy_sched_agent          # AIRY_SCHED_AGENT 策略（方案 C-Prime）
+    policy: stc_agent                   # stc_agent 策略（sched_tac）
     priority: 100             # 优先级（0-139）
     nodeSelector:
       airymaxos.dev/cxl: "true"  # 要求 CXL 节点
@@ -1191,7 +1191,7 @@ Agent 清单的 `security.capabilities` 遵循最小权限原则：
 
 ---
 
-## 14. IRON-9 v2 同源映射
+## 14. IRON-9 v3 同源映射
 
 ### 14.1 同源关系
 
@@ -1430,7 +1430,7 @@ class TestAgentDeploy:
 | **E-6 错误可追溯** | 部署事件全链路追踪 + 审计日志 |
 | **E-7 文档即代码** | 清单 YAML 即代码，与代码同源同审 |
 | **S-4 涌现性管理** | 多 Agent 协同部署涌现行为管理 |
-| **IRON-9 v2 同源且部分代码共享** | 与 agentrt gateway_d 同源（[SS] 语义同源） |
+| **IRON-9 v3 同源且部分代码共享** | 与 agentrt gateway_d 同源（[SS] 语义同源） |
 
 ---
 

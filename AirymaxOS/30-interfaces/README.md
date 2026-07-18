@@ -21,7 +21,7 @@ agentrt-linux 接口设计层定义 8 子仓之间、内核与用户态之间、
 | 2 | IPC 协议 | 进程 ↔ 进程 | AgentsIPC 128B 消息头 | io_uring + IORING_OP_URING_CMD 零拷贝消息传递（不使用 page flipping） |
 | 3 | SDK API | 应用 → OS | sdk 管理接口 | 4 语言统一封装的客户端 |
 | 4 | 编码规范 | 代码级约定 | commons 公共工具 | 命名、风格、日志、Doxygen、安全编码 |
-| 5 | **[SC] 共享契约** | 内核态 ↔ 用户态（跨端） | 物理共享头文件 | UEF/ULPS/UIPF/USV 的二进制布局契约，物理宿主 `kernel/include/airymax/` |
+| 5 | **[SC] 共享契约** | 内核态 ↔ 用户态（跨端） | 物理共享头文件 | A-UEF/A-ULP/A-IPC/A-ULS 的二进制布局契约，物理宿主 `kernel/include/airymax/` |
 
 ---
 
@@ -34,7 +34,7 @@ agentrt-linux 接口设计层定义 8 子仓之间、内核与用户态之间、
 | 系统调用 | agent 任务管理 | kernel / cognition | `AIRY_SYS_TASK_*` 用户态调度器策略 | [01-syscalls.md](01-syscalls.md) |
 | 系统调用 | IPC | kernel / services | `AIRY_SYS_IPC_*` io_uring 零拷贝 | 01-syscalls.md |
 | 系统调用 | 内存 | kernel / memory | `AIRY_SYS_ROVOL_*` 记忆卷载 | 01-syscalls.md |
-| 系统调用 | 调度 | kernel | `AIRY_SYS_SCHED_*` 方案 C-Prime 调度策略 | 01-syscalls.md |
+| 系统调用 | 调度 | kernel | `AIRY_SYS_SCHED_*` sched_tac 调度策略 | 01-syscalls.md |
 | 系统调用 | 安全 | kernel / security | `AIRY_SYS_CAP_*` capability 令牌 | 01-syscalls.md |
 | 系统调用 | 认知 | kernel / cognition | `AIRY_SYS_CLT_*` CoreLoopThree kthread | 01-syscalls.md |
 | IPC 协议 | 消息头 | 全部子仓 | 128B 定长 + 5 种 payload | [02-ipc-protocol.md](02-ipc-protocol.md) |
@@ -77,7 +77,7 @@ agentrt-linux 接口设计层定义 8 子仓之间、内核与用户态之间、
 - **显式契约**: 所有接口以 C 头文件 + Doxygen 注释形式给出显式契约，包括参数语义、返回值、错误码、并发约束。
 - **ABI 稳定**: 系统调用编号、IPC 消息头布局、capability 令牌格式在 MAJOR 版本内保持 ABI 稳定，破坏性变更必须升级 MAJOR 版本。
 - **版本协商**: IPC 消息头携带 `version` 字段（当前 0x0100），支持协议版本协商。
-- **错误码对齐**: 全部接口错误码对齐 `include/airymax/error.h`（[SC] SSoT），与 agentrt 同源且部分代码共享（IRON-9 v2）。
+- **错误码对齐**: 全部接口错误码对齐 `include/airymax/error.h`（[SC] SSoT），与 agentrt 同源且部分代码共享（IRON-9 v3）。
 - **并发约束显式**: 所有接口在 Doxygen 注释中显式声明线程安全性与可重入性（thread-safe / reentrant / async-signal-safe）。
 
 ### 3.2 E-7 文档即代码
@@ -89,7 +89,7 @@ agentrt-linux 接口设计层定义 8 子仓之间、内核与用户态之间、
 
 ### 3.3 接口设计补充原则
 
-- **机制与策略分离**: 系统调用提供机制（如 `airy_sys_task_submit` 提交任务），调度策略由用户态 Macro-Supervisor 通过方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）定义，不使用 sched_ext。
+- **机制与策略分离**: 系统调用提供机制（如 `airy_sys_task_submit` 提交任务），调度策略由用户态 Macro-Supervisor 通过sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）定义，不使用 sched_ext。
 - **最小权限**: 默认拒绝，通过 capability 显式授权（`airy_sys_capability_request`），纯 C LSM 模块强制校验（不使用 BPF LSM）。
 - **零拷贝优先**: IPC 与内存接口优先使用 io_uring + IORING_OP_URING_CMD + registered buffer + mmap 零拷贝路径（不使用 page flipping），日志内存使用 alloc_pages + mmap（不使用 DMA 一致性内存）。
 - **同源兼容**: 与 agentrt 同源的接口保持 API 语义兼容，仅升级底层实现。
@@ -110,7 +110,7 @@ agentrt-linux 接口设计层定义 8 子仓之间、内核与用户态之间、
 | 8 | [08-sc-error-contract.md](08-sc-error-contract.md) | **[SC] error.h 二进制契约** + Error（负数可恢复）vs Fault（正数 0x1000+ 不可恢复）分层 + 5 子空间分配 + CI 逐字节校验 + [DSL] 降级块 | 300-400 |
 | 9 | [09-sc-log-types-contract.md](09-sc-log-types-contract.md) | **[SC] log_types.h 二进制契约** + 128B 固定记录格式 + 5 级日志枚举 + printk 8 级映射 | 250-350 |
 
-> **[SC] 共享契约说明**：文档 #8、#9 是 Airymax Unify Design 五模块（UEF/ULPS）的 [SC] 共享契约权威定义，物理宿主为 `kernel/include/airymax/error.h` 与 `kernel/include/airymax/log_types.h`，由 `sc-dual-ci.yml` 进行双端逐字节校验。详见 [10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) 与 [10-architecture/06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md)。
+> **[SC] 共享契约说明**：文档 #8、#9 是 Airymax Unify Design 五模块（A-UEF/A-ULP）的 [SC] 共享契约权威定义，物理宿主为 `kernel/include/airymax/error.h` 与 `kernel/include/airymax/log_types.h`，由 `sc-dual-ci.yml` 进行双端逐字节校验。详见 [10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) 与 [10-architecture/06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md)。
 
 ## 5. 与 agentrt 接口的关系
 
@@ -123,7 +123,7 @@ agentrt-linux 接口与 agentrt 接口遵循 IRON-9 v3"四层共享模型"原则
 | IPC payload | 自定义协议 | 5 种 payload（REQUEST/RESPONSE/EVENT/STREAM/CONTROL） | agentrt-linux 扩展 | [IND] |
 | SDK | sdk（应用层） | agentctl + 4 语言 SDK | 同源语义，OS 级封装 | [SS] |
 | capability | 应用权限模型 | seL4 风格 capability 系统 + 纯 C LSM | 同源语义，OS 级升级 | [SC]（`security_types.h`）+ [IND] |
-| 调度 | MicroCoreRT 用户态调度 | 方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射） | 同源语义，内核态实现 | [SC]（`sched.h`）+ [IND] |
+| 调度 | MicroCoreRT 用户态调度 | sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射） | 同源语义，内核态实现 | [SC]（`sched.h`）+ [IND] |
 | 错误码 | `AIRY_E*` 用户态 | `AIRY_E*` + `AIRY_FAULT_*` 内核态 | 语义同源，内核态扩展 Fault | [SC]（`error.h`） |
 | 日志 | `LOG_*` 用户态 | `LOG_*` + 128B Ring Buffer 内核态 | 语义同源，内核态扩展 Ring | [SC]（`log_types.h`） |
 | 记忆 | MemoryRovol 用户态 | MemoryRovol 内核态 | 同源语义，内核态升级 | [SC]（`memory_types.h`） |
@@ -132,7 +132,7 @@ agentrt-linux 接口与 agentrt 接口遵循 IRON-9 v3"四层共享模型"原则
 **同源红利**: agentrt 在 agentrt-linux 上运行时，IPC 消息头布局兼容、调度语义一致、capability 模型一致，无需适配层即可天然契合。具体表现：
 
 - **IPC 兼容**: agentrt 发出的 128B 消息头可直接被 agentrt-linux io_uring + IORING_OP_URING_CMD 通道接收，无需协议转换（不使用 page flipping）。
-- **调度兼容**: agentrt 的任务优先级语义（0-139）与方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF）对齐，调度行为一致（不使用 sched_ext）。
+- **调度兼容**: agentrt 的任务优先级语义（0-139）与sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF）对齐，调度行为一致（不使用 sched_ext）。
 - **记忆兼容**: agentrt 的 MemoryRovol 用户态 API 与 agentrt-linux 内核态实现语义对齐，可平滑迁移。
 
 **独立性**: agentrt-linux 接口为 OS 级接口（系统调用、内核 IPC、OS 级 SDK），与 agentrt 的应用级接口在分层上独立，不构成依赖耦合。当 agentrt 演进时，agentrt-linux 通过接口契约评审决定是否同步，避免被动跟随。独立性体现在：

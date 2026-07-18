@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**：agentrt-linux（AirymaxOS）安全设计文档（security，极境安全）\
 > **文档版本**：v1.1（2026-07-07）\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **核心约束**：IRON-9 v2 同源且部分代码共享——与 agentrt 用户态 cupolas 通过 \[SC] 共享契约层 + \[SS] 语义同源层协作，\[IND] 内核态 LSM/Landlock/capability 实现独立\
+> **核心约束**：IRON-9 v3 同源且部分代码共享——与 agentrt 用户态 cupolas 通过 \[SC] 共享契约层 + \[SS] 语义同源层协作，\[IND] 内核态 LSM/Landlock/capability 实现独立\
 > **子仓编号**：03\
 > **子仓代号**：极境安全（Airymax Security）\
 > **设计基准**：capability 安全 + LSM 框架 + Landlock 沙箱 + 机密计算\
@@ -17,11 +17,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 目录
 
 - [1. 子仓职责](#1-子仓职责)
-- [2. 同源关系（IRON-9 v2 三层共享模型）](#2-同源关系iron-9-v2-三层共享模型)
+- [2. 同源关系（IRON-9 v3 四层共享模型）](#2-同源关系iron-9-v3-四层共享模型)
 - [3. 目录结构](#3-目录结构)
 - [4. 核心特性](#4-核心特性)
 - [5. 微内核思想体现](#5-微内核思想体现)
-- [6. IRON-9 v2 三层共享模型落地](#6-iron-9-v2-三层共享模型落地)
+- [6. IRON-9 v3 四层共享模型落地](#6-iron-9-v3-四层共享模型落地)
 - [7. agentrt-linux 工程基线](#7-agentrt-linux-工程基线)
 - [8. 前沿理论参考](#8-前沿理论参考)
 - [9. 与其他子仓的协作](#9-与其他子仓的协作)
@@ -37,7 +37,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 `security` 是 agentrt-linux（AirymaxOS）的安全子仓，承担以下核心职责：
 
 1. **capability 系统 \[SC]**：基于 seL4 风格的不可伪造令牌实现最小权限访问控制，capability ID 枚举与派生模型与 agentrt 共享。
-2. **LSM Hook \[SS]**：agent\_lsm 提供 Linux Security Module 钩子，调度机制与 agentrt cupolas 语义同源。
+2. **LSM Hook \[SS]**：airy\_lsm 提供 Linux Security Module 钩子，调度机制与 agentrt cupolas 语义同源。
 3. **沙箱隔离 \[SS]**：Landlock + seccomp 构建用户态沙箱，三系统调用语义与 agentrt 同源。
 4. **机密计算 \[IND]**：支持 TEE/SGX/SEV-SNP/TDX/CCA 等可信执行环境，Vault backend 抽象 \[SC] 与 agentrt 共享。
 5. **国密算法 \[IND]**：遵循 agentrt-linux 标准集成 SM2/SM3/SM4 国密算法。
@@ -52,26 +52,26 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | -------- | ------------------------------------------ | ------ |
 | 调度数据流    | task\_create/task\_kill 钩子 + capability 检查 | \[SS]  |
 | IPC 数据流  | binder/ipc 钩子 + 消息端点 capability 校验         | \[SS]  |
-| eBPF 数据流 | eBPF 程序签名验证 + BPF\_LSM 钩子                  | \[SS]  |
+| eBPF 数据流 | eBPF 程序签名验证 + 纯 C LSM 钩子                  | \[SS]  |
 | 记忆卷载数据流  | memory 加密 + TEE 保护 + memcg 隔离              | \[IND] |
 
 ***
 
-## 2. 同源关系（IRON-9 v2 三层共享模型）
+## 2. 同源关系（IRON-9 v3 四层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 cupolas）与 agentrt-linux（内核态 security）通过三层共享模型协作：
+依据 IRON-9 v3 决策，agentrt（用户态 cupolas）与 agentrt-linux（内核态 security）通过 v3 四层共享模型（[SC] 共享契约 + [SS] 同源签名 + [IND] 独立 + [DSL] 降级生存）协作：
 
 | 层次               | 共享程度                               | 安全子系统内容                                                                                                                                                           | 组织方式                               |
 | ---------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
 | **\[SC] 共享契约层**  | 完全共享代码                             | POSIX capability 41 个 ID 枚举、LSM 钩子 252 个 ID 枚举、Cupolas blob 结构布局（cred/inode/file/task）、capability 派生模型（mint/mintcopy/derive/revoke）、Vault backend 抽象、策略裁决结果 4 值枚举 | `include/airymax/security_types.h` |
-| **\[SS] 语义同源层**  | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | `security_add_hooks()`、`call_int_hook` 短路、`DEFINE_LSM(cupolas)`、Landlock 三系统调用、`cap_capable()`、`security_file_open()` 等 17 项                                      | 各自独立实现                             |
+| **\[SS] 语义同源层**  | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | `security_add_hooks()`、`call_int_hook` 短路、`DEFINE_LSM(airy)`、Landlock 三系统调用、`cap_capable()`、`security_file_open()` 等 17 项                                      | 各自独立实现                             |
 | **\[IND] 完全独立层** | 完全独立                               | SELinux 完整实现、AppArmor 完整实现、Smack、TOMOYO、IMA digest list、IMA VirtCCA、IMA 策略 DB、EVM xattr 签名、内核 ABI 预留机制                                                            | 各自独立仓库                             |
 
 ### 2.1 维度对比
 
 | 维度  | agentrt（cupolas） | agentrt-linux（security）                      | 同源标注   |
 | --- | ---------------- | -------------------------------------------- | ------ |
-| LSM | Cupolas 用户态策略注入  | agent\_lsm 内核态钩子注册                           | \[SS]  |
+| LSM | Cupolas 用户态策略注入  | airy\_lsm 内核态钩子注册                           | \[SS]  |
 | 沙箱  | 进程沙箱（用户态）        | Landlock + seccomp + capability（内核态强制）       | \[SS]  |
 | 加密  | 应用层加密            | 国密 + TEE 机密计算                                | \[IND] |
 | 权限  | 应用权限模型           | capability 令牌系统（seL4 风格）                     | \[SC]  |
@@ -94,7 +94,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ```
 security/
 ├── capability/             # capability 系统（seL4 风格）[SC]
-├── lsm/                    # agent_lsm（LSM hook）[SS]
+├── lsm/                    # airy_lsm（LSM hook）[SS]
 ├── sandbox/               # Landlock + seccomp [SS]
 ├── confidential-compute/   # 机密计算（TEE/SGX/SEV-SNP/TDX/CCA）[IND]
 ├── crypto/                 # 国密算法（agentrt-linux 标准）[IND]
@@ -113,11 +113,11 @@ security/
 - `cap-derive`：capability 派生（mint、mintcopy、derive）——派生模型 \[SC] 共享。
 - `cap-revoke`：capability 撤销（递归撤销派生 capability）。
 
-### 3.2 lsm/（agent\_lsm）\[SS]
+### 3.2 lsm/（airy\_lsm）\[SS]
 
 与 Cupolas 同源的 LSM 实现，调度机制语义同源但实现独立：
 
-- `agent_lsm.c`：LSM hook 注册（file\_ops、net\_ops、task\_ops、ipc\_ops）——`security_add_hooks()` \[SS]。
+- `airy_lsm.c`：LSM hook 注册（file\_ops、net\_ops、task\_ops、ipc\_ops）——`security_add_hooks()` \[SS]。
 - `policy-engine`：声明式策略引擎（YAML/JSON 策略）。
 - `policy-compiler`：策略编译器（编译为 BPF 程序）。
 - `audit`：安全审计日志。
@@ -285,7 +285,7 @@ struct airy_cap_mdb_node {
 
 **与 seL4 的差异**：seL4 的 CNode/MDB 实现完全在微内核中（形式化验证）；agentrt-linux 借鉴其设计思想，但实现基于 Linux radix-tree + RCU（性能优先，非形式化验证），属于 \[IND] 实现独立层。capability ID 枚举与派生模型（mint/mintcopy/derive/revoke）的语义在 \[SC] 层与 agentrt 共享。
 
-### 4.2 agent\_lsm（LSM hook，Cupolas 同源）\[SS]
+### 4.2 airy\_lsm（LSM hook，Cupolas 同源）\[SS]
 
 **LSM Hook 点**（252 个钩子 ID 枚举 \[SC]）：
 
@@ -298,7 +298,7 @@ struct airy_cap_mdb_node {
 
 - `call_int_hook`：fail-fast first-deny 短路语义，任一钩子返回非零即终止。
 - `call_void_hook`：遍历全部钩子，无短路。
-- `DEFINE_LSM(cupolas)`：Cupolas 作为最后初始化的 LSM 注册，不打 `LSM_FLAG_EXCLUSIVE` 标记（穹顶叠加而非替代）。
+- `DEFINE_LSM(airy)`：Cupolas（内核态模块名 `airy`）通过 `LSM_ORDER_FIRST` 首位初始化注册，不打 `LSM_FLAG_EXCLUSIVE` 标记（穹顶叠加而非替代）。详见 [07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) §2.1。
 
 **策略示例**（YAML）：
 
@@ -396,7 +396,7 @@ typedef struct airy_vault_backend {
 - Linux 6.6 引入 eBPF 程序签名验证机制。
 - 仅允许已签名 eBPF 程序加载至内核。
 - 防止恶意 eBPF 程序破坏内核安全。
-- BPF\_LSM 通过 X-macro 模式为全部 252 个 LSM 钩子生成 trampoline \[SS]。
+- 纯 C LSM 通过 `LSM_HOOK_INIT` 宏注册到 `security_hook_heads`（X-macro 模式经 `lsm_hook_defs.h` 生成钩子声明，但回调是纯 C 函数，非 BPF 程序）\[SS]。
 
 **策略**：
 
@@ -436,11 +436,11 @@ typedef struct airy_vault_backend {
 
 ```c
 typedef enum {
-    AIRY_CUPOLAS_DECISION_ALLOW = 0,  /* 允许 */
-    AIRY_CUPOLAS_DECISION_DENY  = 1,  /* 拒绝 */
-    AIRY_CUPOLAS_DECISION_AUDIT = 2,  /* 允许但审计 */
-    AIRY_CUPOLAS_DECISION_LOG   = 3,  /* 允许但记录日志 */
-} airy_cupolas_decision_t;
+    AIRY_VERDICT_ALLOW    = 0,  /* 允许 */
+    AIRY_VERDICT_DENY     = 1,  /* 拒绝 */
+    AIRY_VERDICT_AUDIT    = 2,  /* 允许但审计 */
+    AIRY_VERDICT_COMPLAIN = 3,  /* 拒绝但记录日志（用于策略调试） */
+} airy_verdict_t;
 ```
 
 ### 4.9 Cupolas 7 大子系统（与 agentrt 同源 \[SS]）
@@ -490,7 +490,7 @@ typedef enum {
 
 ***
 
-## 6. IRON-9 v2 三层共享模型落地
+## 6. IRON-9 v3 四层共享模型落地
 
 ### 6.1 \[SC] 共享契约层——`include/airymax/security_types.h`
 
@@ -506,7 +506,7 @@ typedef enum {
 | `airy_cupolas_task_security_t` 结构  | Cupolas task blob 布局                                                                 |
 | `airy_capability_t` 结构             | capability 派生模型（cap\_id/cap\_type/rights/parent\_cap\_id/mint\_depth/mint\_quota）    |
 | `airy_vault_backend_t` 结构          | Vault backend 抽象（init/seal/unseal/attest）                                            |
-| `airy_cupolas_decision_t` 枚举       | 策略裁决结果 4 值（ALLOW/DENY/AUDIT/LOG）                                                     |
+| `airy_verdict_t` 枚举               | 策略裁决结果 4 值（ALLOW/DENY/AUDIT/COMPLAIN）                                                     |
 
 ### 6.2 \[SS] 语义同源层——17 项 API 映射
 
@@ -517,7 +517,7 @@ typedef enum {
 | 1  | `security_add_hooks()`              | 钩子注册             | 用户态策略表注册   | 内核 `hlist_add_tail_rcu` |
 | 2  | `call_int_hook`                     | first-deny 短路    | 用户态遍历      | 内核宏展开                   |
 | 3  | `call_void_hook`                    | 全遍历              | 用户态遍历      | 内核宏展开                   |
-| 4  | `DEFINE_LSM(cupolas)`               | LSM 声明           | 用户态模拟      | 内核 `lsm_info` 结构        |
+| 4  | `DEFINE_LSM(airy)`               | LSM 声明           | 用户态模拟      | 内核 `lsm_info` 结构        |
 | 5  | `landlock_create_ruleset()`         | 创建规则集            | 用户态包装      | 内核 syscall              |
 | 6  | `landlock_add_rule()`               | 追加规则             | 用户态包装      | 内核 syscall              |
 | 7  | `landlock_restrict_self()`          | 施加域              | 用户态包装      | 内核 syscall              |
@@ -528,7 +528,7 @@ typedef enum {
 | 12 | `security_socket_bind()`            | socket bind 检查   | 用户态拦截      | 内核 LSM 钩子               |
 | 13 | `security_cred_prepare()`           | 凭据复制             | 用户态模拟      | 内核 LSM 钩子               |
 | 14 | `security_cred_transfer()`          | 凭据转移             | 用户态模拟      | 内核 LSM 钩子               |
-| 15 | `bpf_lsm_##NAME` trampoline         | 纯 C LSM 钩子（对齐 openEuler）      | 用户态 eBPF   | 内核 X-macro 生成           |
+| 15 | `LSM_HOOK_INIT(NAME, hook)` 宏 | 纯 C LSM 钩子注册（对齐 openEuler） | 用户态策略表注册 | 内核 `security_hook_heads` 链表 |
 | 16 | `task_no_new_privs()`               | NNP 检查           | 用户态模拟      | 内核标志位                   |
 | 17 | `ns_capable_noaudit()`              | capability 无审计检查 | 用户态模拟      | 内核 `commoncap.c`        |
 
@@ -588,7 +588,7 @@ sequenceDiagram
 | **E-1 安全内生**            | 安全机制内置于系统每一层（capability + LSM + Landlock + Cupolas） |
 | **K-3 服务隔离**            | Landlock 沙箱 + 进程隔离 + memcg 隔离                       |
 | **K-4 可插拔策略**           | LSM 钩子可插拔 + Cupolas 7 大子系统可配置                       |
-| **IRON-9 v2 同源且部分代码共享** | \[SC] 共享契约层 + \[SS] 语义同源层 + \[IND] 独立层              |
+| **IRON-9 v3 同源且部分代码共享** | \[SC] 共享契约层 + \[SS] 语义同源层 + \[IND] 独立层              |
 | **A-4 完美主义**            | 形式化验证 + 机密计算 + 国密合规                                 |
 
 ***
@@ -631,7 +631,7 @@ sequenceDiagram
 | M0 | 文档体系完成（本模块设计文档）                                | 2026-07 | —              |
 | M1 | \[SC] `include/airymax/security_types.h` 共享契约层 | 2026 Q3 | \[SC]          |
 | M2 | capability 系统内核接口 + 派生模型                       | 2026 Q3 | \[SC]          |
-| M3 | agent\_lsm 集成 + 252 钩子注册 + 策略引擎                | 2026 Q4 | \[SS]          |
+| M3 | airy\_lsm 集成 + 252 钩子注册 + 策略引擎                | 2026 Q4 | \[SS]          |
 | M4 | Landlock 沙箱 + seccomp + 三系统调用                  | 2026 Q4 | \[SS]          |
 | M5 | Vault backend 抽象 + TPM/SGX 后端                  | 2027 Q1 | \[SC] + \[IND] |
 | M6 | 国密算法集成（SM2/SM3/SM4）                            | 2027 Q1 | \[IND]         |
@@ -650,7 +650,7 @@ sequenceDiagram
 
 ## 11. agentrt 一致性检查
 
-对 agentrt cupolas 设计进行一致性检查，确认两端在 IRON-9 v2 三层共享模型下无冲突：
+对 agentrt cupolas 设计进行一致性检查，确认两端在 IRON-9 v3 四层共享模型下无冲突：
 
 | 序号 | 检查项                          | agentrt 状态                                                | agentrt-linux 状态                | 结论          |
 | -- | ---------------------------- | --------------------------------------------------------- | ------------------------------- | ----------- |
@@ -659,18 +659,18 @@ sequenceDiagram
 | 3  | capability 派生模型一致性           | mint/mintcopy/derive/revoke                               | mint/mintcopy/derive/revoke     | PASS \[SC]  |
 | 4  | Cupolas blob 布局一致性           | cred/inode/file/task                                      | cred/inode/file/task            | PASS \[SC]  |
 | 5  | Vault backend 抽象一致性          | 4 函数指针（init/seal/unseal/attest）                           | 4 函数指针（init/seal/unseal/attest） | PASS \[SC]  |
-| 6  | 策略裁决结果一致性                    | 4 值（ALLOW/DENY/AUDIT/LOG）                                 | 4 值（ALLOW/DENY/AUDIT/LOG）       | PASS \[SC]  |
+| 6  | 策略裁决结果一致性                    | 4 值（ALLOW/DENY/AUDIT/COMPLAIN）                            | 4 值（ALLOW/DENY/AUDIT/COMPLAIN） | PASS \[SC]  |
 | 7  | `security_add_hooks()` 语义等价性 | 用户态注册                                                     | 内核 `hlist_add_tail_rcu`         | PASS \[SS]  |
 | 8  | `call_int_hook` 短路语义一致性      | first-deny                                                | first-deny                      | PASS \[SS]  |
 | 9  | Landlock 三系统调用一致性            | 用户态包装                                                     | 内核 syscall                      | PASS \[SS]  |
 | 10 | `cap_capable()` 检查流程一致性      | 用户态模拟                                                     | 内核 `commoncap.c`                | PASS \[SS]  |
-| 11 | BPF\_LSM X-macro 模式一致性       | 用户态 eBPF                                                  | 内核 trampoline                   | PASS \[SS]  |
+| 11 | `LSM_HOOK_INIT` 纯 C 钩子注册一致性 | 用户态策略表注册                                                  | 内核 `security_hook_heads`         | PASS \[SS]  |
 | 12 | Cupolas 7 大子系统命名一致性          | Guards/Permission/Sanitizer/Audit/Workbench/Vault/Network | 同名                              | PASS \[SS]  |
-| 13 | `DEFINE_LSM(cupolas)` 声明一致性  | 用户态模拟                                                     | 内核 `lsm_info`                   | PASS \[SS]  |
+| 13 | `DEFINE_LSM(airy)` 声明一致性  | 用户态模拟                                                     | 内核 `lsm_info`                   | PASS \[SS]  |
 | 14 | `no_new_privs` 检查一致性         | 用户态模拟                                                     | 内核标志位                           | PASS \[SS]  |
 | 15 | SELinux/AppArmor/IMA 独立性     | 不实现                                                       | 不移植                             | PASS \[IND] |
 
-**结论**：agentrt cupolas 设计无需修改。15 项检查全部 PASS，两端在 \[SC]/\[SS]/\[IND] 三层共享模型下完全一致。
+**结论**：agentrt cupolas 设计无需修改。15 项检查全部 PASS，两端在 \[SC]/\[SS]/\[IND]/\[DSL] v3 四层共享模型下完全一致。
 
 ***
 
@@ -695,7 +695,7 @@ sequenceDiagram
 - Linux 6.6 `security/keys/`（密钥环实现）
 - Linux 6.6 `include/linux/lsm_hooks.h`（LSM 钩子声明）
 - Linux 6.6 `include/linux/lsm_hook_defs.h`（252 钩子定义）
-- Linux 6.6 `security/bpf/hooks.c`（BPF\_LSM X-macro）
+- Linux 6.6 `security/selinux/hooks.c`（纯 C LSM 注册参考：`DEFINE_LSM` + `security_add_hooks`）
 - Linux 6.6 `Documentation/admin-guide/lockdown.rst`（Lockdown）
 - Linux 6.6 eBPF kfunc + dynamic pointer 文档
 - CCC（Confidential Computing Consortium）白皮书
@@ -708,5 +708,5 @@ sequenceDiagram
 
 ***
 
-> **文档结束** | v1.1 | IRON-9 v2 同源且部分代码共享 | 安全是横切关注点 | 0.1.1 = 文档体系完成
+> **文档结束** | v1.1 | IRON-9 v3 同源且部分代码共享 | 安全是横切关注点 | 0.1.1 = 文档体系完成
 

@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档定位**：agentrt-linux 服务设计文档（Airymax Services 极境服务）\
 > **文档版本**：v1.1 2026-07-07\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **核心约束**：IRON-9 v2 同源且部分代码共享——与 agentrt 用户态 daemons 通过 \[SC] 共享契约层 + \[SS] 语义同源层协作，\[IND] 用户态 VFS/网络栈/驱动框架/systemd 集成实现独立\
+> **核心约束**：IRON-9 v3 同源且部分代码共享——与 agentrt 用户态 daemons 通过 \[SC] 共享契约层 + \[SS] 语义同源层协作，\[IND] 用户态 VFS/网络栈/驱动框架/systemd 集成实现独立\
 > **子仓编号**：02\
 > **子仓代号**：极境服务（Airymax Services）\
 > **设计基准**：用户态系统服务 + 消息传递通信 + systemd 集成 + io\_uring 零拷贝 IPC\
@@ -17,11 +17,11 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 ## 目录
 
 - [1. 子仓职责](#1-子仓职责)
-- [2. 同源关系（IRON-9 v2 三层共享模型）](#2-同源关系iron-9-v2-三层共享模型)
+- [2. 同源关系（IRON-9 v3 四层共享模型）](#2-同源关系iron-9-v2-三层共享模型)
 - [3. 目录结构](#3-目录结构)
 - [4. 核心特性](#4-核心特性)
 - [5. 微内核思想体现](#5-微内核思想体现)
-- [6. IRON-9 v2 三层共享模型落地](#6-iron-9-v2-三层共享模型落地)
+- [6. IRON-9 v3 四层共享模型落地](#6-iron-9-v2-三层共享模型落地)
 - [7. agentrt-linux 工程基线](#7-agentrt-linux-工程基线)
 - [8. 前沿理论参考](#8-前沿理论参考)
 - [9. 与其他子仓的协作](#9-与其他子仓的协作)
@@ -55,9 +55,9 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ***
 
-## 2. 同源关系（IRON-9 v2 三层共享模型）
+## 2. 同源关系（IRON-9 v3 四层共享模型）
 
-依据 IRON-9 v2 决策，agentrt（用户态 daemons）与 agentrt-linux（用户态 services）通过三层共享模型协作：
+依据 IRON-9 v3 决策，agentrt（用户态 daemons）与 agentrt-linux（用户态 services）通过三层共享模型协作：
 
 | 层次               | 共享程度                               | 服务子系统内容                                                                                                                                                                                                                                    | 组织方式                                 |
 | ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
@@ -96,10 +96,10 @@ services/
 ├── vfs/                   # 用户态 VFS [IND]
 ├── net/                   # 用户态网络栈（DPDK/AF_XDP）[IND]
 ├── drivers/               # 用户态驱动框架（VFIO/libvfio）[IND]
-├── daemons/               # 12 daemons 集成（USV 统一生命周期）[SS]
-│   ├── macro_superv/        # USV：Macro-Supervisor
-│   ├── logger_daemon/       # ULPS：Logger Daemon
-│   ├── config_daemon/       # UCF：配置管理守护
+├── daemons/               # 12 daemons 集成（A-ULS 统一生命周期）[SS]
+│   ├── macro_superv/        # A-ULS：Macro-Supervisor
+│   ├── logger_daemon/       # A-ULP：Logger Daemon
+│   ├── config_daemon/       # A-UCS：配置管理守护
 │   ├── gateway_d/           # 网关守护
 │   ├── sched_d/             # 调度守护
 │   ├── vfs_d/               # VFS 用户态服务
@@ -150,13 +150,13 @@ services/
 - 资源限制（cgroup v2）\[IND]。
 - 日志输出（journald 集成）\[IND]。
 
-**12 daemons 清单**（统一归属 `services/daemons/`，USV 统一生命周期 \[SS]）：
+**12 daemons 清单**（统一归属 `services/daemons/`，A-ULS 统一生命周期 \[SS]）：
 
 | 序号 | daemon           | 职责              | 同源标注  |
 | -- | ---------------- | --------------- | ----- |
-| 1  | `macro_superv`   | 主监管守护进程（USV）    | \[SS] |
-| 2  | `logger_daemon`  | 日志消费守护进程（ULPS）  | \[SS] |
-| 3  | `config_daemon`  | 配置管理守护进程（UCF）   | \[SS] |
+| 1  | `macro_superv`   | 主监管守护进程（A-ULS）    | \[SS] |
+| 2  | `logger_daemon`  | 日志消费守护进程（A-ULP）  | \[SS] |
+| 3  | `config_daemon`  | 配置管理守护进程（A-UCS）   | \[SS] |
 | 4  | `gateway_d`      | 网关守护进程           | \[SS] |
 | 5  | `sched_d`        | 调度守护进程           | \[SS] |
 | 6  | `vfs_d`          | VFS 用户态服务守护进程    | \[SS] |
@@ -321,7 +321,7 @@ WantedBy=airymaxos.target
 
 ***
 
-## 6. IRON-9 v2 三层共享模型落地
+## 6. IRON-9 v3 四层共享模型落地
 
 ### 6.1 \[SC] 共享契约层——`include/airymax/ipc.h`
 
@@ -538,9 +538,9 @@ graph TD
 | 服务管理 | 自研 supervisor   | systemd 集成                   | \[IND] AirymaxOS 专属 |
 | 部署形态 | 用户态进程           | systemd unit + capability    | \[IND] AirymaxOS 专属 |
 
-### 11.3 IRON-9 v2 合规性
+### 11.3 IRON-9 v3 合规性
 
-| IRON-9 v2 三层 | 本文档覆盖                                | 合规     |
+| IRON-9 v3 四层 | 本文档覆盖                                | 合规     |
 | ------------ | ------------------------------------ | ------ |
 | 共享契约层 \[SC]  | §6.1 `include/airymax/ipc.h` 完整定义    | <br /> |
 | 语义同源层 \[SS]  | §6.2 12 daemons + 8 项 IPC 原语同源（20 项） | <br /> |
@@ -559,7 +559,7 @@ graph TD
 - [IPC 数据流](../40-dataflows/03-ipc-flow.md)：io\_uring IPC 数据流
 - [IPC 协议接口](../30-interfaces/02-ipc-protocol.md)：AgentsIPC 协议
 - [SDK API](../30-interfaces/03-sdk-api.md)：SDK 接口
-- [IRON-9 v2 定义](../50-engineering-standards/README.md)：三层共享模型
+- [IRON-9 v3 定义](../50-engineering-standards/README.md)：四层共享模型
 - [合规检查清单](../50-engineering-standards/08-compliance-checklist.md)：STD-DOC-\* 规则
 
 ### 12.2 同系列模块文档

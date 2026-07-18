@@ -1,17 +1,23 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）测试体系设计
-> **文档定位**：agentrt-linux（AirymaxOS）测试工程体系主索引\
-> **文档版本**：0.1.1\
-> **最后更新**：2026-07-13\
+> **文档定位**：agentrt-linux（AirymaxOS）测试工程体系主索引（KUnit + kselftest + 集成测试 + CI 流水线）\
+> **文档版本**：v1.0\
+> **最后更新**：2026-07-17\
+> **上级文档**：[AirymaxOS 总览](../README.md)\
 > **同源映射**：agentrt 7 层自动化验证 + Linux 6.6 测试框架（KUnit/kselftest/动态分析）\
-> **理论根基**：Linux 内核测试体系 + Airymax E-8 可测试性 + A-4 完美主义
+> **理论根基**：Linux 内核测试体系 + Airymax E-8 可测试性 + A-4 完美主义 + SSoT v2 CI 强制校验
 
 ---
 
-## 1. 模块定位
+## 1. 模块概述
 
-agentrt-linux 测试体系是工程标准可执行性的核心保障。它继承 Linux 内核 30+ 年沉淀的多层测试哲学（KUnit 白盒 + kselftest 系统级 + 动态分析 + 静态分析 + 覆盖度量），并在其上扩展智能体操作系统专属的 Agent 行为契约测试、模糊测试、形式化验证等。
+agentrt-linux 测试体系是工程标准可执行性的核心保障。它继承 Linux 内核 30+ 年沉淀的多层测试哲学（KUnit 白盒 + kselftest 系统级 + 动态分析 + 静态分析 + 覆盖度量），并在其上扩展智能体操作系统专属的sched_tac 调度测试、IPC 零拷贝测试、[SC] 头文件逐字节校验、Agent 行为契约测试、模糊测试、形式化验证等。本目录覆盖四方面职责：
+
+1. **KUnit 单元测试**：白盒单元测试，毫秒级执行，验证单函数行为契约（含 A-UEF 错误码、A-ULP 128B 记录格式、A-UCS 配置加载）。
+2. **kselftest 系统级测试**：从用户态测试内核特性，重点覆盖sched_tac 调度类（`SCHED_DEADLINE` / `SCHED_FIFO` / `EEVDF`）、io_uring IORING_OP_URING_CMD 零拷贝、纯 C LSM 钩子。
+3. **集成测试**：跨子仓跨模块的端到端测试，验证 IRON-9 v3 四层模型的 [SC] 头文件逐字节一致、agentrt ↔ agentrt-linux 同源 API 互操作。
+4. **CI 流水线**：`sc-dual-ci.yml`（[SC] 逐字节校验）+ `ssot-validate.yml`（四层模型归属校验）+ 覆盖率门槛（kernel 90% / security 95%，关键路径 100%）。
 
 ### 1.1 测试体系分层
 
@@ -28,196 +34,128 @@ agentrt-linux 测试体系是工程标准可执行性的核心保障。它继承
 | **L9** | **模糊测试** | **syzkaller + agentrt-linux 扩展** | **小时级** | **输入边界** |
 | **L10** | **形式化验证** | **seL4 风格 + TLA+** | **天级** | **关键路径** |
 
-### 1.2 agentrt-linux 扩展
+### 1.2 agentrt-linux 专属测试
 
-- **Agent 行为契约测试**：验证 Agent 通过 SDK 调用系统能力的契约（输入/输出/异常）
-- **Token 能效测试**：测量 Agent 工作负载的 Token 消耗与能效
-- **记忆卷载测试**：验证 L1→L2→L3→L4 记忆演化的正确性
-- **IPC 协议测试**：AgentsIPC 128B 消息头 + 5 种 payload 的协议校验
+- **sched_tac 调度测试**：验证 `SCHED_DEADLINE` / `SCHED_FIFO` / `EEVDF` 三层调度类组合的 Agent 8 态生命周期映射（INACTIVE→SPAWNING→READY→RUNNING→BLOCKED→STOPPING→STOPPED→DEAD）
+- **IPC 零拷贝测试**：验证 `IORING_OP_URING_CMD` 的 fastpath 性能（~160ns）与 page flipping 路径未启用
+- **[SC] 头文件逐字节校验**：`sc-dual-ci.yml` 双端 diff 10 个 `include/airymax/*.h` 头文件
+- **纯 C LSM 验证**：验证 `airy_lsm` 钩子注册、capability 缓存命中、BPF LSM 未启用
+- **alloc_pages + mmap 验证**：验证共享内存未使用 `dma_alloc_coherent`
 
 ---
 
-## 2. 核心测试框架
+## 2. 技术选型声明
 
-### 2.1 KUnit（白盒单元测试）
+agentrt-linux v1.0 测试体系在内核调度、IPC 传输、安全钩子、内存分配与同源代码共享五个维度遵循 [AirymaxOS 总览](../README.md) §2 的不可妥协基线。测试体系是五大选型的**验证守护者**——CI 流水线在每次提交时强制校验五大选型未被偏离，任何回归均阻塞合并。五个维度的选型在本目录的具体落地如下：
 
-KUnit 是 Linux 内核官方单元测试框架，无需真实硬件，毫秒级执行：
-```c
-#include <kunit/test.h>
+| # | 技术维度 | 选定方案 | 明确不采用的方案 | 在本目录的落地 |
+|---|---------|---------|----------------|--------------|
+| 1 | **内核调度** | **sched_tac**：复用 Linux 6.6 原生 `SCHED_DEADLINE` / `SCHED_FIFO` / `EEVDF` 调度类 | **不使用 sched_ext**（不引入 eBPF 调度器、不使用 `SCHED_EXT=7` 调度类） | kselftest `sched/` 子目录验证sched_tac 三层调度类组合；CI 断言 `CONFIG_SCHED_EXT` 未启用 |
+| 2 | **IPC 零拷贝** | **IORING_OP_URING_CMD**：通过 io_uring 命令操作码实现内核↔用户态零拷贝传输 | **不使用 page flipping**（不交换物理页、不破坏内存布局稳定性） | IPC fastpath 性能基准测试（~160ns SLA）；CI 断言 page flipping 代码路径未编译 |
+| 3 | **安全钩子** | **纯 C LSM**：以纯 C 实现的 `airy_lsm` 通过 `security_hook_list` 注册 | **不使用 BPF LSM**（不依赖 BPF LSM 框架、不通过 eBPF 程序挂载安全钩子） | KUnit 测试纯 C LSM 钩子注册与 capability 缓存；CI 断言 `CONFIG_BPF_LSM` 未启用 |
+| 4 | **内存分配** | **alloc_pages + mmap**：通过 `alloc_pages` 分配物理页后 `vm_map_pages` / `remap_pfn_range` 映射 | **不使用 DMA 一致性内存**（不调用 `dma_alloc_coherent`、不依赖硬件一致性缓存） | KUnit 测试 `alloc_pages + mmap` 内存路径；CI 断言 `dma_alloc_coherent` 未在共享内存路径调用 |
+| 5 | **同源代码共享** | **IRON-9 v3 四层模型**：[SC] 共享契约层 + [SS] 语义同源层 + [IND] 独立实现层 + [DSL] 降级生存层 | （v2 三层模型升级为 v3 四层模型，新增 [DSL] 降级生存层） | `sc-dual-ci.yml` 双端逐字节校验 10 个 [SC] 头文件；`ssot-validate.yml` 校验四层归属一致性 |
 
-static void test_my_function(struct kunit *test) {
-    KUNIT_EXPECT_EQ(test, 1, my_function(0));
-    KUNIT_ASSERT_NOT_ERR_OR_NULL(test, my_function(1));
-}
+### 2.1 IRON-9 v3 四层模型在测试体系的归属
 
-static struct kunit_case my_test_cases[] = {
-    KUNIT_CASE(test_my_function),
-    {}
-};
-
-static struct kunit_suite my_test_suite = {
-    .name = "my_module_tests",
-    .test_cases = my_test_cases,
-};
-
-kunit_test_suite(my_test_suite);
-```
-
-### 2.2 kselftest（用户态系统级测试）
-
-kselftest 从用户态测试内核特性：
-```bash
-make -C tools/testing/selftests TARGETS=sched
-# 方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF）调度类测试
-./tools/testing/selftests/sched
-```
-
-### 2.3 lib/test_*（内核自检）
-
-`lib/test_*.c` 文件通过 `CONFIG_TEST_*` 启用，启动时执行：
-```bash
-make CONFIG_TEST_BITMAP=m modules
-```
-
-### 2.4 动态分析工具
-
-| 工具 | 用途 | 启用方式 |
-|------|------|---------|
-| KASAN | 地址消毒器（越界/use-after-free） | `CONFIG_KASAN=y` |
-| KFENCE | 轻量级内存错误检测 | `CONFIG_KFENCE=y` |
-| UBSAN | 未定义行为消毒器 | `CONFIG_UBSAN=y` |
-| KCSAN | 并发消毒器（数据竞争） | `CONFIG_KCSAN=y` |
-| lockdep | 锁依赖检查 | `CONFIG_PROVE_LOCKING=y` |
-| kmemleak | 内存泄漏检测 | `CONFIG_DEBUG_KMEMLEAK=y` |
-
-### 2.5 静态分析工具
-
-| 工具 | 用途 |
-|------|------|
-| Sparse | 类型检查（`__user`、`__rcu` 等） |
-| Smatch | 模式匹配（未初始化变量、空指针解引用） |
-| Coccinelle | 语义补丁（API 迁移、模式重构） |
-| clang-analyzer | Clang 静态分析器 |
-| rust-clippy | Rust 代码改进建议 |
-
-### 2.6 覆盖度量
-
-- **KCOV**：代码覆盖率（`CONFIG_KCOV=y`）
-- **gcov**：GCC 覆盖率（`CONFIG_GCOV_KERNEL=y`）
-- **最低覆盖率门槛**：≥80%（关键路径必须 100%）
-
-### 2.7 ftrace 启动自检
-
-`ftrace` 在启动时进行自检：
-```c
-// kernel/trace/trace_selftest.c
-int __init ftrace_startup(struct tracer *tracer, int command) {
-    // 自检逻辑
-}
-```
+| 技术点 | [SC] | [SS] | [IND] | [DSL] | 落地文档 |
+|--------|:----:|:----:|:-----:|:-----:|---------|
+| [SC] 逐字节校验测试 | ● | — | — | — | [01-kunit-framework.md](01-kunit-framework.md) |
+| sched_tac 调度测试 | — | — | ● | — | [02-kselftest.md](02-kselftest.md) |
+| IPC 零拷贝性能测试 | — | — | ● | — | [02-kselftest.md](02-kselftest.md) |
+| [DSL] 降级块自检 | — | — | — | ● | [01-kunit-framework.md](01-kunit-framework.md) |
+| 同源 API 互操作测试 | — | ● | — | — | [01-kunit-framework.md](01-kunit-framework.md) |
 
 ---
 
 ## 3. 文档索引
 
+本目录现有文档（v1.0 范围）：
+
 ```
 80-testing/
-├── README.md                       # 本文件
-├── 01-kunit-framework.md           # KUnit 单元测试框架
-├── 02-kselftest.md                 # kselftest 系统级测试
-├── 03-kernel-selftests.md          # lib/test_* 内核自检
-├── 04-dynamic-analysis.md          # 动态分析（KASAN/KFENCE/UBSAN/KCSAN/lockdep）
-├── 05-static-analysis.md           # 静态分析（Sparse/Smatch/Coccinelle）
-├── 06-coverage-metrics.md          # 覆盖度量（KCOV/gcov）
-├── 07-ftrace-selftest.md           # ftrace 启动自检
-├── 08-agent-contract-testing.md    # agentrt-linux 专属：Agent 行为契约测试
-├── 09-fuzz-testing.md              # 模糊测试（syzkaller + 扩展）
-└── 10-formal-verification.md       # 形式化验证（seL4 风格 + TLA+）
+├── README.md                       # 本文件（v1.0）
+├── 01-kunit-framework.md           # KUnit 单元测试框架 + [SC] 契约测试
+└── 02-kselftest.md                 # kselftest 系统级测试 + sched_tac 调度测试 + IPC 零拷贝测试
 ```
 
-### 3.1 0.1.1 版本范围
+| # | 文档 | 版本 | 内容概要 |
+|---|------|------|---------|
+| — | [README.md](README.md) | v1.0 | 测试体系主索引（本文件） |
+| 1 | [01-kunit-framework.md](01-kunit-framework.md) | v1.0 | KUnit 白盒单元测试框架、A-UEF 错误码契约测试、A-ULP 128B 记录格式测试、[SC] 头文件一致性测试、[DSL] 降级块自检 |
+| 2 | [02-kselftest.md](02-kselftest.md) | v1.0 | kselftest 系统级测试、sched_tac 调度类测试（`SCHED_DEADLINE` / `SCHED_FIFO` / `EEVDF`）、IPC 零拷贝性能基准（~160ns）、纯 C LSM 钩子验证 |
 
-README + 01 + 02 文档（3 文档奠基），确立测试体系设计框架与 KUnit/kselftest 核心机制。其余 8 文档（03-kernel-selftests 至 10-formal-verification）在 1.0.1 版本完成。
+### 3.1 后续规划文档（1.0.1 版本）
 
-### 3.2 1.0.1 版本范围
+以下文档在 1.0.1 版本完成，不在 v1.0 范围内：
 
-完成剩余 8 文档（03-kernel-selftests 至 10-formal-verification），实施测试工程标准，进行代码级验证。
-
----
-
-## 4. agentrt-linux 专属扩展
-
-### 4.1 Agent 行为契约测试
-
-```c
-// 测试 Agent 通过 SDK 调用系统能力的契约
-static void test_agent_cognition_contract(struct kunit *test) {
-    struct agent_handle *agent = airy_cognition_client_create();
-    KUNIT_ASSERT_NOT_ERR_OR_NULL(test, agent);
-    
-    struct cognition_response *resp = airy_cognition_process(agent, "hello");
-    KUNIT_EXPECT_EQ(test, AIRY_EOK, resp->status);
-    KUNIT_EXPECT_NOT_NULL(test, resp->output);
-    
-    airy_cognition_client_destroy(agent);
-}
-```
-
-### 4.2 模糊测试扩展
-
-基于 syzkaller 扩展 AgentsIPC 协议模糊测试：
-- 128B 消息头的字段边界模糊
-- 5 种 payload 类型的语义模糊
-- Agent SDK 接口的输入边界模糊
-
-### 4.3 形式化验证（seL4 风格）
-
-关键路径采用形式化验证：
-- MicroCoreRT 调度算法：TLA+ 时序逻辑验证
-- AgentsIPC 协议：模型检查（SPIN/nuXmv）
-- MemoryRovol 记忆演化：定理证明（Coq/Isabelle）
-
-### 4.4 测试覆盖率门槛
-
-| 模块 | 最低覆盖率 | 关键路径 |
-|------|-----------|---------|
-| kernel | 90% | 100%（调度/内存/IPC） |
-| security | 95% | 100%（capability/LSM） |
-| memory | 90% | 100%（CXL/PMEM） |
-| cognition | 85% | 100%（CoreLoopThree） |
-| 其他 | 80% | 90% |
+- `03-kernel-selftests.md`：`lib/test_*` 内核自检
+- `04-dynamic-analysis.md`：动态分析（KASAN/KFENCE/UBSAN/KCSAN/lockdep）
+- `05-static-analysis.md`：静态分析（Sparse/Smatch/Coccinelle）
+- `06-coverage-metrics.md`：覆盖度量（KCOV/gcov）+ 覆盖率门槛
+- `07-ftrace-selftest.md`：ftrace 启动自检
+- `08-agent-contract-testing.md`：agentrt-linux 专属 Agent 行为契约测试
+- `09-fuzz-testing.md`：模糊测试（syzkaller + 扩展）
+- `10-formal-verification.md`：形式化验证（seL4 风格 + TLA+）
 
 ---
 
-## 5. 五维原则映射
+## 4. Airymax Unify Design 映射
 
-| 原则 | 在本模块的体现 |
-|------|---------------|
-| **E-8 可测试性** | 多层测试体系确保可测试 |
-| **A-4 完美主义** | 覆盖率门槛 + 形式化验证 |
-| **E-1 安全内生** | 动态分析强制 + 安全测试 |
-| **S-1 反馈闭环** | 测试失败即 CI 反馈 |
-| **IRON-9 v2 同源且部分代码共享** | Agent 契约测试与 agentrt 互操作 |
+本目录与 Airymax Unify Design 五模块（A-UEF/A-ULP/A-UCS/A-ULS/A-IPC）的关系详见 [AirymaxOS 总览](../README.md) §5。测试体系主要承载 **sched_tac 调度测试**（A-ULS 调度）、**IPC 零拷贝测试**（A-IPC）、**[SC] 头文件逐字节校验**（IRON-9 v3 [SC] 层），其余模块为辅助关系。
+
+| Unify 模块 | 关系 | 在本目录的体现 |
+|-----------|------|--------------|
+| **A-UEF** | **核心** | A-UEF 错误码 / Fault 码空间的 KUnit 契约测试；[SC] `error.h` 双端逐字节校验 |
+| **A-ULP** | 辅助 | A-ULP 128B 日志记录格式的 KUnit 测试；[SC] `log_types.h` 双端逐字节校验 |
+| **A-UCS** | 辅助 | A-UCS 配置加载与 RCU 热重载的 KUnit 测试；`airy_defconfig` 锁定五大选型的回归测试 |
+| **A-ULS** | **核心** | sched_tac 调度测试——验证 Agent 8 态生命周期与 Linux 进程状态的映射；纯 C LSM 钩子注册与 capability 缓存测试；Micro-Supervisor 冷酷执法 + Macro-Supervisor 温情裁决的双层测试 |
+| **A-IPC** | **核心** | IPC 零拷贝测试——验证 `IORING_OP_URING_CMD` fastpath 性能（~160ns SLA）、Ring 生命周期解耦、离线缓存校验、Reconciliation 三原则 |
+
+### 4.1 Unify Design 权威源引用
+
+- A-UEF 总纲：[../10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) §4
+- A-ULP 总纲：[../10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) §5
+- A-ULS 总纲：[../10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) §7
+- A-IPC 总纲：[../10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) §8
+- [SC] 契约校验：[../30-interfaces/08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) + [../30-interfaces/09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md)
 
 ---
 
-## 6. 相关文档
+## 5. 相关文档
 
-- `50-engineering-standards/06-toolchain-and-automation.md`（7 层验证）
-- `50-engineering-standards/01-coding-standards.md`（错误处理强制）
-- `110-security/README.md`（安全测试）
-- `20-modules/08-tests-linux.md`（tests-linux 子仓设计）
+- [AirymaxOS 总览](../README.md)：v1.0 技术选型声明 + 20 子目录索引
+- [架构设计层](../10-architecture/README.md)：Unify Design 总纲 + IRON-9 v3 四层模型
+- [10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md)：Airymax Unify Design 总纲（SSoT）
+- [10-architecture/06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md)：IRON-9 v3 四层模型（SSoT）
+- [20-modules/08-tests-linux.md](../20-modules/08-tests-linux.md)：tests-linux 子仓设计
+- [30-interfaces/08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md)：A-UEF [SC] error.h 契约
+- [30-interfaces/09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md)：A-ULP [SC] log_types.h 契约
+- [30-interfaces/10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md)：sched_tac [SC] sched.h 契约
+- [50-engineering-standards/09-ssot-registry.md](../50-engineering-standards/09-ssot-registry.md)：SSoT v2 单一权威源注册表
+- [70-build-system/03-ci-cd-pipeline.md](../70-build-system/03-ci-cd-pipeline.md)：CI/CD 流水线（`sc-dual-ci.yml` + `ssot-validate.yml`）
+- [110-security/README.md](../110-security/README.md)：安全测试（纯 C LSM + capability）
+- [170-performance/README.md](../170-performance/README.md)：性能工程（IPC fastpath SLA）
 
 ---
 
-## 7. 参考材料
+## 6. 参考材料
 
 - Linux 6.6 `lib/kunit/`（KUnit 框架）
-- Linux 6.6 `tools/testing/selftests/`（kselftest）
+- Linux 6.6 `tools/testing/selftests/`（kselftest，含 `sched/` 子目录）
 - Linux 6.6 `Documentation/dev-tools/testing-overview.rst`（测试工具全景）
 - Linux 6.6 `lib/test_*.c`（内核自检样本）
-- seL4 项目（形式化验证参考）
+- seL4 项目（形式化验证参考，capDL / l4v 工具链）
 
 ---
 
-> **文档结束** | README + 01 + 02
+## 7. 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| 0.1.1 | 2026-07-13 | 初始版本，README + 01 + 02 文档奠基，确立 KUnit/kselftest 核心机制 |
+| v1.0 | 2026-07-17 | 升级为 v1.0：新增sched_tac / IORING_OP_URING_CMD / 纯 C LSM / alloc_pages + mmap / IRON-9 v3 四层模型五大技术选型声明（测试体系作为验证守护者）；新增 Airymax Unify Design 映射（sched_tac 调度测试 + IPC 零拷贝测试 + [SC] 逐字节校验为核心）；文档索引对齐实际目录文件 |
+
+---
+
+> **文档结束** | agentrt-linux 测试体系设计 v1.0 | 维护者：开源极境工程与规范委员会 | "From data intelligence emerges."

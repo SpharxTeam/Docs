@@ -30,7 +30,7 @@ agentrt-linux（AirymaxOS）RPM 打包设计旨在为发行版构建提供可重
 
 ### 1.3 术语规范
 
-本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 主流 Linux 发行版/主流 Linux 发行版 字样。RPM 包与 agentrt 之间属于 IRON-9 v2 [IND] 完全独立层。
+本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 主流 Linux 发行版/主流 Linux 发行版 字样。RPM 包与 agentrt 之间属于 IRON-9 v3 [IND] 完全独立层。
 
 ### 1.4 RPM 包分类矩阵
 
@@ -148,7 +148,7 @@ airymaxos-base (虚拟组)
 Name:           airymaxos-kernel
 Version:        %{airy_version}
 Release:        %{airy_release}%{?dist}
-Summary:        agentrt-linux (AirymaxOS) Linux 6.6 kernel with 方案 C-Prime
+Summary:        agentrt-linux (AirymaxOS) Linux 6.6 kernel with sched_tac
 License:        GPL-2.0-only OR AGPL-3.0-or-later
 URL:            https://github.com/spharx/agentrt-linux
 Source0:        airymaxos-kernel-%{version}.tar.gz
@@ -164,8 +164,8 @@ ExclusiveArch:  x86_64 aarch64 riscv64
 
 %description
 The agentrt-linux (AirymaxOS) kernel package contains the Linux 6.6 kernel
-with 方案 C-Prime (SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS mapping) user-space
-scheduler. This enables the AIRY_SCHED_AGENT scheduling strategy for Agent workloads.
+with sched_tac (SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS mapping) user-space
+scheduler. This enables the stc_agent scheduling strategy for Agent workloads.
 
 %package core
 Summary:        agentrt-linux kernel core (vmlinuz + initramfs)
@@ -193,7 +193,7 @@ Requires:       airymaxos-kernel-core = %{version}-%{release}
 %prep
 %setup -q -n airymaxos-kernel-%{version}
 
-# 应用方案 C-Prime 内核支持补丁（暴露 SCHED_DEADLINE/SCHED_FIFO 调度类属性）
+# 应用sched_tac 内核支持补丁（暴露 SCHED_DEADLINE/SCHED_FIFO 调度类属性）
 %patch0 -p1 -b .sched_cprime
 %patch1 -p1 -b .sched_agent
 
@@ -289,8 +289,8 @@ install -m 644 airymaxos-kernel-load-bpf.service \
 %changelog
 * Wed Jul 09 2026 SPHARX <dev@spharx.com> - 1.0.1-1
 - Initial agentrt-linux (AirymaxOS) 1.0.1 release
-- 应用方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）
-- Add AIRY_SCHED_AGENT user-space scheduler with Q16.16 vtime
+- 应用sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）
+- Add stc_agent user-space scheduler with Q16.16 vtime
 - Add MemoryRovol L1-L4 tiered memory with CXL/PMEM support
 ```
 
@@ -328,7 +328,7 @@ ExclusiveArch:  x86_64 aarch64
 %description
 The cogn_d daemon provides LLM inference proxy for agentrt-linux (AirymaxOS).
 Features include multi-provider routing, token caching, billing, and
-AIRY_SCHED_AGENT-aware task scheduling.
+stc_agent-aware task scheduling.
 
 %prep
 %setup -q -n airymaxos-services-%{version}
@@ -676,7 +676,7 @@ out_err:
 
 ---
 
-## 10. IRON-9 v2 同源映射
+## 10. IRON-9 v3 同源映射
 
 | 组件 | agentrt-linux（[IND]） | agentrt（[IND]） |
 |------|--------------------------|------------------|

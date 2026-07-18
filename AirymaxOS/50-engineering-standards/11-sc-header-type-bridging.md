@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §4 + [06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md)\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.1（UEF [SC] 设计）+ §6.2.1 C-04（[SC] 头文件数量不一致修正）
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.1（A-UEF [SC] 设计）+ §6.2.1 C-04（[SC] 头文件数量不一致修正）
 
 ---
 
@@ -13,7 +13,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **单一权威源声明**：本文件是 **[SC] 三路类型桥接规范** 的唯一权威源。三路类型桥接模型（`#ifdef __KERNEL__` / `#ifdef __linux__` / `#else`）、`uapi_compat.h` 设计、物理宿主 `kernel/include/airymax/uapi_compat.h`、CI 三路编译校验均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义 [SC] 头文件跨环境编译兼容策略。
 >
-> 技术选型声明：整体遵循 Unify Design：方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ IORING_OP_URING_CMD + registered buffer + mmap（不使用 page flipping）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> 技术选型声明：整体遵循 Unify Design：sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ IORING_OP_URING_CMD + registered buffer + mmap（不使用 page flipping）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
@@ -254,12 +254,12 @@ _Static_assert(offsetof(struct airy_log_record, timestamp_ns) == 8, "ts offset")
 
 | [SC] 头文件 | 用途 | 使用类型 |
 |------------|------|---------|
-| `error.h` | UEF 错误码 | `airy_s32`（返回码） |
-| `log_types.h` | ULPS 日志类型 | `airy_u32/u16/u64`（记录字段） |
-| `ipc.h` | UIPF IPC 协议 | `airy_u32/u64`（消息头） |
-| `sched.h` | USV 调度扩展 | `airy_u32/u64`（调度参数） |
-| `config.h` | UCF 配置 | `airy_u32`（配置常量） |
-| `superv.h` | USV 监管 | `airy_u32`（Fault 码） |
+| `error.h` | A-UEF 错误码 | `airy_s32`（返回码） |
+| `log_types.h` | A-ULP 日志类型 | `airy_u32/u16/u64`（记录字段） |
+| `ipc.h` | A-IPC IPC 协议 | `airy_u32/u64`（消息头） |
+| `sched.h` | A-ULS 调度扩展 | `airy_u32/u64`（调度参数） |
+| `config.h` | A-UCS 配置 | `airy_u32`（配置常量） |
+| `superv.h` | A-ULS 监管 | `airy_u32`（Fault 码） |
 | `cap.h` | Capability | `airy_u32/u64`（cap_id/badge） |
 | `ring.h` | Ring Buffer | `airy_u64`（head/tail 索引） |
 | `uapi_compat.h` | 类型桥接 | （本文件） |
@@ -372,10 +372,10 @@ jobs:
 
 ## §6 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) §4 —— UEF [SC] 共享契约
+- [10-unify-design.md](../10-architecture/10-unify-design.md) §4 —— A-UEF [SC] 共享契约
 - [06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md) —— IRON-9 v3 [SC]/[SS]/[IND] 三层模型
-- [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— UEF [SC] error.h 契约（使用 uapi_compat.h）
-- [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) —— ULPS [SC] log_types.h 契约
+- [08-sc-error-contract.md](../30-interfaces/08-sc-error-contract.md) —— A-UEF [SC] error.h 契约（使用 uapi_compat.h）
+- [09-sc-log-types-contract.md](../30-interfaces/09-sc-log-types-contract.md) —— A-ULP [SC] log_types.h 契约
 - [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) §2 —— [DSL] 降级块（不依赖 uapi_compat.h）
 - [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.1 / §6.2.1 C-04 —— 设计依据
 

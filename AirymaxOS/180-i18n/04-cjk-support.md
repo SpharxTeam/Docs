@@ -30,7 +30,7 @@ agentrt-linux（AirymaxOS）CJK 支持设计旨在为中文、日文、韩文用
 
 ### 1.3 术语规范
 
-本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 主流 Linux 发行版/主流 Linux 发行版 字样。CJK 编码契约在 agentrt 与 agentrt-linux 之间属于 IRON-9 v2 [SC] 共享契约层。
+本设计严格遵守 agentrt-linux 术语规范：agentrt（用户态）称为**微核心**（micro-core），agentrt-linux（OS 发行版）称为**微内核**（micro-kernel）。所有外部 Linux 发行版统一表述为"主流 Linux 发行版"，禁止使用 主流 Linux 发行版/主流 Linux 发行版 字样。CJK 编码契约在 agentrt 与 agentrt-linux 之间属于 IRON-9 v3 [SC] 共享契约层。
 
 ### 1.4 CJK 字符范围矩阵
 
@@ -647,7 +647,7 @@ CJK 子系统错误码纳入 agentrt-linux 统一错误码体系：
 
 ---
 
-## 10. IRON-9 v2 同源映射
+## 10. IRON-9 v3 同源映射
 
 | 组件 | agentrt-linux（[SC]） | agentrt（[SC]） | 共享 |
 |------|------------------------|------------------|------|

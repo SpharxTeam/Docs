@@ -7,7 +7,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：agentrt `daemons`（用户态 SoC 适配器）+ Linux 6.6 `drivers/base/platform.c`（platform_bus_type 实现）\
 > **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则\
-> **核心约束**：IRON-9 v2 同源且部分代码共享——platform 总线语义与上游一致，SoC 设备适配扩展在用户态
+> **核心约束**：IRON-9 v3 同源且部分代码共享——platform 总线语义与上游一致，SoC 设备适配扩展在用户态
 
 ---
 
@@ -476,15 +476,15 @@ platform 总线在 agentrt-linux 用户态（agentrt）中的同源映射：
 | `module_platform_driver` | `airy_module_agent_driver` | 消除 daemon 注册样板 |
 | sysfs `/sys/bus/platform/` | `agentrt-fs` `/agents/` | 用户态枚举 Agent 拓扑 |
 
-### 9.1 IRON-9 v2 同源且部分代码共享的实践
+### 9.1 IRON-9 v3 同源且部分代码共享的实践
 
 - **同源**：用户态 `airy_bus_type` 的匹配逻辑与内核 `platform_match` 在语义上一致——都先尝试精确匹配（OF/SDK 接口），再回退到名称匹配
 - **独立**：AgentsIPC 是用户态 IPC，不依赖内核 uevent；内核态 platform driver 不依赖 daemon 存在
-- **解耦验证**：删除 `agentrt/daemon/` 后内核 platform driver 仍可正常 probe 硬件；删除内核 platform driver 后 daemon 仍可运行（但失去硬件加速）——这是 IRON-9 v2 同源且部分代码共享的可验证标准
+- **解耦验证**：删除 `agentrt/daemon/` 后内核 platform driver 仍可正常 probe 硬件；删除内核 platform driver 后 daemon 仍可运行（但失去硬件加速）——这是 IRON-9 v3 同源且部分代码共享的可验证标准
 
-### 9.2 IRON-9 v2 三层共享模型
+### 9.2 IRON-9 v3 四层共享模型
 
-IRON-9 v2 将 agentrt daemons 平台设备访问与 agentrt-linux 内核 platform driver 的协作划分为三层。与通用 device model 一致，platform driver 以 [IND] 完全独立层为主——`drivers/base/platform.c` 是内核基石，agentrt 不进入内核共享其实现；[SC] 共享契约层仅间接依赖任务描述符的 agent_id 字段用于 Agent 平台设备匹配：
+IRON-9 v3 将 agentrt daemons 平台设备访问与 agentrt-linux 内核 platform driver 的协作划分为三层。与通用 device model 一致，platform driver 以 [IND] 完全独立层为主——`drivers/base/platform.c` 是内核基石，agentrt 不进入内核共享其实现；[SC] 共享契约层仅间接依赖任务描述符的 agent_id 字段用于 Agent 平台设备匹配：
 
 | 层次 | 共享程度 | platform driver 内容 |
 |------|---------|---------------------|
@@ -497,7 +497,7 @@ IRON-9 v2 将 agentrt daemons 平台设备访问与 agentrt-linux 内核 platfor
 platform driver 无直接 [SC] 共享头文件——`drivers/base/platform.c` 是内核私有实现，agentrt 不跨态共享其数据结构。间接依赖 `include/airymax/sched.h` 中的任务描述符 `agent_id` 字段，用于将 Agent 实例与内核平台设备匹配。以下为间接 [SC] 依赖节选：
 
 ```c
-/* include/airymax/sched.h —— IRON-9 v2 [SC] 间接依赖（节选）
+/* include/airymax/sched.h —— IRON-9 v3 [SC] 间接依赖（节选）
  * SSoT struct airy_task_desc 物理宿主见 120-cross-project-code-sharing.md §2.6。
  * agent_id 为 [SS] 语义层扩展字段（Agent 实例 ↔ 内核平台设备匹配键），
  * 不在 [SC] struct 中定义，由 platform_driver 匹配逻辑维护。 */
@@ -1248,4 +1248,4 @@ int device_property_read_string(const struct device *dev, const char *propname,
 
 ---
 
-> **文档结束** | agentrt-linux 驱动模型 60 模块第二篇 | IRON-9 v2 同源且部分代码共享 | Linux 6.6 内核基线
+> **文档结束** | agentrt-linux 驱动模型 60 模块第二篇 | IRON-9 v3 同源且部分代码共享 | Linux 6.6 内核基线

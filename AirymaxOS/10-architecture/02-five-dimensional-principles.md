@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-06\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **原则来源**：[00-architectural-principles.md](../../AirymaxRT/00-architectural-principles.md)
+> **原则来源**：[00-architectural-principles.md](../../AirymaxRT/10-architecture/00-architectural-principles.md)
 
 ---
 
@@ -135,7 +135,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 
 | 落地子仓/模块 | 极简边界 | 不负责 |
 |---------------|----------|--------|
-| kernel 调度子系统 | EEVDF 调度器 + sched_ext（SCHED_AGENT） | 业务逻辑调度、任务编排 |
+| kernel 调度子系统 | EEVDF 调度器 + sched_tac（SCHED_DEADLINE/SCHED_FIFO） | 业务逻辑调度、任务编排 |
 | kernel IPC 子系统 | io_uring 零拷贝消息传递 | 消息内容解析、路由决策 |
 | kernel 内存管理 | MGLRU（多代 LRU）+ 基本内存分配 | 数据结构管理、对象生命周期 |
 | kernel 时间服务 | 时钟、定时器、事件 | 超时策略、重试逻辑 |
@@ -195,7 +195,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 
 | 落地子仓/模块 | 策略维度 | 可选实现 |
 |---------------|----------|----------|
-| kernel sched_ext | 调度策略 | SCHED_AGENT（eBPF 用户态调度器）+ EEVDF 默认调度 |
+| kernel sched_tac | 调度策略 | stc_* 策略（用户态调度器）+ EEVDF 默认调度 |
 | kernel eBPF kfunc | 内核扩展策略 | dynamic pointer + kfunc 注册的运行时策略 |
 | cognition 规划策略 | 任务规划 | 分层规划、反应式规划、反思式规划、ML 规划 |
 | cognition 协同策略 | 模型协同 | 双模型协同、多数投票、加权融合、外部仲裁 |
@@ -382,7 +382,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 | 文档体系 | 位置 | 内容 |
 |----------|------|------|
 | docs/AirymaxOS/ | agentrt-linux 设计文档 | 19 模块三层体系（核心设计层 + 工程标准与实施层 + 延伸层，~85 文档） |
-| docs/AirymaxRT/00-architectural-principles.md | 架构原则 | 五维正交 24 原则 |
+| docs/AirymaxRT/10-architecture/00-architectural-principles.md | 架构原则 | 五维正交 24 原则 |
 | 50-engineering-standards/10-coding-style/ | 编码规范 | C / Rust / 安全编码规范文件 |
 | Doxygen 注释 | 代码内文档 | 每个公共 API 的契约注释 |
 | ADR | 架构决策记录 | [05-adrs.md](05-adrs.md)（14 个 ADR） |
@@ -413,12 +413,31 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 
 **核心要点**：用最少的接口提供最大的价值。复杂性不是能力的证明，而是设计的失败。
 
+#### 6.1.1 设计哲学根基：简约是对复杂事物精髓的深度挖掘
+
+Airymax 将乔布斯与艾夫的设计哲学确立为 A-1 简约至上原则的哲学根基：
+
+> "为什么我们认为简单就是美？因为就产品实体而言，我们必须获得掌控感。只要在复杂中建立秩序，就可以找到方法使产品听令于你。简约不仅仅是一种视觉风格或形式上的极简主义，也不仅仅是摒弃杂乱、去繁就简后的状态。简约是对复杂事物的精髓进行深度挖掘和精准提炼的结果。要做到真正的简约，就必须做到真正的深入。例如，如果为了达到看不到一颗螺丝的目标，结果却做出一个极为烦琐的产品，反倒违背了初心。更好的方法是深入'简约'的核心，了解与之有关的一切，了解简约的产品是如何生产出来的。只有深入了解一个产品的本质和精髓，才能真正去芜存菁。"——史蒂夫·乔布斯
+
+**与 Airymax 工程思想的契合**：
+
+| 乔布斯哲学要素 | Airymax 工程落地 |
+|---------------|-----------------|
+| "在复杂中建立秩序" | 微内核设计思想——在 Linux 30 年复杂性中建立 seL4 minimality 秩序 |
+| "对复杂事物的精髓进行深度挖掘和精准提炼" | IRON-9 v3 [SC] 共享契约层——从全量代码中提炼 10 个头文件作为精髓 |
+| "必须做到真正的深入" | 机制与策略分离——深入理解机制后才能正确分离策略 |
+| "了解简约的产品是如何生产出来的" | SSoT 单一权威源——每个技术点只有一个权威定义，深入了解后才能提炼 |
+| "去芜存菁" | sched_tac 替代 sched_ext——深入理解调度本质后，用原生调度类组合替代 BPF 调度器 |
+| "看不到一颗螺丝"的反面教训 | IRON-1 禁止新特性——不为表面简洁而引入隐藏复杂性 |
+
+**核心约束**：简约不是"少做"，而是"深入后做对"。Airymax 的每一个设计决策都必须经过深度挖掘——理解本质后去除非必要，保留精髓。这与 seL4 的 Liedtke minimality principle 形成"东西方简约哲学"的双重根基：Liedtke 从形式化验证角度论证最小化，乔布斯从人文体验角度论证简约美。
+
 **agentrt-linux 落地映射**：
 
 | 落地子仓/模块 | 简约维度 | 体现 |
 |---------------|----------|------|
 | kernel 微内核化改造 | 接口最小化 | Liedtke minimality 原则：可移到用户态的功能必须移到用户态 |
-| kernel 调度核心 | 内核职责最小化 | 仅保留 EEVDF + sched_ext + io_uring + 基本内存管理 |
+| kernel 调度核心 | 内核职责最小化 | 仅保留 EEVDF + sched_tac（SCHED_DEADLINE/SCHED_FIFO）+ io_uring + 基本内存管理 |
 | 全部 8 子仓 | 子仓数量精简 | 8 子仓按能力域清晰划分，无功能重叠 |
 | cognition 增量规划器 | 默认配置满足 80% 场景 | 智能默认值，高级配置可选 |
 | 全部 8 子仓 | 函数参数 ≤ 5 | 超过 3 个参数使用结构体封装 |
@@ -553,7 +572,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 - [微内核策略](03-microkernel-strategy.md)：微内核化改造策略
 - [工程基线](04-engineering-baseline.md)：agentrt-linux 工程基线
 - [架构决策记录](05-adrs.md)：14 个核心 ADR
-- [架构原则](../../AirymaxRT/00-architectural-principles.md)：五维正交 24 原则的完整定义
+- [架构原则](../../AirymaxRT/10-architecture/00-architectural-principles.md)：五维正交 24 原则的完整定义
 
 ---
 
@@ -564,9 +583,9 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 | 0.1.1 | 2026-07-06 | 初始版本（含 24 原则 + agentrt-linux 落地映射） |
 | 1.0.1 | 2027-XX-XX | 首个开发版本（与代码实现同步验证） |
 
-## 10. IRON-9 v2 三层共享模型
+## 10. IRON-9 v3 四层共享模型
 
-> **OS-ARCH-003**： 五维正交 24 原则在 agentrt（用户态）与 agentrt-linux（内核态）间遵循 IRON-9 v2 三层共享模型——S 系统观 / K 内核观 / C 认知观 / E 工程观 / A 设计美学跨态同源，认知观契约经 [SC] 共享，内核观实现经 [IND] 各自独立，禁止为五维原则引入双端适配别名层。
+> **OS-ARCH-003**： 五维正交 24 原则在 agentrt（用户态）与 agentrt-linux（内核态）间遵循 IRON-9 v3 四层共享模型——S 系统观 / K 内核观 / C 认知观 / E 工程观 / A 设计美学跨态同源，认知观契约经 [SC] 共享，内核观实现经 [IND] 各自独立，禁止为五维原则引入双端适配别名层。
 
 ### 10.1 三层模型概览
 
@@ -574,13 +593,13 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 |------|---------|-------------|
 | **[SC] 共享契约层** | 完全共享代码 | C 认知观（`cognition_types.h` 三阶段）+ E 工程观编码契约经 6 头文件共享，物理宿主 `kernel/include/airymax/`，子仓经 `-I` 引用 |
 | **[SS] 语义同源层** | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | S 系统观 + A 设计美学在 agentrt 5 维模块 ↔ agentrt-linux 8 子仓的同源映射 |
-| **[IND] 完全独立层** | 完全独立 | K 内核观（agentrt-linux sched_ext / eBPF 独有）+ E 工程观实现（CMake vs Kbuild） |
+| **[IND] 完全独立层** | 完全独立 | K 内核观（agentrt-linux sched_tac 独有）+ E 工程观实现（CMake vs Kbuild） |
 
 ### 10.2 [SC] 共享契约层——10 个头文件在五维原则中的角色
 
 | 头文件 | 对应维度 | 在五维原则中的角色 | 消费方 |
 |--------|---------|-------------------|--------|
-| `sched.h` | S 系统观 | magic 0x41475453 'AGTS' + SCHED_EXT=7（禁用 SCHED_AGENT 宏）+ MAC_MAX_AGENTS=1024 | kernel / cognition |
+| `sched.h` | S 系统观 | magic 0x41475453 'AGTS' + 复用 Linux 6.6 原生 SCHED_DEADLINE/SCHED_FIFO/EEVDF（禁用 SCHED_AGENT 宏）+ MAC_MAX_AGENTS=1024 | kernel / cognition |
 | `ipc.h` | S 系统观 | magic 0x41524531 'ARE1' + 128B 消息头（`struct airy_ipc_msg_hdr`）契约 | kernel / services |
 | `syscalls.h` | K 接口契约 | 12 核心 + 12 预留 = 24 槽位（8 IPC 原语 + 3 控制原语 + 1 通知原语） | kernel / cognition |
 | `security_types.h` | E 工程观 | 41 capability + 252 LSM 钩子 + Cupolas blob 布局 | kernel / security |
@@ -591,8 +610,8 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 
 | 维度 | agentrt 实现（用户态） | agentrt-linux 实现（内核态） | 同源 API |
 |------|----------------------|---------------------------|---------|
-| S 系统观 | MicroCoreRT atoms + AgentsIPC | kernel + services | sched_ext 17 项 + io_uring 8 项 |
-| K 内核观 | 用户态 priority queue | sched_ext + BPF struct_ops | 调度类编号同源（SCHED_EXT=7） |
+| S 系统观 | MicroCoreRT atoms + AgentsIPC | kernel + services | sched_tac 17 项 + io_uring 8 项 |
+| K 内核观 | 用户态 priority queue | sched_tac 用户态函数表 | 复用 Linux 6.6 原生调度类 |
 | C 认知观 | CoreLoopThree 协程 | cognition kthread + EEVDF | 三阶段枚举 + Thinkdual |
 | E 工程观 | CMake + libc/POSIX | Kbuild + Kconfig + Linux 6.6 | Linux 6.6 内核基线 编码契约 |
 | A 设计美学 | 五维正交命名 | 五维正交命名 | 24 原则命名同源 |
@@ -601,7 +620,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 
 | 独立项 | agentrt 实现 | agentrt-linux 实现 | 独立原因 |
 |--------|-------------|-------------------|---------|
-| 调度原语 | 用户态协程 + event loop | BPF struct_ops + sched_ext | 跨平台约束（macOS/Windows 无 sched_ext） |
+| 调度原语 | 用户态协程 + event loop | sched_tac 用户态调度策略 | 跨平台约束（macOS/Windows 无 sched_ext） |
 | IPC 传输 | POSIX MQ + mmap | io_uring + SQPOLL（用户态-内核态）；kfifo + wait_event_interruptible（kthread 间） | 内核态性能与 kthread 通信约束 |
 | 构建工具链 | CMake | Kbuild + Kconfig | 工具链差异 |
 | 平台适配 | libc/POSIX 跨三平台 | Linux 6.6 内核 API | IRON-1 二进制兼容约束 |
@@ -619,7 +638,7 @@ graph TB
 
     subgraph "agentrt-linux 内核态（五维原则落地）"
         OS_S[S 系统观<br/>kernel + services]
-        OS_K[K 内核观<br/>sched_ext + eBPF]
+        OS_K[K 内核观<br/>sched_tac + io_uring]
         OS_C[C 认知观<br/>cognition kthread]
         OS_E[E 工程观<br/>Kbuild + Linux 6.6]
     end

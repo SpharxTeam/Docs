@@ -1,26 +1,26 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # IPC 数据面自治三原则
-> **文档定位**：UIPF（统一进程间通信体系）数据面自治三大设计原则的唯一权威定义\
+> **文档定位**：A-IPC（统一进程间通信体系）数据面自治三大设计原则的唯一权威定义\
 > **文档版本**：v1.0\
 > **最后更新**：2026-07-17\
 > **上级文档**：[Airymax Unify Design 总纲](../10-architecture/10-unify-design.md) §8\
-> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5（UIPF 设计）
+> **设计依据**：[15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5（A-IPC 设计）
 
 ---
 
 ## SSoT 声明
 
-> **单一权威源声明**：本文件是 **IPC 数据面自治三原则** 的唯一权威源。Ring 生命周期解耦原则、离线缓存校验原则、Reconciliation 原则的定义、触发条件、与 UIPF 模块的关系均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义数据面自治策略。
+> **单一权威源声明**：本文件是 **IPC 数据面自治三原则** 的唯一权威源。Ring 生命周期解耦原则、离线缓存校验原则、Reconciliation 原则的定义、触发条件、与 A-IPC 模块的关系均以本文件为唯一权威定义。其余文档只能引用本文件，禁止重新定义数据面自治策略。
 >
-> 技术选型声明：IPC 采用 **IORING_OP_URING_CMD + registered buffer + mmap**（**不使用 page flipping**）。整体遵循 Unify Design：方案 C-Prime（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
+> 技术选型声明：IPC 采用 **IORING_OP_URING_CMD + registered buffer + mmap**（**不使用 page flipping**）。整体遵循 Unify Design：sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射，不使用 sched_ext）+ 纯 C LSM（不使用 BPF LSM）+ alloc_pages + mmap（不使用 DMA 一致性内存）。[SC] 共享契约头文件的物理宿主为 `kernel/include/airymax/`。
 
 ---
 
 ## 文档信息卡
 
-- **目标读者**：UIPF 模块开发者、可靠性工程师、Agent 开发者
-- **前置知识**：理解 [10-unify-design.md](../10-architecture/10-unify-design.md) §8 UIPF 模块、[02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) IPC 协议、[07-ipc-fastpath.md](../30-interfaces/07-ipc-fastpath.md) IPC fastpath
+- **目标读者**：A-IPC 模块开发者、可靠性工程师、Agent 开发者
+- **前置知识**：理解 [10-unify-design.md](../10-architecture/10-unify-design.md) §8 A-IPC 模块、[02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) IPC 协议、[07-ipc-fastpath.md](../30-interfaces/07-ipc-fastpath.md) IPC fastpath
 - **预计阅读时间**：25 分钟
 - **核心概念**：数据面自治、Ring 生命周期解耦、离线缓存校验、Reconciliation、控制面/数据面分离
 - **复杂度标识**：高级
@@ -132,7 +132,7 @@ static void airy_ipc_ring_release(struct airy_ipc_ring *ring)
 
 ### 3.2 两层校验模型
 
-UIPF 的 Capability 校验采用分层设计，fastpath 仅查缓存，不依赖控制面：
+A-IPC 的 Capability 校验采用分层设计，fastpath 仅查缓存，不依赖控制面：
 
 | 层级 | 校验方式 | 控制面依赖 | 延迟 |
 |------|---------|-----------|------|
@@ -271,14 +271,14 @@ Reconciliation 不要求强一致，而是**最终一致**：
 
 ---
 
-## §5 与 UIPF 模块的关系：数据面自治是 UIPF 的核心韧性设计
+## §5 与 A-IPC 模块的关系：数据面自治是 A-IPC 的核心韧性设计
 
-### 5.1 在 UIPF 中的定位
+### 5.1 在 A-IPC 中的定位
 
-数据面自治三原则是 UIPF 模块的核心韧性设计，对应 [10-unify-design.md](../10-architecture/10-unify-design.md) §3 的"韧性"技术领域：
+数据面自治三原则是 A-IPC 模块的核心韧性设计，对应 [10-unify-design.md](../10-architecture/10-unify-design.md) §3 的"韧性"技术领域：
 
 ```
-UIPF 模块组成
+A-IPC 模块组成
 ├── IPC 协议（[02-ipc-protocol.md]）
 ├── IPC fastpath（[07-ipc-fastpath.md]）
 ├── io_uring_cmd 语义映射
@@ -301,11 +301,11 @@ UIPF 模块组成
 
 三原则缺一不可：仅有解耦无缓存校验，消息无法传递；有缓存校验无 Reconciliation，恢复后状态分裂。
 
-### 5.3 与 USV 模块的协作
+### 5.3 与 A-ULS 模块的协作
 
-数据面自治与 USV 模块的 Macro-Supervisor 协作：
+数据面自治与 A-ULS 模块的 Macro-Supervisor 协作：
 
-| USV 组件 | 与数据面自治的关系 |
+| A-ULS 组件 | 与数据面自治的关系 |
 |---------|-----------------|
 | Micro-Supervisor | 检测异常时冻结 Ring（`ring->frozen=true`），触发降级 |
 | Macro-Supervisor | 控制面主体，崩溃后由数据面自治保证消息不丢 |
@@ -347,13 +347,13 @@ UIPF 模块组成
 
 ## §7 相关文档
 
-- [10-unify-design.md](../10-architecture/10-unify-design.md) §8 —— UIPF 模块总纲
+- [10-unify-design.md](../10-architecture/10-unify-design.md) §8 —— A-IPC 模块总纲
 - [02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) —— IPC 协议契约
 - [07-ipc-fastpath.md](../30-interfaces/07-ipc-fastpath.md) —— IPC fastpath 设计
 - [05-ipc-control-plane-reconciliation.md](05-ipc-control-plane-reconciliation.md) —— Reconciliation 详细设计
 - [03-capability-model.md](03-capability-model.md) —— Capability 模型（缓存基础）
 - [11-degraded-survival-layer.md](../10-architecture/11-degraded-survival-layer.md) —— [DSL] 降级（Reconciliation 超时）
-- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5 —— UIPF 设计依据
+- [15-comprehensive-correction-plan.md](../../docs-closed/agentrt-linux/00-reviews/_review_v2.2/15-comprehensive-correction-plan.md) §4.2.5 —— A-IPC 设计依据
 
 ---
 
@@ -361,7 +361,7 @@ UIPF 模块组成
 
 | 版本 | 日期 | 变更内容 |
 |------|------|---------|
-| v1.0 | 2026-07-17 | 初始版本：IPC 数据面自治三原则；原则一 Ring 生命周期解耦（内核 alloc_pages + 引用计数独立）；原则二离线缓存校验（radix tree + TTL + 两层校验）；原则三 Reconciliation（最终一致 + reconciliation log）；与 UIPF/USV/[DSL] 模块协作关系 |
+| v1.0 | 2026-07-17 | 初始版本：IPC 数据面自治三原则；原则一 Ring 生命周期解耦（内核 alloc_pages + 引用计数独立）；原则二离线缓存校验（radix tree + TTL + 两层校验）；原则三 Reconciliation（最终一致 + reconciliation log）；与 A-IPC/A-ULS/[DSL] 模块协作关系 |
 
 ---
 

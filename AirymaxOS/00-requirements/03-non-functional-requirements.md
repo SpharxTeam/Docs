@@ -40,7 +40,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 - Agent 任务从提交到开始执行的调度延迟必须 < 100ms
 - 实时反馈场景（如工业控制、具身智能）必须 < 10ms
-- 调度延迟通过 EEVDF + 方案 C-Prime 用户态调度器保证
+- 调度延迟通过 EEVDF + sched_tac 用户态调度器保证
 - 延迟分布 P99 < 100ms，P99.9 < 200ms
 
 **验证方法**：
@@ -818,7 +818,7 @@ airy_active_sessions 1500
 - [业务需求分析](01-business-requirements.md)：Agent 工作负载与生态对齐
 - [功能需求分析](02-functional-requirements.md)：8 子仓功能矩阵与能力清单
 - [agentrt-linux 总览](../README.md)：agentrt-linux 整体设计
-- [Airymax 架构设计原则](../../AirymaxRT/00-architectural-principles.md)：五维正交 24 原则
+- [Airymax 架构设计原则](../../AirymaxRT/10-architecture/00-architectural-principles.md)：五维正交 24 原则
 
 ---
 

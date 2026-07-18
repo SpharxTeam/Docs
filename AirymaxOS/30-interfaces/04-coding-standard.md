@@ -55,13 +55,13 @@ agentrt-linux 全部公共符号使用统一命名空间前缀，与 agentrt 同
 
 ### 2.2 Daemon 二进制命名
 
-守护进程二进制遵循 `<service_name>_d` 命名约定（与 agentrt daemons 同源）；USV/ULPS/UCF 三大基础 daemon 使用语义全名（`macro_superv`/`logger_daemon`/`config_daemon`）。12 daemons 统一归属 `services/daemons/`，由 USV 统一生命周期管理：
+守护进程二进制遵循 `<service_name>_d` 命名约定（与 agentrt daemons 同源）；A-ULS/A-ULP/A-UCS 三大基础 daemon 使用语义全名（`macro_superv`/`logger_daemon`/`config_daemon`）。12 daemons 统一归属 `services/daemons/`，由 A-ULS 统一生命周期管理：
 
 | Daemon 二进制 | 职责 | 所属子仓 |
 |--------------|------|---------|
-| `macro_superv` | 主监管守护进程（USV） | services/daemons/ |
-| `logger_daemon` | 日志消费守护进程（ULPS） | services/daemons/ |
-| `config_daemon` | 配置管理守护进程（UCF） | services/daemons/ |
+| `macro_superv` | 主监管守护进程（A-ULS） | services/daemons/ |
+| `logger_daemon` | 日志消费守护进程（A-ULP） | services/daemons/ |
+| `config_daemon` | 配置管理守护进程（A-UCS） | services/daemons/ |
 | `gateway_d` | 网关守护进程 | services/daemons/ |
 | `sched_d` | 调度守护进程 | services/daemons/ |
 | `vfs_d` | VFS 用户态服务守护进程 | services/daemons/ |
@@ -95,7 +95,7 @@ agentrt-linux 全部公共符号使用统一命名空间前缀，与 agentrt 同
 | `airy_syscalls.h` | 系统调用接口 |
 | `include/airymax/error.h` | 错误码 SSoT 定义（[SC] 补充共享头文件） |
 | `daemon_errors.h` | daemon 错误码 |
-| `airy_user_sched.policy` | 用户态调度器策略（方案 C-Prime） |
+| `airy_user_sched.policy` | 用户态调度器策略（sched_tac） |
 | `io_uring_ipc.c` | io_uring IPC 实现 |
 
 ### 2.5 类型命名
@@ -480,9 +480,9 @@ AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
 
 ---
 
-## 10. IRON-9 v2 三层共享模型
+## 10. IRON-9 v3 四层共享模型
 
-> **OS-IFACE-007**： 编码规范遵循 IRON-9 v2 三层共享模型——命名前缀（`airy_`）、类型命名（`snake_case_t`）、Doxygen 注释、错误码（`AIRY_E*`）通过 [SC] 共享契约层头文件同源；构建系统与缩进风格各自独立。禁止在 agentrt 与 agentrt-linux 之间引入风格转换工具或 lint 规则映射层。
+> **OS-IFACE-007**： 编码规范遵循 IRON-9 v3 四层共享模型——命名前缀（`airy_`）、类型命名（`snake_case_t`）、Doxygen 注释、错误码（`AIRY_E*`）通过 [SC] 共享契约层头文件同源；构建系统与缩进风格各自独立。禁止在 agentrt 与 agentrt-linux 之间引入风格转换工具或 lint 规则映射层。
 
 ### 10.1 三层模型概览
 

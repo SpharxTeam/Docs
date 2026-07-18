@@ -5,10 +5,10 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：0.1.1\
 > **最后更新**：2026-07-09\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：Linux 6.6 系统调用兼容性（IRON-9 v2 [SC] 共享契约层，IPC 消息头与 agentrt 共享）\
+> **同源映射**：Linux 6.6 系统调用兼容性（IRON-9 v3 [SC] 共享契约层，IPC 消息头与 agentrt 共享）\
 > **理论根基**：Linux 6.6 UABI 永不破坏哲学 + seL4 接口契约 XML 思想 + Airymax K-2 接口契约化 + C-2 增量演化\
 > **SPDX-License-Identifier**：AGPL-3.0-or-later OR Apache-2.0\
-> **IRON-9 v2 层次**：[SC] 共享契约层（IPC 消息头 `struct airy_ipc_msg_hdr` 与 agentrt 共享）+ [IND] 完全独立层（版本协商逻辑为 agentrt-linux 专属）
+> **IRON-9 v3 层次**：[SC] 共享契约层（IPC 消息头 `struct airy_ipc_msg_hdr` 与 agentrt 共享）+ [IND] 完全独立层（版本协商逻辑为 agentrt-linux 专属）
 
 ---
 
@@ -29,7 +29,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - [13. 数据流图](#13-数据流图)
 - [14. 安全考量](#14-安全考量)
 - [15. 性能约束](#15-性能约束)
-- [16. IRON-9 v2 同源映射](#16-iron-9-v2-同源映射)
+- [16. IRON-9 v3 同源映射](#16-iron-9-v2-同源映射)
 - [17. SDK 集成](#17-sdk-集成)
 - [18. 使用示例](#18-使用示例)
 - [19. 测试策略](#19-测试策略)
@@ -727,7 +727,7 @@ int airy_ipc_set_min_version(uint16_t min_ver)
 
 ---
 
-## 16. IRON-9 v2 同源映射
+## 16. IRON-9 v3 同源映射
 
 | 层次 | 共享内容 | 本文档使用 |
 |------|---------|-----------|
@@ -868,7 +868,7 @@ make test
 ## 20. 合规声明
 
 - **OS-IRON-001 遵守**：已发布的 IPC 协议版本永久支持，永不破坏
-- **IRON-9 v2 遵守**：IPC 消息头 [SC] 共享契约层与 agentrt 共享，版本协商逻辑 [IND] 独立
+- **IRON-9 v3 遵守**：IPC 消息头 [SC] 共享契约层与 agentrt 共享，版本协商逻辑 [IND] 独立
 - **seL4 唯一来源遵守**：接口契约 XML 思想借鉴 seL4，不引入其他微内核
 - **Linux 6.6 基线遵守**：UABI 永不破坏哲学对齐 Linux 6.6
 
@@ -885,4 +885,4 @@ make test
 
 ---
 
-> **文档结束** | AgentsIPC 版本协商实现方案 | IRON-9 v2 [SC] + [IND]
+> **文档结束** | AgentsIPC 版本协商实现方案 | IRON-9 v3 [SC] + [IND]

@@ -6,8 +6,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **最后更新**：2026-07-13\
 > **上级文档**：[工程标准规范手册](../00-engineering-standards-handbook.md)\
 > **编号权威**：[09-ssot-registry.md §3](../09-ssot-registry.md)\
-> **关联规范**：IRON-9 v2 工程铁律（工程标准规范） / [工程基线](../../10-architecture/04-engineering-baseline.md) / [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md)\
-> **SSoT 依赖声明**：本子目录的规则编号登记于 [09-ssot-registry.md §3](../09-ssot-registry.md)。集成标准引用 IRON-9 v2 三层模型（[SC]/[SS]/[IND]）作为同源集成的权威框架。
+> **关联规范**：IRON-9 v3 工程铁律（工程标准规范） / [工程基线](../../10-architecture/04-engineering-baseline.md) / [五维正交 24 原则](../../10-architecture/02-five-dimensional-principles.md)\
+> **SSoT 依赖声明**：本子目录的规则编号登记于 [09-ssot-registry.md §3](../09-ssot-registry.md)。集成标准引用 IRON-9 v3 四层模型（[SC]/[SS]/[IND]）作为同源集成的权威框架。
 
 ---
 
@@ -102,12 +102,12 @@ graph TD
 
 ### 3.1 集成原则
 
-agentrt-linux（AirymaxOS）与 agentrt 的集成是基于 IRON-9 v2 工程铁律的同源深度集成。核心原则：
+agentrt-linux（AirymaxOS）与 agentrt 的集成是基于 IRON-9 v3 工程铁律的同源深度集成。核心原则：
 
 | 原则 | 说明 |
 |------|------|
 | **无适配层** | agentrt 在 agentrt-linux 上运行时无需任何适配层，天然契合 |
-| **同源优先** | 优先使用同源语义的特性（如 SCHED_AGENT 调度），但可选使用 |
+| **同源优先** | 优先使用同源语义的特性（如 sched_tac 调度策略），但可选使用 |
 | **契约共享** | [SC] 层代码完全共享，通过 `include/airymax/` 头文件库同步 |
 | **独立演进** | 两者独立演进，通过契约层保持兼容 |
 | **双向验证** | 契约层变更须经 agentrt + agentrt-linux 两端 CI 双向校验 |
@@ -124,7 +124,7 @@ graph TD
         RT5[CoreLoopThree 认知]
     end
 
-    subgraph "IRON-9 v2 三层"
+    subgraph "IRON-9 v3 四层"
         SC["[SC] 共享契约层<br/>include/airymax/ 头文件库<br/>完全共享"]
         SS["[SS] 语义同源层<br/>API 同源，实现独立<br/>共享语义不共享代码"]
         IND["[IND] 完全独立层<br/>各自独立<br/>无共享代码"]
@@ -177,7 +177,7 @@ graph TD
 | 集成点 | 所属层级 | 说明 |
 |--------|----------|------|
 | 10 个共享头文件 | [SC] | `syscalls.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h` |
-| 调度语义集成 | [SS] | MicroCoreRT ↔ SCHED_AGENT 调度语义 |
+| 调度语义集成 | [SS] | MicroCoreRT ↔ stc_agent 调度语义 |
 | IPC 语义集成 | [SS] | AgentsIPC ↔ io_uring IPC 128B 消息头 |
 | 安全语义集成 | [SS] | Cupolas ↔ capability + LSM 安全模型 |
 | ABI 兼容性 | [SC] + [SS] | 系统调用 ABI 稳定性保证 |
@@ -417,7 +417,7 @@ graph TD
 | **层次纪律** | 集成必须遵循内核层→服务层→应用层三层架构，禁止越级集成 | S-2 层次分解原则 |
 | **契约前置** | 所有集成必须先定义接口契约，后实施集成 | K-2 接口契约化原则 |
 | **安全审查** | 所有第三方模块集成前必须通过安全审查 | E-1 安全内生原则 |
-| **同源对齐** | 所有与 agentrt 的集成必须遵循 IRON-9 v2 三层架构 | IRON-9 v2 |
+| **同源对齐** | 所有与 agentrt 的集成必须遵循 IRON-9 v3 四层架构 | IRON-9 v3 |
 | **兼容性保证** | 集成不得破坏与 主流 Linux 发行版标准的兼容性 | 兼容性声明 |
 | **测试覆盖** | 所有集成点必须有对应的集成测试 | E-8 可测试性原则 |
 
@@ -443,7 +443,7 @@ graph TD
 - [五维正交原则](../../10-architecture/02-five-dimensional-principles.md)：五维正交 24 原则
 - [工程基线](../../10-architecture/04-engineering-baseline.md)：工程基线定义
 - [接口设计](../../30-interfaces/README.md)：系统调用与 IPC 接口
-- IRON-9 v2 工程铁律
+- IRON-9 v3 工程铁律
 
 ---
 
@@ -452,5 +452,5 @@ graph TD
 | 版本 | 日期 | 变更 |
 |------|------|------|
 | 0.1.1 | 2026-07-07 | 初始版本（三层集成架构 + agentrt 集成概述 + 主流 Linux 发行版标准四层兼容 + 生态合作规范 + 6 类第三方模块集成标准 + 集成测试标准） |
-| 0.1.1 | 2026-07-13 | OLK-6.6 ES-OLK-1~13 + seL4 设计模式 + IRON-9 v2 三层共享模型集成边界验证 |
+| 0.1.1 | 2026-07-13 | OLK-6.6 ES-OLK-1~13 + seL4 设计模式 + IRON-9 v3 四层共享模型集成边界验证 |
 | 1.0.1 | 2027-XX-XX | 首个开发版本（与代码实现同步验证） |

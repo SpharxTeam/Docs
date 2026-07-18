@@ -5,7 +5,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 > **文档版本**：1.0.1\
 > **最后更新**：2026-07-06\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
-> **同源映射**：docs/AirymaxRT/00-architectural-principles.md`（五维正交 24 原则）+ Linux 6.6 内核基线 `Documentation/process/development-process.rst\
+> **同源映射**：docs/AirymaxRT/10-architecture/00-architectural-principles.md`（五维正交 24 原则）+ Linux 6.6 内核基线 `Documentation/process/development-process.rst\
 > **理论根基**：Linux 6.6 内核基线工程思想 + Airymax 体系并行论（Multibody Cybernetic Intelligent System）\
 > **SSoT 声明**：本卷为 agentrt-linux **开发流程规则**的唯一权威来源（SSoT）。本卷规则编号的目标体系为 **OS-STD-PROD-NNN**（4 段前缀，PROD = Process/Development）。本卷正文中现存的历史编号 **OS-STD-101~234**（与 06-toolchain-and-automation.md 共用 OS-STD-101~158 段导致 30+ 项语义冲突）将迁移为 OS-STD-PROD-101~234，迁移映射见 §0.2。历史编号与 OS-STD-PROD 编号**并存且等价**，规则效力以本卷正文为准。\
 > **合并说明（2026-07-12）**：本卷已合并原 `06-toolchain-and-automation.md`（→ Part II）、`08-compliance-checklist.md`（→ Part III）、`110-spdx-license-compliance.md`（→ Part IV）。原文件已物理删除，所有引用须指向本卷对应 Part。
@@ -1442,7 +1442,7 @@ agentrt-linux 的工具链配置以代码形式存放在仓库中，确保所有
 
 | 级别 | 含义 | 阻断 CI | 处理时限 |
 |------|------|---------|----------|
-| **P0-CRITICAL** | 阻断性违规（禁词/缺失 Copyright/IRON-9 v2 不一致） | 是 | 立即修复 |
+| **P0-CRITICAL** | 阻断性违规（禁词/缺失 Copyright/IRON-9 v3 不一致） | 是 | 立即修复 |
 | **P1-MAJOR** | 重大违规（链接断裂/行数超标/缺少 Mermaid） | 是 | 24h 内修复 |
 | **P2-MINOR** | 轻微违规（格式不规范/注释缺失） | ❌ 否 | 下次迭代修复 |
 
@@ -1505,9 +1505,9 @@ echo "OK: 0 forbidden words in open-source docs"
 **适用范围**：`docs/AirymaxOS/` 全部 `.md` 文件。
 **例外**：内部参考文档允许引用（但路径引用不应泄露到开源文档）。
 
-### 2.3 IRON-9 v2 三层标注检查
+### 2.3 IRON-9 v3 四层标注检查
 
-**规则 OS-CHK-DOC-03**：深度修订的子系统设计文档必须包含 IRON-9 v2 三层共享模型标注。
+**规则 OS-CHK-DOC-03**：深度修订的子系统设计文档必须包含 IRON-9 v3 四层共享模型标注。
 
 **检查项**：
 
@@ -1548,7 +1548,7 @@ done
 | 2 | `include/airymax/memory_types.h` | 记忆 | MemoryRovol L1-L4 + GFP 掩码 + PMEM 接口 |
 | 3 | `include/airymax/security_types.h` | 安全 | capability 41 ID + LSM 252 ID + Cupolas blob + 派生模型 + Vault + 裁决 4 值 |
 | 4 | `include/airymax/cognition_types.h` | 认知 | CoreLoopThree 阶段 + Thinkdual 模式 + LLM 推理阶段 + 上下文 + 能效 + GPU/NPU |
-| 5 | `include/airymax/sched.h` | 调度 | SCHED_EXT 约束 + 任务描述符（'AGTS'）+ vtime + 优先级 + SLICE_DFL |
+| 5 | `include/airymax/sched.h` | 调度 | sched_tac 调度类约束 + 任务描述符（'AGTS'）+ vtime + 优先级 + SLICE_DFL |
 | 6 | `include/airymax/ipc.h` | IPC | IPC magic（'ARE1'）+ 128B 消息头 + SQE/CQE 操作码 |
 
 **检查方法**：grep `include/airymax/` 引用，核对是否与上述 10 个头文件一致。
@@ -1869,7 +1869,7 @@ echo "OK: seL4 scope check passed (only ES-SEL4-1~5 architecture layer allowed)"
 
 ---
 
-## 4. IRON-9 v2 三层共享模型检查
+## 4. IRON-9 v3 四层共享模型检查
 
 ### 4.1 [SC] 共享契约层一致性检查
 
@@ -1933,7 +1933,7 @@ grep -rn "#include.*airymaxos/" agentrt/ 2>/dev/null
 | accel 接入模式一致性 | 核对 `drivers/accel/` 框架模式 | 每次加速器驱动新增 |
 | drm_sched 模式一致性 | 核对 `drm_sched_main` 主循环结构 | 每次调度器修改 |
 | Kconfig 风格一致性 | 核对 `CONFIG_` 前缀命名 | 每次新增配置项 |
-| 调度类编号不冲突 | 核对 `SCHED_AGENT` 编号 | 每次调度类变更 |
+| 调度类编号不冲突 | 核对 sched_tac 调度策略名（非内核调度类编号） | 每次调度类变更 |
 
 ### 4.5 seL4 MAINTAINERS 文件范式检查
 
@@ -1978,7 +1978,7 @@ done
 
 # TODO: R-03 落地后，以下检查将激活：
 # 1. 验证 MAINTAINERS 文件与 seL4 TSC 模式的差异（确认采用 Linux 范式）
-# 2. 验证 H: 字段（同源 agentrt 模块）的 IRON-9 v2 一致性
+# 2. 验证 H: 字段（同源 agentrt 模块）的 IRON-9 v3 一致性
 # 3. 验证 V: 字段（版本基线声明）的完整性
 
 echo "OK: MAINTAINERS file paradigm check passed (Linux style, not seL4 TSC)"
@@ -2026,7 +2026,7 @@ stages:
 scripts/
 ├── check-copyright.sh           # OS-CHK-DOC-01 Copyright 头部检查
 ├── check-forbidden-words.sh     # OS-CHK-DOC-02 禁词检查
-├── check-iron9-v2.sh            # OS-CHK-DOC-03 IRON-9 v2 标注检查
+├── check-iron9-v2.sh            # OS-CHK-DOC-03 IRON-9 v3 标注检查
 ├── check-sc-consistency.sh      # OS-CHK-DOC-04 [SC] 头文件清单检查
 ├── check-links.sh               # OS-CHK-DOC-05 链接完整性检查
 ├── check-line-count.sh          # OS-CHK-DOC-06 文档行数检查
@@ -2076,7 +2076,7 @@ scripts/
 |------|----------|----------|--------|
 | OS-CHK-DOC-01 | Copyright 头部 | check-copyright.sh | P0 |
 | OS-CHK-DOC-02 | 禁词检查（开源文档） | check-forbidden-words.sh | P0 |
-| OS-CHK-DOC-03 | IRON-9 v2 三层标注 | check-iron9-v2.sh | P0 |
+| OS-CHK-DOC-03 | IRON-9 v3 四层标注 | check-iron9-v2.sh | P0 |
 | OS-CHK-DOC-04 | [SC] 头文件清单一致性 | check-sc-consistency.sh | P0 |
 | OS-CHK-DOC-05 | 链接完整性 | check-links.sh | P1 |
 | OS-CHK-DOC-06 | 文档行数 | check-line-count.sh | P1 |
@@ -2096,7 +2096,7 @@ scripts/
 | OS-CHK-CODE-05 | CMake 构建系统 | check-cmake.sh | P1 |
 | OS-CHK-CODE-08 | seL4 借鉴范围合规检查（R-04，1.0.1 增补，仅限 ES-SEL4-1~5 架构层） | check-sel4-scope.sh | P2 |
 
-### 6.3 IRON-9 v2 规范编号（OS-CHK-IRON-*）
+### 6.3 IRON-9 v3 规范编号（OS-CHK-IRON-*）
 
 | 编号 | 规则名称 | 检查脚本 | 优先级 |
 |------|----------|----------|--------|
@@ -2132,7 +2132,7 @@ scripts/
 |----------|------|------|
 | 禁词检查 | 每次提交 | git pre-commit hook + CI |
 | Copyright 检查 | 每次提交 | CI |
-| IRON-9 v2 标注检查 | 每次提交 | CI |
+| IRON-9 v3 标注检查 | 每次提交 | CI |
 | 链接完整性检查 | 每日 | 定时任务 + CI |
 | [SC] 一致性检查 | 每次提交 | CI（双向：agentrt + agentrt-linux） |
 | 主流发行版兼容性检查 | 每次内核基线升级 | 手动 + CI |
@@ -2276,7 +2276,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 用户态 → 内核态 | 用户态代码不链接内核态代码 | 通过 syscall / io_uring / AgentsIPC 消息通信，无代码级链接 |
 | [SC] 共享契约层 | 6 个 `include/airymax/*.h` 头文件 | 采用 `GPL-2.0-only WITH Linux-syscall-note`，因含 UAPI 定义；两端引用方式符合各自许可证 |
 
-### 2.2 IRON-9 v2 三层共享模型的许可证约束
+### 2.2 IRON-9 v3 四层共享模型的许可证约束
 
 | 层次 | 许可证策略 | 说明 |
 |------|-----------|------|
@@ -2615,14 +2615,14 @@ agentrt-linux CI 同时运行：
 | **K-2 接口契约化** | UAPI 头文件许可证采用 `Linux-syscall-note` 例外，明确接口契约的可引用边界 |
 | **E-7 文档即代码** | 许可证策略矩阵本身纳入版本控制，与代码同源审查 |
 | **A-4 完美主义** | 三套历史策略并存与两文档间许可证字符串不一致是"隐藏瑕疵"，本卷消解为统一的 5 类矩阵 |
-| **IRON-9 v2 同源且部分代码共享** | [SC] 共享契约层 10 个头文件的许可证遵循内核 UAPI 规范，与 agentrt 端引用方式兼容 |
+| **IRON-9 v3 同源且部分代码共享** | [SC] 共享契约层 10 个头文件的许可证遵循内核 UAPI 规范，与 agentrt 端引用方式兼容 |
 
 ---
 
 ## 10. 相关文档
 
 - [工程标准 README](README.md)：工程标准规范主索引与总纲
-- [00-engineering-standards-handbook.md](./00-engineering-standards-handbook.md)：SSoT 索引与 IRON-9 v2 三层共享模型
+- [00-engineering-standards-handbook.md](./00-engineering-standards-handbook.md)：SSoT 索引与 IRON-9 v3 四层共享模型
 - 本文档 Part III：规范符合性检查机制（STD-CODE-01 SPDX 检查）
 - [01-coding-standards.md](./01-coding-standards.md)：代码规范（SPDX 标签示例）
 - Linux 6.6 内核基线 `COPYING`（GPL-2.0 WITH Linux-syscall-note）为同源参考

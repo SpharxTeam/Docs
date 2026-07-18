@@ -1,121 +1,62 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
-# agentrt-linux（AirymaxOS）开发详细方案（路线图）
-> **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）开发详细方案的主索引与总纲\
-> **文档版本**：0.1.1\
-> **最后更新**：2026-07-13\
-> **同源映射**：agentrt `0.1.1技术全面改进方案v3.0.md`（v4.2，三大支柱：奠基 + 29 仓拆分 + 生产就绪）\
-> **理论根基**：Linux 6.6 内核基线 + Airymax 五维正交 24 原则（体系并行论）
+# 开发路线图（Roadmap）
+> **文档定位**：agentrt-linux（AirymaxOS，极境智能体操作系统）开发详细方案的总索引与总纲——版本规划、里程碑、工时估算与验收标准\
+> **文档版本**：v1.0\
+> **最后更新**：2026-07-17\
+> **上级文档**：[AirymaxOS 总览](../README.md)
 
 ---
 
-## 1. 路线图定位
+## 1. 模块概述
 
-### 1.1 本模块在 agentrt-linux 文档体系中的位置
+`130-roadmap/` 是 AirymaxOS 文档体系中**开发时序维度的总纲**，承担四项核心职责：
 
-`130-roadmap/` 是 agentrt-linux 19 个文档模块中的第 13 个，定位为**开发详细方案的总索引**：
+1. **版本规划**：定义 agentrt-linux 的版本节奏（0.1.1 文档体系完成 → 1.0.1 内核/OS 实际开发），与同源的 agentrt 版本协同时序对齐。
+2. **里程碑编排**：将开发方案拆分为 9 个 Part（P0 七部分 + P1 两部分）与 M0-M8 共 9 个里程碑，明确关键路径与依赖关系。
+3. **资源估算**：对人力、工时、预算进行分解与缓冲管理（P0 约 2,400h + P1 约 350h ≈ 2,750h）。
+4. **验收标准**：为每个 Part / 里程碑定义验收标准与质量门禁，确保"可投产"可判定。
 
-- **50-engineering-standards/** 定义"代码该怎么写"——工程标准与规范
-- **130-roadmap/**（本模块）定义"什么时候写什么代码"——开发策略、里程碑与时间线
-
-工程标准是"语法"，路线图是"时序"。两者共同回答 agentrt-linux 从"文档体系仓库"演进到"可投产发行版"的完整路径。
-
-### 1.2 与 agentrt 0.1.1 / 1.0.1 的关系
-
-agentrt-linux 与 agentrt（AirymaxAgentRT，跨平台用户态运行时）**同源**：
-
-| 版本 | agentrt 范围 | agentrt-linux 范围 |
-|------|--------------|----------------|
-| 0.1.1 | 全部三大支柱（奠基 + 29 仓拆分 + 生产就绪，约 3,414.5h） | **文档体系完成**（需求 4 + 架构 6 + 模块 9 + 接口 5 + 数据流 5 + 工程标准 23 + P0 模块 22 + P1/P2 模块 39 + 路线图 7，共 ~122 文档；不含内核/OS 实施） |
-| 1.0.1 | 与 agentrt-linux 协同验证 | 内核和 OS 实际开发（本文档定义的 M0-M8 全部里程碑） |
-
-agentrt 在前（0.1.1 已完成奠基），agentrt-linux 在后（1.0.1 基于 agentrt 同源语义开发）。两端通过 MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree 同源 API 实现无适配层互操作。
-
-### 1.3 0.1.1 与 1.0.1 范围区分
-
-- **0.1.1 文档体系完成**：完成 `50-engineering-standards/` 全部 23 文档 + `130-roadmap/` 全部 7 文档 + `00-requirements/` + `10-architecture/` + `20-modules/` + `30-interfaces/` + `40-dataflows/` 五层核心设计文档（共 28 文档）+ P0 模块（`60-120`）各 3 文档（共 21 文档），合计 ~79 文档。0.1.1 完成**文档体系与设计草案**，**不要求内核/OS 实施**。
-- **1.0.1 实际开发**：完成 M0-M8 全部里程碑，19 模块 ~140 文档全部产出，工程标准全面实施，7 层自动化验证全部就位。
+路线图是"什么时候写什么代码"的总纲：`50-engineering-standards/` 定义"代码该怎么写"（语法），`130-roadmap/`（本模块）定义"什么时候写什么代码"（时序）。二者共同回答 agentrt-linux 从"文档体系仓库"演进到"可投产发行版"的完整路径。
 
 ---
 
-## 2. 三大开发支柱
+## 2. 技术选型声明
 
-agentrt-linux 开发方案由三大支柱构成，分别对应工程标准、架构设计、开发治理三类工作：
+agentrt-linux v1.0 在内核调度、IPC 传输、安全钩子、内存分配与同源代码共享五个维度做出**不可妥协**的技术选型。本目录所有路线图与里程碑规划必须以本声明为基线——任何里程碑的验收标准均须校验技术选型未被偏离。
 
-| 支柱 | 范围 | 0.1.1 | 1.0.1 |
-|------|------|-------|-------|
-| **工程标准与规范** | `50-engineering-standards/`（23 文档） | 文档体系完成 | 实施 |
-| **架构与模块设计** | `10-architecture/` + `20-modules/` + `60-driver-model/` + `70-build-system/` | README + 设计草案 | 实施 |
-| **开发流程与治理** | `120-development-process/`（9 文档）+ `50-engineering-standards/07` | README + 设计草案 | 实施 |
+| # | 技术维度 | 选定方案 | 明确不采用 | 选定理由 |
+|---|---------|---------|-----------|---------|
+| 1 | **内核调度** | **sched_tac**：复用 Linux 6.6 原生 `SCHED_DEADLINE` / `SCHED_FIFO` / `EEVDF` 调度类，通过 `nice` / `sched_setattr` / `sched_setaffinity` 注入 Agent 感知策略，**不定义新的调度类宏** | **不使用 sched_ext**（不引入 eBPF 调度器、不依赖 `SCHED_EXT=7`、不使用 SCHED_AGENT 宏） | 保留 Linux 6.6 主线调度器稳定性与可维护性，避免 sched_ext 实验性语义漂移，ABI 稳定 |
+| 2 | **IPC 零拷贝** | **IORING_OP_URING_CMD**：通过 io_uring 命令操作码实现内核↔用户态零拷贝传输，固定 buffer + registered ring 路径 | **不使用 page flipping**（不交换物理页、不破坏内存布局稳定性） | IORING_OP_URING_CMD 在 Linux 6.6 已稳定，避免 page flipping 引发的 DMA 映射复杂性与跨架构兼容问题 |
+| 3 | **安全钩子** | **纯 C LSM**：以纯 C 实现的 Linux Security Module（`airy_lsm`），通过 `security_hook_list` 注册 | **不使用 BPF LSM**（不依赖 BPF LSM 框架、不通过 eBPF 程序挂载安全钩子） | 纯 C LSM 保证安全策略的可审计性与形式化验证可行性，避免 BPF 验证器在安全关键路径的语义不确定性 |
+| 4 | **内存分配** | **alloc_pages + mmap**：通过 `alloc_pages` 分配物理页后 `vm_map_pages` / `remap_pfn_range` 映射到用户态地址空间 | **不使用 DMA 一致性内存**（不调用 `dma_alloc_coherent`、不依赖硬件一致性缓存） | 提供跨架构（x86/ARM/RISC-V）一致的内存语义，避免 DMA 一致性内存在不支持硬件一致性的平台上的兼容性问题 |
+| 5 | **同源代码共享** | **IRON-9 v3 四层模型**：[SC] 共享契约层 + [SS] 语义同源层 + [IND] 独立实现层 + [DSL] 降级生存层 | v2 三层模型（升级为 v3，新增 [DSL] 降级生存层） | [DSL] 降级生存层确保 [SC] 损坏时系统仍可降级运行，确保契约层多语言类型安全 |
 
-### 2.1 支柱间关系
-
-```mermaid
-graph LR
-    P1[工程标准与规范<br/>Part 1] --> P6[开发流程与治理<br/>Part 6]
-    P1 --> P2[架构与模块设计<br/>Part 2]
-    P2 --> P3[测试与质量<br/>Part 3]
-    P2 --> P4[可观测性与运维<br/>Part 4]
-    P2 --> P5[安全加固与合规<br/>Part 5]
-    P1 --> P7[路线图与里程碑<br/>Part 7]
-    P3 --> P7
-    P4 --> P7
-    P5 --> P7
-    P6 --> P7
-    P7 --> P8[应用生态与云原生<br/>Part 8]
-    P7 --> P9[兼容性与性能工程<br/>Part 9]
-    style P1 fill:#e8f5e9
-    style P2 fill:#e3f2fd
-    style P7 fill:#fff3e0
-```
-
-工程标准先行（Part 1），架构设计并行（Part 2），测试/可观测/安全/治理随后（Part 3-6），路线图收口（Part 7），应用生态与性能工程作为 P1 延伸（Part 8-9）。
+> 详细技术选型声明见上级文档 [AirymaxOS 总览](../README.md) §2 与 [`10-architecture/10-unify-design.md`](../10-architecture/10-unify-design.md) SSoT 声明。
 
 ---
 
-## 3. 9 部分开发方案概览
-
-agentrt-linux 开发方案拆分为 9 个 Part，按优先级分两层（P0 / P1）：
-
-| Part | 名称 | 优先级 | 依赖 | 工时 | 0.1.1 范围 |
-|------|------|--------|------|------|-----------|
-| Part 1 | 工程标准与规范体系建立 | P0 | 无 | 240h | 全部完成 |
-| Part 2 | 架构与模块设计完善 | P0 | 无 | 480h | README + 01 + 02 |
-| Part 3 | 测试与质量体系建立 | P0 | Part 1 + Part 2 | 320h | README + 01 + 02 |
-| Part 4 | 可观测性与运维体系 | P0 | Part 2 | 380h | README + 01 + 02 |
-| Part 5 | 安全加固与合规体系 | P0 | Part 2 | 320h | README + 01 + 02 |
-| Part 6 | 开发流程与治理 | P0 | Part 1 | 240h | README + 01 + 02 |
-| Part 7 | 路线图与里程碑 | P0 | Part 1-6 | 80h | 全部完成 |
-| Part 8 | 应用生态与云原生 | P1 | Part 2-5 | 200h | 仅 README |
-| Part 9 | 兼容性与性能工程 | P1 | Part 2-5 | 150h | 仅 README |
-
-### 3.1 优先级说明
-
-- **P0（必修）**：Part 1-7，覆盖工程标准、架构、测试、可观测、安全、治理、路线图。P0 是 agentrt-linux 1.0.1 可投产的前提。
-- **P1（延伸）**：Part 8-9，覆盖应用生态、云原生、兼容性、性能工程。P1 在 P0 完成后启动，可在 1.0.1 后期或 1.1.x 持续完善。
-
----
-
-## 4. 文档索引
+## 3. 文档索引
 
 `130-roadmap/` 由 7 个文档构成（含本 README）：
 
 ```
 130-roadmap/
-├── README.md                      # 本文件 — 主索引与总纲
-├── 01-development-strategy.md     # 开发策略与三大支柱详解
-├── 02-milestones-and-timeline.md  # 里程碑与时间线（含 Mermaid Gantt 图）
-├── 03-resource-estimation.md      # 资源估算（人力 / 工时 / 预算）
-├── 04-dependency-graph.md         # 依赖关系图（Part 间 / 模块间）
-├── 05-risk-mitigation.md          # 风险识别与缓解策略
-└── 06-acceptance-criteria.md      # 验收标准与质量门禁
+├── README.md                      # 本文件 — 路线图主索引与总纲（v1.0）
+├── 01-development-strategy.md     # 开发策略与三大支柱详解（v1.0）
+├── 02-milestones-and-timeline.md # 里程碑与时间线（含 Mermaid Gantt 图，v1.0）
+├── 03-resource-estimation.md     # 资源估算（人力 / 工时 / 预算，v1.0）
+├── 04-dependency-graph.md        # 依赖关系图（Part 间 / 模块间，v1.0）
+├── 05-risk-mitigation.md         # 风险识别与缓解策略（v1.0）
+└── 06-acceptance-criteria.md     # 验收标准与质量门禁（v1.0）
 ```
 
-### 4.1 各文档定位
+### 3.1 各文档定位
 
 | 文档 | 核心问题 | 主要产物 |
 |------|---------|---------|
-| README.md | 路线图全貌是什么？ | 9 Part 总览表 + 版本规划 + 工时汇总 |
+| README.md | 路线图全貌是什么？ | 9 Part 总览表 + 版本规划 + 工时汇总 + 技术选型声明 |
 | 01-development-strategy.md | 怎么开发？ | 三大支柱详解 + 9 Part 范围 + 开发原则 |
 | 02-milestones-and-timeline.md | 什么时候做完？ | M0-M8 里程碑 + Gantt 图 + 关键路径 |
 | 03-resource-estimation.md | 需要多少资源？ | 人力配置 + 工时分解 + 预算 |
@@ -123,173 +64,100 @@ agentrt-linux 开发方案拆分为 9 个 Part，按优先级分两层（P0 / P1
 | 05-risk-mitigation.md | 风险在哪？ | 风险登记册 + 缓解策略 + 应急预案 |
 | 06-acceptance-criteria.md | 怎么算完成？ | 每个 Part / 里程碑的验收标准 + 质量门禁 |
 
----
+### 3.2 三大开发支柱
 
-## 5. 版本规划
+| 支柱 | 范围 | 0.1.1 | 1.0.1 |
+|------|------|-------|-------|
+| **工程标准与规范** | `50-engineering-standards/`（23 文档） | 文档体系完成 | 实施 |
+| **架构与模块设计** | `10-architecture/` + `20-modules/` + `60-driver-model/` + `70-build-system/` | README + 设计草案 | 实施 |
+| **开发流程与治理** | `120-development-process/` + `50-engineering-standards/07` | README + 设计草案 | 实施 |
 
-### 5.1 双版本策略
+### 3.3 9 Part 开发方案概览
 
-agentrt-linux 采用"占位 → 开发"两阶段版本策略，与 agentrt 的版本节奏对齐：
+| Part | 名称 | 优先级 | 依赖 | 工时 |
+|------|------|--------|------|------|
+| Part 1 | 工程标准与规范体系建立 | P0 | 无 | 240h |
+| Part 2 | 架构与模块设计完善 | P0 | 无 | 480h |
+| Part 3 | 测试与质量体系建立 | P0 | Part 1 + Part 2 | 320h |
+| Part 4 | 可观测性与运维体系 | P0 | Part 2 | 380h |
+| Part 5 | 安全加固与合规体系 | P0 | Part 2 | 320h |
+| Part 6 | 开发流程与治理 | P0 | Part 1 | 240h |
+| Part 7 | 路线图与里程碑 | P0 | Part 1-6 | 80h |
+| Part 8 | 应用生态与云原生 | P1 | Part 2-5 | 200h |
+| Part 9 | 兼容性与性能工程 | P1 | Part 2-5 | 150h |
 
-| 版本 | agentrt-linux 范围 | agentrt 范围 | agentrt-linux 工时 |
-|------|----------------|--------------|----------------|
-| **0.1.1** | 文档体系完成（~79 文档：工程标准 23 + 架构 6 + 模块 9 + 接口 5 + 数据流 4 + P0 模块 21 + 路线图 7 + 根 README 等） | 全部三大支柱（奠基 + 29 仓拆分 + 生产就绪） | ~150h（文档编写） |
+### 3.4 版本规划
+
+| 版本 | agentrt-linux 范围 | agentrt 范围 | 工时 |
+|------|----------------|--------------|------|
+| **0.1.1** | 文档体系完成（~122 文档，不含内核/OS 实施） | 全部三大支柱（奠基 + 29 仓拆分 + 生产就绪） | ~150h |
 | **1.0.1** | 内核和 OS 实际开发（M0-M8 全部里程碑） | 与 agentrt-linux 协同验证 | ~2,750h |
 
-### 5.2 0.1.1 版本范围（文档体系完成）
-
-0.1.1 是 agentrt-linux 的"文档体系奠基版本"，目标是完成全部设计文档与工程标准框架（不含内核/OS 代码实施）：
-
-- 完成 `50-engineering-standards/` 全部 23 文档（工程标准框架，含 5 子目录，2026-07-13 SSoT 精简合并后）
-- 完成 `130-roadmap/` 全部 7 文档（路线图模块）
-- 完成 `00-requirements/` 4 文档 + `10-architecture/` 6 文档 + `20-modules/` 9 文档 + `30-interfaces/` 5 文档 + `40-dataflows/` 5 文档（五层核心设计文档 29 篇）
-- 完成 P0 模块（`60-120`）共 22 文档（README + 01 + 02，`110-security` 含 03-capability-model 共 4 篇）
-- 完成 P1/P2 模块（`140-190`）共 39 文档（140=8/150=6/160=6/170=7/180=6/190=6）
-- 合计 ~122 文档
-- **不要求内核/OS 代码实施**（实施在 1.0.1 版本）
-
-### 5.3 1.0.1 版本范围（开发）
-
-1.0.1 是 agentrt-linux 的"实际开发版本"，目标是完成可投产的智能体操作系统：
-
-- 完成 M0-M8 全部 9 个里程碑
-- 19 模块 ~140 文档全部产出
-- 工程标准全面实施（7 层自动化验证全部就位）
-- 8 子仓（kernel / services / security / memory / cognition / cloudnative / system / tests-linux）实际开发
-- 维护者制度与治理落地
-
 ---
 
-## 6. 总工时估算
+## 4. Airymax Unify Design 映射
 
-### 6.1 工时汇总
+Airymax Unify Design 五模块（A-UEF/A-ULP/A-UCS/A-ULS/A-IPC）在路线图中的里程碑分布如下。路线图是五模块落地时序的统一编排，确保五模块按依赖关系分阶段交付。
 
-| 优先级 | 范围 | 工时合计 | 工期 |
-|--------|------|---------|------|
-| P0 | Part 1-7（9 部分中前 7 部分） | ~2,060h + 340h 缓冲 = ~2,400h | 60-90 天 |
-| P1 | Part 8-9（应用生态 + 性能工程） | ~350h | 30-45 天 |
-| **总计** | **Part 1-9** | **~2,750h** | **~120 天** |
+| Unify 模块 | 全称 | 在路线图中的里程碑分布 | 主要交付 Part |
+|-----------|------|---------------------|--------------|
+| **A-UEF** | Unified Error and Fault Framework | Part 2 架构设计 → Part 3 测试 → Part 7 里程碑验收 | Part 2（认知循环设计）+ Part 3（行为契约测试） |
+| **A-ULP** | Unified Logging and Printk Subsystem | Part 2 日志数据流 → Part 4 可观测性 → Part 7 日志性能验收 | Part 4（Ring Buffer + Logger Daemon） |
+| **A-UCS** | Unified Configuration Subsystem | Part 1 工程标准（airy_defconfig） → Part 6 配置治理 | Part 1（SSoT）+ Part 6（配置热重载流程） |
+| **A-ULS** | Unified Lifecycle Supervision Framework | Part 2 监管器设计 → Part 5 安全加固 → Part 7 8 态生命周期验收 | Part 5（Micro/Macro-Supervisor） |
+| **A-IPC** | Unified Airymax IPC Fabric | Part 2 IPC 数据流 → Part 3 IPC 零拷贝测试 → Part 7 IPC 性能 SLO 验收 | Part 3（IPC fastpath 测试） |
 
-### 6.2 P0 工时分解
-
-| Part | 名称 | 工时 | 占 P0 比例 |
-|------|------|------|-----------|
-| Part 1 | 工程标准与规范体系建立 | 240h | 10.0% |
-| Part 2 | 架构与模块设计完善 | 480h | 20.0% |
-| Part 3 | 测试与质量体系建立 | 320h | 13.3% |
-| Part 4 | 可观测性与运维体系 | 380h | 15.8% |
-| Part 5 | 安全加固与合规体系 | 320h | 13.3% |
-| Part 6 | 开发流程与治理 | 240h | 10.0% |
-| Part 7 | 路线图与里程碑 | 80h | 3.3% |
-| 缓冲 | 管理与风险缓冲（约 14%） | 340h | 14.2% |
-| **P0 合计** | — | **~2,400h** | **100%** |
-
-### 6.3 缓冲说明
-
-340h 管理与风险缓冲（约占 P0 直接工时的 14%）用于：
-
-- 跨 Part 协调与集成调试
-- 0.1.1 → 1.0.1 范围变更引起的返工
-- 里程碑验收未通过的修复迭代
-- 与 agentrt 同源语义对齐的额外成本
-
-缓冲比例符合早期路线图规划标准（10%-20%），详见 `05-risk-mitigation.md`。
-
----
-
-## 7. 五维原则映射
-
-agentrt-linux 路线图是 Airymax 五维正交 24 原则在"开发时序"维度的具体落地：
-
-| 五维原则 | 在路线图中的体现 | 落地章节 |
-|---------|-----------------|---------|
-| **S-1 反馈闭环** | 每个里程碑验收即反馈闭环；P0 完成后反馈到 P1 计划 | 02 里程碑 + 06 验收标准 |
-| **S-2 层次分解** | 9 Part → 9 里程碑 → 子任务的三层分解 | 01 开发策略 |
-| **S-3 总体设计部** | 总维护者统筹 9 Part 优先级与依赖 | 01 §3 + 06 验收 |
-| **S-4 涌现性管理** | 渐进式里程碑 + 关键路径管理；抑制负面涌现（延期传染） | 02 关键路径 |
-| **K-1 内核极简** | Part 2 微内核化改造优先；内核职责最小化 | 01 §2.2 |
-| **K-2 接口契约化** | 4 层接口稳定性分级贯穿 Part 1-5 | 01 §5 |
-| **K-3 服务隔离** | Part 2 用户态服务化 + Part 5 capability 安全 | 01 §2.2 |
-| **E-1 安全内生** | Part 5 安全加固前置（与 Part 3/4 并行） | 02 里程碑 |
-| **E-6 错误可追溯** | 里程碑验收标准可追溯；regression 不可接受 | 06 验收标准 |
-| **E-7 文档即代码** | 路线图本身是 Markdown 即代码；与代码同源演进 | 本模块全部 |
-| **E-8 可测试性** | Part 3 测试体系依赖 Part 1+2 先行 | 02 依赖关系 |
-| **A-3 人文关怀** | 审查优先文化；里程碑工时含审查与缓冲 | 01 §5.4 |
-| **A-4 完美主义** | 关键路径管理；P0 不可妥协 | 02 §7 |
-
----
-
-## 8. 同源 agentrt 协同
-
-### 8.1 IRON-9 v2 同源且部分代码共享原则
-
-agentrt-linux 路线图与 agentrt 路线图遵循 **IRON-9 v2 同源且部分代码共享**原则：
-
-- **同源**：共享五维正交 24 原则作为顶层设计哲学；共享 17 类规则编号体系骨架（IRON/BAN/STD/ACC 等）；共享 E-7 文档即代码、E-6 错误可追溯等核心工程观。
-- **独立**：agentrt-linux 是 OS 发行版，承担内核态严肃性责任，路线图必须独立处理内核 ABI 稳定性、补丁生命周期、维护者层级制度等 agentrt 不涉及的领域。
-- **互操作**：agentrt 在 agentrt-linux 上运行时，两端通过同源 API（MicroCoreRT 调度、AgentsIPC 128B 消息头、Cupolas 安全模型）实现无适配层互操作。
-
-### 8.2 同源 API 映射
-
-| agentrt 概念 | agentrt-linux 对应 | 同源语义 |
-|--------------|----------------|----------|
-| MicroCoreRT（atoms/corekern） | kernel（AIRY_SCHED_AGENT 策略） | 调度语义同源 |
-| AgentsIPC（128B 消息头） | kernel IPC 子系统 | 消息头同源 |
-| Cupolas（安全穹顶） | security（capability + LSM） | 安全模型同源 |
-| MemoryRovol（记忆卷载） | memory（记忆子系统） | 记忆模型同源 |
-| CoreLoopThree（认知循环） | cognition（认知 kthread） | 循环模型同源 |
-
-### 8.3 版本协同时序
+### 4.1 五模块里程碑协同时序
 
 ```mermaid
 timeline
-    title agentrt-linux 与 agentrt 版本协同时序
-    0.1.1 阶段 : agentrt 完成奠基 + 29 仓拆分 + 生产就绪
-              : agentrt-linux 文档体系完成（~79 文档，不含内核/OS 实施）
-    1.0.1 阶段 : agentrt 与 agentrt-linux 协同验证
-              : agentrt-linux 完成 M0-M8 全部里程碑
-    1.1.x 阶段 : agentrt 在 agentrt-linux 上天然适配运行（无适配层）
+    title Airymax Unify Design 五模块在 M0-M8 里程碑中的交付时序
+    M0 奠基   : A-UCS 工程标准框架 + [SC] 10 头文件骨架
+    M1 架构   : A-UEF 认知循环设计 + A-IPC IPC 协议设计
+    M2 模块   : A-ULS 监管器设计 + A-ULP 日志数据流
+    M3 测试   : A-IPC IPC 零拷贝测试 + A-UEF 行为契约测试
+    M4 可观测 : A-ULP Ring Buffer + Logger Daemon
+    M5 安全   : A-ULS Micro-Supervisor（纯 C LSM）
+    M6 治理   : A-UCS 配置热重载 + A-ULS Macro-Supervisor
+    M7 验收   : 五模块性能 SLO 验收 + ABI 稳定性验收
+    M8 投产   : 五模块全链路协同验证
 ```
 
----
+### 4.2 同源 agentrt 协同
 
-## 9. 相关文档
-
-### 9.1 本模块内部文档
-
-- `01-development-strategy.md` — 开发策略与三大支柱详解
-- `02-milestones-and-timeline.md` — 里程碑与时间线（Mermaid Gantt 图）
-- `03-resource-estimation.md` — 资源估算（待编写）
-- `04-dependency-graph.md` — 依赖关系图（待编写）
-- `05-risk-mitigation.md` — 风险识别与缓解（待编写）
-- `06-acceptance-criteria.md` — 验收标准与质量门禁（待编写）
-
-### 9.2 同源 Airymax 文档
-
-- `docs/AirymaxRT/00-architectural-principles.md` — 五维正交 24 原则
-- IRON-9 v2 工程铁律 — 17 类规则编号体系（v28.0，含 IRON-9）
-- agentrt 工程改进方案 — agentrt 三大支柱方案（v4.2）
-
-### 9.3 agentrt-linux 设计文档
-
-- `50-engineering-standards/README.md` — 工程标准主框架（已完成）
-- `10-architecture/` — 系统架构设计
-- `20-modules/` — 8 子仓模块设计
-- `80-testing/` — 测试体系设计
-- `90-observability/` — 可观测性设计
-- `100-operations/` — 运维体系设计
-- `110-security/` — 安全加固设计
-- `120-development-process/` — 开发流程设计
+agentrt-linux 路线图与 agentrt 路线图遵循 **IRON-9 v3 四层模型**（[SC]/[SS]/[IND]/[DSL]）共享契约：两端通过 [SC] 共享 10 个头文件，[SS] 语义同源（MicroCoreRT / AgentsIPC / Cupolas / MemoryRovol / CoreLoopThree），[IND] 各自独立实现，[DSL] 降级生存块共享。
 
 ---
 
-## 10. 文档版本与维护
+## 5. 相关文档
 
-- **当前版本**: v1.0（2026-07-13）
-- **维护者**: 工程规范委员会（待成立，详见 50-engineering-standards/07-maintainers-and-governance.md）
-- **变更流程**: 任何路线图变更必须经过 RFC → 评审 → ACC 验收流程
-- **回顾周期**: 里程碑回顾（每 M 完成时）+ 季度路线图回顾 + 年度大版本
+### 5.1 上级与同层文档
+- [AirymaxOS 总览](../README.md) —— 文档体系顶层纲领（v1.0）
+- [10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) —— Airymax Unify Design 总纲（五模块 SSoT）
+- [10-architecture/06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md) —— IRON-9 v3 四层模型
+
+### 5.2 依赖模块文档
+- [50-engineering-standards/README.md](../50-engineering-standards/README.md) —— 工程标准主框架（Part 1）
+- [10-architecture/README.md](../10-architecture/README.md) —— 架构设计（Part 2）
+- [80-testing/README.md](../80-testing/README.md) —— 测试体系（Part 3）
+- [90-observability/README.md](../90-observability/README.md) —— 可观测性（Part 4）
+- [110-security/README.md](../110-security/README.md) —— 安全加固（Part 5）
+- [120-development-process/README.md](../120-development-process/README.md) —— 开发流程（Part 6）
+- [170-performance/README.md](../170-performance/README.md) —— 性能工程（Part 9，SLO 验收依据）
+
+### 5.3 同源 Airymax 文档
+- `docs/AirymaxRT/10-architecture/00-architectural-principles.md` —— 五维正交 24 原则
+- IRON-9 v3 工程铁律 —— 17 类规则编号体系
 
 ---
 
-> **文档结束** | 共 7 文档 | 0.1.1 版本 P0 优先完成 | 路线图是"什么时候写什么代码"的总纲
+## 6. 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| 0.1.1 | 2026-07-13 | 初始版本，建立 7 文档路线图模块 |
+| v1.0 | 2026-07-17 | 升级为 v1.0：新增sched_tac 技术选型声明（不使用 sched_ext）；IORING_OP_URING_CMD（不使用 page flipping）；纯 C LSM（不使用 BPF LSM）；alloc_pages + mmap（不使用 DMA 一致性内存）；IRON-9 v3 四层模型（新增 [DSL] 降级生存层）；新增 Airymax Unify Design 五模块里程碑分布映射 |
+
+---
+
+> **文档结束** | 路线图模块 v1.0 | 共 7 文档 | 维护者：开源极境工程与规范委员会 | 路线图是"什么时候写什么代码"的总纲
