@@ -1179,7 +1179,7 @@ agentrt-linux 实施版本基线锁定战略：
 
 | 层次               | 共享程度                               | ADR 分布                                                                                                                                                                                |
 | ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **\[SC] 共享契约层**  | 完全共享代码                             | ADR-004 capability（`security_types.h` 41 cap + 252 LSM）+ ADR-005 IPC（`ipc.h` magic 0x41524531 'ARE1' + 128B）+ ADR-006 认知（`cognition_types.h` 三阶段）+ ADR-007 记忆（`memory_types.h` L1-L4） |
+| **\[SC] 共享契约层**  | 完全共享代码                             | ADR-004 capability（`security_types.h` 41 cap + 250 LSM）+ ADR-005 IPC（`ipc.h` magic 0x41524531 'ARE1' + 128B）+ ADR-006 认知（`cognition_types.h` 三阶段）+ ADR-007 记忆（`memory_types.h` L1-L4） |
 | **\[SS] 语义同源层**  | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | ADR-003 8 子仓 ↔ agentrt 7 模块同源映射 + ADR-010 同源且部分代码共享                                                                                                                                   |
 | **\[IND] 完全独立层** | 完全独立                               | 构建系统（CMake vs Kbuild）+ 平台适配（libc / POSIX vs Linux 6.6）+ 形式化验证                                                                                                                         |
 | **\[DSL] 降级生存层** | \[SC] 头文件损坏时的最小可运行子集               | 每个 \[SC] 头文件底部含 `#ifdef AIRY_SC_FALLBACK` 降级块（38 POSIX 错误码 + printk 原生日志 + 最简 128B IPC + EEVDF 默认调度 + 仅 POSIX capability + 统一 Panic），自包含，不依赖 \[SC] 其他符号 |
@@ -1193,7 +1193,7 @@ agentrt-linux 实施版本基线锁定战略：
 | `ipc.h`             | ADR-005 | magic 0x41524531 'ARE1' + 128B 消息头（`struct airy_ipc_msg_hdr`）                    | kernel / services  |
 | `sched.h`           | ADR-010 | magic 0x41475453 'AGTS' + sched\_tac 调度参数（不使用 SCHED\_EXT / SCHED\_AGENT 宏）+ MAC\_MAX\_AGENTS=1024 | kernel / cognition |
 | `memory_types.h`    | ADR-007 | MemoryRovol L1-L4 + GFP 掩码 + PMEM 接口                                             | kernel / memory    |
-| `security_types.h`  | ADR-004 | 41 cap + 252 LSM + Cupolas blob + capability 派生                                  | kernel / security  |
+| `security_types.h`  | ADR-004 | 41 cap + 250 LSM + Cupolas blob + capability 派生                                  | kernel / security  |
 | `cognition_types.h` | ADR-006 | 三阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual                                     | kernel / cognition |
 | `syscalls.h`        | ADR-010 | Syscall 编号体系（v1.1: 4 核心 + 20 预留 = 24 槽位）                                              | kernel / cognition |
 | `uapi_compat.h`     | ADR-010 | 三路类型桥接（`__KERNEL__` / `__linux__` / `#else`）                                       | IRON-9 跨端          |

@@ -32,7 +32,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 3. **daemon 命名统一**：v1.1 存在 `macro_superv` / `logger_daemon` / `config_daemon` 与 `*_d` 混用问题，v2.0 统一为 12 个 `_d` 后缀。
 4. **[SC] 10 头文件清单**：v1.1 截断于 ipc.h 第 3 行，v2.0 完整列出 10 头文件的物理宿主、职责、magic、include 路径。
 5. **IRON-9 v3 落地**：新增 §6 详细说明 [SC]+[SS]+[IND]+[DSL] 四层在目录结构中的物理映射。
-6. **ALK 6.6 内核内部**：新增 §9 详述 Model A 完整 fork 的目录组织（arch/ + include/ + corekern/ + superv/ + ...）。
+6. **ALK 6.6 内核内部**：新增 §9 详述 Model A 完整 fork 的目录组织（arch/ + include/ + corekern/ + kernel/kernel/superv/ + ...）。
 7. **工程美学自评**：新增 §11 基于 5 条简约原则对目录结构进行自评，量化每条原则的达成度。
 
 ### 0.3 阅读对象
@@ -77,7 +77,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | seL4 原则 | agentrt-linux 目录映射 |
 |----------|----------------------|
-| 微内核只保留原子机制 | kernel/superv/ 只放 Micro-Supervisor（5 个 .c） |
+| 微内核只保留原子机制 | kernel/kernel/superv/ 只放 Micro-Supervisor（5 个 .c） |
 | 服务用户态化 | services/daemons/ 放 12 个 daemon |
 | 机制在内核，策略在用户态 | Micro-Supervisor（机制）+ Macro-Supervisor（策略） |
 | capability-based security | security/capability/ + security/airy_lsm/ |
@@ -545,7 +545,7 @@ kernel/
 │       ├── airy_struct_ops.c        # struct airy_struct_ops_value
 │       └── airy_bpf_probe.c         # 可观测性探针
 │
-├── superv/                           # ★ Micro-Supervisor 内核模块（5 个 .c）
+├── kernel/kernel/superv/                    # ★ Micro-Supervisor 内核模块（5 个 .c）
 │   ├── airy_superv_lsm.c            # DEFINE_LSM(airy) 注册 + LSM_ORDER_MUTABLE
 │   ├── airy_cap_check.c             # v1.1 slowpath LSM 钩子（C-S9 失败接管）
 │   ├── airy_ipc_freeze.c            # ring->frozen = true（smp_store_release）
@@ -790,7 +790,7 @@ security/
 ├── airy_lsm/                         # ★ 纯 C LSM 模块（DEFINE_LSM(airy)）
 │   ├── Kbuild
 │   ├── airy_lsm.c                   # LSM 注册（DEFINE_LSM(airy) + LSM_ORDER_MUTABLE）
-│   ├── airy_lsm_hooks.c             # 252 钩子实现
+│   ├── airy_lsm_hooks.c             # 250 钩子实现
 │   ├── airy_lsm_blob.c              # blob 管理（airy_cred_security 等）
 │   ├── airy_lsm_policy.c            # 策略加载
 │   └── airy_lsm.h
@@ -800,7 +800,7 @@ security/
 │   ├── airy_cap_init.c              # 初始化（agent_caps[1024] 静态数组 + 全局 Epoch）
 │   ├── airy_cap_array.c             # agent_caps[1024] 静态数组管理（v1.1 替代 radix_tree 派生树）
 │   ├── airy_cap_derive.c            # seL4 CNode 派生（Copy/Mint/Move/Mutate/Revoke/Delete/Rotate）
-│   ├── airy_cap_check.c             # slowpath 校验（fastpath C-S9 Badge 内联在 kernel/superv/airy_cap_check.c）
+│   ├── airy_cap_check.c             # slowpath 校验（fastpath C-S9 Badge 内联在 kernel/kernel/superv/airy_cap_check.c）
 │   ├── airy_cap_revoke.c            # 撤销（atomic_inc(&airy_cap_global_epoch) O(1) 立即生效）
 │   ├── airy_cap_rotate.c            # 轮换（Epoch 更新）
 │   └── airy_cap.h
@@ -1328,7 +1328,7 @@ sc-dual-ci:
 | 3 | `ipc.h` | A-IPC | `0x41524531` ('ARE1') | `kernel/include/uapi/linux/airymax/ipc.h` | IPC 消息头（128B `struct airy_ipc_msg_hdr`，11 字段，D-9 修复后 `__attribute__((aligned(64)))`（移除 packed），`_Static_assert(sizeof==128)` + `_Static_assert(offsetof(capability_badge)==40)`）+ SQE/CQE 操作码与标志位 + Ring 常量（DEF=256, MAX=32768） |
 | 4 | `sched.h` | A-ULS | `0x41475453` ('AGTS') | `kernel/include/uapi/linux/airymax/sched.h` | 任务描述符（magic/prio/_pad/vtime）+ `airy_vtime_decay()` inline + MAC_MAX_AGENTS=1024 + AIRY_SLICE_DFL=20 + 优先级 0-139 + 权重 1-10000 |
 | 5 | `memory_types.h` | MemoryRovol | — | `kernel/include/uapi/linux/airymax/memory_types.h` | L1-L4 enum（HOT/WARM/COLD/PMEM）+ GFP 掩码语义（AIRY_GFP_HOT/WARM/COLD/PMEM） |
-| 6 | `security_types.h` | 安全 | — | `kernel/include/uapi/linux/airymax/security_types.h` | POSIX capability 41 ID（CAP_AGENT_SPAWN=41 起）+ LSM 钩子 252 ID + `enum airy_verdict`（ALLOW/DENY/AUDIT/COMPLAIN）+ `enum airy_cap_op`（7 操作：Copy/Mint/Move/Mutate/Revoke/Delete/Rotate）+ `cap_t` = `uint64_t` |
+| 6 | `security_types.h` | 安全 | — | `kernel/include/uapi/linux/airymax/security_types.h` | POSIX capability 41 ID（CAP_AGENT_SPAWN=41 起）+ LSM 钩子 250 ID + `enum airy_verdict`（ALLOW/DENY/AUDIT/COMPLAIN）+ `enum airy_cap_op`（7 操作：Copy/Mint/Move/Mutate/Revoke/Delete/Rotate）+ `cap_t` = `uint64_t` |
 | 7 | `cognition_types.h` | A-UCS | — | `kernel/include/uapi/linux/airymax/cognition_types.h` | `airy_q16_t`（= `__s32`，Q16.16 定点数，因 -mno-80387 禁 FPU）+ `enum airy_cog_phase`（PERCEPT/THINK/ACT）+ `enum airy_think_mode`（FAST/SLOW） |
 | 8 | `syscalls.h` | 系统调用 | — | `kernel/include/uapi/linux/airymax/syscalls.h` | v1.1: 4 核心系统调用（AIRY_SYS_CALL=0 ... AIRY_SYS_CLT_NOTIFY=3）+ 20 预留（4-23）= 24 槽位 |
 | 9 | `uapi_compat.h` | 桥接 | — | `kernel/include/uapi/linux/airymax/uapi_compat.h` | 三路类型桥接（`#ifdef __KERNEL__` / `#elif defined(__linux__)` / `#else`），确保 [SC] 头文件跨平台逐字节相同编译 |
@@ -1496,11 +1496,11 @@ typedef int32_t airy_err_t;
 
 ### 7.4 与 Micro-Supervisor 的协作
 
-`macro_d`（Macro-Supervisor 用户态）与 `kernel/superv/`（Micro-Supervisor 内核态）构成双 Supervisor 模型：
+`macro_d`（Macro-Supervisor 用户态）与 `kernel/kernel/superv/`（Micro-Supervisor 内核态）构成双 Supervisor 模型：
 
 | Supervisor | 执行域 | 物理路径 | 职责 |
 |-----------|--------|---------|------|
-| Micro-Supervisor | 内核态 | `kernel/superv/`（5 个 .c） | 冷酷执法：检测 → 冻结 → 返回 AIRY_FAULT_ABNORMAL_CAP → eventfd 通知 |
+| Micro-Supervisor | 内核态 | `kernel/kernel/superv/`（5 个 .c） | 冷酷执法：检测 → 冻结 → 返回 AIRY_FAULT_ABNORMAL_CAP → eventfd 通知 |
 | Macro-Supervisor | 用户态 | `services/daemons/macro_d/` | 温情裁决：接收 eventfd → 查询上下文 → 裁决（警告/降级/暂停/终止） |
 
 详细设计见 [09-kernel-agent-supervisor.md](../20-modules/09-kernel-agent-supervisor.md)。
@@ -1606,7 +1606,7 @@ graph TD
 - 不使用 patch 隔离
 - 不使用 git subtree
 - 直接在 Linux 6.6 LTS 源码树上修改
-- Airymax 增强代码集中在 `kernel/corekern/`、`kernel/superv/`、`kernel/log/`、`kernel/ipc/` 目录
+- Airymax 增强代码集中在 `kernel/corekern/`、`kernel/kernel/superv/`、`kernel/log/`、`kernel/ipc/` 目录
 - 修改 Linux 原生代码时在 MAINTAINERS 登记
 
 **禁用项**：
@@ -1630,7 +1630,7 @@ graph TD
 | `include/kernel/` | Linux 6.6 原生 | 内核内部头 |
 | `include/airymax/` | ★ Airymax 新增 | 内核内部头（[IND] 独立层，非 UAPI；如 `maintainer_types.h`/`build_types.h`/`kconfig_types.h`） |
 | `corekern/` | ★ Airymax 新增 | 内核增强（api/sched/ipc/taskflow/memory/time/object/locking/irq/bpf） |
-| `superv/` | ★ Airymax 新增 | Micro-Supervisor（5 个 .c） |
+| `kernel/kernel/superv/` | ★ Airymax 新增 | Micro-Supervisor（5 个 .c） |
 | `log/` | ★ Airymax 新增 | A-ULP 内核侧 |
 | `ipc/` | ★ Airymax 新增 | IPC 内核基础设施 |
 | `config/` | ★ Airymax 新增 | ALK 配置项 |
@@ -1656,6 +1656,17 @@ graph TD
 | `scripts/` | Linux 6.6 原生 | 构建脚本 |
 | `tools/` | Linux 6.6 原生 | 工具 |
 
+### 9.2.1 include/airymax/ 目录定位
+
+`kernel/include/airymax/` 是 ALK-6.6 的非 [SC] 内部类型头文件目录，与 `kernel/include/uapi/linux/airymax/`（[SC] 共享契约层，UAPI 标准路径）不同：
+
+| 路径 | 定位 | 内容 | 共享范围 |
+|------|------|------|---------|
+| `include/uapi/linux/airymax/` | [SC] 共享契约层 | 10 个 UAPI 头文件 | agentrt + agentrt-linux 双端共享 |
+| `include/airymax/` | 内核内部类型 | build_types.h / kconfig_types.h | 仅 agentrt-linux 内核使用 |
+
+`include/airymax/` 中的文件不属于 [SC] 共享契约层，不参与 IRON-9 v3 的 CI 逐字节校验。
+
 ### 9.3 sched_tac 内核侧实现
 
 **路径**：`kernel/corekern/sched/`
@@ -1673,7 +1684,7 @@ graph TD
 
 ### 9.4 Micro-Supervisor 内核模块
 
-**路径**：`kernel/superv/`（5 个 .c）
+**路径**：`kernel/kernel/superv/`（5 个 .c）
 
 **文件**：
 1. `airy_superv_lsm.c`：`DEFINE_LSM(airy)` 注册 + `LSM_ORDER_MUTABLE`
@@ -1706,7 +1717,7 @@ DEFINE_LSM(airy) = {
 
 static struct security_hook_list airy_hooks[] __lsm_ro_after_init = {
     LSM_HOOK_INIT(uring_cmd, airy_uring_cmd_check),
-    /* ... 252 钩子 ... */
+    /* ... 250 钩子 ... */
 };
 ```
 

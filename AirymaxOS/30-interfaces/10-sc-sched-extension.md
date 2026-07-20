@@ -47,7 +47,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 sched_tac 是本 [SC] 契约的调度机制选型依据（详见 综合修正方案 §1）。sched_tac 的核心决策为：
 
-1. **不使用 sched_ext**：sched_ext 在 Linux 6.6 标准内核不可用，且需要 BPF 调度器，与"纯 C LSM"原则冲突
+1. **不使用 sched_ext**：OLK 6.6 虽 backport 了 sched_ext（`kernel/sched/ext.c` 215KB，`SCHED_EXT = 7`，`CONFIG_SCHED_CLASS_EXT`），但 sched_ext 依赖 `BPF_SYSCALL && BPF_JIT && DEBUG_INFO_BTF`（`kernel/Kconfig.preempt:138`），与 H5 纯 C LSM 原则冲突；x86 默认禁用 sched_ext（`include/linux/sched.h:1663-1667` 注释明确"x86 disables SCX by default to avoid KABI changes"）；BPF verifier 在调度路径的语义不确定性影响形式化验证可行性；sched_ext 的 BPF struct_ops 模型与 agentrt-linux 纯 C 体系不一致。注：vanilla Linux 6.6 主线不含 sched_ext（6.12 才合入），但 OLK 6.6 已 backport 此特性。
 2. **复用主线调度器**：直接使用 `SCHED_DEADLINE` / `SCHED_FIFO` / `SCHED_NORMAL`(EEVDF) 三类已有调度策略
 3. **借鉴 seL4 MCS 语义**：将 seL4 的 `sched_context_t` 预算/周期模型映射到 Linux `sched_attr` 字段，获得 MCS 语义但不修改内核调度器
 
@@ -278,6 +278,15 @@ sched_tac 借鉴 seL4 MCS（Mixed-Criticality Scheduling）模型，将 seL4 的
      ((attr)->sched_deadline <= (attr)->sched_period))
 ```
 
+**seL4 MCS Refill 循环缓冲**（`src/object/schedcontext.c`）：
+seL4 MCS 使用 sporadic server + refill 循环缓冲（`refill_t` 结构 + `refillNew()`/`refillUpdate()`），比 Linux SCHED_DEADLINE 的 CBS（Constant Bandwidth Server）算法更精确。agentrt-linux 在 Linux CBS 之上模拟 MCS 语义：
+- `sched_attr.sched_runtime` → `scBudget`（CPU 预算）
+- `sched_attr.sched_period` → `scPeriod`（调度周期）
+- `sched_attr.sched_deadline` → `scRefill`（截止时间）
+- CBS 的 runtime replenishment 机制模拟 MCS refill 循环缓冲
+
+**差异说明**：CBS 使用全局 replenishment timer（`sched_dl_entity.dl_timer`），MCS 使用 per-context refill 循环缓冲。在 1.0.1 中可考虑基于 Linux 6.6 `sched_attr` 的 deadline 字段实现更精确的 MCS 模拟。
+
 ### 5.3 MCS 语义保持
 
 映射后，Linux SCHED_DEADLINE 调度器在内核中保证以下 MCS 语义（由 CFS/DEADLINE 调度器实现，无需修改）：
@@ -289,6 +298,20 @@ sched_tac 借鉴 seL4 MCS（Mixed-Criticality Scheduling）模型，将 seL4 的
 
 ---
 
+### OLK QoS 调度借鉴
+
+OLK 6.6 提供了一系列 QoS 调度增强（`kernel/sched/grid/`），agentrt-linux 的 sched_tac 可借鉴：
+
+| OLK QoS 特性 | 借鉴点 | agentrt-linux 应用 |
+|-------------|--------|-------------------|
+| `QOS_SCHED_SMART_GRID` | 8 级 affinity domain（`AD_LEVEL_MAX=8`），自动 cpumask 优化 | Agent NUMA 感知调度 |
+| `QOS_SCHED_SMT_EXPELLER` | SMT 兄弟核在线任务驱逐离线任务 | Agent 优先级抢占 |
+| `QOS_SCHED_MULTILEVEL` | 扩展 QoS level 到 [-2,2] | Agent 多级 QoS 分类 |
+| `SCHED_SOFT_QUOTA` | CFS 带宽灵活使用（idle 路径解 throttle） | Agent 弹性调度 |
+| `SCHED_SOFT_DOMAIN` | CPU 软域调度（缓存局部性优化） | Agent 缓存亲和性 |
+
+---
+
 ## §6 物理宿主与版本管理
 
 ### 6.1 物理宿主
@@ -296,7 +319,7 @@ sched_tac 借鉴 seL4 MCS（Mixed-Criticality Scheduling）模型，将 seL4 的
 | 项目 | 路径 | 说明 |
 |------|------|------|
 | [SC] 头文件 | `kernel/include/uapi/linux/airymax/sched.h` | 双端逐字节共享 |
-| 内核实现 | `kernel/superv/airy_sched.c` | 调度策略实现 |
+| 内核实现 | `kernel/kernel/superv/airy_sched.c` | 调度策略实现 |
 | 用户态实现 | `services/daemons/macro_d/sched.c` | 调度参数注入 |
 
 ### 6.2 版本号

@@ -215,7 +215,7 @@ void airy_notify_fallback(const char *feature, const char *reason)
 agentrt-linux 同时使用 capability（seL4 借鉴）和 LSM（Linux 6.6 原生）两层安全模型：
 
 - **capability 层**：细粒度权限控制（agent spawn / GPU sched / NPU access）
-- **LSM 层**：系统级安全策略（hooks 252 ID，参见 [110-security/01-lsm-framework.md](../110-security/01-lsm-framework.md)）
+- **LSM 层**：系统级安全策略（hooks 250 ID，参见 [110-security/01-lsm-framework.md](../110-security/01-lsm-framework.md)）
 - **融合点**：capability 操作触发 LSM 钩子
 
 **已知限制**：

@@ -348,6 +348,14 @@ typedef enum {
 - 故障切换。
 - 弹性扩缩容。
 
+### OLK XSched 异构计算调度借鉴
+
+OLK 6.6 提供 XSched（`kernel/xsched/`）异构计算单元（XPU）调度框架，与 cgroup 集成。agentrt-linux 的 GPU/NPU 调度可借鉴：
+
+- **统一调度接口**：`struct xsched_attr` → `XSCHED_TYPE_RT/CFS` 映射
+- **cgroup 集成**：XPU 预算通过 cgroup 控制
+- **优先级**：`XSE_PRIO_HIGH/LOW` 两级优先级
+
 **GPU/NPU 能力描述符** \[SC]（`include/uapi/linux/airymax/cognition_types.h`）：
 
 ```c

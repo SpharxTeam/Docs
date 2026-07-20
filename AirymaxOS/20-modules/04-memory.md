@@ -531,6 +531,8 @@ out_free_pages:
 ```
 
 > **关键约束**：registered buffer 使用 `alloc_pages()` + `mmap()` 模式，**不使用 DMA 一致性内存**（`dma_alloc_coherent()`）。MemoryRovol L1 数据通过 userfaultfd 按需加载，无需设备 DMA 一致性保证。该约束源自 OLK 6.6 工程规范——DMA 一致性内存资源稀缺，仅在设备驱动场景使用。
+>
+> **OLK 6.6 smart grid 扩展说明**：OLK 6.6 的 `__alloc_pages_mpol(gfp, order, mpol, ilx, nid, use_smart_grid)` 相比 vanilla 主线多出第 6 个参数 `bool use_smart_grid`，这是 openEuler 特有扩展。agentrt-linux 不依赖此扩展，MemoryRovol 内核态使用标准 `alloc_pages()` / `alloc_pages_bulk_array()` 接口。
 
 ### 4.10 Badge 在 MemoryRovol 中的应用
 

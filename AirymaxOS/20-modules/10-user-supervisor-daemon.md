@@ -1326,7 +1326,7 @@ Macro-Supervisor 是用户态单点，其故障可能导致：
 为防止单点故障，Airymax 设计了**内核 watchdog 直接重启** fallback。v1.1 起，watchdog 接管时**立即撤销所有 Badge**（`atomic_inc(&airy_cap_global_epoch)`），防止无监管期间恶意 Agent 利用已发出的 Badge 继续操作：
 
 ```c
-/* kernel/superv/airy_watchdog.c —— v1.1 内核 watchdog fallback
+/* kernel/kernel/superv/airy_watchdog.c —— v1.1 内核 watchdog fallback
  * 新增 Badge 全局撤销：接管时立即失效所有 Badge
  */
 static struct timer_list airy_superv_watchdog;
@@ -1430,7 +1430,7 @@ static int macro_d_execute_adjudication(pid_t pid,
 ### 8.2 内核侧裁决执行
 
 ```c
-/* kernel/superv/airy_superv_lsm.c —— 内核侧裁决执行 */
+/* kernel/kernel/superv/airy_superv_lsm.c —— 内核侧裁决执行 */
 static int airy_adjudicate_execute(struct airy_ipc_cmd *cmd)
 {
     pid_t pid = cmd->agent_id;

@@ -27,13 +27,13 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ### 0.3 Linux 6.6 基线约束
 
-- **sched_tac 调度类约束**：使用 Linux 6.6 内核基线 原生调度类（SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_RR=2 / SCHED\_BATCH=3 / SCHED\_IDLE=5 / SCHED\_DEADLINE=6，`include/uapi/linux/sched.h:114-123`）。agentrt-linux 通过 sched_tac 复用这些原生调度类，**禁止**定义 `SCHED_AGENT` 内核调度类宏（避免与内核调度类编号冲突），**禁止**使用 `SCHED_EXT=7`（Linux 6.6 主线不含 sched_ext 框架，仅宏定义存在但实现不可用）。
+- **sched_tac 调度类约束**：使用 Linux 6.6 内核基线 原生调度类（SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_RR=2 / SCHED\_BATCH=3 / SCHED\_IDLE=5 / SCHED\_DEADLINE=6，`include/uapi/linux/sched.h:114-123`）。agentrt-linux 通过 sched_tac 复用这些原生调度类，**禁止**定义 `SCHED_AGENT` 内核调度类宏（避免与内核调度类编号冲突），**禁止**使用 `SCHED_EXT=7`（OLK 6.6 已 backport sched_ext（`kernel/sched/ext.c`，215KB），但选择不使用：依赖 BPF_SYSCALL && BPF_JIT && DEBUG_INFO_BTF，与纯 C LSM 原则冲突；vanilla 6.6 主线不含 sched_ext 框架）。
 - 内核态禁 float（`arch/x86/Makefile:137` `-mno-80387`），用 Q16.16 定点数 `airy_q16_t`（= `int32_t`）。
 - kthread 间通信用 `kfifo` + `wait_event_interruptible`。
 
 ### 0.4 Linux 6.6 内核基线 源码路径
 
-- `include/uapi/linux/sched.h:114-123` —— SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_RR=2 / SCHED\_BATCH=3 / SCHED\_IDLE=5 / SCHED\_DEADLINE=6 / SCHED\_EXT=7（仅宏定义，sched_ext 框架未实现，6.6 主线不可用）
+- `include/uapi/linux/sched.h:114-123` —— SCHED\_NORMAL=0 / SCHED\_FIFO=1 / SCHED\_RR=2 / SCHED\_BATCH=3 / SCHED\_IDLE=5 / SCHED\_DEADLINE=6 / SCHED\_EXT=7（OLK 6.6 已 backport sched_ext 实现，但本项目选择不使用；vanilla 6.6 主线不含 sched_ext 框架）
 - `arch/x86/Makefile:137-138` —— `-mno-80387` 禁浮点
 - `scripts/checkpatch.pl:836-851` —— `%deprecated_apis` 表（参考共享 API 治理）
 
@@ -76,7 +76,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 3  | `ipc.h`             | IPC magic（0x41524531 'ARE1'）+ 128B 消息头结构（`struct airy_ipc_msg_hdr`）+ SQE/CQE 操作码与标志位                 | `0x41524531` ('ARE1') | `include/uapi/linux/airymax/ipc.h`             |
 | 4  | `sched.h`           | sched_tac 调度约束（SCHED_DEADLINE/SCHED_FIFO/EEVDF）+ 任务描述符（magic 0x41475453 'AGTS'）+ vtime 类型与衰减公式 + 优先级范围 + SLICE\_DFL | `0x41475453` ('AGTS') | `include/uapi/linux/airymax/sched.h`           |
 | 5  | `memory_types.h`    | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口                                                          | —                     | `include/uapi/linux/airymax/memory_types.h`    |
-| 6  | `security_types.h`  | POSIX capability 41 ID + LSM 钩子 252 ID + Cupolas blob 布局 + capability 派生模型（`airy_capability_t` 结构体 + MDB 派生树）+ **capability 引用类型（`cap_t` = `uint64_t`）**+ Vault backend + 策略裁决 4 值枚举 | —                     | `include/uapi/linux/airymax/security_types.h`  |
+| 6  | `security_types.h`  | POSIX capability 41 ID + LSM 钩子 250 ID + Cupolas blob 布局 + capability 派生模型（`airy_capability_t` 结构体 + MDB 派生树）+ **capability 引用类型（`cap_t` = `uint64_t`）**+ Vault backend + 策略裁决 4 值枚举 | —                     | `include/uapi/linux/airymax/security_types.h`  |
 | 7  | `cognition_types.h` | `airy_q16_t` Q16.16 定点数 + CoreLoopThree 阶段枚举（`airy_cog_phase`）+ Thinkdual 模式枚举（`airy_think_mode`） | —                     | `include/uapi/linux/airymax/cognition_types.h` |
 | 8  | `syscalls.h`        | Syscall 编号体系（v1.1: 4 核心 + 20 预留 = 24 槽位）                                                                     | —                     | `include/uapi/linux/airymax/syscalls.h`        |
 | 9  | `uapi_compat.h`     | 三路类型桥接（内核态 `__u32` ↔ 用户态 Linux `uint32_t` ↔ 第三方 `uint32_t` with stdint.h），确保 [SC] 头文件跨平台逐字节相同编译         | —                     | `include/uapi/linux/airymax/uapi_compat.h`    |
@@ -202,7 +202,7 @@ enum airy_mem_level {
 #define AIRY_CAP_GPU_SCHED		42	/* GPU scheduling */
 #define AIRY_CAP_NPU_ACCESS		43	/* NPU access */
 
-/* LSM hook IDs (252 total) */
+/* LSM hook IDs (250 total) */
 #define AIRY_LSM_HOOK_TASK_CREATE	0
 #define AIRY_LSM_HOOK_IPC_SEND	1
 
@@ -267,7 +267,7 @@ enum airy_think_mode {
 #include <airymax/uapi_compat.h>
 
 /* sched_tac (Linux 6.6 内核基线 原生调度类: SCHED_NORMAL=0/SCHED_FIFO=1/SCHED_DEADLINE=6)
- * 禁止定义 SCHED_AGENT 内核调度类宏, 禁止使用 SCHED_EXT=7（6.6 主线不含 sched_ext 框架）。 */
+ * 禁止定义 SCHED_AGENT 内核调度类宏, 禁止使用 SCHED_EXT=7（OLK 6.6 已 backport 但选择不使用）。 */
 
 /* Task descriptor magic: 0x41475453 = 'AGTS' (Agent Task) */
 #define AIRY_TASK_MAGIC	0x41475453u
@@ -657,7 +657,7 @@ extern "C" {
 | 语义域                   | agentrt（用户态微核心）实现             | agentrt-linux（内核微内核）实现            | \[SC] 契约依据                              |
 | --------------------- | ----------------------------- | --------------------------------- | --------------------------------------- |
 | **调度语义**（MicroCoreRT） | 用户态调度器（协程/线程池）                | sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF，不含 sched\_ext）  | `sched.h`：任务描述符 + vtime + 优先级           |
-| **安全模型**（Cupolas）     | 用户态策略引擎（seccomp + capability） | 纯 C LSM 钩子（252 ID） + capability 41 ID | `security_types.h`：capability + verdict |
+| **安全模型**（Cupolas）     | 用户态策略引擎（seccomp + capability） | 纯 C LSM 钩子（250 ID） + capability 41 ID | `security_types.h`：capability + verdict |
 | **IPC 传输**（AgentsIPC） | 用户态消息队列（mqueue/io\_uring）     | 内核 io\_uring 驱动（`IORING_OP_URING_CMD`）                   | `ipc.h`：128B 消息头 + magic 'ARE1'         |
 | **记忆模型**（MemoryRovol） | 用户态 heapstore（malloc + mmap）  | 内核态 L1-L4 分层（`alloc_pages` + `mmap` + pmem）      | `memory_types.h`：L1-L4 + GFP 掩码         |
 
@@ -707,7 +707,7 @@ static void test_ipc_hdr_serialize(void)
 | Kbuild/Kconfig   | `Kbuild`、`Kconfig`、`Makefile`          | 内核构建系统专属                |
 | 内核内部 API         | `printk`、`kmalloc`、`spin_lock`         | 内核态 API，agentrt 用用户态等价物 |
 | systemd 集成       | `systemd/airymax-*.service`            | 发行版集成专属                 |
-| LSM 实现           | 纯 C LSM 模块（`security/airy/`）       | 内核安全模块专属，**不使用 BPF LSM**（纯 C 实现，对齐 openEuler 252 钩子） |
+| LSM 实现           | 纯 C LSM 模块（`security/airy/`）       | 内核安全模块专属，**不使用 BPF LSM**（纯 C 实现，对齐 openEuler 250 钩子） |
 | eBPF struct\_ops | `kernel/bpf/airymax/`                  | 内核 BPF 框架专属             |
 | io\_uring 命令路径    | `IORING_OP_URING_CMD`（agentrt-linux 内核驱动） | 内核态专属，IPC fastpath 载体，**不使用 page flipping**（zero-copy via registered buffer + uring_cmd） |
 | 物理内存分配           | `alloc_pages` + `mmap`（agentrt-linux 内核） | 内核态专属，日志 Ring Buffer / IPC 共享内存方案，**不使用 DMA 一致性内存**（streaming DMA via page mapping，对齐 Linux 6.6 DMA API） |
@@ -871,6 +871,30 @@ static int airy_kthread_recv(struct airy_kthread_chan *chan,
 | ---------- | ----- | ---------------------------------------------- | ------------ |
 | 2026-07-09 | 0.1.1 | 初始创建，定义 IRON-9 v3 四层模型 + 10 个 \[SC] 头文件 + 双向 CI | SPHARX 工程标准组 |
 | 2026-07-17 | v1.0  | 升级为 IRON-9 v3 四层模型（[SC]+[SS]+[IND]+[DSL]）；新增 §3 [DSL] 降级生存层（引用 11-degraded-survival-layer.md）；[IND] 层补充 io_uring + IORING_OP_URING_CMD、alloc_pages + mmap、纯 C LSM；§2.1 头文件清单与 06-iron9-shared-model.md §2.2 对齐；§7.5 新增 magic 值 CI 校验表（含 AGTS 0x41475453）；上级文档改为 10-unify-design.md | SPHARX 工程标准组 |
+
+## 11. KABI 机制借鉴（OLK 6.6）
+
+OLK 6.6 广泛使用 KABI 宏（`KABI_RESERVE` / `KABI_USE` / `KABI_REPLACE` / `KABI_EXTEND` / `KABI_BROKEN_INSERT` / `KABI_BROKEN_REMOVE` / `KABI_AUX_PTR`）确保内核 ABI 稳定性。
+
+agentrt-linux 的 [SC] 共享头文件可借鉴此机制，在结构体中预留 KABI_RESERVE 字段：
+
+```c
+struct airy_ipc_msg_hdr {
+    __u32 magic;              /* offset 0 */
+    __u16 opcode;             /* offset 4 */
+    __u16 flags;              /* offset 6 */
+    __u64 trace_id;           /* offset 8 */
+    __u64 timestamp_ns;       /* offset 16 */
+    __u64 src_task;           /* offset 24 */
+    __u64 dst_task;           /* offset 32 */
+    __u64 capability_badge;   /* offset 40 */
+    __u32 payload_len;        /* offset 48 */
+    __u32 crc32;              /* offset 52 */
+    __u8  reserved[72];       /* offset 56, KABI 预留（CL1 [56:64) + CL2 [64:128)) */
+} __attribute__((aligned(64)));
+```
+
+72 字节的 `reserved` 字段即为 KABI 预留空间，确保 0.1.1 → 1.0.1 演进时 ABI 兼容。
 
 ***
 

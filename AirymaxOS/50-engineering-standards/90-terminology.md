@@ -50,7 +50,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | 系统调用前缀 | `AIRY_SYS_SCHED_*` | 编号段 | 572-591，sched_tac 策略管理 |
 | **禁止使用** | ~~`AIRY_SCHED_AGENT`~~ | 废弃 | 2026-07-18 彻底废弃 |
 | **禁止使用** | ~~`AIRY_SCHED_AGENT_NAME`~~ | 废弃 | 已改为 `AIRY_STC_POLICY_NAME` |
-| **禁止使用** | ~~`sched_ext`~~ | 废弃 | 6.6 主线不含，已由 sched_tac 替代 |
+| **禁止使用** | ~~`sched_ext`~~ | 废弃 | OLK 6.6 已 backport 但选择不使用（与纯 C LSM 原则冲突），已由 sched_tac 替代 |
 | **禁止使用** | ~~`SCHED_AGENT` 宏~~ | 废弃 | 禁止定义内核调度类编号宏 |
 | **禁止使用** | ~~`方案 C-Prime`~~ | 废弃 | 已由 sched_tac 替代 |
 
@@ -208,7 +208,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 > **ADR-014 约束**： agentrt-linux capability 模型**唯一来源为 seL4**，不引入 Zircon handle 模型。
 
-**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）安全子系统（security）实现 capability 系统（POSIX capability 41 ID + seL4 风格派生模型），与 Cupolas 同源。capability 令牌格式定义于 `include/uapi/linux/airymax/security_types.h`（IRON-9 v3 \[SC] 共享契约层），结合**纯 C LSM 模块**（对齐 openEuler 252 钩子，**不使用 BPF LSM**）实现纵深防御。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）安全子系统（security）实现 capability 系统（POSIX capability 41 ID + seL4 风格派生模型），与 Cupolas 同源。capability 令牌格式定义于 `include/uapi/linux/airymax/security_types.h`（IRON-9 v3 \[SC] 共享契约层），结合**纯 C LSM 模块**（对齐 openEuler 250 钩子，**不使用 BPF LSM**）实现纵深防御。
 
 **系统内代码**: `airy_cap_*`
 
@@ -262,7 +262,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 **业界定义**: Linux 内核的安全框架，提供钩子（hook）机制允许安全模块（如 SELinux、AppArmor）在关键操作点进行访问控制。LSM 钩子覆盖文件系统、网络、进程管理、capability 等子系统。
 
-**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）安全子系统（security）利用 LSM 框架实现 Agent 专属安全策略，采用**纯 C LSM 模块**（`security/airy/`，对齐 openEuler 252 钩子，**不使用 BPF LSM**）。LSM 钩子 ID 定义于 `include/uapi/linux/airymax/security_types.h` 与 `include/uapi/linux/airymax/lsm_types.h`（IRON-9 v3 \[SC] 共享契约层），与 capability 系统共同构成纵深防御。
+**agentrt-linux 使用上下文**: agentrt-linux（AirymaxOS）安全子系统（security）利用 LSM 框架实现 Agent 专属安全策略，采用**纯 C LSM 模块**（`security/airy/`，对齐 openEuler 250 钩子，**不使用 BPF LSM**）。LSM 钩子 ID 定义于 `include/uapi/linux/airymax/security_types.h` 与 `include/uapi/linux/airymax/lsm_types.h`（IRON-9 v3 \[SC] 共享契约层），与 capability 系统共同构成纵深防御。
 
 **参见**: capability、纯 C LSM 模块、Cupolas（安全穹顶）、SELinux
 
@@ -580,7 +580,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 #### Cupolas / 安全穹顶
 
-**定义**: agentrt-linux（AirymaxOS）的内生安全防护层，实现输入净化 -> 权限仲裁 -> 网络过滤 -> 审计记录四重防护链。在 agentrt-linux 中，Cupolas 结合 capability 系统（POSIX 41 ID + seL4 风格派生模型）、**纯 C LSM 模块**（对齐 openEuler 252 钩子，**不使用 BPF LSM**）、国密算法（SM2/SM3/SM4）和机密计算（TEE/SGX），构成 OS 级纵深防御体系。
+**定义**: agentrt-linux（AirymaxOS）的内生安全防护层，实现输入净化 -> 权限仲裁 -> 网络过滤 -> 审计记录四重防护链。在 agentrt-linux 中，Cupolas 结合 capability 系统（POSIX 41 ID + seL4 风格派生模型）、**纯 C LSM 模块**（对齐 openEuler 250 钩子，**不使用 BPF LSM**）、国密算法（SM2/SM3/SM4）和机密计算（TEE/SGX），构成 OS 级纵深防御体系。
 
 **与 agentrt 的关系**: 遵循 IRON-9 v3 \[SS] 语义同源层——安全模型一致（capability 令牌格式、策略裁决 4 值枚举共享于 \[SC] 层），实现独立（agentrt-linux 基于纯 C LSM + capability 内核态，agentrt 基于用户态安全模块）。
 
@@ -596,7 +596,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 #### 纯 C LSM 模块
 
-**定义**: agentrt-linux（AirymaxOS）的安全策略实现方式，采用**纯 C 编写的 LSM（Linux Security Module）模块**（位于 `security/airy/`），**对齐 openEuler 的 252 钩子实现**，**不使用 BPF LSM**。纯 C LSM 模块类型定义于 `include/uapi/linux/airymax/lsm_types.h`（IRON-9 v3 \[SC] 共享契约层），提供 `struct airy_lsm_blob` + `airy_capability_check()` 回调原型 + Capability 缓存结构。
+**定义**: agentrt-linux（AirymaxOS）的安全策略实现方式，采用**纯 C 编写的 LSM（Linux Security Module）模块**（位于 `security/airy/`），**对齐 openEuler 的 250 钩子实现**，**不使用 BPF LSM**。纯 C LSM 模块类型定义于 `include/uapi/linux/airymax/lsm_types.h`（IRON-9 v3 \[SC] 共享契约层），提供 `struct airy_lsm_blob` + `airy_capability_check()` 回调原型 + Capability 缓存结构。
 
 **选型理由**:
 

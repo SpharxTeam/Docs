@@ -391,13 +391,13 @@ airymaxmon 通过 [SC] 共享契约层读取内核子系统状态，确保监控
 | `include/uapi/linux/airymax/error.h` | 扩展错误码（`AIRY_ESEC_D_THROTTLED = -83`、`AIRY_ECAP_FROZEN = -82`、`AIRY_FAULT_URING_MALFORMED = 0x100A`、`AIRY_FAULT_AUDIT_TAMPER = 0x100B`） | airymaxmon 错误码映射 + DevStation 诊断建议 |
 | `include/uapi/linux/airymax/log_types.h` | trace_id + 结构化日志类型枚举 | journald + airymaxmon 日志聚合 |
 | `include/uapi/linux/airymax/memory_types.h` | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口 | airymaxmon 监控分级内存 |
-| `include/uapi/linux/airymax/security_types.h` | capability 41 ID 枚举 + LSM 钩子 252 ID + Cupolas blob 布局 + v1.1 `agent_caps[1024]` 静态数组定义 + 64-bit Badge 布局 | airymaxmon 安全监控 + config_d 推送 capability 配置 + 安全配置工具 |
+| `include/uapi/linux/airymax/security_types.h` | capability 41 ID 枚举 + LSM 钩子 250 ID + Cupolas blob 布局 + v1.1 `agent_caps[1024]` 静态数组定义 + 64-bit Badge 布局 | airymaxmon 安全监控 + config_d 推送 capability 配置 + 安全配置工具 |
 | `include/uapi/linux/airymax/cognition_types.h` | CoreLoopThree 阶段枚举 + Thinkdual 模式枚举 + LLM 推理阶段枚举 | DevStation 调用 LLM + airymaxmon 认知监控 |
 | `include/uapi/linux/airymax/sched.h` | sched_tac 调度类约束（使用 SCHED_DEADLINE/SCHED_FIFO/EEVDF 原生调度类，禁止定义 SCHED_AGENT 宏）+ task_desc（magic 0x41475453 'AGTS'）+ vtime 类型与衰减公式 | airymaxmon 监控调度统计 |
 | `include/uapi/linux/airymax/ipc.h` | IPC magic 0x41524531 'ARE1' + 128B `struct airy_ipc_msg_hdr` + SQE/CQE 操作码 | DevStation io_uring IPC 通信 |
 | `include/uapi/linux/airymax/syscalls.h` | v1.1 Syscall 24 槽位（4 核心 + 20 预留）：`airy_sys_call`(0)/`airy_sys_rovol_ctl`(1)/`airy_sys_sched_ctl`(2)/`airy_sys_clt_notify`(3) | airymaxmon 监控 syscall 调用统计 + config_d 推送配置 |
 | `include/uapi/linux/airymax/uapi_compat.h` | UAPI 兼容层宏（`__aligned(64)`、`__u32`/`__u16`/`__u64`/`__u8`）+ SQE128 模式 `cmd[80]` 扩展 | IPC 消息头对齐 + airymaxmon 读取 io_uring SQE128 字段 |
-| `include/uapi/linux/airymax/lsm_types.h` | airy_lsm 钩子 ID 252 枚举 + `LSM_ORDER_MUTABLE` 排序定义 + `uring_cmd` 单参数钩子签名 | airymaxmon 安全监控 + config_d 推送 `LSM_ORDER_MUTABLE` 配置 |
+| `include/uapi/linux/airymax/lsm_types.h` | airy_lsm 钩子 ID 250 枚举 + `LSM_ORDER_MUTABLE` 排序定义 + `uring_cmd` 单参数钩子签名 | airymaxmon 安全监控 + config_d 推送 `LSM_ORDER_MUTABLE` 配置 |
 
 > **补充共享文件说明**：`include/linux/bpf_struct_ops.h` 是补充共享文件（位于内核源码 `include/linux/`），**不是** [SC] 核心头文件。`bpf_struct_ops.h` 定义 struct_ops 状态机框架（INIT/REGISTERED/ACTIVE/DRAINING 四态），airymaxmon 通过它读取 schedTac/macrosuperv 等 BPF struct_ops 注册状态。**[SC] 核心头文件严格为 10 个**（清单见上表），`bpf_struct_ops.h` 仅作为内核侧补充引用。
 

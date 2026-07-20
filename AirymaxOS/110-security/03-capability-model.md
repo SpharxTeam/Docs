@@ -583,6 +583,25 @@ int airy_cap_badge_compile_batch(const struct airy_cap_compile_req *requests,
 | **derive** | 派生（不缩减，全权继承） | 子 badge = 父 badge | 将 cap 委托给子任务 |
 | **revoke** | 递归撤销（撤销所有派生） | 子 cap 全部失效 | Agent 终止时清理 |
 
+### 3.1.x seL4 完整派生操作映射（v1.1 扩展）
+
+agentrt-linux 借鉴 seL4 的 7 种核心 CNode 派生操作（`src/object/cnode.c`），当前 v1.1 实现 4 种，1.0.1 扩展至 7 种：
+
+| seL4 操作 | agentrt-linux 映射 | 状态 | 说明 |
+|-----------|-------------------|------|------|
+| **Copy** | `airy_cap_copy()` | v1.1 | 复制 capability（新 badge ≤ 旧 badge） |
+| **Mint** | `airy_cap_mint()` | v1.1 | 铸造 capability（可附加新 badge 数据） |
+| **Move** | `airy_cap_move()` | 1.0.1 | 移动 capability（改变 CNode 位置，badge 不变） |
+| **Mutate** | `airy_cap_mutate()` | 1.0.1 | 变异 capability（修改权限位，不重新生成 RandomTag） |
+| **Revoke** | `airy_cap_revoke()` | v1.1 | 递归撤销 capability（`atomic_inc(&airy_cap_global_epoch)`） |
+| **Delete** | `airy_cap_delete()` | 1.0.1 | 删除单个 capability（不影响派生树） |
+| **Rotate** | `airy_cap_rotate()` | v1.1 | 轮换 Badge（仅更新 Epoch，不重新生成 RandomTag） |
+
+**Rotate vs Revoke 区别**：
+- `Revoke`：`atomic_inc(&airy_cap_global_epoch)`，全局撤销所有 Agent 的所有 Badge
+- `Rotate`：仅更新单个 Agent 的 `agent_caps[agent_id].randtag`，不影响其他 Agent
+- 使用场景：Revoke 用于安全事件（Badge 泄漏），Rotate 用于定期轮换（降低 Badge 暴力破解风险）
+
 ### 3.2 Mint 操作（缩减权限派生）
 
 ```c
@@ -1428,7 +1447,7 @@ io_uring_wait_cqe(ring, &cqe);
 | 共享内容 | 影响 |
 |---------|------|
 | POSIX capability 41 ID 枚举 | 编号一致 |
-| LSM 钩子 252 ID 枚举 | 钩子编号一致 |
+| LSM 钩子 250 ID 枚举 | 钩子编号一致 |
 | Cupolas blob 布局（cred/inode/file/task） | 结构体一致 |
 | capability 派生模型（mint/mintcopy/derive/revoke） | 算法语义一致 |
 | Vault backend 抽象 | 接口一致 |

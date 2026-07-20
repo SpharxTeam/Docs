@@ -1890,11 +1890,11 @@ agentrt-linux（AirymaxOS）在 Linux 安全模块（LSM）框架基础上，为
 | 审计管理 | 15 | 审计日志写入、查询、配置 |
 | 认知管理 | 12 | 认知任务创建、调度、执行 |
 | 内存管理 | 11 | 内存分配、映射、防护 |
-| **总计** | **252** | |
+| **总计** | **250** | |
 
 #### 6.2 Agent 专属 LSM 钩子
 
-agentrt-linux（AirymaxOS）在标准 Linux LSM 252 个钩子之上，增加了以下 Agent 专属钩子：
+agentrt-linux（AirymaxOS）在标准 Linux LSM 250 个钩子之上，增加了以下 Agent 专属钩子：
 
 ```c
 /**
@@ -1959,7 +1959,7 @@ graph TB
         subgraph "安全策略层"
             CUPOLAS["Cupolas 权限引擎<br/>capability 派生模型"]
             SANDBOX["五级沙箱模型<br/>Level 0-4"]
-            LSM["LSM 钩子<br/>252 个钩子 ID"]
+            LSM["LSM 钩子<br/>250 个钩子 ID"]
         end
 
         subgraph "执行与监控层"

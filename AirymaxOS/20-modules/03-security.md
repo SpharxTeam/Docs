@@ -67,7 +67,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 | 层次               | 共享程度                               | 安全子系统内容                                                                                                                                                           | 组织方式                               |
 | ---------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| **\[SC] 共享契约层**  | 完全共享代码                             | POSIX capability 41 个 ID 枚举、LSM 钩子 252 个 ID 枚举、Cupolas blob 结构布局（cred/inode/file/task）、capability 派生模型（mint/mintcopy/derive/revoke）、Vault backend 抽象、策略裁决结果 4 值枚举 | `include/uapi/linux/airymax/security_types.h`（10 个 [SC] 头文件之一） |
+| **\[SC] 共享契约层**  | 完全共享代码                             | POSIX capability 41 个 ID 枚举、LSM 钩子 250 个 ID 枚举、Cupolas blob 结构布局（cred/inode/file/task）、capability 派生模型（mint/mintcopy/derive/revoke）、Vault backend 抽象、策略裁决结果 4 值枚举 | `include/uapi/linux/airymax/security_types.h`（10 个 [SC] 头文件之一） |
 | **\[SS] 语义同源层**  | 高层 API 语义同源（概念操作一致），签名因抽象层级不同而独立演进 | `security_add_hooks()`、`call_int_hook` 短路、`DEFINE_LSM(airy)`、Landlock 三系统调用、`cap_capable()`、`security_file_open()` 等 17 项                                      | 各自独立实现                             |
 | **\[IND] 完全独立层** | 完全独立                               | SELinux 完整实现、AppArmor 完整实现、Smack、TOMOYO、IMA digest list、IMA VirtCCA、IMA 策略 DB、EVM xattr 签名、内核 ABI 预留机制                                                            | 各自独立仓库                             |
 | **\[DSL] 降级生存层** | 降级模式生存                             | `#ifdef AIRY_SC_FALLBACK` 降级块位于每个 \[SC] 头文件底部——`capability_badge=0` 跳过 fastpath C-S9 Badge 校验（H6 约束）、IPC 数据面 fastpath 仍可用、控制面 `airy_sys_call` 降级为传统 cap_t 引用模式、Vault backend 降级为应用层加密 | 每个 \[SC] 头文件底部 `#ifdef AIRY_SC_FALLBACK` 块 |
@@ -88,7 +88,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 - 保留 agentrt Cupolas 的"LSM hook 风格"安全策略注入 \[SS]。
 - 保留 Cupolas 的"声明式安全策略"配置范式 \[SS]。
 - 升级为 OS 级 capability 系统（seL4 风格）\[SC]——capability ID 与派生模型两端共享。
-- 新增内核态 LSM 框架承重 \[SS]——`security_hook_heads` 252 钩子 + `lsm_blob_sizes` 扁平 blob。
+- 新增内核态 LSM 框架承重 \[SS]——`security_hook_heads` 250 钩子 + `lsm_blob_sizes` 扁平 blob。
 - 新增 Landlock 用户态沙箱 \[SS]——非特权进程自限制 + 域不可逆叠加。
 - 新增机密计算 Vault backend 抽象 \[SC]——TPM/SGX/SEV-SNP/TDX/CCA 后端可插拔。
 
@@ -179,7 +179,7 @@ security/
 graph TD
     subgraph SC["[SC] 共享契约层 include/uapi/linux/airymax/security_types.h"]
         CAP[capability 41 ID 枚举]
-        LSM[LSM 钩子 252 ID 枚举]
+        LSM[LSM 钩子 250 ID 枚举]
         BLOB[Cupolas blob 布局<br/>cred / inode / file / task]
         DERIVE[capability 派生模型<br/>mint / mintcopy / derive / revoke]
         VAULT[Vault backend 抽象]
@@ -309,7 +309,7 @@ extern struct airy_cap_table airy_cap_global_table;
 
 ### 4.2 airy\_lsm（LSM hook，Cupolas 同源）\[SS]
 
-**LSM Hook 点**（252 个钩子 ID 枚举 \[SC]）：
+**LSM Hook 点**（250 个钩子 ID 枚举 \[SC]）：
 
 - `file_open`、`file_permission`、`file_ioctl`
 - `socket_bind`、`socket_connect`、`socket_accept`
@@ -690,7 +690,7 @@ agentrt-linux IPC 启用 **SQE128 模式**（`IORING_SETUP_SQE128`，Linux 5.18+
 | 内容                                 | 说明                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------ |
 | `airy_cap_id_t` 枚举                 | POSIX capability 41 个 ID（CAP\_CHOWN=0 ... CAP\_CHECKPOINT\_RESTORE=40）               |
-| `airy_lsm_hook_id_t` 枚举            | LSM 钩子 252 个 ID（binder\_set\_context\_mgr=0 ... MAX）                                 |
+| `airy_lsm_hook_id_t` 枚举            | LSM 钩子 250 个 ID（binder\_set\_context\_mgr=0 ... MAX）                                 |
 | `airy_cupolas_cred_security_t` 结构  | Cupolas cred blob 布局（agent\_id/domain\_id/capability\_set/sandbox\_level/audit\_seq） |
 | `airy_cupolas_inode_security_t` 结构 | Cupolas inode blob 布局                                                                |
 | `airy_cupolas_file_security_t` 结构  | Cupolas file blob 布局                                                                 |
@@ -783,7 +783,7 @@ sequenceDiagram
 
 - **agentrt-linux 安全治理组**：安全子系统最佳实践。
 - **agentrt-linux 国密**：SM2/SM3/SM4 国密算法实现。
-- **agentrt-linux LSM**：LSM hook 集成经验——252 钩子 + 扁平 blob + 三源排序。
+- **agentrt-linux LSM**：LSM hook 集成经验——250 钩子 + 扁平 blob + 三源排序。
 - **agentrt-linux 机密计算**：TEE 集成基线——Vault backend 抽象 \[SC]。
 - **Linux 6.6 内核基线**：LSM 框架 + Landlock + capability + Lockdown + 4 层密钥环。
 
@@ -860,7 +860,7 @@ AirymaxOS 用户态 **12 daemon**（daemon 命名后缀统一为 `_d`，**无例
 | M0 | 文档体系完成（本模块设计文档）                                | 2026-07 | —              |
 | M1 | \[SC] `include/uapi/linux/airymax/security_types.h` 共享契约层 | 2026 Q3 | \[SC]          |
 | M2 | capability 系统内核接口 + 派生模型                       | 2026 Q3 | \[SC]          |
-| M3 | airy\_lsm 集成 + 252 钩子注册 + 策略引擎                | 2026 Q4 | \[SS]          |
+| M3 | airy\_lsm 集成 + 250 钩子注册 + 策略引擎                | 2026 Q4 | \[SS]          |
 | M4 | Landlock 沙箱 + seccomp + 三系统调用                  | 2026 Q4 | \[SS]          |
 | M5 | Vault backend 抽象 + TPM/SGX 后端                  | 2027 Q1 | \[SC] + \[IND] |
 | M6 | 国密算法集成（SM2/SM3/SM4）                            | 2027 Q1 | \[IND]         |
@@ -884,7 +884,7 @@ AirymaxOS 用户态 **12 daemon**（daemon 命名后缀统一为 `_d`，**无例
 | 序号 | 检查项                          | agentrt 状态                                                | agentrt-linux 状态                | 结论          |
 | -- | ---------------------------- | --------------------------------------------------------- | ------------------------------- | ----------- |
 | 1  | capability ID 枚举一致性          | 41 个 POSIX caps                                           | 41 个 POSIX caps                 | PASS \[SC]  |
-| 2  | LSM 钩子 ID 枚举一致性              | 252 个钩子 ID                                                | 252 个钩子 ID                      | PASS \[SC]  |
+| 2  | LSM 钩子 ID 枚举一致性              | 250 个钩子 ID                                                | 250 个钩子 ID                      | PASS \[SC]  |
 | 3  | capability 派生模型一致性           | mint/mintcopy/derive/revoke                               | mint/mintcopy/derive/revoke     | PASS \[SC]  |
 | 4  | Cupolas blob 布局一致性           | cred/inode/file/task                                      | cred/inode/file/task            | PASS \[SC]  |
 | 5  | Vault backend 抽象一致性          | 4 函数指针（init/seal/unseal/attest）                           | 4 函数指针（init/seal/unseal/attest） | PASS \[SC]  |
@@ -936,7 +936,7 @@ AirymaxOS 用户态 **12 daemon**（daemon 命名后缀统一为 `_d`，**无例
 - Linux 6.6 `security/landlock/`（Landlock 实现）
 - Linux 6.6 `security/keys/`（密钥环实现）
 - Linux 6.6 `include/linux/lsm_hooks.h`（LSM 钩子声明，含单参数 `security_uring_cmd`）
-- Linux 6.6 `include/linux/lsm_hook_defs.h`（252 钩子定义）
+- Linux 6.6 `include/linux/lsm_hook_defs.h`（250 钩子定义）
 - Linux 6.6 `security/selinux/hooks.c`（纯 C LSM 注册参考：`DEFINE_LSM` + `security_add_hooks`）
 - Linux 6.6 `include/uapi/linux/io_uring.h`（`io_uring_cmd_to_pdu()` 安全宏 + `io_uring_cmd_done()` 4 参数 + `IORING_SETUP_SQE128`）
 - Linux 6.6 `Documentation/admin-guide/lockdown.rst`（Lockdown）

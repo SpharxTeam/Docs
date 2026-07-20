@@ -221,7 +221,7 @@ capability 令牌经安全通道传递，禁止日志打印原始值（OS-SEC-12
 
 ### 4.2 LSM + Landlock 沙箱（OS-STD-SEC-010\~011）
 
-#### 4.2.1 Cupolas LSM 钩子（252 ID）
+#### 4.2.1 Cupolas LSM 钩子（250 ID）
 
 agentrt-linux Cupolas 作为最后初始化的 LSM 注册到框架，与 capability、Landlock、Yama 等共存（不打 `LSM_FLAG_EXCLUSIVE` 标记）。Cupolas 消费 5 类核心钩子：
 

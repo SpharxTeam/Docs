@@ -394,7 +394,7 @@ gateway\_d 是 agentrt gateway 在 OS 级的升级形态 \[SS]：
 | `include/uapi/linux/airymax/ipc.h`                | IPC magic 0x41524531 'ARE1' + 128B `struct airy_ipc_msg_hdr` + SQE/CQE 操作码 + io\_uring ring 配置              | gateway\_d io\_uring 零拷贝 IPC 通道  |
 | `include/uapi/linux/airymax/syscalls.h`           | v1.1 Syscall 24 槽位（4 核心 + 20 预留）：`airy_sys_call`(0)/`airy_sys_rovol_ctl`(1)/`airy_sys_sched_ctl`(2)/`airy_sys_clt_notify`(3) | agentctl 与 sec\_d/sched\_d/clt\_notify 协作的 ABI 契约 |
 | `include/uapi/linux/airymax/uapi_compat.h`        | UAPI 兼容层宏（`__aligned(64)`、`__u32`/`__u16`/`__u64`/`__u8`）+ SQE128 模式 `cmd[80]` 扩展 | IPC 消息头对齐 + io\_uring SQE128 64B `__aligned(64)` |
-| `include/uapi/linux/airymax/lsm_types.h`          | airy\_lsm 钩子 ID 252 枚举 + `LSM_ORDER_MUTABLE` 排序定义 + `uring_cmd` 单参数钩子签名 | CNI 网络策略的纯 C LSM（airy_lsm）联动 + 容器沙箱安全钩子 |
+| `include/uapi/linux/airymax/lsm_types.h`          | airy\_lsm 钩子 ID 250 枚举 + `LSM_ORDER_MUTABLE` 排序定义 + `uring_cmd` 单参数钩子签名 | CNI 网络策略的纯 C LSM（airy_lsm）联动 + 容器沙箱安全钩子 |
 
 ### 6.2 \[SS] 语义同源层——10 项 API 映射
 

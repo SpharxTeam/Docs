@@ -834,7 +834,7 @@ agentrt-linux 基于 Linux 6.6 内核基线，充分利用以下原生特性：
 
 ### 9.1 sched_tac（策略框架，非用户态调度器）
 
-- **sched_tac**：基于 Linux 6.6 标准内核原生 SCHED\_DEADLINE/SCHED\_FIFO/EEVDF + cgroup cpuset 隔离 + seL4 MCS 语义映射的策略框架（非用户态调度器，非 sched\_ext）。标准 Linux 6.6 主线不包含 sched\_ext（6.12 才合入主线），agentrt-linux 采用 sched_tac。零内核调度器修改，不新增内核调度类，不修改 CFS/EEVDF 核心代码。
+- **sched_tac**：基于 Linux 6.6 标准内核原生 SCHED\_DEADLINE/SCHED\_FIFO/EEVDF + cgroup cpuset 隔离 + seL4 MCS 语义映射的策略框架（非用户态调度器，非 sched\_ext）。> **注**：OLK 6.6 已 backport sched_ext（`kernel/sched/ext.c`，215KB），但选择不使用 sched_ext 的理由是：① sched_ext 依赖 BPF_SYSCALL && BPF_JIT && DEBUG_INFO_BTF，与 H5 纯 C LSM 原则冲突；② x86 默认禁用 sched_ext（KABI 考量）；③ BPF verifier 语义不确定性影响形式化验证可行性；④ BPF struct_ops 模型与纯 C 体系不一致。vanilla Linux 6.6 主线不含 sched_ext（6.12 才合入），但 OLK 6.6 已 backport 此特性。零内核调度器修改，不新增内核调度类，不修改 CFS/EEVDF 核心代码。
 - **stc_\* 策略枚举**：用户态调度策略枚举（`stc_realtime`/`stc_interactive`/`stc_agent`/`stc_batch`），通过 `struct airy_sched_ops` 暴露回调（纯用户态函数表，非 BPF struct\_ops）。`AIRY_SCHED_AGENT` 已彻底废弃（2026-07-18 用户裁决），全部替换为 sched_tac 策略框架 + stc_\* 策略枚举（字符串常量 `AIRY_STC_POLICY_NAME "stc_agent"`）。**禁止**定义 `SCHED_AGENT` 内核调度类宏（已确立禁用，避免与内核调度类编号冲突）。
 - 通过 `airy_sys_sched_ctl` 控制策略配置。
 
@@ -914,7 +914,7 @@ agentrt-linux 基于 Linux 6.6 内核基线，充分利用以下原生特性：
 | 共享内容          | 符号                                          | 值/类型     | 说明                                                                   |
 | ------------- | ------------------------------------------- | -------- | -------------------------------------------------------------------- |
 | Capability ID | `AIRY_CAP_AGENT_SPAWN/GPU_SCHED/NPU_ACCESS` | 41/42/43 | Airymax 专属（从 41 开始，避免与 Linux 0-40 冲突）                                |
-| LSM 钩子        | `AIRY_LSM_HOOK_TASK_CREATE/IPC_SEND`        | 0/1      | 252 个 LSM 钩子 ID                                                      |
+| LSM 钩子        | `AIRY_LSM_HOOK_TASK_CREATE/IPC_SEND`        | 0/1      | 250 个 LSM 钩子 ID                                                      |
 | 策略裁决          | `airy_verdict`                              | 4 枚举     | ALLOW=0 / DENY=1 / AUDIT=2 / COMPLAIN=3                             |
 | Capability 操作 | `airy_cap_op`                               | 7 枚举     | COPY=0 / MINT=1 / MOVE=2 / MUTATE=3 / REVOKE=4 / DELETE=5 / ROTATE=6 |
 
@@ -940,7 +940,7 @@ agentrt-linux 基于 Linux 6.6 内核基线，充分利用以下原生特性：
 | 语义域        | agentrt 实现                   | agentrt-linux 实现                    | \[SC] 契约依据                              |
 | ---------- | ---------------------------- | ----------------------------------- | --------------------------------------- |
 | 调度语义       | MicroCoreRT 用户态调度器           | sched_tac 策略框架（SCHED\_FIFO/SCHED\_DEADLINE，非用户态调度器）    | `sched.h`：任务描述符 + vtime + 优先级           |
-| 安全模型       | Cupolas 用户态策略引擎              | LSM 钩子（252 ID）+ capability 41 ID    | `security_types.h`：capability + verdict |
+| 安全模型       | Cupolas 用户态策略引擎              | LSM 钩子（250 ID）+ capability 41 ID    | `security_types.h`：capability + verdict |
 | IPC 传输     | 用户态消息队列（mqueue/io\_uring）    | 内核 io\_uring 驱动（数据面，零 syscall）+ 4 核心 syscall（控制面，v1.1 Capability Folding 后） | `ipc.h`：128B 消息头 + magic 'ARE1'         |
 | 记忆模型       | 用户态 heapstore（malloc + mmap） | 内核态 L1-L4 分层（kmalloc + pmem）        | `memory_types.h`：L1-L4 + GFP 掩码         |
 | 认知模型       | 用户态 CoreLoopThree 引擎         | 内核 kthread 认知通知                     | `cognition_types.h`：三阶段枚举               |

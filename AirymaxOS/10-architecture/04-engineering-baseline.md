@@ -604,7 +604,7 @@ agentrt-linux 全面参考 openEuler 24.03 LTS / 26.03 的 Euler API 用户态�
 | `ipc.h`             | magic 0x41524531 'ARE1' + 128B 消息头                             | kernel-doc + errno           | kernel / services  |
 | `sched.h`           | magic 0x41475453 'AGTS' + 复用 Linux 6.6 原生 SCHED_DEADLINE/SCHED_FIFO/EEVDF + MAC\_MAX\_AGENTS=1024 | kernel-doc + snake\_case     | kernel / cognition |
 | `memory_types.h`    | MemoryRovol L1-L4 + GFP 掩码                                     | kernel-doc + 80 列            | kernel / memory    |
-| `security_types.h`  | 41 cap + 252 LSM + Cupolas blob                                | kernel-doc + minimal typedef | kernel / security  |
+| `security_types.h`  | 41 cap + 250 LSM + Cupolas blob                                | kernel-doc + minimal typedef | kernel / security  |
 | `cognition_types.h` | 三阶段枚举 + Thinkdual 模式                                           | kernel-doc + snake\_case     | kernel / cognition |
 | `syscalls.h`        | 4 核心 syscall 编号 + 20 预留槽位（v1.1）                                     | kernel-doc + K\&R            | kernel / cognition |
 | `uapi_compat.h`     | 三路类型桥接（`__KERNEL__` / `__linux__` / `#else`）                       | kernel-doc + minimal typedef | IRON-9 跨端 |
