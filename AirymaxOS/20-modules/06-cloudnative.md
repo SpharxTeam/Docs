@@ -388,11 +388,11 @@ gateway\_d 是 agentrt gateway 在 OS 级的升级形态 \[SS]：
 | `include/uapi/linux/airymax/error.h`              | 扩展错误码（`AIRY_ESEC_D_THROTTLED = -83`、`AIRY_ECAP_FROZEN = -82`、`AIRY_FAULT_URING_MALFORMED = 0x100A`、`AIRY_FAULT_AUDIT_TAMPER = 0x100B`） | gateway\_d 跨节点 RPC 错误映射 + CRD controller reconcile 错误透传 |
 | `include/uapi/linux/airymax/log_types.h`          | trace\_id + 结构化日志类型枚举                                                                                   | OpenTelemetry trace\_id 贯穿 + journald 聚合 |
 | `include/uapi/linux/airymax/memory_types.h`        | MemoryRovol L1-L4 数据结构 + GFP 掩码语义 + PMEM 持久化接口                                                            | 容器快照 + 跨节点迁移（与 memory 协作） |
-| `include/uapi/linux/airymax/security_types.h`  | capability 41 ID 枚举 + Cupolas blob 布局 + v1.1 `agent_caps[1024]` 静态数组定义 + 64-bit Badge 布局（`Epoch<<48 \| RandomTag<<16 \| Perms`） | 容器沙箱 capability 隔离 + CNI 网络策略 + 跨节点 Badge 一致性 |
+| `include/uapi/linux/airymax/security_types.h`  | capability 41 ID 枚举 + Cupolas blob 布局 + v1.0.1 `agent_caps[1024]` 静态数组定义 + 64-bit Badge 布局（`Epoch<<48 \| RandomTag<<16 \| Perms`） | 容器沙箱 capability 隔离 + CNI 网络策略 + 跨节点 Badge 一致性 |
 | `include/uapi/linux/airymax/cognition_types.h` | CoreLoopThree 阶段枚举（PERCEPTION/THINKING/ACTION）+ Thinkdual 模式枚举（SYSTEM1\_FAST/SYSTEM2\_SLOW）+ LLM 推理阶段枚举 | Agent CRD cognition 字段 + LLM 调度器 |
 | `include/uapi/linux/airymax/sched.h`              | sched\_tac 调度类约束（禁止 SCHED\_AGENT 宏）+ task\_desc（magic 0x41475453 'AGTS'）+ vtime 衰减公式 | K8s 自定义调度器与 sched\_d 协作时的调度类约束 |
 | `include/uapi/linux/airymax/ipc.h`                | IPC magic 0x41524531 'ARE1' + 128B `struct airy_ipc_msg_hdr` + SQE/CQE 操作码 + io\_uring ring 配置              | gateway\_d io\_uring 零拷贝 IPC 通道  |
-| `include/uapi/linux/airymax/syscalls.h`           | v1.1 Syscall 24 槽位（4 核心 + 20 预留）：`airy_sys_call`(0)/`airy_sys_rovol_ctl`(1)/`airy_sys_sched_ctl`(2)/`airy_sys_clt_notify`(3) | agentctl 与 sec\_d/sched\_d/clt\_notify 协作的 ABI 契约 |
+| `include/uapi/linux/airymax/syscalls.h`           | v1.0.1 Syscall 24 槽位（4 核心 + 20 预留）：`airy_sys_call`(0)/`airy_sys_rovol_ctl`(1)/`airy_sys_sched_ctl`(2)/`airy_sys_clt_notify`(3) | agentctl 与 sec\_d/sched\_d/clt\_notify 协作的 ABI 契约 |
 | `include/uapi/linux/airymax/uapi_compat.h`        | UAPI 兼容层宏（`__aligned(64)`、`__u32`/`__u16`/`__u64`/`__u8`）+ SQE128 模式 `cmd[80]` 扩展 | IPC 消息头对齐 + io\_uring SQE128 64B `__aligned(64)` |
 | `include/uapi/linux/airymax/lsm_types.h`          | airy\_lsm 钩子 ID 250 枚举 + `LSM_ORDER_MUTABLE` 排序定义 + `uring_cmd` 单参数钩子签名 | CNI 网络策略的纯 C LSM（airy_lsm）联动 + 容器沙箱安全钩子 |
 
@@ -447,7 +447,7 @@ gateway\_d 是 agentrt gateway 在 OS 级的升级形态 \[SS]：
 
 v1.0.1 Capability Folding（ADR-014 seL4 唯一来源，参见 `docs/architecture/adr/ADR-014.md`）在云原生场景下的核心约束：
 
-- **`agent_caps[1024]` 静态数组（16KB）**：每个节点上由 sec\_d 作为唯一写者，云原生 CRD controller 通过 `airy_sys_call(0)` 提交 capability 编译请求，sec\_d 串行化所有 Badge 编译以保证 Epoch 单调。
+- **`agent_caps[1024]` 静态数组（128KB）**：每个节点上由 sec\_d 作为唯一写者，云原生 CRD controller 通过 `airy_sys_call(0)` 提交 capability 编译请求，sec\_d 串行化所有 Badge 编译以保证 Epoch 单调。
 - **64-bit Badge 布局**（`Epoch<<48 | RandomTag<<16 | Perms`）：跨节点 IPC 时 gateway\_d 验证对端 Badge 的 Epoch 是否在本节点 gossip 窗口内（100ms 偏差容忍），超出窗口则触发 §6.4 \[DSL] 降级。
 - **O(1) 撤销**（`atomic_inc(&airy_cap_global_epoch)`）：CRD 删除事件触发秒级 Epoch 推进，全集群 100ms 内完成 Badge 失效；CNI 网络策略联动纯 C LSM（airy_lsm）`uring_cmd` 单参数钩子（`struct io_uring_cmd *ioucmd`）即时阻断已撤销 capability 的 io\_uring 提交。
 - **fastpath C-S9 内联校验（~10ns）+ slowpath LSM 钩子**：gateway\_d 跨节点 RPC 入口先走 fastpath C-S9 内联校验（~10ns），未命中或 Epoch 偏差时退化为 slowpath 走 airy\_lsm（`LSM_ORDER_MUTABLE`，非 `LSM_ORDER_FIRST`）钩子做完整 Cupolas blob 验证。
@@ -521,7 +521,7 @@ graph TD
         IPC_HDR[include/uapi/linux/airymax/ipc.h<br/>magic ARE1 + 128B msg_hdr]
         SEC_HDR[include/uapi/linux/airymax/security_types.h<br/>capability 41 ID + agent_caps + Badge 64-bit]
         COG_HDR[include/uapi/linux/airymax/cognition_types.h<br/>CoreLoopThree 阶段枚举]
-        SYS_HDR[include/uapi/linux/airymax/syscalls.h<br/>v1.1 24 槽位 syscall]
+        SYS_HDR[include/uapi/linux/airymax/syscalls.h<br/>v1.0.1 24 槽位 syscall]
         UAPI_HDR[include/uapi/linux/airymax/uapi_compat.h<br/>__aligned(64) + SQE128 cmd[80]]
         LSM_HDR[include/uapi/linux/airymax/lsm_types.h<br/>airy_lsm + uring_cmd 钩子]
     end

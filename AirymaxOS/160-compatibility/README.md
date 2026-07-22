@@ -26,7 +26,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 ## 2. 技术选型声明
 
-agentrt-linux v1.0 在内核调度、IPC 传输、安全钩子、内存分配与同源代码共享五个维度做出**不可妥协**的技术选型。本目录所有兼容性设计必须以本声明为基线——兼容性承诺不得引入 sched_ext / page flipping / BPF LSM / DMA 一致性内存的兼容支持，这些被弃用方案不在兼容矩阵内。
+agentrt-linux v1.0.1 在内核调度、IPC 传输、安全钩子、内存分配与同源代码共享五个维度做出**不可妥协**的技术选型。本目录所有兼容性设计必须以本声明为基线——兼容性承诺不得引入 sched_ext / page flipping / BPF LSM / DMA 一致性内存的兼容支持，这些被弃用方案不在兼容矩阵内。
 
 | # | 技术维度 | 选定方案 | 明确不采用 | 选定理由 |
 |---|---------|---------|-----------|---------|
@@ -38,7 +38,7 @@ agentrt-linux v1.0 在内核调度、IPC 传输、安全钩子、内存分配与
 
 ### 2.1 内核基线兼容声明（本模块专属）
 
-> **标准 Linux 6.6 为唯一原生基线**：agentrt-linux v1.0 以 Linux 6.6 LTS 为唯一原生开发与兼容基线，sched_tac / IORING_OP_URING_CMD / 纯 C LSM / alloc_pages + mmap 全部基于 Linux 6.6 主线能力。
+> **标准 Linux 6.6 为唯一原生基线**：agentrt-linux v1.0.1 以 Linux 6.6 LTS 为唯一原生开发与兼容基线，sched_tac / IORING_OP_URING_CMD / 纯 C LSM / alloc_pages + mmap 全部基于 Linux 6.6 主线能力。
 >
 > **其余内核版本仅作 DKMS 兼容目标**：对 Linux 6.1 / 6.12 等其他版本，仅通过 DKMS（Dynamic Kernel Module Support）提供有限兼容，不承诺完整功能与性能 SLO。sched_ext / page flipping / BPF LSM / DMA 一致性内存等被弃用方案**不在任何版本的兼容目标内**。
 
@@ -50,12 +50,12 @@ agentrt-linux v1.0 在内核调度、IPC 传输、安全钩子、内存分配与
 
 ```
 160-compatibility/
-├── README.md                       # 本文件 — 兼容性主索引（v1.0）
-├── 01-abi-stability.md             # 用户空间 ABI 稳定性 + KABI 保留域（v1.0）
-├── 02-posix-compat.md              # POSIX 兼容性 + sched_tac 调度约束（v1.0）
-├── 03-upstream-tracking.md         # 上游跟踪策略 + backport 规范（v1.0）
-├── 04-ipc-versioning.md            # AgentsIPC 版本协商 + 操作码版本化（v1.0）
-└── 05-cross-distro.md             # 跨发行版兼容性 + DKMS 兼容目标（v1.0）
+├── README.md                       # 本文件 — 兼容性主索引（v1.0.1）
+├── 01-abi-stability.md             # 用户空间 ABI 稳定性 + KABI 保留域（v1.0.1）
+├── 02-posix-compat.md              # POSIX 兼容性 + sched_tac 调度约束（v1.0.1）
+├── 03-upstream-tracking.md         # 上游跟踪策略 + backport 规范（v1.0.1）
+├── 04-ipc-versioning.md            # AgentsIPC 版本协商 + 操作码版本化（v1.0.1）
+└── 05-cross-distro.md             # 跨发行版兼容性 + DKMS 兼容目标（v1.0.1）
 ```
 
 ### 3.1 各文档定位
@@ -143,7 +143,7 @@ IRON-9 v3 的 [DSL] 降级生存层为兼容性提供最后防线：当 [SC] 头
 ## 5. 相关文档
 
 ### 5.1 上级与架构文档
-- [AirymaxOS 总览](../README.md) —— 文档体系顶层纲领（v1.0）
+- [AirymaxOS 总览](../README.md) —— 文档体系顶层纲领（v1.0.1）
 - [10-architecture/10-unify-design.md](../10-architecture/10-unify-design.md) —— Airymax Unify Design 总纲（五模块 SSoT）
 - [10-architecture/06-iron9-shared-model.md](../10-architecture/06-iron9-shared-model.md) —— IRON-9 v3 四层模型（[SC]/[SS]/[IND]/[DSL]）
 
@@ -178,4 +178,4 @@ IRON-9 v3 的 [DSL] 降级生存层为兼容性提供最后防线：当 [SC] 头
 
 ---
 
-> **文档结束** | 兼容性模块 v1.0 | 共 6 文档 | 维护者：开源极境工程与规范委员会 | 兼容性是操作系统的生命线
+> **文档结束** | 兼容性模块 v1.0.1 | 共 6 文档 | 维护者：开源极境工程与规范委员会 | 兼容性是操作系统的生命线

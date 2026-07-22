@@ -1048,7 +1048,7 @@ CBMC 验证的工程价值：
 
 ## 10. 相关文档
 
-- [80-testing README](README.md)：测试体系主索引（v1.0），定义 L10 形式化验证分层
+- [80-testing README](README.md)：测试体系主索引（v1.0.1），定义 L10 形式化验证分层
 - [03-kernel-selftests.md](03-kernel-selftests.md)：内核自测试（运行时不变式）
 - [05-static-analysis.md](05-static-analysis.md)：静态分析（与本卷互补）
 - [08-agent-contract-testing.md](08-agent-contract-testing.md)：Agent 行为契约测试（契约定义是本卷输入）

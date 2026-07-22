@@ -38,7 +38,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | # | 冲突点 | 冲突表现 | Unify Design 消解方式 |
 |---|--------|---------|---------------------|
 | C-01 | sched_ext / SCHED_AGENT 表述不一致 | 50 个文件各自定义调度策略，sched_ext 在 vanilla 6.6 不可用（OLK 6.6 已 backport 但选择不使用） | A-ULS + sched_tac 统一三层调度，零内核调度器修改 |
-| C-02 | page flipping 表述不一致 | 6 个文件引用已废弃的 page flipping 零拷贝路径 | A-IPC 统一 IORING_OP_URING_CMD + registered buffer + mmap（v1.1 进一步升级为 Capability Folding 单平面架构） |
+| C-02 | page flipping 表述不一致 | 6 个文件引用已废弃的 page flipping 零拷贝路径 | A-IPC 统一 IORING_OP_URING_CMD + registered buffer + mmap（v1.0.1 进一步升级为 Capability Folding 单平面架构） |
 | C-03 | VFS 用户态化决策矛盾 | 2 个文件对"VFS 是否完全下沉用户态"结论相反 | A-ULS 统一决策：内核保留路径解析，FS 实现用户态化 |
 | C-04 | [SC] 头文件数量不一致 | 多处文档对共享头文件数量有 6/10 等不同说法 | A-UEF/A-ULP/A-UCS 联合约束 [SC] 头文件物理宿主为 `kernel/include/uapi/linux/airymax/`，共 10 个 |
 | C-05 | 错误码双轨制 | agentrt 全仓库 `AIRY_E*` 与 `AIRY_ERR_*` 并存 | A-UEF 统一为 `AIRY_E*`（Error 负数空间）+ `AIRY_FAULT_*`（Fault 正数空间） |
@@ -184,12 +184,12 @@ Fault 码从 `0x1000` 起步，每个 Fault 对应一个不可恢复的异常场
 
 | Fault 码 | 值 | 语义 | 触发场景 |
 |---------|-----|------|---------|
-| `AIRY_FAULT_CAP_FORGED` | `0x1001` | Badge 伪造 | C-S9 检测到 `badge_randtag` 不匹配（v1.1 从 `AIRY_FAULT_CAP_FAULT` 精确化） |
+| `AIRY_FAULT_CAP_FORGED` | `0x1001` | Badge 伪造 | C-S9 检测到 `badge_randtag` 不匹配（v1.0.1 从 `AIRY_FAULT_CAP_FAULT` 精确化） |
 | `AIRY_FAULT_CAP_LEAK` | `0x1002` | Badge 泄漏 | sec_d 审计检测到跨 Agent 使用 Badge（v1.0.1 新增） |
-| `AIRY_FAULT_RING_CORRUPT` | `0x1003` | Ring 数据损坏 | CRC32 校验失败 + Ring 元数据不一致（v1.1 从 `AIRY_FAULT_IPC_FAULT` 精确化） |
+| `AIRY_FAULT_RING_CORRUPT` | `0x1003` | Ring 数据损坏 | CRC32 校验失败 + Ring 元数据不一致（v1.0.1 从 `AIRY_FAULT_IPC_FAULT` 精确化） |
 | `AIRY_FAULT_TIMEOUT` | `0x1004` | 超时故障 | Agent 心跳超时且未响应冻结 |
 | `AIRY_FAULT_ABNORMAL_CAP` | `0x1005` | 异常 Capability | Capability 树完整性校验失败 |
-| `AIRY_FAULT_VM_FAULT` | `0x1006` | 虚拟内存故障 | 共享页映射损坏（v1.1 从 `0x1002` 迁移至此） |
+| `AIRY_FAULT_VM_FAULT` | `0x1006` | 虚拟内存故障 | 共享页映射损坏（v1.0.1 从 `0x1002` 迁移至此） |
 
 ### 4.4 [SC] error.h 契约
 
@@ -339,7 +339,7 @@ A-ULS 定义 Agent 8 态生命周期，与 Linux 进程状态天然映射（sche
 
 **权威源**：[30-interfaces/02-ipc-protocol.md](../30-interfaces/02-ipc-protocol.md) + [30-interfaces/07-ipc-fastpath.md](../30-interfaces/07-ipc-fastpath.md) + [30-interfaces/01-syscalls.md](../30-interfaces/01-syscalls.md)
 
-> **v1.1 重大变更**：A-IPC 从 v1.0 的"双平面架构（控制面 12 syscall + 数据面 io_uring）"重构为 v1.1 的"Capability Folding 单平面架构（数据面 io_uring 唯一平面 + 控制面 4 syscall 低频管理）"。这是 AirymaxOS 第一块基石的形状确定——后续所有设计（sched_tac / MemoryRovol / sec_d / cogn_d）都建立在此基石之上。
+> **v1.0.1 重大变更**：A-IPC 从 v1.0 的"双平面架构（控制面 12 syscall + 数据面 io_uring）"重构为 v1.0.1 的"Capability Folding 单平面架构（数据面 io_uring 唯一平面 + 控制面 4 syscall 低频管理）"。这是 AirymaxOS 第一块基石的形状确定——后续所有设计（sched_tac / MemoryRovol / sec_d / cogn_d）都建立在此基石之上。
 
 ### 8.1 Capability Folding 工程定义
 
@@ -391,7 +391,7 @@ A-IPC 的物理载体是 [SC] `ipc.h` Layout C v4 128B 定长消息头（2 cache
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                     A-IPC v1.1 单平面架构（Capability Folding）                │
+│                     A-IPC v1.0.1 单平面架构（Capability Folding）                │
 │                                                                              │
 │  数据面（io_uring，高频 100K-1M 次/秒）:                                      │
 │    IORING_OP_URING_CMD → airy_uring_cmd()                                    │
@@ -416,7 +416,7 @@ A-IPC 的物理载体是 [SC] `ipc.h` Layout C v4 128B 定长消息头（2 cache
 
 ### 8.5 syscall 12 → 4 精确映射
 
-v1.0 的 12 核心 syscall 精简为 v1.1 的 4 核心 syscall。8 个 seL4 风格 IPC 原语全部移除，IPC 数据传递完全由 io_uring 数据面 `IORING_OP_URING_CMD + cmd_op` 承载。完整映射表见 [01-syscalls.md §2.2.1](../30-interfaces/01-syscalls.md)。
+v1.0 的 12 核心 syscall 精简为 v1.0.1 的 4 核心 syscall。8 个 seL4 风格 IPC 原语全部移除，IPC 数据传递完全由 io_uring 数据面 `IORING_OP_URING_CMD + cmd_op` 承载。完整映射表见 [01-syscalls.md §2.2.1](../30-interfaces/01-syscalls.md)。
 
 | 保留的 4 个 syscall | 注册号 | 职责 |
 |---|---|---|
@@ -479,7 +479,7 @@ if (unlikely(!airy_cap_has_perm(badge_perms, hdr->opcode)))
 Capability Folding 的隔离基础是**数据结构级隔离**（非 seL4 架构级隔离），通过三个独立的内存区域实现：
 
 ```
-1. agent_caps[1024]   能力数据（内核静态数组，16KB）
+1. agent_caps[1024]   能力数据（内核静态数组，128KB）
    ├─ 唯一写者: sec_d（通过 airy_sys_call + COMPILE_BADGE）
    ├─ 读者: fastpath C-S9（READ_ONCE 无锁）
    └─ 失败域: 独立于 IPC 数据投递
@@ -495,7 +495,7 @@ Capability Folding 的隔离基础是**数据结构级隔离**（非 seL4 架构
    └─ 失败域: 独立于能力数据与 kfifo
 ```
 
-三者内存区域独立、更新路径独立、失败域独立——这是 v1.1 数据面自治的根本设计。相对 v1.0 的"数据面自治三原则（Ring 生命周期解耦 / 离线缓存校验 / Reconciliation）"，v1.1 升级为"数据结构隔离三原则"：
+三者内存区域独立、更新路径独立、失败域独立——这是 v1.0.1 数据面自治的根本设计。相对 v1.0 的"数据面自治三原则（Ring 生命周期解耦 / 离线缓存校验 / Reconciliation）"，v1.0.1 升级为"数据结构隔离三原则"：
 
 1. **能力数据隔离**：`agent_caps[]` 由 sec_d 唯一写，fastpath 唯一读，与 IPC 数据路径完全解耦
 2. **投递缓冲隔离**：kfifo 由 fastpath 写，接收方读，与能力校验路径完全解耦
@@ -597,7 +597,7 @@ v1.0.1 Capability Folding 决策为 [SC] `ipc.h` 新增 [DSL] 降级块。当 `A
 >
 > **技术选型权威声明**：
 > - 调度：sched_tac（SCHED_DEADLINE / SCHED_FIFO / EEVDF + seL4 MCS 语义映射），不使用 sched_ext
-> - IPC（v1.1 升级）：Capability Folding 单平面架构——io_uring `IORING_OP_URING_CMD` + registered buffer + mmap + fastpath C-S9 Badge 内联校验，不使用 page flipping，无双平面、无独立 capability syscall
+> - IPC（v1.0.1 升级）：Capability Folding 单平面架构——io_uring `IORING_OP_URING_CMD` + registered buffer + mmap + fastpath C-S9 Badge 内联校验，不使用 page flipping，无双平面、无独立 capability syscall
 > - 安全：纯 C LSM 模块（对齐 openEuler），不使用 BPF LSM；Badge 校验是 fastpath 内联（H5）
 > - 日志内存：alloc_pages(GFP_KERNEL) + mmap，不使用 DMA 一致性内存
 > - [SC] 物理宿主：`kernel/include/uapi/linux/airymax/`，共 10 个头文件

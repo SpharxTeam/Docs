@@ -559,8 +559,8 @@ kernel/
 │   └── airy_log_persist.c           # PMEM 持久化
 │
 ├── ipc/                              # IPC 内核基础设施（与 corekern/ipc 互补）
-│   ├── airy_ipc_syscall.c           # 12 系统调用入口
-│   └── airy_ipc_capability.c        # Capability 折叠 Native Word 校验
+│   ├── airy_ipc_capability.h         # slowpath 包装声明，引用 security/airy/airy_cap.h
+│   └── airy_ipc_capability.c         # 权威定义 agent_caps[] + airy_cap_global_epoch + slowpath
 │
 ├── config/                           # 内核配置
 │   └── Kconfig.alk                  # ALK 6.6 配置项
@@ -795,10 +795,9 @@ security/
 │   ├── airy_lsm_policy.c            # 策略加载
 │   └── airy_lsm.h
 │
-├── capability/                       # Capability 系统（v1.1: agent_caps[1024] 静态数组）
+├── capability/                       # Capability 系统（v1.0.1: agent_caps[1024] 静态数组）
 │   ├── Kbuild
-│   ├── airy_cap_init.c              # 初始化（agent_caps[1024] 静态数组 + 全局 Epoch）
-│   ├── airy_cap_array.c             # agent_caps[1024] 静态数组管理（v1.1 替代 radix_tree 派生树）
+│   ├── airy_cap_array.c             # agent_caps[1024] 静态数组管理（v1.0.1 替代 radix_tree 派生树）
 │   ├── airy_cap_derive.c            # seL4 CNode 派生（Copy/Mint/Move/Mutate/Revoke/Delete/Rotate）
 │   ├── airy_cap_check.c             # slowpath 校验（fastpath C-S9 Badge 内联在 kernel/kernel/superv/airy_cap_check.c）
 │   ├── airy_cap_revoke.c            # 撤销（atomic_inc(&airy_cap_global_epoch) O(1) 立即生效）

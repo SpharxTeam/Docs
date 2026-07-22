@@ -268,35 +268,39 @@ typedef uint64_t cap_t;
 ```c
 /* v1.0.1 Capability Folding: 静态数组 + Badge 64-bit 编码（替代 v1.0 capability 元数据结构体） */
 #define AIRY_CAP_MAX_AGENTS        1024
-#define AIRY_CAP_GLOBAL_EPOCH_INIT 1
 
 /* Badge 64-bit Native Word 布局：Epoch<<48 | RandomTag<<16 | Perms
  * - Epoch[48:63]   16 bit：全局代序号，atomic_inc(&airy_cap_global_epoch) O(1) 撤销
  * - RandomTag[16:47] 32 bit：派生关系隐式编码（同源派生共享 RandomTag）
  * - Perms[0:15]    16 bit：权限位段（send/recv/cap_request/grant/revoke 等）
  */
+
+/* [SC] lsm_types.h: 每槽 128 字节（80 内容 + aligned(64) 填充至 128） */
 struct airy_cap_slot {
-    __u64 badge;        /* Epoch<<48 | RandomTag<<16 | Perms */
-    __u64 target_id;    /* Agent ID / Endpoint ID / Resource ID */
-} __aligned(64);        /* cache line 对齐，避免 false sharing 与侧信道 */
+    __u64   badge;            /* 64-bit badge: Epoch<<48 | RandomTag<<16 | Perms */
+    __u32   agent_id;         /* Owning agent ID */
+    __u32   flags;            /* Slot flags */
+    __u32   randtag;          /* Random tag for forgery prevention */
+    __u16   perms;            /* Permission bits */
+    __u16   _pad;             /* Alignment */
+    __u8    _reserved[56];    /* Cacheline padding */
+} __attribute__((aligned(64)));
 
-struct airy_cap_table {
-    struct airy_cap_slot slots[AIRY_CAP_MAX_AGENTS];  /* agent_caps[1024] 静态数组，16KB */
-    atomic_t global_epoch;  /* O(1) 撤销：atomic_inc 即失效所有旧 badge */
-};
+/* kernel/ipc/airy_ipc_capability.c: 权威定义全局静态数组（128KB），__ro_after_init 指针 */
+static struct airy_cap_slot __airymax_cap_table[AIRY_CAP_MAX_AGENTS] __aligned(64);
+struct airy_cap_slot *agent_caps __ro_after_init = __airymax_cap_table;
 
-/* 全局唯一实例，sec_d 唯一写者（串行化写入消除内核锁） */
-extern struct airy_cap_table airy_cap_global_table;
-#define agent_caps  (airy_cap_global_table.slots)
+/* security/airy/airy_cap.h: 全局 epoch（atomic_t，32 位），独立全局变量 */
+extern atomic_t airy_cap_global_epoch;
 ```
 
 **v1.0.1 Capability Folding 集成**（CNode/CSpace 概念保留 + 物理存储重构）：
 
-**v1.1 重构**：自 v1.0.1 起，agentrt-linux 的 capability 存储从 v1.0 的 `airy_cnode`（radix-tree）+ `airy_cap_mdb`（MDB 派生树）+ v1.0 capability 元数据结构体（含 cap_id/cap_type/rights/parent_cap_id/mint_depth/mint_quota 六字段）重构为 **Capability Folding 单平面架构**——`airy_cnode`/`airy_cspace`/v1.0 capability 元数据结构体作为逻辑/语义概念保留（[03-capability-model.md §2.1-2.4](../110-security/03-capability-model.md)），但物理存储改用 `agent_caps[1024]` 内核静态数组 + Badge 64-bit Native Word，撤销机制改用 `atomic_inc(&airy_cap_global_epoch)` O(1) 全局失效。
+**v1.0.1 重构**：自 v1.0.1 起，agentrt-linux 的 capability 存储从 v1.0 的 `airy_cnode`（radix-tree）+ `airy_cap_mdb`（MDB 派生树）+ v1.0 capability 元数据结构体（含 cap_id/cap_type/rights/parent_cap_id/mint_depth/mint_quota 六字段）重构为 **Capability Folding 单平面架构**——`airy_cnode`/`airy_cspace`/v1.0 capability 元数据结构体作为逻辑/语义概念保留（[03-capability-model.md §2.1-2.4](../110-security/03-capability-model.md)），但物理存储改用 `agent_caps[1024]` 内核静态数组 + Badge 64-bit Native Word，撤销机制改用 `atomic_inc(&airy_cap_global_epoch)` O(1) 全局失效。
 
-| 维度 | v1.0 实现（已废弃） | v1.1 实现（当前权威） |
+| 维度 | v1.0 实现（已废弃） | v1.0.1 实现（当前权威） |
 |------|-------------------|---------------------|
-| 物理存储 | `airy_cnode`（radix-tree 动态分配）+ v1.0 capability 元数据结构体 | `agent_caps[1024]` 静态数组（16KB，sec_d 唯一写者）+ Badge 64-bit Native Word |
+| 物理存储 | `airy_cnode`（radix-tree 动态分配）+ v1.0 capability 元数据结构体 | `agent_caps[1024]` 静态数组（128KB，每槽 128 字节 cacheline 对齐，sec_d 唯一写者）+ Badge 64-bit Native Word |
 | 逻辑视图 | `airy_cspace`（CNode 树） | `airy_cspace` 保留（`slots` 指针指向 `agent_caps[agent_id]`） |
 | 派生关系 | `airy_cap_mdb`（全局 MDB，parent→children 链）+ v1.0 元数据 parent_cap_id 字段 | 不需要——Badge 64-bit Native Word 自包含 Epoch + RandomTag + Perms |
 | 撤销机制 | MDB 递归遍历子树（O(n)） | `atomic_inc(&airy_cap_global_epoch)` 一行代码 O(1) 全局撤销 |
@@ -305,7 +309,7 @@ extern struct airy_cap_table airy_cap_global_table;
 
 > **权威定义**：v1.0.1 Capability Folding 完整设计以 [03-capability-model.md](../110-security/03-capability-model.md) 和 [07-airy-lsm-design.md](../110-security/07-airy-lsm-design.md) 为 SSoT 权威源。本文件仅做概念性引用，不重新定义实现细节。
 
-**与 seL4 的差异**：seL4 的 CNode/MDB 实现完全在微内核中（形式化验证）；agentrt-linux v1.1 借鉴其 capability 思想但物理实现基于 **`agent_caps[1024]` 静态数组 + atomic Epoch + Badge 64-bit Native Word**（性能优先，CBMC 全函数验证 fastpath），属于 \[IND] 实现独立层。capability ID 枚举与派生模型（mint/mintcopy/derive/revoke）的语义在 \[SC] 层与 agentrt 共享。该简化符合"对 Linux 6.6 进行 seL4 思想借鉴的微内核化改造"定位（ADR-012 + ADR-014），不引入 seL4 完整 CSpace/MDB 实现复杂度。
+**与 seL4 的差异**：seL4 的 CNode/MDB 实现完全在微内核中（形式化验证）；agentrt-linux v1.0.1 借鉴其 capability 思想但物理实现基于 **`agent_caps[1024]` 静态数组 + atomic Epoch + Badge 64-bit Native Word**（性能优先，CBMC 全函数验证 fastpath），属于 \[IND] 实现独立层。capability ID 枚举与派生模型（mint/mintcopy/derive/revoke）的语义在 \[SC] 层与 agentrt 共享。该简化符合"对 Linux 6.6 进行 seL4 思想借鉴的微内核化改造"定位（ADR-012 + ADR-014），不引入 seL4 完整 CSpace/MDB 实现复杂度。
 
 ### 4.2 airy\_lsm（LSM hook，Cupolas 同源）\[SS]
 

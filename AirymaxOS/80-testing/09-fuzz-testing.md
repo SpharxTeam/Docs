@@ -542,7 +542,7 @@ syzkaller 语料库（`workdir/corpus.db`）跨运行持久化，包含历史发
 
 ### 8.1 上游 syzbot 集成
 
-agentrt-linux 计划在 v1.1 版本接入 Google syzbot 公开实例（`syzkaller.appspot.com`），将 agentrt-linux 内核作为 syzbot 的一个 instance：
+agentrt-linux 计划在 v1.0.1 版本接入 Google syzbot 公开实例（`syzkaller.appspot.com`），将 agentrt-linux 内核作为 syzbot 的一个 instance：
 
 - **instance 名称**：`airymaxos`
 - **kernel 配置**：`airy_fuzz_defconfig`（含 KASAN + KCOV）
@@ -578,7 +578,7 @@ agentrt-linux 计划在 v1.1 版本接入 Google syzbot 公开实例（`syzkalle
 
 ## 10. 相关文档
 
-- [80-testing README](README.md)：测试体系主索引（v1.0），定义 L9 模糊测试分层
+- [80-testing README](README.md)：测试体系主索引（v1.0.1），定义 L9 模糊测试分层
 - [04-dynamic-analysis.md](04-dynamic-analysis.md)：动态分析（KASAN/KCSAN/lockdep 提供检测能力）
 - [06-coverage-metrics.md](06-coverage-metrics.md)：覆盖率度量（KCOV 覆盖率引导）
 - [08-agent-contract-testing.md](08-agent-contract-testing.md)：Agent 行为契约测试（契约违反监控）
@@ -607,7 +607,7 @@ agentrt-linux 计划在 v1.1 版本接入 Google syzbot 公开实例（`syzkalle
 
 ---
 
-## 13. v1.0.1 Capability Folding Fuzz 用例（v1.1 增量补强）
+## 13. v1.0.1 Capability Folding Fuzz 用例（v1.0.1 增量补强）
 
 > **补强背景**：80-testing/ 现有 §1-§12 覆盖 120 个 Agent syscall（512-631）的通用 syzkaller 描述，但未针对 v1.0.1 Capability Folding 架构引入的攻击面（64-bit Badge 格式 `Epoch<<48 | RandomTag<<16 | Perms`、`agent_caps[1024]` 静态数组、SQE128 fastpath 路径）进行专项 fuzz。本章节定义 v1.0.1 Capability Folding 专属 fuzz 矩阵、syzkaller 描述、CI 集成与门槛，作为 §1-§12 的增量补强，不替换现有任何内容。
 
@@ -703,7 +703,7 @@ KUNIT_DEFINE_TEST(airy_cap_badge_fuzz_boundary_values)
 
 ### 13.3 malformed SQE128 fuzz（F-SQE128-1）
 
-v1.1 fastpath 使用 SQE128（128 字节 SQE），`IORING_OP_URING_CMD` 的 `cmd_op` 与 `cmd[]` 字段是 fuzz 重点：
+v1.0.1 fastpath 使用 SQE128（128 字节 SQE），`IORING_OP_URING_CMD` 的 `cmd_op` 与 `cmd[]` 字段是 fuzz 重点：
 
 - **cmd_op 越界**：`cmd_op ≥ AIRY_URING_CMD_MAX`（如 `0xFFFF`）。
 - **addr 未对齐**：`addr % 64 ≠ 0`（破坏 2-cache-line 对齐假设）。

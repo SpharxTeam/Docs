@@ -2,8 +2,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux 架构设计
 > **文档定位**：agentrt-linux（AirymaxOS）架构设计\
-> **文档版本**：0.1.1\
-> **最后更新**： 2026-07-21\
+> **文档版本**：v1.0.1\
+> **最后更新**： 2026-07-22\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **设计原则**：微内核设计思想 + agentrt-linux 工程基线 + Airymax 同源性
 > **系统定位（极境内核标准）**：AirymaxOS（agentrt-linux）是**对 Linux 6.6 进行 seL4 思想借鉴的微内核化改造的内核**——通过 seL4 微内核工程思想进行系统化改造，落地 v1.0.1 Capability Folding 单平面架构（~10ns fastpath Badge 校验）+ 12 daemon 用户态服务化 + 纯 C LSM + sched_tac 调度优化。详见 ADR-012（微内核化改造技术路线确认）+ ADR-014（微内核设计思想来源单一化）。

@@ -33,7 +33,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 自 v1.0.1 起，`logger_d` 集成 Capability Folding 单平面架构（详见 §7）：
 
-- `agent_caps[1024]` 静态数组（16KB，sec_d 唯一写者）为 `logger_d` 提供 O(1) Badge 校验入口
+- `agent_caps[1024]` 静态数组（128KB，sec_d 唯一写者）为 `logger_d` 提供 O(1) Badge 校验入口
 - fastpath C-S9 内联校验（~10ns）拦截伪造/过期 Badge 的日志写入尝试
 - Badge 64-bit 布局 `Epoch<<48 | RandomTag<<16 | Perms` 在 `logger_d` 侧通过 `agent_caps[src_task]` 反查验证
 - 校验失败时记录 `AIRY_ECAP_FROZEN = -82`、`AIRY_ESEC_D_THROTTLED = -83` 错误码至 Ring Buffer
@@ -404,7 +404,7 @@ struct airy_audit_chain_signature {
 
 ### 7.2 agent_caps[1024] 在 logger_d 中的引用
 
-`agent_caps[1024]` 静态数组（16KB，sec_d 唯一写者）在 `logger_d` 侧只读访问：
+`agent_caps[1024]` 静态数组（128KB，sec_d 唯一写者）在 `logger_d` 侧只读访问：
 
 | 字段 | 用途 | logger_d 访问方式 |
 |------|------|------------------|
