@@ -24,7 +24,7 @@ MemoryRovol CSI 驱动解决以下核心问题：
 |------|-------------|------------------------|
 | L1-L4 层级无法表达 | 仅 volumeType=block/filesystem | 扩展 `airymaxos.agent.memory-rovol.layers` 参数 |
 | 只读/读写语义不分 | 全卷统一读写权限 | per-layer 挂载语义（L1 只读、L2 读写等） |
-| 快照无 Agent 感知 | CSI snapshot 仅块级 | 复用 `airy_sys_rovol_snapshot`（552）语义 |
+| 快照无 Agent 感知 | CSI snapshot 仅块级 | 复用 `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT）语义 |
 | 跨节点迁移无记忆 | CSI 仅支持 detach/attach | 集成超节点 OS 跨 die 迁移协议（[04-supernode-os.md](04-supernode-os.md) §4） |
 
 ### 1.2 与设计文档的关系
@@ -42,7 +42,7 @@ MemoryRovol CSI 驱动解决以下核心问题：
 1. **CSI v1.9 合规**：完全实现 CSI v1.9 规范的 Identity/Controller/Node 三阶段 gRPC 接口
 2. **L1-L4 层级表达**：通过 CSI 卷参数表达 MemoryRovol 四层结构与挂载语义
 3. **零拷贝挂载**：L1/L4 通过 CXL 池零拷贝挂载，避免数据复制
-4. **快照集成**：CSI VolumeSnapshot 复用 `airy_sys_rovol_snapshot`（552）系统调用
+4. **快照集成**：CSI VolumeSnapshot 复用 `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT）系统调用
 5. **跨节点迁移**：CSI 卷 detach/attach 集成超节点 OS 跨 die 迁移
 
 ---
@@ -163,7 +163,7 @@ rpc GetPluginInfo(GetPluginInfoRequest)
 
 ```proto
 // 检查驱动就绪状态
-//   ready: true  (当 airy_sys_rovol_list 557 可调用时)
+//   ready: true  (当 airy_sys_rovol_ctl（549，op=AIRY_ROVOL_LIST）可调用时)
 //   ready: false (内核 MemoryRovol 子系统未就绪)
 ```
 
@@ -213,7 +213,7 @@ rpc DeleteVolume(DeleteVolumeRequest)
     returns (DeleteVolumeResponse) {}
 ```
 
-底层调用 `airy_sys_rovol_delete`（558）两阶段删除：
+底层调用 `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_DELETE）两阶段删除：
 1. 第一阶段：标记为 `AIRY_ROVOL_STATE_DELETING`，拒绝新访问
 2. 第二阶段：实际释放存储资源
 
@@ -248,12 +248,12 @@ rpc CreateSnapshot(CreateSnapshotRequest)
 
 | CSI Snapshot 概念 | MemoryRovol 对应 |
 |-------------------|------------------|
-| `snapshot_id` | `airy_sys_rovol_snapshot`（552）返回的 `snapshot_id` |
+| `snapshot_id` | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT）返回的 `snapshot_id` |
 | `source_volume_id` | MemoryRovol 卷 ID |
 | `creation_time` | `airy_rovol_snapshot_info_t.created_ns` |
 | `size_bytes` | `airy_rovol_snapshot_info_t.total_size` |
 
-CreateSnapshot 底层调用 `airy_sys_rovol_snapshot`（552），返回 CSI snapshot。
+CreateSnapshot 底层调用 `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT），返回 CSI snapshot。
 
 ---
 
@@ -424,14 +424,14 @@ spec:
 
 ### 8.2 快照与 MemoryRovol 快照的关系
 
-CSI VolumeSnapshot 底层调用 `airy_sys_rovol_snapshot`（552），返回的 `snapshot_id` 作为 CSI `snapshot_id`。恢复时调用 `airy_sys_rovol_restore`（553）。
+CSI VolumeSnapshot 底层调用 `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT），返回的 `snapshot_id` 作为 CSI `snapshot_id`。恢复时调用 `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_RESTORE）。
 
 | CSI 操作 | 系统调用 | 说明 |
 |---------|---------|------|
-| CreateSnapshot | `airy_sys_rovol_snapshot`（552） | 创建快照 |
-| DeleteSnapshot | `airy_sys_rovol_delete`（558） | 删除快照 |
-| CreateVolume from snapshot | `airy_sys_rovol_restore`（553） | 从快照恢复 |
-| ListSnapshots | `airy_sys_rovol_list`（557） | 列出快照 |
+| CreateSnapshot | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT） | 创建快照 |
+| DeleteSnapshot | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_DELETE） | 删除快照 |
+| CreateVolume from snapshot | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_RESTORE） | 从快照恢复 |
+| ListSnapshots | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_LIST） | 列出快照 |
 
 ---
 
@@ -449,7 +449,7 @@ sequenceDiagram
     participant CXL as CXL 池
 
     CO->>CSI: 1. ControllerUnpublishVolume (node A)
-    CSI->>KERN: 2. airy_sys_rovol_migrate (554, HOT)
+    CSI->>KERN: 2. airy_sys_rovol_ctl(549, op=AIRY_ROVOL_MIGRATE, HOT)
     KERN->>CXL: 3. L1/L4 写入 CXL 池
     KERN->>KERN: 4. L2/L3 页迁移 (migrate_pages)
     CO->>CSI: 5. ControllerPublishVolume (node B)
@@ -487,7 +487,7 @@ flowchart TB
     L2 --> DRAM[本地 DRAM]
     L3 --> DRAM
     
-    SNAP[CreateSnapshot] --> KERN2[airy_sys_rovol_snapshot 552]
+    SNAP[CreateSnapshot] --> KERN2[airy_sys_rovol_ctl 549, op=AIRY_ROVOL_SNAPSHOT]
     SNAP --> SNAPSTORE[快照存储<br/>CXL/PMEM]
     
     style CXL fill:#fff3e0
@@ -542,7 +542,7 @@ func retryCreateVolume(req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse,
 | CreateVolume 延迟 | < 100 ms（P99） | gRPC 调用全程 |
 | NodePublishVolume 延迟 | < 50 ms（P99） | gRPC 调用全程 |
 | L1/L4 CXL 零拷贝挂载延迟 | < 10 μs（P99） | CXL 3.0 单次读 |
-| CreateSnapshot 延迟 | < 500 ms（P99） | `airy_sys_rovol_snapshot` 全程 |
+| CreateSnapshot 延迟 | < 500 ms（P99） | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT）全程 |
 | 跨节点卷迁移停顿 | < 10 ms（P99） | Agent 不可用窗口 |
 
 ---

@@ -1,13 +1,13 @@
 Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 
 # agentrt-linux（AirymaxOS）模糊测试
-> **文档定位**：agentrt-linux（AirymaxOS）测试工程体系第 9 卷——模糊测试（Fuzz Testing）。本卷规定 syzkaller 内核模糊测试框架集成、Agent syscall（512-631 编号）模糊测试、io_uring IORING_OP_URING_CMD 参数模糊、Agent 设备驱动 ioctl 参数模糊、持续模糊测试 CI 集成与长时间运行策略。\
+> **文档定位**：agentrt-linux（AirymaxOS）测试工程体系第 9 卷——模糊测试（Fuzz Testing）。本卷规定 syzkaller 内核模糊测试框架集成、Agent syscall（548-551 编号）+ io_uring IORING_OP_URING_CMD 模糊测试、io_uring IORING_OP_URING_CMD 参数模糊、Agent 设备驱动 ioctl 参数模糊、持续模糊测试 CI 集成与长时间运行策略。\
 > **文档版本**：v1.0.1\
 > **最后更新**： 2026-07-21\
 > **上级文档**：[80-testing README](README.md)\
 > **同源映射**：agentrt 7 层验证 L9（模糊测试）+ Linux 6.6 内核基线 syzkaller 框架、KCOV 覆盖率引导\
 > **理论根基**：Linux 6.6 内核基线模糊测试思想 + Airymax 五维正交 24 原则（E-8 可测试性 / S-1 反馈闭环 / A-4 完美主义）\
-> **核心约束**：IRON-9 v3 [IND] 独立实现层——agentrt-linux 专属 syscall 描述以独立 `airy_*.txt` 形式注入 syzkaller，禁止改写上游 `sys/linux/*.txt`；CI 持续模糊测试必须覆盖 120 个 Agent syscall（编号 512-631）。
+> **核心约束**：IRON-9 v3 [IND] 独立实现层——agentrt-linux 专属 syscall 描述以独立 `airy_*.txt` 形式注入 syzkaller，禁止改写上游 `sys/linux/*.txt`；CI 持续模糊测试必须覆盖 4 核心 Agent syscall（编号 548-551）+ io_uring IORING_OP_URING_CMD cmd_op 全集。
 
 ---
 
@@ -27,7 +27,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | syzkaller | Linux 内核模糊测试框架，由 Google Dmitry Vyukov 创建 |
 | KCOV | 内核覆盖率收集机制，为 syzkaller 提供覆盖率引导 |
 | syscall 描述 | syzkaller 的 `.txt` 文件，描述 syscall 签名与参数类型 |
-| Agent syscall | agentrt-linux 专属 syscall，编号 512-631，共 120 个 |
+| Agent syscall | agentrt-linux 专属 syscall，编号 548-551，共 4 核心（v1.0.1 Capability Folding） |
+| op-dispatch | 操作码分派，4 核心 syscall 通过 op 参数承载多种操作 |
 | `IORING_OP_URING_CMD` | io_uring 命令操作码，IPC fastpath 路径 |
 | `fuzzing corpus` | 模糊测试输入语料库 |
 | `crash` | 模糊测试触发的内核崩溃（KASAN 报告 / panic / hang） |
@@ -61,7 +62,7 @@ flowchart TB
     E -->|report| A
     A -->|corpus| F
     subgraph "agentrt-linux 扩展层（[IND]）"
-        G["airy_syscall.txt<br/>Agent syscall 描述（512-631）"]
+        G["airy_syscall.txt<br/>Agent syscall 描述（548-551）+ op-dispatch"]
         H["airy_io_uring.txt<br/>IORING_OP_URING_CMD 参数描述"]
         I["airy_dev_ioctl.txt<br/>Agent 设备 ioctl 描述"]
         J["airy_fuzz_seed<br/>Agent 业务种子语料"]
@@ -81,9 +82,9 @@ flowchart TB
 | CI 持续 | 7×24 小时多 VM | 持续模糊测试 | 50000+ exec/s |
 | syzbot 公开实例 | 公共集群 | 大规模社区发现 | 100000+ exec/s |
 
-**OS-TEST-100**：CI PR 阶段必须运行 10 分钟短时模糊测试，覆盖 120 个 Agent syscall；任一 crash 即阻断 PR。
+**OS-TEST-100**：CI PR 阶段必须运行 10 分钟短时模糊测试，覆盖 4 核心 Agent syscall + io_uring cmd_op 全集；任一 crash 即阻断 PR。
 
-**OS-KER-160**：CI 持续模糊测试必须 7×24 小时运行，至少 4 个并发 VM，覆盖 120 Agent syscall + io_uring + ioctl；任一 crash 自动创建 critical issue。
+**OS-KER-160**：CI 持续模糊测试必须 7×24 小时运行，至少 4 个并发 VM，覆盖 4 核心 Agent syscall + io_uring cmd_op + ioctl；任一 crash 自动创建 critical issue。
 
 ---
 
@@ -156,109 +157,77 @@ CONFIG_KALLSYMS_ALL=y
 
 ---
 
-## 3. Agent syscall 模糊测试（512-631 编号）
+## 3. Agent syscall 模糊测试（548-551 编号）
 
 ### 3.1 Agent syscall 编号分配
 
-agentrt-linux 在 syscall 表中保留编号 512-631，共 120 个 Agent 专属 syscall：
+agentrt-linux 在 syscall 表中保留编号 548-571，共 24 槽位（4 核心 + 20 预留）；其中 4 核心 syscall 占用 548-551，编号起点 548 以避开 x86_64 x32 历史遗留区域 512-547。IPC 数据面走 io_uring `IORING_OP_URING_CMD`（零 syscall），能力校验经 v1.0.1 Capability Folding 折叠到 IPC fastpath C-S9。
 
 ```c
 /* include/uapi/linux/airymax/syscall.h（[SC] 共享契约层） */
 #ifndef _UAPI_AIRY_SYSCALL_H
 #define _UAPI_AIRY_SYSCALL_H
 
-#define __NR_airy_agent_create        512
-#define __NR_airy_agent_destroy       513
-#define __NR_airy_agent_start         514
-#define __NR_airy_agent_stop          515
-#define __NR_airy_agent_kill          516
-#define __NR_airy_agent_state_get     517
-#define __NR_airy_agent_state_set     518
-#define __NR_airy_token_consume       519
-#define __NR_airy_token_budget_get    520
-#define __NR_airy_token_budget_set    521
-#define __NR_airy_mem_read            522
-#define __NR_airy_mem_write           523
-#define __NR_airy_mem_quota_get       524
-#define __NR_airy_mem_quota_set       525
-#define __NR_airy_ipc_send            526
-#define __NR_airy_ipc_recv            527
-#define __NR_airy_ipc_bind            528
-#define __NR_airy_ipc_unbind          529
-/* ... 共 120 个，编号 512-631 ... */
-#define __NR_airy_last                631
+/* 4 核心 syscall（v1.0.1 Capability Folding） */
+#define __NR_airy_sys_call        548
+#define __NR_airy_sys_rovol_ctl   549
+#define __NR_airy_sys_sched_ctl   550
+#define __NR_airy_sys_clt_notify  551
+
+/* 20 预留槽位（552-571），v1.0.1 暂未启用 */
+#define __NR_airy_reserved_base   552
+#define __NR_airy_last            571
 
 #endif /* _UAPI_AIRY_SYSCALL_H */
 ```
 
+4 核心 syscall 通过 `op` 参数（op-dispatch）承载多种操作，操作码定义见 `include/uapi/airymax/rovol.h`、`sched.h`、`clt.h` 与 `uring_cmd.h`。
+
 ### 3.2 syzkaller syscall 描述
 
-`syzkaller/sys/airymaxos/airy_syscall.txt` 描述 120 个 Agent syscall：
+`syzkaller/sys/airymaxos/airy_syscall.txt` 描述 4 核心 Agent syscall + io_uring `IORING_OP_URING_CMD` cmd_op 全集：
 
 ```
 # syzkaller/sys/airymaxos/airy_syscall.txt
-# agentrt-linux Agent syscall 描述（编号 512-631）
+# agentrt-linux Agent syscall 描述（编号 548-551）+ op-dispatch
 
 include <uapi/airymax/syscall.h>
-include <uapi/airymax/agent.h>
+include <uapi/airymax/rovol.h>
+include <uapi/airymax/sched.h>
+include <uapi/airymax/clt.h>
 include <uapi/airymax/ipc.h>
+include <uapi/airymax/uring_cmd.h>
 
-# Agent 生命周期管理
-resource airy_agent_fd[int32]
+# 4 核心 syscall（v1.0.1 Capability Folding）
+resource airy_cap_fd[int32]
 
-airy_agent_create(flags flags[AIRY_AGENT_CREATE_FLAGS], 
-                  optdata AIRY_AGENT_CREATE_OPT) airy_agent_fd
-airy_agent_destroy(fd airy_agent_fd)
-airy_agent_start(fd airy_agent_fd, opts ptr[in airy_agent_start_opts, opt])
-airy_agent_stop(fd airy_agent_fd, reason flags[AIRY_AGENT_STOP_REASON])
-airy_agent_kill(pid int32, signal int32[0:65])
+airy_sys_call(cap fd, msg ptr[in airy_ipc_msg_hdr]) int32
+airy_sys_rovol_ctl(op int32[AIRY_ROVOL_SNAPSHOT:AIRY_ROVOL_TIER_GET], pid int32, arg int64) int32
+airy_sys_sched_ctl(op int32[AIRY_SCHED_SET_POLICY:AIRY_SCHED_YIELD], agent_id int32, arg int64) int32
+airy_sys_clt_notify(task_id int32, op int32[AIRY_CLT_PHASE_NOTIFY:AIRY_CLT_WASM_INVOKE]) int32
 
-# Agent 状态管理
-airy_agent_state_get(fd airy_agent_fd) int32[AIRY_AGENT_STATE_INACTIVE:AIRY_AGENT_STATE_DEAD]
-airy_agent_state_set(fd airy_agent_fd, state int32[AIRY_AGENT_STATE_INACTIVE:AIRY_AGENT_STATE_DEAD])
-
-# Token 预算管理
-airy_token_consume(fd airy_agent_fd, delta int64) int64
-airy_token_budget_get(fd airy_agent_fd) airy_token_budget
-airy_token_budget_set(fd airy_agent_fd, budget int64)
-
-# 记忆管理
-airy_mem_read(fd airy_agent_fd, level int32[AIRY_MEM_L1:AIRY_MEM_L4], 
-              offset int64, buf ptr[out, array[int8]], len int32)
-airy_mem_write(fd airy_agent_fd, level int32[AIRY_MEM_L1:AIRY_MEM_L4],
-               offset int64, buf ptr[in, array[int8]], len int32)
-
-# IPC 管理
-airy_ipc_send(target_pid int32, msg ptr[in airy_ipc_msg], len int32)
-airy_ipc_recv(src_pid int32[0:65535], buf ptr[out, array[int8]], len int32)
-airy_ipc_bind(channel int32[0:1024], flags flags[AIRY_IPC_BIND_FLAGS])
-airy_ipc_unbind(channel int32[0:1024])
+# io_uring IORING_OP_URING_CMD 数据面模糊（零 syscall）
+# cmd_op 全集变异、SQE 参数模糊
+airy_uring_cmd(cap fd, cmd_op int32[AIRY_URING_CMD_MIN:AIRY_URING_CMD_MAX],
+               cmd ptr[in, array[int8, 128]], addr int64, len int32[0:8192]) int32
 
 # 类型定义
-airy_ipc_msg {
-    magic   int32[0xA1B2C3D4]
+airy_ipc_msg_hdr {
+    magic   int32[0x41524531]
     type    int32[0:255]
     seq     int32
     payload array[int8, 0:4096]
 }
 
-airy_agent_start_opts {
-    sched_policy  int32[0:2]   # SCHED_NORMAL / SCHED_FIFO / SCHED_DEADLINE
-    sched_priority int32[0:99]
-    runtime_ns     int64
-    deadline_ns    int64
-    period_ns      int64
-}
-
-airy_token_budget {
-    total     int64
-    consumed  int64
-    remaining int64
-}
-
-AIRY_AGENT_CREATE_FLAGS = AIRY_AGENT_CREATE_TOKEN_INHERIT, AIRY_AGENT_CREATE_MEM_ISOLATE
-AIRY_AGENT_STOP_REASON  = AIRY_AGENT_STOP_NORMAL, AIRY_AGENT_STOP_FORCE, AIRY_AGENT_STOP_TIMEOUT
-AIRY_IPC_BIND_FLAGS     = AIRY_IPC_BIND_RECV, AIRY_IPC_BIND_SEND, AIRY_IPC_BIND_MULTICAST
+# op-dispatch 操作码范围（节选，完整定义见 uapi/airymax/*.h）
+AIRY_ROVOL_SNAPSHOT     = 0
+AIRY_ROVOL_TIER_GET     = 3
+AIRY_SCHED_SET_POLICY   = 0
+AIRY_SCHED_YIELD        = 2
+AIRY_CLT_PHASE_NOTIFY   = 0
+AIRY_CLT_WASM_INVOKE    = 1
+AIRY_URING_CMD_MIN      = 0
+AIRY_URING_CMD_MAX      = 63
 ```
 
 ### 3.3 模糊测试策略
@@ -267,14 +236,13 @@ syzkaller 基于 `airy_syscall.txt` 生成随机 syscall 序列，例如：
 
 ```
 # 生成的 syscall 序列示例
-airy_agent_create(0, {}) = 3
-airy_token_budget_set(3, 1000)
-airy_token_consume(3, 1500)  # 溢出！应返回 -AIRY_ERR_TOKEN_OVERFLOW
-airy_agent_state_set(3, AIRY_AGENT_STATE_RUNNING)  # 可能触发契约违反
-airy_agent_destroy(3)
+airy_sys_call(3, {magic=0x41524531, type=42, seq=1, payload="..."}) = 0
+airy_sys_rovol_ctl(AIRY_ROVOL_TIER_GET, 1234, 0)            # 查询 pid 1234 的 ROVOL tier
+airy_sys_sched_ctl(AIRY_SCHED_SET_POLICY, 7, 0x100000002)   # 设置 agent 7 调度策略
+airy_sys_clt_notify(99, AIRY_CLT_PHASE_NOTIFY)              # 通知 task 99 进入新阶段
 ```
 
-**OS-TEST-101**：syzkaller 必须覆盖全部 120 个 Agent syscall；CI PR 阶段运行 10 分钟后，通过 `syzkaller/workdir/corpus.db` 验证覆盖率，至少 80% 的 Agent syscall 被至少一次调用。
+**OS-TEST-101**：syzkaller 必须覆盖全部 4 核心 Agent syscall + io_uring cmd_op 全集；CI PR 阶段运行 10 分钟后，通过 `syzkaller/workdir/corpus.db` 验证覆盖率，至少 80% 的 Agent syscall 被至少一次调用。
 
 **OS-TEST-102**：模糊测试发现的任何契约违反（如 Agent 在 Token 溢出后未进入 STOPPING 状态）即视为系统级缺陷，自动创建 critical issue 并阻断 PR。
 
@@ -525,7 +493,7 @@ syzkaller 语料库（`workdir/corpus.db`）跨运行持久化，包含历史发
 | 指标 | 计算方式 | 门槛 |
 |------|---------|------|
 | syzkaller 覆盖率 | syzkaller 触发的 KCOV PC 数 / 总 PC 数 | ≥ 70% |
-| Agent syscall 覆盖率 | 被 syzkaller 调用的 Agent syscall 数 / 120 | ≥ 80% |
+| Agent syscall 覆盖率 | 被 syzkaller 调用的 Agent syscall 数 / 4 | ≥ 80% |
 | IPC fastpath 覆盖率 | fastpath 路径被 syzkaller 触发的比例 | ≥ 90% |
 
 ### 7.3 与 08-agent-contract-testing 的关系
@@ -562,7 +530,7 @@ agentrt-linux 计划在 v1.0.1 版本接入 Google syzbot 公开实例（`syzkal
 ### 9.2 v1.0.1 新增内容
 
 1. syzkaller 模糊测试框架集成（配置 / KCOV / 覆盖率引导）。
-2. 120 个 Agent syscall（编号 512-631）的 syzkaller 描述。
+2. 4 核心 Agent syscall（编号 548-551）的 syzkaller 描述。
 3. `IORING_OP_URING_CMD` 参数模糊测试。
 4. Agent 设备驱动 ioctl 参数模糊测试。
 5. `continuous-fuzzing` workflow（PR 短时 + 持续 24 小时）。
@@ -603,13 +571,13 @@ agentrt-linux 计划在 v1.0.1 版本接入 Google syzbot 公开实例（`syzkal
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| v1.0.1 | 2026-07-18 | 初始版本：定义 syzkaller 模糊测试框架集成与 KCOV 覆盖率引导；定义 120 个 Agent syscall（512-631）的 syzkaller 描述；定义 IORING_OP_URING_CMD 参数模糊与 Agent 设备 ioctl 参数模糊；定义 `continuous-fuzzing` workflow（PR 短时 + 持续 24 小时）与 crash 处理流程 |
+| v1.0.1 | 2026-07-18 | 初始版本：定义 syzkaller 模糊测试框架集成与 KCOV 覆盖率引导；定义 4 核心 Agent syscall（548-551）的 syzkaller 描述；定义 IORING_OP_URING_CMD 参数模糊与 Agent 设备 ioctl 参数模糊；定义 `continuous-fuzzing` workflow（PR 短时 + 持续 24 小时）与 crash 处理流程 |
 
 ---
 
 ## 13. v1.0.1 Capability Folding Fuzz 用例（v1.0.1 增量补强）
 
-> **补强背景**：80-testing/ 现有 §1-§12 覆盖 120 个 Agent syscall（512-631）的通用 syzkaller 描述，但未针对 v1.0.1 Capability Folding 架构引入的攻击面（64-bit Badge 格式 `Epoch<<48 | RandomTag<<16 | Perms`、`agent_caps[1024]` 静态数组、SQE128 fastpath 路径）进行专项 fuzz。本章节定义 v1.0.1 Capability Folding 专属 fuzz 矩阵、syzkaller 描述、CI 集成与门槛，作为 §1-§12 的增量补强，不替换现有任何内容。
+> **补强背景**：80-testing/ 现有 §1-§12 覆盖 4 核心 Agent syscall（548-551）的通用 syzkaller 描述，但未针对 v1.0.1 Capability Folding 架构引入的攻击面（64-bit Badge 格式 `Epoch<<48 | RandomTag<<16 | Perms`、`agent_caps[1024]` 静态数组、SQE128 fastpath 路径）进行专项 fuzz。本章节定义 v1.0.1 Capability Folding 专属 fuzz 矩阵、syzkaller 描述、CI 集成与门槛，作为 §1-§12 的增量补强，不替换现有任何内容。
 
 ### 13.1 攻击面与 fuzz 矩阵
 

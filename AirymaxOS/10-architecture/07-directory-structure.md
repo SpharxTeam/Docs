@@ -541,16 +541,16 @@ kernel/
 │   │   └── airy_locking.c
 │   ├── irq/                          # 中断管理
 │   │   └── airy_irq.c
-│   └── bpf/                          # eBPF struct_ops（非 [SC] 核心）
-│       ├── airy_struct_ops.c        # struct airy_struct_ops_value
+│   └── bpf/                          # eBPF 可观测性探针（非核心架构，H5 约束）
+│       ├── airy_struct_ops.c        # struct airy_struct_ops_value（可观测性用，非 sched_ext）
 │       └── airy_bpf_probe.c         # 可观测性探针
 │
 ├── kernel/kernel/superv/                    # ★ Micro-Supervisor 内核模块（5 个 .c）
-│   ├── airy_superv_lsm.c            # DEFINE_LSM(airy) 注册 + LSM_ORDER_MUTABLE
-│   ├── airy_cap_check.c             # v1.1 slowpath LSM 钩子（C-S9 失败接管）
-│   ├── airy_ipc_freeze.c            # ring->frozen = true（smp_store_release）
-│   ├── airy_die_notify.c            # die_notifier（priority INT_MAX）
-│   ├── airy_eventfd.c               # eventfd_signal 非阻塞通知
+│   ├── airy_superv_init.c           # Micro-Supervisor 初始化入口（late_initcall）
+│   ├── airy_cap_check_superv.c     # v1.1 slowpath LSM 钩子（C-S9 失败接管）
+│   ├── airy_ipc_freeze_superv.c    # ring->frozen = true（smp_store_release）
+│   ├── airy_die_notify_superv.c    # die_notifier（priority INT_MAX）
+│   ├── airy_eventfd_superv.c       # eventfd_signal 非阻塞通知
 │   └── Kbuild                       # superv 模块构建
 │
 ├── log/                              # 内核日志（A-ULP 内核侧）
@@ -1402,7 +1402,7 @@ sc-dual-ci:
 ### 6.4 [IND] 完全独立层落地
 
 **agentrt-linux [IND]（与 agentrt 完全不共享）**：
-- `kernel/`（除 include/uapi/linux/airymax/ 外）：内核驱动、Kbuild、内核 API、systemd、纯 C LSM、eBPF struct_ops、IORING_OP_URING_CMD、alloc_pages+mmap
+- `kernel/`（除 include/uapi/linux/airymax/ 外）：内核驱动、Kbuild、内核 API、systemd、纯 C LSM（airy_lsm）、eBPF 可观测性探针（非核心，H5）、IORING_OP_URING_CMD、alloc_pages+mmap
 - `security/airy_lsm/`：DEFINE_LSM(airy) 纯 C LSM
 - `security/capability/`：v1.1 `agent_caps[1024]` 静态数组 + Badge 64-bit Native Word（替代 v1.0 radix_tree 派生模型）
 - `memory/memoryrovol/`：L1-L4 内核模块
@@ -1686,11 +1686,11 @@ graph TD
 **路径**：`kernel/kernel/superv/`（5 个 .c）
 
 **文件**：
-1. `airy_superv_lsm.c`：`DEFINE_LSM(airy)` 注册 + `LSM_ORDER_MUTABLE`
-2. `airy_cap_check.c`：v1.1 slowpath LSM 钩子（C-S9 失败接管，详见 [07-airy-lsm-design.md §3.3](../110-security/07-airy-lsm-design.md)）
-3. `airy_ipc_freeze.c`：`ring->frozen = true`（`smp_store_release`）
-4. `airy_die_notify.c`：`die_notifier`（priority `INT_MAX`）
-5. `airy_eventfd.c`：`eventfd_signal` 非阻塞通知
+1. `airy_superv_init.c`：Micro-Supervisor 初始化入口（`late_initcall`）
+2. `airy_cap_check_superv.c`：v1.1 slowpath LSM 钩子（C-S9 失败接管，详见 [07-airy-lsm-design.md §3.3](../110-security/07-airy-lsm-design.md)）
+3. `airy_ipc_freeze_superv.c`：`ring->frozen = true`（`smp_store_release`）
+4. `airy_die_notify_superv.c`：`die_notifier`（priority `INT_MAX`）
+5. `airy_eventfd_superv.c`：`eventfd_signal` 非阻塞通知
 
 **冷酷执法 4 步流程**：
 1. 检测（`airy_uring_cmd_check`）

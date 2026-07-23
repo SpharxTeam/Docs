@@ -200,10 +200,10 @@ agentrt-linux 的 IPC 子系统 (kernel + services):
 | Rust 实验性支持 | Linux 6.6 内核基线 | kernel（安全驱动）|
 | sched_tac | agentrt-linux 用户态调度器 | kernel（SCHED_DEADLINE/SCHED_FIFO/EEVDF）|
 | io_uring 异步 I/O 改进 | Linux 6.6 | kernel + services |
-| eBPF kfunc + dynamic pointer | Linux 6.6 原生 | security |
+| eBPF kfunc + dynamic pointer | Linux 6.6 原生 | observability（非核心架构，H5 约束） |
 | MGLRU（多代 LRU） | Linux 6.6 | memory |
 | XFS 在线 fsck | Linux 6.6 内核基线 | services |
-| BPF + io_uring 集成 | Linux 6.6 | security |
+| BPF + io_uring 集成 | Linux 6.6 | observability（非核心架构，H5 约束） |
 
 ### 4.3 agentrt-linux 2026 AI 原生
 

@@ -46,7 +46,7 @@ agentrt-linux 全部公共符号使用统一命名空间前缀，与 agentrt 同
 
 | 语言 | 命名空间前缀 | 示例 |
 |------|-------------|------|
-| C | `airy_` | `airy_sys_task_submit` / `struct airy_ipc_msg_hdr` |
+| C | `airy_` | `airy_sys_call` / `struct airy_ipc_msg_hdr` |
 | C++ | `agentrt::` | `agentrt::AirymaxClient` |
 | Rust | `agentrt`（crate）/ `agentrt::`（mod） | `agentrt::cognition::TaskDesc` |
 | Go | `agentrt`（package） | `agentrt.AirymaxClient` |
@@ -308,8 +308,8 @@ struct airy_ipc_msg_hdr {
 
 ```c
 /* 正确：校验 priority 范围 */
-AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
-                                       uint32_t priority)
+AIRY_API int airy_sys_call(uint32_t op, const struct airy_task_desc *task_desc,
+                           uint32_t priority)
 {
     if (task_desc == NULL) {
         return -AIRY_EINVAL;
@@ -363,7 +363,7 @@ cleanup:
 ### 7.4 沙箱隔离
 
 - Agent 代码默认运行在 Wasm 3.0 沙箱（详见 [20-modules/05-cognition.md](../20-modules/05-cognition.md) 第 4.3 节）。
-- 沙箱内 capability 受限，通过 `airy_sys_capability_request` 显式申请。
+- 沙箱内 capability 受限，通过 `airy_sys_call`（COMPILE_BADGE）显式申请。
 - 系统调用通过 seccomp 白名单过滤（详见 [20-modules/03-security.md](../20-modules/03-security.md) 第 4.3 节）。
 - 文件访问通过 Landlock 限制。
 
@@ -381,12 +381,12 @@ cleanup:
 
 ```c
 /* 错误：未检查返回值 */
-airy_sys_ipc_send(hdr, payload);
+io_uring_submit(IORING_OP_URING_CMD, hdr, payload);
 
 /* 正确：检查返回值并记录日志 */
-int ret = airy_sys_ipc_send(hdr, payload);
+int ret = io_uring_submit(IORING_OP_URING_CMD, hdr, payload);
 if (ret < 0) {
-    log_write(LOG_ERROR, "ipc_send failed: errno=%d (%s)",
+    log_write(LOG_ERROR, "io_uring submit failed: errno=%d (%s)",
               ret, airy_strerror(ret));
     return ret;
 }
@@ -446,15 +446,15 @@ let resp: Response = client.send(req).await?;
 
 ```c
 /* 错误：未校验参数 */
-AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
-                                       uint32_t priority)
+AIRY_API int airy_sys_call(uint32_t op, const struct airy_task_desc *task_desc,
+                           uint32_t priority)
 {
     return do_submit(task_desc, priority);
 }
 
 /* 正确：校验 NULL 与范围 */
-AIRY_API int airy_sys_task_submit(const struct airy_task_desc *task_desc,
-                                       uint32_t priority)
+AIRY_API int airy_sys_call(uint32_t op, const struct airy_task_desc *task_desc,
+                           uint32_t priority)
 {
     if (task_desc == NULL) {
         return -AIRY_EINVAL;

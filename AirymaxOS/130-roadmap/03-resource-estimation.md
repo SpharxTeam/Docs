@@ -218,7 +218,7 @@ pie showData
 
 | 子仓 | 实施工时(h) | 占比 | 主要工作 |
 |------|-----------|------|---------|
-| kernel | 180 | 31.0% | sched_tac + io_uring + eBPF + Rust 模块 |
+| kernel | 180 | 31.0% | sched_tac + io_uring + 纯 C LSM + Rust 模块 |
 | services | 80 | 13.8% | VFS + 网络 + 12 daemons |
 | security | 90 | 15.5% | capability + LSM + 国密 |
 | memory | 60 | 10.3% | CXL + PMEM + MGLRU |

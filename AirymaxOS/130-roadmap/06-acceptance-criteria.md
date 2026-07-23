@@ -178,7 +178,7 @@ agentrt-linux 1.0.1 共定义约 110 项 OS-ACC 验收标准，覆盖 9 个 Part
 | OS-ACC-063 ★ | LSM 集成 | `grep -rE "LSM\|Linux Security Module" docs/AirymaxOS/110-security/` | ≥5 处 | P0 | M4 |
 | OS-ACC-064 | 机密计算定义 | `grep -rE "机密计算\|confidential computing" docs/AirymaxOS/110-security/` | ≥3 处 | P0 | M4 |
 | OS-ACC-065 | 国密支持 | `grep -rE "国密\|SM2\|SM3\|SM4" docs/AirymaxOS/110-security/` | ≥3 处 | P0 | M4 |
-| OS-ACC-066 | eBPF 代码完整性验证 | `grep -rE "eBPF.*完整性\|eBPF.*kfunc\|eBPF.*代码.*签名" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
+| OS-ACC-066 | 纯 C LSM 代码完整性验证（H5） | `grep -rE "纯 C LSM.*完整性\|CBMC.*形式化\|airy_lsm.*校验" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
 | OS-ACC-067 | 模块签名 | `grep -rE "模块签名\|module signature" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
 | OS-ACC-068 ★ | 安全审计流程 | `grep -rE "安全审计\|security audit" docs/AirymaxOS/110-security/` | ≥2 处 | P0 | M4 |
 | OS-ACC-069 | 漏洞响应预案 | `grep -rE "漏洞响应\|vulnerability response" docs/AirymaxOS/110-security/` | ≥1 处定义 | P0 | M4 |

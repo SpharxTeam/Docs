@@ -89,8 +89,8 @@ agentrt-linux 接口设计层定义 8 子仓之间、内核与用户态之间、
 
 ### 3.3 接口设计补充原则
 
-- **机制与策略分离**: 系统调用提供机制（如 `airy_sys_task_submit` 提交任务），调度策略由用户态 Macro-Supervisor 通过sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）定义，不使用 sched_ext。
-- **最小权限**: 默认拒绝，通过 capability 显式授权（`airy_sys_capability_request`），纯 C LSM 模块强制校验（不使用 BPF LSM）。
+- **机制与策略分离**: 系统调用提供机制（如 `airy_sys_call`（COMPILE_BADGE）提交任务），调度策略由用户态 Macro-Supervisor 通过sched_tac（SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射）定义，不使用 sched_ext。
+- **最小权限**: 默认拒绝，通过 capability 显式授权（`airy_sys_call`（COMPILE_BADGE）），纯 C LSM 模块强制校验（不使用 BPF LSM）。
 - **零拷贝优先**: IPC 与内存接口优先使用 io_uring + IORING_OP_URING_CMD + registered buffer + mmap 零拷贝路径（不使用 page flipping），日志内存使用 alloc_pages + mmap（不使用 DMA 一致性内存）。
 - **同源兼容**: 与 agentrt 同源的接口保持 API 语义兼容，仅升级底层实现。
 

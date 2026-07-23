@@ -386,11 +386,11 @@ stateDiagram-v2
     WARNING --> SUSPENDED: 连续 3 次警告未恢复
     WARNING --> CRITICAL: current ≤ critical_threshold（≤ 5%）
 
-    SUSPENDED --> RUNNING: 预算补充恢复 + airy_sys_task_resume()
+    SUSPENDED --> RUNNING: 预算补充恢复 + airy_sys_sched_ctl(SET_POLICY) + io_uring 重激活
     SUSPENDED --> CRITICAL: current ≤ critical_threshold
 
     CRITICAL --> TERMINATING: 强制终止（资源回收）
-    CRITICAL --> SUSPENDED: 手动注入预算（airy_sys_task_set_budget）
+    CRITICAL --> SUSPENDED: 手动注入预算（airy_sys_sched_ctl(SET_POLICY)）
 
     TERMINATING --> TERMINATED: 资源回收完成
     TERMINATED --> [*]
@@ -468,7 +468,7 @@ struct airy_token_budget_config cfg = {
     .max_tokens = 100000,
     .refill_rate = 1000,
 };
-airy_sys_task_set_budget(agent_id, &cfg);
+airy_sys_sched_ctl(AIRY_SCHED_SET_POLICY, agent_id, (uint64_t)&cfg);
 ```
 
 ### 7.3 预算借用
@@ -499,20 +499,21 @@ int airy_budget_borrow(struct airy_token_budget *child,
 
 ### 8.1 预算管理系统调用
 
-Token 预算通过两个系统调用管理（编号定义见 [07-syscall-registry.md](07-syscall-registry.md)）：
+Token 预算通过 v1.0.1 Capability Folding 架构的 `airy_sys_sched_ctl` (550) op-dispatch 管理（编号定义见 [07-syscall-registry.md](07-syscall-registry.md)）：
 
-| 编号 | 系统调用 | 功能 |
-|------|---------|------|
-| 523 | `airy_sys_task_set_budget` | 设置/更新 Agent Token 预算 |
-| 524 | `airy_sys_task_get_budget` | 查询 Agent Token 预算状态 |
+| 编号 | 系统调用 | op | 功能 |
+|------|---------|-----|------|
+| 550 | `airy_sys_sched_ctl` | `AIRY_SCHED_SET_POLICY` | 设置/更新 Agent Token 预算 |
+| 550 | `airy_sys_sched_ctl` | `AIRY_SCHED_GET_LATENCY` | 查询 Agent Token 预算状态 |
 
 ### 8.2 设置预算 C 接口
 
 ```c
 /**
- * airy_sys_task_set_budget - 设置 Agent Token 预算
+ * airy_sys_sched_ctl - 设置 Agent Token 预算（op=AIRY_SCHED_SET_POLICY）
+ * @op:       AIRY_SCHED_SET_POLICY
  * @agent_id: Agent ID
- * @config:   预算配置
+ * @arg:      预算配置指针（struct airy_token_budget_config *，转为 uint64_t）
  *
  * 返回: 0 成功，-AIRY_EINVAL 参数无效，
  *       -AIRY_ENOENT Agent 不存在，-AIRY_EPERM 权限不足
@@ -520,30 +521,33 @@ Token 预算通过两个系统调用管理（编号定义见 [07-syscall-registr
  * 设置预算时保留当前 total_consumed 统计，仅重置
  * current_tokens 和补充参数。
  *
- * @since 1.0.1
+ * @since v1.0.1
  */
-AIRY_API int airy_sys_task_set_budget(
+AIRY_API int airy_sys_sched_ctl(
+    uint32_t op,
     uint32_t agent_id,
-    const struct airy_token_budget_config *config);
+    uint64_t arg);
 ```
 
 ### 8.3 查询预算 C 接口
 
 ```c
 /**
- * airy_sys_task_get_budget - 查询 Agent Token 预算状态
+ * airy_sys_sched_ctl - 查询 Agent Token 预算状态（op=AIRY_SCHED_GET_LATENCY）
+ * @op:         AIRY_SCHED_GET_LATENCY
  * @agent_id:   Agent ID
- * @budget_out: 预算状态输出指针
+ * @arg:        预算状态输出指针（struct airy_token_budget *，转为 uint64_t）
  *
  * 返回: 0 成功，-AIRY_ENOENT Agent 不存在
  *
  * 查询前执行惰性补充，返回最新状态。
  *
- * @since 1.0.1
+ * @since v1.0.1
  */
-AIRY_API int airy_sys_task_get_budget(
+AIRY_API int airy_sys_sched_ctl(
+    uint32_t op,
     uint32_t agent_id,
-    struct airy_token_budget *budget_out);
+    uint64_t arg);
 ```
 
 ### 8.4 内核侧预算消费接口
@@ -706,8 +710,8 @@ class CognitionClient:
 |------|---------------|---------|
 | `airy_budget_consume()` | < 1 μs | perf trace |
 | `airy_budget_refill()` | < 500 ns | perf trace |
-| `airy_sys_task_set_budget()` | < 1 μs | perf trace |
-| `airy_sys_task_get_budget()` | < 1 μs | perf trace |
+| `airy_sys_sched_ctl(SET_POLICY)` | < 1 μs | perf trace |
+| `airy_sys_sched_ctl(GET_LATENCY)` | < 1 μs | perf trace |
 
 ### 11.3 性能回归保护
 
@@ -746,7 +750,7 @@ int ret = airy_budget_consume(agent_id, tokens, &usage);
 if (ret == -AIRY_EBUDGET_EXHAUSTED) {
     log_write(LOG_WARN, "token budget exhausted, agent=%u", agent_id);
     /* 触发 SUSPENDED：保存记忆快照 */
-    airy_sys_task_pause(agent_id, AIRY_PAUSE_SAVE_MEMORY);
+    airy_sys_sched_ctl(AIRY_SCHED_YIELD, agent_id, AIRY_PAUSE_SAVE_MEMORY);
     return ret;
 } else if (ret < 0) {
     log_write(LOG_ERROR, "budget_consume failed: %d (%s)",
@@ -787,19 +791,19 @@ int create_budgeted_agent(void)
     uint32_t agent_id;
     int ret;
 
-    /* 1. 注册 Agent */
-    ret = airy_sys_task_register(&task_cfg, &agent_id);
+    /* 1. 注册 Agent（v1.0.1: 通过 COMPILE_BADGE 编译 Badge + 注册） */
+    ret = airy_sys_call(AIRY_OP_COMPILE_BADGE, &task_cfg, &agent_id, NULL);
     if (ret < 0) return ret;
 
-    /* 2. 设置预算 */
-    ret = airy_sys_task_set_budget(agent_id, &budget_cfg);
+    /* 2. 设置预算（v1.0.1: 通过 SCHED_CTL SET_POLICY） */
+    ret = airy_sys_sched_ctl(AIRY_SCHED_SET_POLICY, agent_id, (uint64_t)&budget_cfg);
     if (ret < 0) {
-        airy_sys_task_stop(agent_id, 0);
+        airy_sys_call(AIRY_OP_REVOKE_BADGE, &agent_id, NULL, NULL);
         return ret;
     }
 
-    /* 3. 启动 Agent */
-    ret = airy_sys_task_start(agent_id);
+    /* 3. 启动 Agent（v1.0.1: 通过 io_uring 激活 ring） */
+    ret = io_uring_register(ring_fd, IORING_REGISTER_AIRY_AGENT, &agent_id, 0);
     return ret;
 }
 ```
@@ -811,7 +815,7 @@ void monitor_agent_budget(uint32_t agent_id)
 {
     struct airy_token_budget budget;
 
-    if (airy_sys_task_get_budget(agent_id, &budget) == 0) {
+    if (airy_sys_sched_ctl(AIRY_SCHED_GET_LATENCY, agent_id, (uint64_t)&budget) == 0) {
         uint32_t pct = (budget.current_tokens * 100) / budget.max_tokens;
 
         log_write(LOG_INFO, "agent=%u tokens=%u/%u (%u%%) consumed=%llu",
@@ -842,12 +846,13 @@ int handle_budget_exhaustion(uint32_t agent_id)
         .flags = AIRY_BUDGET_FLAG_AUTOSUSPEND,
     };
 
-    /* 1. 手动注入新预算 */
-    int ret = airy_sys_task_set_budget(agent_id, &new_budget);
+    /* 1. 手动注入新预算（v1.0.1: sched_ctl SET_POLICY） */
+    int ret = airy_sys_sched_ctl(AIRY_SCHED_SET_POLICY, agent_id,
+                                  (uint64_t)&new_budget);
     if (ret < 0) return ret;
 
-    /* 2. 恢复 Agent（从 SUSPENDED 到 RUNNING） */
-    ret = airy_sys_task_resume(agent_id);
+    /* 2. 恢复 Agent（从 SUSPENDED 到 RUNNING，v1.0.1: io_uring 重激活） */
+    ret = io_uring_register(ring_fd, IORING_REGISTER_AIRY_AGENT, &agent_id, 0);
     if (ret < 0) {
         log_write(LOG_ERROR, "resume failed: %d", ret);
         return ret;
@@ -1016,7 +1021,7 @@ agentrt-linux 独有的维度：
 
 ### 17.2 实现方案文档（本系列）
 
-- [07-syscall-registry.md](07-syscall-registry.md) — 系统调用编号注册表（编号 523/524）
+- [07-syscall-registry.md](07-syscall-registry.md) — 系统调用编号注册表（编号 548-551）
 - [05-memory-rovol-api.md](05-memory-rovol-api.md) — 记忆卷载 API
 - [06-agent-deployment.md](06-agent-deployment.md) — Agent 部署与运行
 

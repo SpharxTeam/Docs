@@ -155,7 +155,7 @@ Airymax Unify Design 的 [SC] 共享契约层（物理宿主 `kernel/include/uap
 | `security_types.h` | 仅 POSIX 41 个 capability + **Badge 访问宏**（H6 落地） | 41 个 ID + 3 个宏 |
 | `cognition_types.h` | 仅 `airy_cog_phase` 三阶段枚举 | 1 个枚举 |
 | `uapi_compat.h` | 仅 `__KERNEL__` / `__linux__` 两路桥接 | 2 路分支 |
-| `syscalls.h` | **v1.1: 仅 4 核心 syscall 编号**（512-515，原 12 编号已废弃） | 4 个编号 |
+| `syscalls.h` | **v1.0.1: 仅 4 核心 syscall 编号**（548-551，原 12 编号已废弃） | 4 个编号 |
 | `lsm_types.h` | 仅 `DEFINE_LSM(airy)` 最小骨架 | 1 个宏 |
 
 **v1.0.1 变更说明**：

@@ -76,7 +76,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | FR-003 | IPC 子系统（io_uring 零拷贝） | 消息（128B 头 + payload） | 接收确认 | atoms/corekern IPC | 吞吐 > 100K msg/s |
 | FR-004 | 内存管理（MGLRU，Linux 6.6 多代 LRU） | 内存分配请求 | 内存指针 | atoms/corekern Mem | 多代 LRU 正确回收 |
 | FR-005 | 时间服务（时钟 + 定时器） | 定时器请求 | 定时器触发 | atoms/corekern Time | 定时器精度 < 1ms |
-| FR-006 | eBPF kfunc + dynamic pointer | eBPF 程序 | 验证结果 | - | 未签名 eBPF 拒绝加载 |
+| FR-006 | 纯 C LSM（airy_lsm）编译期校验 + CBMC 形式化验证 | airy_lsm 钩子注册 | 验证结果 | - | fastpath 核心 100 行 CBMC 验证通过（H5，不依赖 BPF） |
 | FR-007 | Rust 内核模块支持（实验性） | Rust 模块 | 加载结果 | - | Rust 模块可加载卸载 |
 | FR-008 | EEVDF 调度器抢占 | 抢占请求 | 抢占结果 | - | 抢占延迟 < 10μs |
 | FR-009 | io_uring 零 syscall I/O | I/O 请求 | I/O 完成 | - | I/O 延迟降低 > 30% |

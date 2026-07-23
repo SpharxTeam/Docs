@@ -69,7 +69,7 @@ graph TB
             ASY[system<br/>包管理 + DevStation]
         end
         subgraph "内核态"
-            AK[kernel<br/>stc_agent + io_uring IPC<br/>+ eBPF kfunc + MGLRU]
+            AK[kernel<br/>stc_agent + io_uring IPC<br/>+ 纯 C LSM + MGLRU]
             LK[Linux 6.6 内核基线]
         end
     end
@@ -263,7 +263,7 @@ typedef enum {
 | 落地位置 | 集成方式 | 说明 |
 |----------|----------|------|
 | security capability 系统 | 内核态使用相同令牌格式 | capability 令牌格式同源 |
-| kernel eBPF kfunc | 内核态 capability 检查使用相同结构 | capability 检查逻辑同源 |
+| kernel 纯 C LSM（airy_lsm） | 内核态 capability 检查使用相同结构 | capability 检查逻辑同源 |
 | security LSM 钩子 | 内核态 LSM 使用相同钩子编号 | 安全策略裁决同源 |
 
 ##### 2.2.4 cognition_types.h — CoreLoopThree 认知循环类型头文件

@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # seL4 风格 Capability 安全模型
 > **文档定位**：agentrt-linux（AirymaxOS）Capability 安全模型的完整工程契约，定义 CNode/MDB 数据模型、派生算法、POSIX capability 集成、令牌生命周期、Cupolas blob 布局、策略裁决与 Vault backend 抽象；并落地 A-IPC Capability Folding 单平面架构下的 Badge 64-bit Native Word 模型与 fastpath C-S9 内联校验\
 > **文档版本**：v1.0.1\
-> **最后更新**： 2026-07-21\
+> **最后更新**： 2026-07-22\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **同源映射**：seL4 `src/object/cnode.c`（CNode 操作）+ `src/object/cnode.c:cteRevoke`（递归撤销）+ Linux 6.6 `security/commoncap.c`（POSIX capability）+ agentrt Cupolas 权限模型\
 > **文档性质**：实现方案文档（非设计文档）。本契约在 [01-lsm-framework.md](01-lsm-framework.md) 第 7 章 LSM 与 capability 共存的基础上，补充完整的 capability 数据模型、派生算法、生命周期与接口定义\
@@ -895,11 +895,11 @@ enum airy_cap_state {
 | 从状态 | 到状态 | 触发条件 | 系统调用（v1.0.1）| 旧编号（v1.0，已废弃） |
 |--------|--------|---------|---------------|----------------------|
 | — | CREATED | CAP_REQUEST opcode 自举 | A-IPC `AIRY_IPC_OP_CAP_REQUEST`（无 syscall） | 592 airy_sys_capability_request |
-| CREATED | ACTIVE | sec_d 编译 Badge 成功 | `airy_sys_call`(512) + `COMPILE_BADGE` 子命令（sec_d 专属） | 内部 |
+| CREATED | ACTIVE | sec_d 编译 Badge 成功 | `airy_sys_call`(548) + `COMPILE_BADGE` 子命令（sec_d 专属） | 内部 |
 | CREATED | DENIED | 策略裁决 DENY | 内部 | 内部 |
-| ACTIVE | DERIVED | sec_d 重编译 Badge（缩权限） | `airy_sys_call`(512) + `COMPILE_BADGE` 子命令 | 595/596/597 airy_sys_capability_derive/mint/mintcopy |
+| ACTIVE | DERIVED | sec_d 重编译 Badge（缩权限） | `airy_sys_call`(548) + `COMPILE_BADGE` 子命令 | 595/596/597 airy_sys_capability_derive/mint/mintcopy |
 | ACTIVE | TRANSFERRED | IPC `AIRY_IPC_F_CAP_CARRY` 标志 | A-IPC io_uring `IORING_OP_URING_CMD`（无 syscall） | 600 airy_sys_capability_transfer |
-| ACTIVE/DERIVED | REVOKED | `airy_sys_call` + `REVOKE_BADGE`（1 行 atomic_inc） | `airy_sys_call`(512) + `REVOKE_BADGE` 子命令 | 593 airy_sys_capability_revoke |
+| ACTIVE/DERIVED | REVOKED | `airy_sys_call` + `REVOKE_BADGE`（1 行 atomic_inc） | `airy_sys_call`(548) + `REVOKE_BADGE` 子命令 | 593 airy_sys_capability_revoke |
 | ACTIVE | EXPIRED | `expires_ns` 到达 | 内核定时器 | 内核定时器 |
 
 **v1.0.1 syscall 精简映射**：
@@ -1563,7 +1563,7 @@ airy_ipc_deliver_fast()（NONBLOCK，~158ns 总延迟）
 | 撤销机制 | 递归遍历 children 链表 + IPI 失效 per-cpu cache | 1 行 `atomic_inc(&airy_cap_global_epoch)` |
 | 锁开销 | CSpace 读写锁 + per-cpu cache 锁 | 零锁（单写者 sec_d + 多读者 fastpath） |
 | 同步开销 | RCU synchronize + IPI | 零 RCU、零 IPI |
-| syscall 数量 | 9 个（592-600） | 1 个（`airy_sys_call` + 子命令） |
+| syscall 数量 | 9 个独立 syscall（0.1.1 模型 592-600） | 4 核心 syscall + op-dispatch（548-551，`airy_sys_call` 承载 COMPILE_BADGE / REVOKE_BADGE） |
 | 验证范围 | 全函数 + 数据结构 | fastpath 100 行代码 CBMC 全函数验证 |
 | 防伪造 | cap_id 内核分配（不可伪造） | Random Tag 32 位（per-Agent，sec_d 编译） |
 
@@ -1574,38 +1574,46 @@ airy_ipc_deliver_fast()（NONBLOCK，~158ns 总延迟）
 ### 13.1 Agent 注册时获取初始 capability
 
 ```c
-/* Agent 注册时自动获得初始 capability */
+/* Agent 注册时通过 airy_sys_call(COMPILE_BADGE) 编译初始 Capability Badge */
 struct airy_task_config cfg = {
     .capability_flags = AIRY_CAP_COGNITION | AIRY_CAP_IPC | AIRY_CAP_ROVOL,
 };
 uint32_t agent_id;
-airy_sys_task_register(&cfg, &agent_id);
+__u64 initial_badge;
+airy_sys_call(AIRY_OP_COMPILE_BADGE, &cfg, &agent_id, &initial_badge);
 
-/* Agent 的 CSpace 自动创建，包含初始 capability */
+/* sec_d 编译 Badge（Epoch + Random Tag + Perms），CSpace 自动创建 */
 ```
 
 ### 13.2 Agent 间传递受限 capability
 
 ```c
 /* Agent A 将 file.read capability 受限传递给 Agent B */
+/* v1.0.1: Capability Folding Badge 模型，mintcopy 已合并到 sec_d COMPILE_BADGE */
 
-/* 1. Agent A 申请 capability */
-int cap = airy_sys_capability_request("file.read", "/data/shared.txt");
-
-/* 2. Agent A 通过 mintcopy 传递受限 capability */
-uint32_t new_cap;
-airy_sys_capability_mintcopy(cap, agent_b_id, 0x01, &new_cap);
-/* 0x01 = 仅读权限（badge 缩减） */
-
-/* 3. Agent A 通过 IPC 传递 */
-struct airy_ipc_msg_hdr hdr = {
-    .flags  = AIRY_IPC_F_CAP_CARRY,
-    .cap_id = new_cap,
+/* 1. Agent A 通过 airy_sys_call(COMPILE_BADGE) 申请受限 Badge */
+struct airy_badge_compile_request req = {
+    .capability    = "file.read",
+    .target_path   = "/data/shared.txt",
+    .perms         = 0x01,  /* 仅读权限（badge 缩减） */
+    .target_agent  = agent_b_id,
 };
-airy_sys_ipc_send(&hdr, NULL);
+__u64 derived_badge;
+airy_sys_call(AIRY_OP_COMPILE_BADGE, &req, &derived_badge);
 
-/* 4. Agent A 撤销原 capability 时，Agent B 的派生 cap 自动撤销 */
-airy_sys_capability_revoke(cap);
+/* 2. Agent A 通过 io_uring IPC 发送携带 Badge 的消息 */
+struct airy_ipc_msg_hdr hdr = {
+    .magic             = AIRY_IPC_MAGIC,         /* 0x41524531 'ARE1' */
+    .opcode            = AIRY_IPC_OP_SEND,       /* 0x0001 */
+    .capability_badge  = derived_badge,          /* 64-bit Native Word */
+    .src_task          = agent_a_id,
+    .dst_task          = agent_b_id,
+};
+/* 提交到 io_uring——内核 fastpath C-S9 内联 Badge 校验 */
+io_uring_submit(ring);
+
+/* 3. Agent A 撤销 Badge 时，全局 Epoch 自增，派生 Badge 立即失效 */
+airy_sys_call(AIRY_OP_REVOKE_BADGE, &derived_badge);
 ```
 
 ### 13.3 Agent 终止时递归撤销

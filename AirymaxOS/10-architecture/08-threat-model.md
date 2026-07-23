@@ -3,8 +3,8 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # agentrt-linux 安全威胁模型与防护设计
 
 > **文档定位**：agentrt-linux（AirymaxOS）安全威胁模型与防护设计，基于 STRIDE 框架识别资产、分析威胁、设计防护措施，作为 1.0.1 开发阶段安全设计的总纲\
-> **文档版本**：0.2.8\
-> **最后更新**： 2026-07-21\
+> **文档版本**：v1.0.1\
+> **最后更新**： 2026-07-22\
 > **上级文档**：[agentrt-linux 设计文档](README.md)\
 > **理论根基**：STRIDE 威胁建模方法论 + seL4 capability 安全模型（ADR-014）+ Linux 6.6 LSM/Landlock/capability\
 > **版本基线**：1.x.x 锁定 Linux 6.6 LTS / 2.x.x 锁定 Linux 7.1（ADR-013）\
@@ -48,7 +48,7 @@ agentrt-linux 划定三类安全边界，威胁分析以边界为坐标系展开
 
 | 边界            | 划分依据                               | 隔离机制                                          | 跨边界通信通道                                                       |
 | ------------- | ---------------------------------- | --------------------------------------------- | ------------------------------------------------------------- |
-| **内核态 / 用户态** | 特权级（ring 0 / ring 3）               | MMU + CPU 特权级 + syscall 门                     | 系统调用（`airy_sys_call` 等 4 核心 syscall，v1.1）+ io\_uring + eBPF kfunc |
+| **内核态 / 用户态** | 特权级（ring 0 / ring 3）               | MMU + CPU 特权级 + syscall 门                     | 系统调用（`airy_sys_call` 等 4 核心 syscall，v1.0.1，编号 548-551）+ io\_uring + 纯 C LSM（airy\_lsm，H5） |
 | **Agent 租户间** | Agent 命名空间 + capability 空间（CSpace） | CSpace 隔离 + Landlock 域叠加 + Cupolas 命名空间标签     | IPC 消息（io_uring `IORING_OP_URING_CMD`，需 Badge 授权）       |
 | **网络边界**      | 主机网络命名空间 + Cupolas 网络子系统           | 网络命名空间 + netfilter + Cupolas Network Security | 网络协议栈（受 LSM `socket_*` 钩子约束）                                  |
 
@@ -487,5 +487,5 @@ agentrt-linux 采用**协调披露 + 90 天宽限期**策略：
 
 ***
 
-> **文档结束** | agentrt-linux（AirymaxOS）安全威胁模型与防护设计 v0.2.8 | 父文档：[架构设计](README.md) | SSoT：[09-ssot-registry.md](../50-engineering-standards/09-ssot-registry.md)
+> **文档结束** | agentrt-linux（AirymaxOS）安全威胁模型与防护设计 v1.0.1 | 父文档：[架构设计](README.md) | SSoT：[09-ssot-registry.md](../50-engineering-standards/09-ssot-registry.md)
 

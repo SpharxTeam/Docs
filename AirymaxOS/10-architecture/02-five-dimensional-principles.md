@@ -196,7 +196,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 | 落地子仓/模块 | 策略维度 | 可选实现 |
 |---------------|----------|----------|
 | kernel sched_tac | 调度策略 | stc_* 策略（用户态调度器）+ EEVDF 默认调度 |
-| kernel eBPF kfunc | 内核扩展策略 | dynamic pointer + kfunc 注册的运行时策略 |
+| kernel 纯 C LSM（airy_lsm） | 安全策略 | H5 纯 C LSM + agent_caps[1024] 静态数组 |
 | cognition 规划策略 | 任务规划 | 分层规划、反应式规划、反思式规划、ML 规划 |
 | cognition 协同策略 | 模型协同 | 双模型协同、多数投票、加权融合、外部仲裁 |
 | memory 遗忘策略 | 记忆衰减 | 艾宾浩斯曲线、线性衰减、基于访问次数 |
@@ -313,7 +313,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 | services journald | 日志 | 结构化日志 + trace_id + 完整上下文 |
 | services audit_d | 指标 | 性能监控、资源使用、业务指标 |
 | services OpenTelemetry | 追踪 | 分布式追踪、调用链分析 |
-| kernel eBPF kfunc | 内核可观测性 | dynamic pointer + kfunc 注册的探针 |
+| kernel ftrace/perf | 内核可观测性 | ftrace + perf + airy_lsm 审计日志（H5） |
 | cloudnative Prometheus + Grafana | 云原生监控 | K8s 原生监控栈 |
 | system 健康检查 | 健康检查 | systemd unit + 依赖项状态检查 |
 
@@ -353,7 +353,7 @@ Score(agent) = w1 * (1/cost) + w2 * success_rate + w3 * trust_score
 
 | 命名空间 | 用途 | 示例 |
 |----------|------|------|
-| `airy_` 前缀 | agentrt 命名空间（同源） | airy_sys_task_submit / airy_ipc_send |
+| `airy_` 前缀 | agentrt 命名空间（同源） | airy_sys_call / airy_ipc_send |
 | `<service_name>_d` 后缀 | 守护进程命名 | cogn_d / gateway_d / audit_d / dev_d / sched_d |
 | `module_action_object()` | 函数命名 | cognition_submit_task / memory_search_vector |
 | 大写_下划线 | 常量命名 | AIRY_EOK / AIRY_IPC_HDR_SIZE |

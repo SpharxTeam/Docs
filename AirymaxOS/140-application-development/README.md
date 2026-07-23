@@ -73,7 +73,7 @@ agentrt-linux v1.0 在内核调度、IPC 传输、安全钩子、内存分配与
 
 | 层级 | 类型 | 机制 | 范围 |
 |------|------|------|------|
-| L1 | 系统调用层 | `AIRY_SYS_*` 内核系统调用（512-631） | 最底层能力 |
+| L1 | 系统调用层 | `AIRY_SYS_*` 内核系统调用（548-571） | 最底层能力 |
 | L2 | AgentsIPC 协议 | 128B 消息头 + 5 种 payload | Agent 间通信 |
 | L3 | C 运行时库 | libc + libagentrt + libcupolas | C 应用基础 |
 | L4 | 多语言 SDK | Python / Rust / Go / TypeScript | 4 语言 4 嵌套客户端 |
@@ -85,13 +85,12 @@ agentrt-linux v1.0 在内核调度、IPC 传输、安全钩子、内存分配与
 
 ```c
 /* kernel/include/uapi/agentrt/syscalls.h —— 完整注册表见 07-syscall-registry.md */
-#define AIRY_SYS_TASK_SUBMIT        512  /* 提交 Agent 任务 */
-#define AIRY_SYS_TASK_REGISTER     516  /* 注册新 Agent */
-#define AIRY_SYS_IPC_SEND          532  /* IPC 零拷贝发送（IORING_OP_URING_CMD） */
-#define AIRY_SYS_ROVOL_SNAPSHOT    552  /* 记忆快照（MemoryRovol） */
-#define AIRY_SYS_SCHED_SET_POLICY  572  /* 设置调度策略（sched_tac） */
-#define AIRY_SYS_CAPABILITY_REQUEST 592  /* 申请 capability（纯 C LSM） */
-#define AIRY_SYS_CLT_PHASE_NOTIFY  612  /* 认知阶段通知（CoreLoopThree） */
+/* v1.0.1 Capability Folding: 4 核心 syscall + op-dispatch + io_uring 数据面 */
+#define AIRY_SYS_CALL          548  /* Capability Invocation（sec_d 专属管理入口） */
+#define AIRY_SYS_ROVOL_CTL     549  /* MemoryRovol 记忆卷载控制（op-dispatch） */
+#define AIRY_SYS_SCHED_CTL     550  /* sched_tac 调度策略配置（op-dispatch） */
+#define AIRY_SYS_CLT_NOTIFY    551  /* CoreLoopThree 阶段通知 + kthread（op-dispatch） */
+/* Reserved 552-571 for future expansion */
 ```
 
 ---

@@ -46,7 +46,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 4. **机密计算 \[IND]**：支持 TEE/SGX/SEV-SNP/TDX/CCA 等可信执行环境，Vault backend 抽象 \[SC] 与 agentrt 共享。
 5. **国密算法 \[IND]**：遵循 agentrt-linux 标准集成 SM2/SM3/SM4 国密算法。
 6. **零信任网络 \[IND]**：基于身份的零信任网络架构。
-7. **eBPF kfunc + dynamic pointer \[SS]**：利用 Linux 6.6 原生特性对 eBPF 程序进行签名验证。
+7. **纯 C LSM 编译期校验 + CBMC 形式化验证 [SS]**：airy_lsm 代码完整性通过编译期校验 + 静态分析 + CBMC 形式化验证保证（H5：不依赖 BPF_SYSCALL/BPF_JIT/DEBUG_INFO_BTF，对齐 openEuler 纯 C LSM 模式）。
 
 ### 1.1 横切关注点声明
 
@@ -56,7 +56,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 | -------- | ------------------------------------------ | ------ |
 | 调度数据流    | task\_create/task\_kill 钩子 + capability 检查 | \[SS]  |
 | IPC 数据流  | binder/ipc 钩子 + 消息端点 capability 校验         | \[SS]  |
-| eBPF 数据流 | eBPF 程序签名验证 + 纯 C LSM 钩子                  | \[SS]  |
+| 纯 C LSM 数据流 | 纯 C LSM 编译期校验 + CBMC 形式化验证 + 钩子       | [SS]  |
 | 记忆卷载数据流  | memory 加密 + TEE 保护 + memcg 隔离              | \[IND] |
 
 ***
@@ -104,7 +104,7 @@ security/
 ├── confidential-compute/   # 机密计算（TEE/SGX/SEV-SNP/TDX/CCA）[IND]
 ├── crypto/                 # 国密算法（agentrt-linux 标准）[IND]
 ├── zero-trust/             # 零信任网络 [IND]
-├── ebpf-verify/            # eBPF kfunc + dynamic pointer（6.6 原生）[SS]
+├── lsm-verify/             # 纯 C LSM 编译期校验 + CBMC 形式化验证（H5）[SS]
 └── docs/
 ```
 
@@ -164,14 +164,14 @@ security/
 - `mtls`：双向 TLS 通信。
 - `beyondcorp`：BeyondCorp 模型参考。
 
-### 3.7 ebpf-verify/（eBPF kfunc + dynamic pointer）\[SS]
+### 3.7 lsm-verify/（纯 C LSM 编译期校验 + CBMC 形式化验证）\[SS]
 
-利用 **Linux 6.6** 原生特性：
+对齐 **H5 纯 C LSM 硬约束**（不依赖 BPF_SYSCALL/BPF_JIT/DEBUG_INFO_BTF）：
 
-- `signing`：eBPF 程序签名工具。
-- `verification`：内核签名验证集成。
-- `keyring`：签名密钥环管理。
-- `policy`：仅允许已签名 eBPF 程序加载的策略。
+- `compile-check`：编译期类型安全校验（`__lsm_ro_after_init` + `__ro_after_init`）。
+- `static-analysis`：sparse/checkpatch 静态分析集成。
+- `cbmc-verify`：CBMC 形式化验证 fastpath 核心 100 行（airy_cap_badge_ok/airy_ipc_validate）。
+- `kcsan-runtime`：KCSAN 运行时并发检测交叉验证。
 
 #### 3.8 组件架构图
 
@@ -415,20 +415,20 @@ typedef struct airy_vault_backend {
 - 隐私计算（联邦学习）。
 - Agent 记忆加密（与 `memory` 协作）。
 
-### 4.5 eBPF kfunc + dynamic pointer（6.6 原生特性）\[SS]
+### 4.5 纯 C LSM 代码完整性验证（编译期校验 + CBMC 形式化验证，H5）\[SS]
 
-**特性**：
+**特性**（对齐 H5：不依赖 BPF_SYSCALL/BPF_JIT/DEBUG_INFO_BTF）：
 
-- Linux 6.6 引入 eBPF 程序签名验证机制。
-- 仅允许已签名 eBPF 程序加载至内核。
-- 防止恶意 eBPF 程序破坏内核安全。
-- 纯 C LSM 通过 `LSM_HOOK_INIT` 宏注册到 `security_hook_heads`（X-macro 模式经 `lsm_hook_defs.h` 生成钩子声明，但回调是纯 C 函数，非 BPF 程序）\[SS]。
+- airy_lsm 通过 `LSM_HOOK_INIT` 宏注册到 `security_hook_heads`（X-macro 模式经 `lsm_hook_defs.h` 生成钩子声明，回调为纯 C 函数，非 BPF 程序）。
+- 编译期 `__lsm_ro_after_init` + `__ro_after_init` 保证钩子表只读。
+- CBMC 形式化验证 fastpath 核心 100 行（airy_cap_badge_ok/airy_ipc_validate），结合 KCSAN 运行时并发检测交叉验证。
+- sparse/checkpatch 静态分析集成保证代码质量。
 
 **策略**：
 
-- `enforce`：仅允许已签名程序加载。
-- `log`：记录未签名程序加载尝试。
-- `disable`：禁用签名验证（仅开发环境）。
+- `enforce`：fastpath C-S9 Badge 校验失败立即触发冷酷执法（Ring 冻结 + 通知 Macro-Supervisor）。
+- `log`：slowpath LSM 钩子记录异常路径策略裁决。
+- `disable`：[DSL] 降级模式（仅开发环境，退化为最小可运行子集）。
 
 ### 4.6 国密算法支持（agentrt-linux 标准）\[IND]
 
@@ -810,7 +810,7 @@ sequenceDiagram
 | seL4 capability              | seL4 项目         | capability 系统设计    | \[SC]  |
 | seL4 CNode/MDB 派生            | seL4 项目         | capability 句柄传递与撤销 | \[SS]  |
 | Liedtke minimality principle | Liedtke SOSP'95 | 微内核最小化原则           | \[SS]  |
-| eBPF kfunc + dynamic pointer | Linux 6.6       | eBPF 程序签名验证        | \[SS]  |
+| 纯 C LSM + CBMC 形式化验证   | Linux 6.6 + seL4 | 安全模块代码完整性验证（H5，不依赖 BPF） | \[SS]  |
 | 机密计算                         | CCC             | TEE 集成             | \[IND] |
 | Landlock                     | Linux 5.x+      | 用户态沙箱              | \[SS]  |
 | seccomp BPF                  | Linux           | 系统调用过滤             | \[SS]  |
@@ -869,7 +869,7 @@ AirymaxOS 用户态 **12 daemon**（daemon 命名后缀统一为 `_d`，**无例
 | M5 | Vault backend 抽象 + TPM/SGX 后端                  | 2027 Q1 | \[SC] + \[IND] |
 | M6 | 国密算法集成（SM2/SM3/SM4）                            | 2027 Q1 | \[IND]         |
 | M7 | 机密计算（SEV-SNP/TDX/CCA）                          | 2027 Q2 | \[IND]         |
-| M8 | 零信任网络 + eBPF kfunc + dynamic pointer           | 2027 Q2 | \[SS] + \[IND] |
+| M8 | 零信任网络 + 纯 C LSM 代码完整性验证（CBMC）           | 2027 Q2 | [SS] + [IND] |
 
 ### 10.1 0.1.1 版本范围
 
@@ -944,7 +944,7 @@ AirymaxOS 用户态 **12 daemon**（daemon 命名后缀统一为 `_d`，**无例
 - Linux 6.6 `security/selinux/hooks.c`（纯 C LSM 注册参考：`DEFINE_LSM` + `security_add_hooks`）
 - Linux 6.6 `include/uapi/linux/io_uring.h`（`io_uring_cmd_to_pdu()` 安全宏 + `io_uring_cmd_done()` 4 参数 + `IORING_SETUP_SQE128`）
 - Linux 6.6 `Documentation/admin-guide/lockdown.rst`（Lockdown）
-- Linux 6.6 eBPF kfunc + dynamic pointer 文档
+- Linux 6.6 纯 C LSM（`LSM_HOOK_INIT` + `security_hook_list` + `DEFINE_LSM`）+ CBMC 形式化验证文档
 - CCC（Confidential Computing Consortium）白皮书
 - Landlock 官方文档
 - seccomp BPF 教程

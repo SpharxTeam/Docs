@@ -48,11 +48,11 @@ Micro-Supervisor 是内核态的纯 C LSM 模块，不做任何"人性化"决策
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| LSM 模块注册 | `kernel/kernel/superv/airy_superv_lsm.c` | `DEFINE_LSM(airy)` 注册 |
-| Capability 检测 | `kernel/kernel/superv/airy_cap_check.c` | 纯 C LSM 钩子 |
-| IPC 队列冻结 | `kernel/kernel/superv/airy_ipc_freeze.c` | `ring->frozen` 设置 |
-| die_notifier | `kernel/kernel/superv/airy_die_notify.c` | 内核崩溃通知链 |
-| eventfd 通知 | `kernel/kernel/superv/airy_eventfd.c` | 向 Macro-Supervisor 通知 |
+| 初始化入口 | `kernel/kernel/superv/airy_superv_init.c` | `late_initcall` + Micro-Supervisor 启动 |
+| Capability 检测 | `kernel/kernel/superv/airy_cap_check_superv.c` | 纯 C LSM 钩子 |
+| IPC 队列冻结 | `kernel/kernel/superv/airy_ipc_freeze_superv.c` | `ring->frozen` 设置 |
+| die_notifier | `kernel/kernel/superv/airy_die_notify_superv.c` | 内核崩溃通知链 |
+| eventfd 通知 | `kernel/kernel/superv/airy_eventfd_superv.c` | 向 Macro-Supervisor 通知 |
 | [IND] 头文件 | `kernel/include/uapi/linux/airymax/superv.h` | 独立实现（不在 [SC] 10 头文件清单中，仅内核 Micro-Supervisor 使用） |
 
 ### 1.3 与其他模块的协作
@@ -63,7 +63,7 @@ Micro-Supervisor 是内核态的纯 C LSM 模块，不做任何"人性化"决策
 | A-UEF | 返回 Fault 码 | `AIRY_FAULT_ABNORMAL_CAP` 等 |
 | A-ULP | eventfd 复用日志通道 | eventfd_signal |
 | Macro-Supervisor | 故障通知接收方 | eventfd + io_uring_cmd |
-| sched_tac（sched_d） | Agent 8 态生命周期联动 + 调度预算冻结 | `airy_sys_sched_ctl`（编号 2） |
+| sched_tac（sched_d） | Agent 8 态生命周期联动 + 调度预算冻结 | `airy_sys_sched_ctl`（编号 550） |
 
 ### 1.4 与 12 daemon 的协作关系（v1.0.1 新增）
 
@@ -78,7 +78,7 @@ Micro-Supervisor 作为内核态监管组件，与 Macro-Supervisor 管理的 12
 | 5 | logger_d | 日志消费守护（A-ULP）；logger_d 故障不影响 Badge 校验 | fastpath C-S9 |
 | 6 | macro_d | 故障通知接收方 + 裁决执行者；通过 `AIRY_IPC_OP_ADJUDICATE` 下发裁决 | fastpath C-S9（持 FREEZE 权限位） |
 | 7 | audit_d | 审计守护；所有 Badge 编译/撤销/冻结事件写入 audit_d 审计链 | fastpath C-S9 |
-| 8 | sched_d | sched_tac 策略守护进程；通过 `airy_sys_sched_ctl`（编号 2）控制调度参数 | fastpath C-S9 |
+| 8 | sched_d | sched_tac 策略守护进程；通过 `airy_sys_sched_ctl`（编号 550）控制调度参数 | fastpath C-S9 |
 | 9 | dev_d | 设备驱动守护；dev_d IPC 异常触发 Ring 冻结 | fastpath C-S9 |
 | 10 | net_d | 网络策略守护；net_d IPC 异常触发 Ring 冻结 | fastpath C-S9 |
 | 11 | vfs_d | VFS 用户态服务；vfs_d IPC 异常触发 Ring 冻结 | fastpath C-S9 |
@@ -88,7 +88,7 @@ Micro-Supervisor 作为内核态监管组件，与 Macro-Supervisor 管理的 12
 
 ### 1.5 与 sched_tac 的协作（v1.0.1 新增）
 
-**sched_tac 策略守护进程**是 sched_d daemon（详见 [10-user-supervisor-daemon.md §1.3](10-user-supervisor-daemon.md)），通过 `airy_sys_sched_ctl`（syscall 编号 2）与 Micro-Supervisor 协作。协作关系如下：
+**sched_tac 策略守护进程**是 sched_d daemon（详见 [10-user-supervisor-daemon.md §1.3](10-user-supervisor-daemon.md)），通过 `airy_sys_sched_ctl`（syscall 编号 550）与 Micro-Supervisor 协作。协作关系如下：
 
 | 协作维度 | sched_d 职责 | Micro-Supervisor 职责 | 接口 |
 |---------|-------------|----------------------|------|
@@ -97,23 +97,33 @@ Micro-Supervisor 作为内核态监管组件，与 Macro-Supervisor 管理的 12
 | [DSL] 降级 | 进入 [DSL] 降级模式时，调度退化为 EEVDF 默认 | 通知 sched_d 进入 [DSL] 降级模式 | eventfd |
 | Badge 校验 | sched_d 作为 Agent 持有 Badge，fastpath C-S9 校验 | fastpath C-S9 校验 sched_d 的 Badge | io_uring `IORING_OP_URING_CMD` |
 
-**Agent 8 态生命周期与 sched_tac 集成**（对齐 [10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md)）：
+**Agent 8 态生命周期与 sched_tac 集成**（对齐 [10-sc-sched-extension.md §2](../30-interfaces/10-sc-sched-extension.md) SSoT）：
 
 ```
-Agent 8 态:  CREATED → READY → RUNNING → STOPPED → DEAD
-                                       ↘ PAUSED ↗
-                                       ↘ DEGRADED ↗
-                                       ↘ TERMINATED → DEAD
+Agent 8 态:  INACTIVE → SPAWNING → READY → RUNNING → BLOCKED → READY
+                                            │           │
+                                            │    异常   │
+                                            ▼           ▼
+                                          STOPPING ←─ 冻结
+                                            │
+                                            ▼
+                                          STOPPED
+                                            │
+                                       裁决 │  SIGCONT → READY
+                                            ▼
+                                          DEAD → waitpid() → INACTIVE
 
 Micro-Supervisor 在态迁移时通知 sched_d:
-  - RUNNING → STOPPED: kill(SIGSTOP)，sched_d 冻结调度预算
-  - STOPPED → READY:   kill(SIGCONT)，sched_d 恢复调度预算
-  - RUNNING → DEGRADED: sched_d 缩减调度预算（不停止进程）
-  - * → TERMINATED:    sched_d 释放调度预算 + Micro-Supervisor 撤销 Badge
-  - * → DEAD:          sched_d 释放调度预算 + Micro-Supervisor 撤销 Badge + 冻结 Ring
+  - RUNNING → BLOCKED:   IPC/IO 等待，sched_d 保持调度预算
+  - BLOCKED → READY:     唤醒，sched_d 恢复调度
+  - RUNNING → STOPPING:  kill(SIGSTOP)，sched_d 冻结调度预算
+  - STOPPED → READY:     kill(SIGCONT)，sched_d 恢复调度预算
+  - * → DEAD:            sched_d 释放调度预算 + Micro-Supervisor 撤销 Badge + 冻结 Ring
 ```
 
-**`airy_sys_sched_ctl`（编号 2）子命令**：
+> **SSoT 对齐**：本节为概述，Agent 8 态生命周期的唯一权威源为 [10-sc-sched-extension.md §2](../30-interfaces/10-sc-sched-extension.md)。本节状态名与迁移必须与 SSoT 保持一致。
+
+**`airy_sys_sched_ctl`（编号 550）子命令**：
 
 | 子命令 | 功能 | 调用者 |
 |--------|------|--------|
@@ -151,7 +161,7 @@ Micro-Supervisor 选择纯 C LSM 模块（**不使用 BPF LSM**），对齐 open
 ### 2.2 LSM 模块注册
 
 ```c
-/* kernel/kernel/superv/airy_superv_lsm.c —— 纯 C LSM 模块注册 */
+/* security/airy/airy_lsm.c —— 纯 C LSM 模块注册（DEFINE_LSM(airy)）*/
 #include <linux/lsm_hooks.h>
 
 /* DEFINE_LSM 宏注册纯 C LSM 模块（非 BPF） */

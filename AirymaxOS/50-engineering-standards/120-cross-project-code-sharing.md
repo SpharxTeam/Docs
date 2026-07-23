@@ -527,13 +527,13 @@ extern "C" {
  *     airy_sys_clt_notify  → 保留
  *     airy_sys_lsm_ctl     → 合并到 airy_sys_call (airy_sys_call + LSM_CTL)
  *
- *   Linux 512-535 槽位注册号（4 个使用，其余 reserved）:
+ *   Linux 548-571 槽位注册号（4 个使用，其余 reserved）:
  */
-#define AIRY_SYS_CALL		512	/* Capability Invocation (sec_d compiles Badge) */
-#define AIRY_SYS_ROVOL_CTL	513	/* MemoryRovol control */
-#define AIRY_SYS_SCHED_CTL	514	/* sched_tac scheduling policy control */
-#define AIRY_SYS_CLT_NOTIFY	515	/* Client event notification */
-/* Reserved slots 516-535 for future expansion */
+#define AIRY_SYS_CALL		548	/* Capability Invocation (sec_d compiles Badge) */
+#define AIRY_SYS_ROVOL_CTL	549	/* MemoryRovol control */
+#define AIRY_SYS_SCHED_CTL	550	/* sched_tac scheduling policy control */
+#define AIRY_SYS_CLT_NOTIFY	551	/* Client event notification */
+/* Reserved slots 552-571 for future expansion */
 
 #ifdef __cplusplus
 }

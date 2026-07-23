@@ -275,7 +275,7 @@ int airy_agent_migrate(u32 agent_id, u32 target_node,
  * @agent_id: Agent ID
  * @exit_code: 退出码（用户定义 + 系统定义）
  *
- * 借鉴 seL4 SCX 分级退出码设计（ext.c: SCX_EXIT_KIND）：
+ * 借鉴 seL4 fault handler 分级错误码设计（seL4 src/api/faults.h：seL4_FaultType）：
  *   高 16 位：退出类别
  *     0x0000: AGENT_EXIT_NORMAL     - 正常退出
  *     0x0001: AGENT_EXIT_TOKEN_EXHAUSTED - Token 预算耗尽
@@ -392,7 +392,7 @@ int airy_cap_revoke(u32 agent_id);
 
 ### 7.1 分级错误响应
 
-借鉴 主流 Linux 发行版 sched_ext watchdog（Linux 6.12+）的分级退出设计，sched_tac 用户态调度器采用等效的 watchdog 机制：
+借鉴 Linux 内核 watchdog 与 seL4 fault handler 的分级错误响应设计，sched_tac 用户态调度器采用等效的 watchdog 机制（不使用 sched_ext）：
 
 | 错误级别 | 处理方式 | 触发条件 |
 |---------|---------|---------|

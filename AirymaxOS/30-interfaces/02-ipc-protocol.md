@@ -3,7 +3,7 @@ Copyright (c) 2025-2026 SPHARX Ltd. All Rights Reserved.
 # IPC 协议
 > **文档定位**：agentrt-linux（AirymaxOS） 进程间通信协议的 Layout C v4 128B 消息头、5 种 payload、io_uring 零拷贝与同源映射、Capability Folding Badge 模型\
 > **文档版本**：v1.0.1\
-> **最后更新**： 2026-07-21\
+> **最后更新**： 2026-07-22\
 > **上级文档**：[agentrt-linux 设计文档](README.md)
 
 ---
@@ -703,9 +703,9 @@ IPC 性能约束对齐非功能性需求 NFR-P-002（详见 [00-requirements/03-
 
 | agentrt AgentsIPC（用户态） | agentrt-linux io-uring-ipc（内核态） | 同源签名 | 实现差异 |
 |----------------------------|--------------------------------------|---------|---------|
-| `airy_ipc_send()` | `airy_sys_ipc_send()` → `IORING_OP_URING_CMD + cmd_op=IPC_SEND` | `(const struct airy_ipc_msg_hdr *, const void *) -> int` | 用户态 POSIX MQ vs 内核 io_uring SQE |
-| `airy_ipc_recv()` | `airy_sys_ipc_recv()` → CQE poll | `(struct airy_ipc_msg_hdr *, void *, size_t) -> int` | 用户态 mq_receive vs 内核 io_uring CQE |
-| `airy_ipc_register_ring()` | `airy_sys_ipc_register_ring()` | `(int ring_fd, __u64 dst_task) -> int` | 用户态 mmap 共享 vs 内核 io_uring_register |
+| `airy_ipc_send()` | `IORING_OP_URING_CMD + cmd_op=AIRY_URING_CMD_IPC_SEND`（v1.0.1 无独立 syscall） | `(const struct airy_ipc_msg_hdr *, const void *) -> int` | 用户态 POSIX MQ vs 内核 io_uring SQE |
+| `airy_ipc_recv()` | CQE poll（v1.0.1 无独立 syscall） | `(struct airy_ipc_msg_hdr *, void *, size_t) -> int` | 用户态 mq_receive vs 内核 io_uring CQE |
+| `airy_ipc_register_ring()` | `io_uring_register`（v1.0.1 无独立 syscall） | `(int ring_fd, __u64 dst_task) -> int` | 用户态 mmap 共享 vs 内核 io_uring_register |
 | `airy_cap_badge_ok()`（v1.0.1 新增） | fastpath C-S9 内联校验 | `(badge, src_task, required_perms) -> bool` | agentrt 用户态始终返回 true（badge=0，H3）；agentrt-linux 内核完整校验（H4） |
 
 > **v1.0.1 变更说明**：原 `airy_ipc_send_with_cap()` / `airy_sys_ipc_send_with_cap()` 已废弃。Capability Folding 模式下，Badge 直接嵌入消息头 `capability_badge` 字段，无需独立 cap_slot 参数。agentrt 用户态 `capability_badge=0`（H3），不调用 `airy_cap_badge_ok()`；agentrt-linux 内核 fastpath C-S9 内联校验（H4）。

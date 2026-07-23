@@ -164,7 +164,7 @@ void task_numa_fault(int last_cpupid, int mem_node, int pages, int flags)
     struct task_struct *p = current;
     bool migrated = flags & TNF_MIGRATED;
     /* 统计 p->numa_faults 数组，记录每个 node 的访问频次 */
-    /* 超节点 OS 通过 eBPF 追踪此函数，为 Agent 亲和性提供数据 */
+    /* 超节点 OS 通过 ftrace 追踪此函数，为 Agent 亲和性提供数据 */
 }
 ```
 
@@ -201,16 +201,19 @@ static void numa_migrate_preferred(struct task_struct *p)
 超节点 OS 通过sched_tac 用户态调度策略 `airy_agent`（SCHED_DEADLINE/SCHED_FIFO 策略名，非宏）实现 Agent NUMA 亲和性：
 
 ```c
-/* sched_tac 用户态调度策略：airy_agent（用户态调度程序） */
-SEC("struct_ops/agent_enqueue")
-int BPF_PROG(agent_enqueue, struct task_struct *p, u64 enq_flags)
-{
-    /* 1. 读取 Agent 的 numa_faults 统计 */
-    /* 2. 计算 NUMA 亲和性得分 */
-    /* 3. 优先入队到本地 die 的 CPU 运行队列 */
-    /* 4. 本地 die 过载时，按距离矩阵选择次优 die */
-    return 0;
-}
+/* sched_tac 用户态调度策略：airy_agent（SCHED_DEADLINE/SCHED_FIFO 策略名，非宏）
+ * 实现：sched_d daemon 通过 airy_sys_sched_ctl（编号 2）注入 NUMA 亲和性参数
+ * 注意：不使用 sched_ext / BPF struct_ops，对齐 H5 纯 C LSM 与 sched_tac 选型 */
+struct airy_agent_sched_params {
+    u32 agent_id;
+    u32 preferred_nid;       /* 偏好 NUMA 节点 */
+    u64 numa_affinity_score; /* NUMA 亲和性得分 */
+    u64 runtime_budget;      /* SCHED_DEADLINE runtime */
+    u64 deadline;            /* SCHED_DEADLINE deadline */
+    u64 period;              /* SCHED_DEADLINE period */
+};
+
+/* sched_d 通过 airy_sys_sched_ctl(SCHED_SET_POLICY, SCHED_DEADLINE, &params) 注入 */
 ```
 
 ### 3.5 调度策略与延迟预算
@@ -264,7 +267,7 @@ sequenceDiagram
     participant CXL as CXL 内存池
     participant DST as 目标 die Agent
 
-    SRC->>KERN: 1. airy_sys_rovol_migrate(agent_id, dst_die, HOT)
+    SRC->>KERN: 1. airy_sys_rovol_ctl(549, op=AIRY_ROVOL_MIGRATE, agent_id, dst_die, HOT)
     KERN->>SRC: 2. 快照源 MemoryRovol（fork+COW）
     KERN->>CXL: 3. L1/L4 写入 CXL 池（共享零拷贝）
     KERN->>KERN: 4. L2/L3 页迁移（migrate_pages）
@@ -297,7 +300,7 @@ stateDiagram-v2
 
 | 指标 | 阈值 | 测量方法 |
 |------|------|---------|
-| 冷迁移（COLD）总延迟 | < 500 ms（P99） | `airy_sys_rovol_migrate` 全程 |
+| 冷迁移（COLD）总延迟 | < 500 ms（P99） | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_MIGRATE）全程 |
 | 热迁移（HOT）停顿时间 | < 10 ms（P99） | Agent 不可用时间窗口 |
 | 增量迁移（INCREMENT）同步延迟 | < 50 ms（P99） | 增量同步窗口 |
 | CXL 池零拷贝读取延迟 | < 10 μs（P99） | CXL 3.0 单次读 |
@@ -464,7 +467,7 @@ AIRY_API int airy_supernode_token_borrow(uint32_t src_die,
 
 | 快照内容 | 来源 | 机制 |
 |---------|------|------|
-| 全部 Agent 的 MemoryRovol | L1-L4 记忆卷载 | `airy_sys_rovol_snapshot`（552） |
+| 全部 Agent 的 MemoryRovol | L1-L4 记忆卷载 | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_SNAPSHOT） |
 | 全部 Agent 的 Token 状态 | 令牌桶当前水位 | Token 池快照 |
 | cgroup 层级与配额 | cgroup v2 状态 | cgroup 快照 |
 | 超节点拓扑 | 拓扑描述符 | `airy_supernode_topology_t` 序列化 |
@@ -492,7 +495,7 @@ flowchart LR
 1. 恢复超节点拓扑（验证硬件一致性）
 2. 恢复 cgroup 层级与配额
 3. 恢复 Token 池状态
-4. 逐 Agent 恢复 MemoryRovol（`airy_sys_rovol_restore` 553）
+4. 逐 Agent 恢复 MemoryRovol（`airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_RESTORE））
 5. 唤醒 Agent（按延迟预算优先级排序）
 
 **RTO 约束**：整机恢复 RTO < 30s（P99），取决于 Agent 数量与 MemoryRovol 总大小。
@@ -526,7 +529,7 @@ stateDiagram-v2
 | TOPOLOGY_DISCOVER → READY | 拓扑构建完成 | 注册超节点 Token 池 |
 | READY → DEGRADED | die 故障（热插拔/错误） | 故障 die Agent 迁移到其他 die |
 | READY → SNAPSHOTTING | `agentctl supernode snapshot` | 冻结调度 + 快照 |
-| READY → MIGRATING | `airy_sys_rovol_migrate` | 跨 die 迁移 |
+| READY → MIGRATING | `airy_sys_rovol_ctl`（549，op=AIRY_ROVOL_MIGRATE） | 跨 die 迁移 |
 
 ---
 
@@ -561,9 +564,9 @@ agentctl supernode affinity --agent <agent_id>
 
 | 编号 | 调用 | 用途 |
 |------|------|------|
-| 515 | `airy_sys_task_migrate` | Agent 任务跨 die 迁移 |
-| 554 | `airy_sys_rovol_migrate` | MemoryRovol 跨 die 迁移 |
-| 555 | `airy_sys_cxl_tier_set` | CXL 内存分层策略 |
+| 550 | `airy_sys_sched_ctl`（op=AIRY_SCHED_YIELD） | Agent 任务跨 die 迁移 |
+| 549 | `airy_sys_rovol_ctl`（op=AIRY_ROVOL_MIGRATE） | MemoryRovol 跨 die 迁移 |
+| 549 | `airy_sys_rovol_ctl`（op=AIRY_ROVOL_TIER_SET） | CXL 内存分层策略 |
 
 超节点 Token 池 API 通过 A-ULS（`services/daemons/macro_d/`）统一管理，不新增系统调用（遵循"机制在内核、策略在用户态"的微内核原则）。超节点生命周期由 A-ULS 统一监管，与 Agent 8 态生命周期同构（见 [30-interfaces/10-sc-sched-extension.md](../30-interfaces/10-sc-sched-extension.md)），消除超节点功能三方交叉。
 
@@ -637,11 +640,11 @@ flowchart TB
 ### 11.2 错误处理策略
 
 ```c
-int ret = airy_sys_rovol_migrate(agent_id, dst_die, AIRY_ROVOL_MIGRATE_HOT);
+int ret = airy_sys_rovol_ctl(AIRY_ROVOL_MIGRATE, agent_id, dst_die, AIRY_ROVOL_MIGRATE_HOT);
 if (ret == -AIRY_EBUSY) {
     /* Agent 正在快照，等待后重试 */
     usleep(10000);
-    ret = airy_sys_rovol_migrate(agent_id, dst_die, AIRY_ROVOL_MIGRATE_HOT);
+    ret = airy_sys_rovol_ctl(AIRY_ROVOL_MIGRATE, agent_id, dst_die, AIRY_ROVOL_MIGRATE_HOT);
 } else if (ret == -AIRY_KERN_ENODIE) {
     log_write(LOG_ERROR, "目标 die %u 不存在", dst_die);
     return ret;
@@ -686,7 +689,7 @@ if (ret == -AIRY_EBUSY) {
 | 指标 | 阈值 | 测量方法 |
 |------|------|---------|
 | NUMA balancing 迁移延迟 | < 1 ms（P99） | `task_numa_fault` 到迁移完成 |
-| 跨 die Agent 迁移延迟 | < 100 ms（P99） | `airy_sys_task_migrate` 全程 |
+| 跨 die Agent 迁移延迟 | < 100 ms（P99） | `airy_sys_sched_ctl(AIRY_SCHED_YIELD)` 全程 |
 | CXL 池零拷贝读延迟 | < 10 μs（P99） | CXL 3.0 单次读 |
 | 整机快照 RTO | < 30 s（P99） | 快照触发到完成 |
 | 整机恢复 RTO | < 30 s（P99） | 恢复触发到全部 Agent 唤醒 |

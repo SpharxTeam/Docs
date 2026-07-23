@@ -44,7 +44,7 @@ agentrt-linux v1.0 在内核调度、IPC 传输、安全钩子、内存分配与
 | ----- | ------ | ------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
 | 第 1 层 | \[SC]  | 共享契约层（Shared-Contract）         | 完全共享代码        | 10 个头文件（`include/uapi/linux/airymax/`）：`error.h` / `log_types.h` / `memory_types.h` / `security_types.h` / `cognition_types.h` / `sched.h` / `ipc.h` / `syscalls.h` / `uapi_compat.h` / `lsm_types.h` | `include/uapi/linux/airymax/` 独立头文件库，两端共同依赖           |
 | 第 2 层 | \[SS]  | 语义同源层（Shared-Semantics）        | API 签名相同，实现独立 | 调度语义、安全模型、IPC 传输、记忆模型、认知循环                                                                                                                                                                 | 各自独立实现，通过 \[SC] 保证互操作                      |
-| 第 3 层 | \[IND] | 完全独立层（Independent）             | 完全独立实现        | io\_uring fastpath、eBPF kfunc、Kbuild/Kconfig、内核模块构建                                                                                                                                        | 各自独立实现，通过 \[SC] 保证互操作                      |
+| 第 3 层 | \[IND] | 完全独立层（Independent）             | 完全独立实现        | io\_uring fastpath、纯 C LSM（airy\_lsm，H5）、Kbuild/Kconfig、内核模块构建                                                                                                                                        | 各自独立实现，通过 \[SC] 保证互操作                      |
 | 第 4 层 | \[DSL] | 降级生存层（Degraded Survival Layer） | 自包含降级块        | `#ifdef AIRY_SC_FALLBACK` 降级块、最小可运行子集（38 POSIX 错误码 + printk LOG\_FATAL/ERROR + 最简 IPC）                                                                                                     | 每个 \[SC] 头文件底部的降级块，`.fallback_hashes` 独立校验 |
 
 ***
@@ -219,7 +219,7 @@ Unify Design 的总纲文档为 [`10-architecture/10-unify-design.md`](10-archit
 | seL4 微内核（形式化验证、capability、MCS、消息传递 IPC）                 | kernel + security + services |
 | LionsOS（seL4 Microkit 生态）                               | kernel + system              |
 | sDDF（seL4 设备驱动框架）                                       | kernel + services            |
-| Linux 6.6 内核基线（EEVDF + MGLRU + eBPF kfunc + Rust 实验性支持） | kernel                       |
+| Linux 6.6 内核基线（EEVDF + MGLRU + eBPF kfunc（非核心，H5 约束） + Rust 实验性支持） | kernel                       |
 | sched\_tac（SCHED\_DEADLINE/SCHED\_FIFO/EEVDF 原生调度类组合）   | kernel（Agent 调度策略）           |
 | io\_uring（IORING\_OP\_URING\_CMD 零拷贝）                   | kernel + services            |
 | 纯 C LSM（security\_hook\_list 注册）                        | security                     |

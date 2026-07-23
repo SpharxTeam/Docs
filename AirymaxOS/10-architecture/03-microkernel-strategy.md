@@ -117,7 +117,7 @@ seL4 严格遵循"机制而非策略"原则（ES-SEL4-04）：内核只提供机
 | sched\_tac 框架    | Agent 调度策略        | SCHED\_DEADLINE / SCHED\_FIFO / EEVDF 调度类组合在内核态，策略在用户态定义 |
 | io\_uring ring 机制 | IPC 路由策略          | 12 daemons 在用户态路由 |
 | capability 令牌验证   | capability 授权策略   | security 守护进程     |
-| eBPF kfunc 扩展     | 安全观测策略            | eBPF 程序在用户态编写     |
+| 纯 C LSM 钩子（H5）  | 安全观测策略            | airy_lsm 审计策略在用户态编写  |
 
 ***
 
@@ -129,7 +129,7 @@ seL4 明确内核只保留 6 类职责（ES-SEL4-29）：
 
 | 职责            | seL4 实现                            | agentrt-linux 实现                   | 代码预估      |
 | ------------- | ---------------------------------- | ---------------------------------- | --------- |
-| Capability 管理 | CNode + MDB 派生树                    | eBPF kfunc + capability 验证         | \~3,000 行 |
+| Capability 管理 | CNode + MDB 派生树                    | 纯 C LSM + agent_caps[1024] 静态数组（H5） | \~3,000 行 |
 | IPC（消息传递）     | Endpoint + Notification + Fastpath | io\_uring 零拷贝 + MSG\_RING          | \~5,000 行 |
 | 调度原语          | priority + round-robin + domain    | sched\_tac（SCHED\_DEADLINE / SCHED\_FIFO / EEVDF 调度类组合） | \~4,000 行 |
 | 地址空间管理        | VSpace + Page Table                | Linux mm/（保留）                      | Linux 原生  |
@@ -205,7 +205,7 @@ CSpace = CNode 树
   寻址 = guard 匹配 + radix 逐级查找
 ```
 
-**agentrt-linux 落地**：通过 eBPF kfunc + dynamic pointer 实现 capability 检查。CTE 结构定义在 \[SC] `include/uapi/linux/airymax/security_types.h` 中，与 agentrt Cupolas 同源。
+**agentrt-linux 落地**：通过纯 C LSM 钩子 + `agent_caps[1024]` 静态数组实现 capability 检查（H5 硬约束，禁止依赖 BPF）。CTE 结构定义在 \[SC] `include/uapi/linux/airymax/security_types.h` 中，与 agentrt Cupolas 同源。
 
 ### 3.2 Capability 派生树
 
@@ -539,7 +539,7 @@ agentrt-linux 不从零开发微内核（ADR-012），而是基于 Linux 6.6 进
 
 | 阶段   | 版本     | 改造内容                                                             | seL4 借鉴                         |
 | ---- | ------ | ---------------------------------------------------------------- | ------------------------------- |
-| 阶段 1 | 1.x.x  | sched\_ext + io\_uring IPC + eBPF kfunc + capability 层引入         | capability 单一模型（ES-SEL4-05\~09） |
+| 阶段 1 | 1.x.x  | sched\_tac 调度框架 + io\_uring IPC + 纯 C LSM capability 层引入（H5）  | capability 单一模型（ES-SEL4-05\~09） |
 | 阶段 2 | 1.x.x+ | VFS 部分用户态化 + 网络栈部分用户态化（DPDK / AF\_XDP）+ 驱动框架用户态化（VFIO / libvfio） | 服务用户态化（ES-SEL4-29\~31）          |
 | 阶段 3 | 2.x.x  | 大部分系统服务用户态化 + 完整 capability 安全模型 + 形式化验证（部分核心模块）+ Linux 7.1 基线升级 | 形式化验证预留（ES-SEL4-16\~20）         |
 
@@ -594,7 +594,7 @@ seL4 采用 TSC（Technical Steering Committee）集中治理模式（ES-SEL4-36
 | ---------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | **\[SC] 共享契约层**  | 完全共享代码                                 | capability 模型（`security_types.h` 41 cap + 250 LSM）+ IPC 契约（`ipc.h` magic 0x41524531 'ARE1' + 128B 头） |
 | **\[SS] 语义同源层**  | 操作模式同源（注册/匹配/生命周期等概念一致），函数签名因抽象层级不同而独立 | IPC 消息传递 API（agentrt POSIX MQ ↔ agentrt-linux io\_uring）+ capability 4 项 API 同源                      |
-| **\[IND] 完全独立层** | 完全独立                                   | 形式化验证框架（tests-linux seL4 风格）+ 内核态调度（sched\_tac / eBPF）                                              |
+| **\[IND] 完全独立层** | 完全独立                                   | 形式化验证框架（tests-linux seL4 风格）+ 内核态调度（sched\_tac）+ 纯 C LSM（airy\_lsm，H5）                                              |
 | **\[DSL] 降级生存层** | [SC] 损坏时最小可运行子集                          | 每个 [SC] 头文件底部 `#ifdef AIRY_SC_FALLBACK` 降级块（38 POSIX 错误码 + printk + 最小 128B IPC + EEVDF 默认 + POSIX capability + 统一 Panic），详见 [11-degraded-survival-layer.md](11-degraded-survival-layer.md) |
 
 ### \[SC] 共享契约层——10 个头文件在微内核策略中的角色
@@ -619,7 +619,7 @@ seL4 采用 TSC（Technical Steering Committee）集中治理模式（ES-SEL4-36
 | Capability   | Cupolas 用户态 CNode  | LSM + Landlock + capability                                               | mint/revoke/derive/copy |
 | IPC Endpoint | POSIX MQ + mmap    | io\_uring + SQPOLL（用户态-内核态）；kfifo + wait\_event\_interruptible（kthread 间） | 8 项 io\_uring 同源        |
 | 服务用户态化       | Daemons systemd 单元 | kthread / daemon（12 daemons）                                              | systemd 单元同源            |
-| 最小内核         | 用户态库 + 守护进程        | sched\_tac + eBPF（5-10 万行预算）                                              | Liedtke 极简原则            |
+| 最小内核         | 用户态库 + 守护进程        | sched\_tac + 纯 C LSM（airy\_lsm，H5）（5-10 万行预算）                                              | Liedtke 极简原则            |
 
 ### \[IND] 完全独立层
 

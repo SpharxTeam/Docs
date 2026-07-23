@@ -1430,7 +1430,7 @@ static int macro_d_execute_adjudication(pid_t pid,
 ### 8.2 内核侧裁决执行
 
 ```c
-/* kernel/kernel/superv/airy_superv_lsm.c —— 内核侧裁决执行 */
+/* kernel/kernel/superv/airy_superv_init.c —— 内核侧初始化入口 */
 static int airy_adjudicate_execute(struct airy_ipc_cmd *cmd)
 {
     pid_t pid = cmd->agent_id;

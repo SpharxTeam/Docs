@@ -265,7 +265,7 @@ agentrt-linux 同时使用 capability（seL4 借鉴）和 LSM（Linux 6.6 原生
 
 | 编号        | 问题                                            | 来源                                                                                                                | 状态  |
 | --------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --- |
-| P0-SYS-01 | README syscall 编号冲突（1001-1004 vs 512-631 编号段） | [140-application-development/07-syscall-registry.md §11.1](../140-application-development/07-syscall-registry.md) | 待修复 |
+| P0-SYS-01 | README syscall 编号冲突（1001-1004 vs 548-571 编号段） | [140-application-development/07-syscall-registry.md §11.1](../140-application-development/07-syscall-registry.md) | 已修复（v3.0） |
 
 ### 8.2 P1 级问题（文档同步/错误码一致性）
 

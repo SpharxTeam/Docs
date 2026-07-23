@@ -746,7 +746,7 @@ airy_active_sessions 1500
 [ERROR] AIRY_ENOMEM: 内存分配失败
   at coreloopthree/cognition/planner.c:142 (airy_planner_expand)
   at coreloopthree/cognition/cognition.c:87 (airy_cognition_process)
-  at syscalls/syscall.c:234 (airy_sys_task_submit)
+  at syscalls/syscall.c:234 (airy_sys_call)
   context: requested=256MB, available=128MB, process=airy_cogn_d, pid=1234
   suggestion: 1) 减少批量大小 2) 启用内存压缩 3) 增加系统内存
 ```

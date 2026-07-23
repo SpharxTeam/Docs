@@ -156,7 +156,8 @@ agentrt-linux SBOM 覆盖以下组件类别：
 | 类别 | 组件示例 | 优先级 |
 |------|----------|--------|
 | **Linux 内核基线** | Linux 内核 6.6 基线（含 agentrt-linux 内核增强） | 最高 |
-| **eBPF 子系统** | eBPF kfunc、dynamic pointer、sched_tac（stc_* 策略枚举） | 高 |
+| **eBPF 可观测性（非核心，H5）** | eBPF kfunc、dynamic pointer（仅用于 90-observability，airy_lsm 不依赖 BPF） | 中 |
+| **sched_tac 调度** | SCHED_DEADLINE/SCHED_FIFO/EEVDF + seL4 MCS 映射（不使用 sched_ext） | 高 |
 | **Rust 工具链** | Rust 编译器、cargo、核心 crate | 高 |
 | **C/C++ 工具链** | GCC、Clang、binutils、glibc | 高 |
 | **系统服务** | systemd、journald、NetworkManager | 高 |

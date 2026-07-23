@@ -397,7 +397,7 @@ agentrt CoreLoopThree（用户态，跨平台）
            │
            └── 可选使用内核 kthread 加速路径（同源红利）
                ├── kthread_run() 创建持久化内核 kthread
-               ├── 享受 sched_ext SCHED_AGENT 调度优先级
+               ├── 享受 sched_tac 调度优先级（SCHED_DEADLINE/SCHED_FIFO/EEVDF）
                └── 与 GPU/NPU drm_sched 协同（无需适配层）
 ```
 
